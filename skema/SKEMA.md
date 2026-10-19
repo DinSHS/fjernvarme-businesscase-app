@@ -93,7 +93,7 @@ Dem håndhæver serveren/Functions ved skrivning og `valider-db` (`fjv_skema.tje
    | `Motor` | kun rækken `MOTOR_ID` | nej |
 
 6. **Tekstsammenligning er versalufølsom i Fabric** (kollationen), versalfølsom i sqlite og postgresql. Det rammer
-   e-mails: DAB's policy `@claims.email eq @item.bestilt_af` og kvoten pr. bruger matcher `Shs@…` med `shs@…` i
+   e-mails: DAB's policy `@claims.email eq @item.bestilt_af` og kvoten pr. bruger matcher `Bruger@…` med `bruger@…` i
    Fabric, men ikke i community. Skriv e-mails, som sessionen giver dem — sammenlign aldrig en indtastet.
 
 ## Bring your own SQL
