@@ -1,0 +1,293 @@
+{
+  "schemaVersion": "2.0",
+  "functions": [
+    {
+      "functionName": "startBestilling",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Fabric | AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "bestillingId",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Fabric",
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "udfoerAendring",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "anmodningId",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "afstem",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Fabric | AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Fabric",
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "annullerKoersel",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "koerselId",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "hentKildeYaml",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Sql | AudienceType.Storage>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "vaerkId",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql",
+        "Storage"
+      ]
+    },
+    {
+      "functionName": "uploadTidsserie",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Sql | AudienceType.Storage>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "anmodningId",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        },
+        {
+          "name": "indholdBase64",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 2,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql",
+        "Storage"
+      ]
+    },
+    {
+      "functionName": "hentTidsserie",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Sql | AudienceType.Storage>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "tidsserieId",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        },
+        {
+          "name": "fra",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 2,
+          "isFabricParameter": false
+        },
+        {
+          "name": "til",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 3,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql",
+        "Storage"
+      ]
+    },
+    {
+      "functionName": "uploadVaerksark",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Fabric | AudienceType.Sql | AudienceType.Storage>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "anmodningId",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        },
+        {
+          "name": "indholdBase64",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 2,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Fabric",
+        "Sql",
+        "Storage"
+      ]
+    },
+    {
+      "functionName": "hentDmiTemperatur",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Sql | AudienceType.Storage>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "omraade",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        },
+        {
+          "name": "fra",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 2,
+          "isFabricParameter": false
+        },
+        {
+          "name": "til",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 3,
+          "isFabricParameter": false
+        },
+        {
+          "name": "kolonne",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 4,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql",
+        "Storage"
+      ]
+    },
+    {
+      "functionName": "skemaInfo",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    }
+  ]
+}

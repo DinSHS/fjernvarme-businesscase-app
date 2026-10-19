@@ -1,0 +1,18 @@
+{
+  "_om": "Skabelon for en installation. Kopier til config/installation.json (git-ignoreret) og udfyld; se FABRIC.md, afsnittet 'Din installation'. Nøgler, der begynder med _, er kommentarer. Alt, du skriver i installation.json, bliver aldrig committet: scripts/tjek.py stopper det.",
+  "workspace_navn": "<DIT-WORKSPACE-NAVN>",
+  "workspace_id": "<DIT-WORKSPACE-ID>",
+  "lakehouse_navn": "fjv_lakehouse",
+  "lakehouse_id": "<DIT-LAKEHOUSE-ID>",
+  "sql_server": "<DIN-SQL-SERVER>.database.fabric.microsoft.com",
+  "sql_database": "<DIN-SQL-DATABASE>",
+  "notebooks": {
+    "koer_scenarie": "<ID FRA 'deploy.py notebook fjv_koer_scenarie'>",
+    "importer_vaerksark": "<ID>",
+    "importer_vaerker": "",
+    "selvtest": ""
+  },
+  "app": {
+    "redirect_uris": ["https://<din-app>.webapp.fabricapps.net"]
+  }
+}

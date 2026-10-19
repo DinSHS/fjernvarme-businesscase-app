@@ -1,0 +1,131 @@
+{
+  "_om": "Kreditfakta, som tjek_offentlig.py holder CREDITS.md, NOTICE, LICENSES/, README og appens kreditlinje op imod (produktejer 2026-10-16 18:05, brief 21 punkt 8). Alt her er hentet ordret fra de to repoer ved de pinnede commits; ret kun ved en bevidst opgradering af pinnet version eller en rettelse hos kilden. Filen indeholder intet tenant-specifikt og er med i den offentlige eksport.",
+  "model": {
+    "repo": "skj-1964/fjernvarme-businesscase",
+    "url": "https://github.com/skj-1964/fjernvarme-businesscase",
+    "licens": "MIT",
+    "ophavsret": "Copyright (c) 2026 Dansk Fjernvarme",
+    "licensfil": "LICENSES/fjernvarme-businesscase_LICENSE.txt",
+    "licens_sha256_lf": "62ce33293966afa7c0518d475d53b83dcd45d065babcc5a21189e6729392db5b",
+    "pin": {
+      "fil": "fabric/fjv/konstanter.py",
+      "navn": "MODEL_COMMIT"
+    }
+  },
+  "data": {
+    "repo": "skj-1964/df-data",
+    "url": "https://github.com/skj-1964/df-data",
+    "licens": "MIT (scripts) + CC BY 4.0 (data)",
+    "ophavsret": "Copyright (c) 2026 Steen Kramer Jensen / Dansk Fjernvarme",
+    "licensfil": "LICENSES/df-data_LICENSE.txt",
+    "licens_sha256_lf": "cefce3c010e8d4120ce7f61473cda5a8145519cb35e33ecd3a5dbfe49ad3f15b",
+    "pin": {
+      "fil": "fabric/fjv/konstanter.py",
+      "navn": "DF_DATA_SHA"
+    }
+  },
+  "forfatter": {
+    "navn": "Steen Kramer Jensen",
+    "github": "skj-1964",
+    "url": "https://github.com/skj-1964"
+  },
+  "partnere": [
+    "Billund Fjernvarme",
+    "Dansk Fjernvarme"
+  ],
+  "kilder": [
+    "Energinet",
+    "Energi Data Service",
+    "DMI",
+    "api.sysapp.dk",
+    "CC BY 4.0"
+  ],
+  "credits_skal_indeholde": [
+    "skj-1964/fjernvarme-businesscase",
+    "skj-1964/df-data",
+    "Steen Kramer Jensen",
+    "Billund Fjernvarme",
+    "Dansk Fjernvarme",
+    "Energinet",
+    "Energi Data Service",
+    "DMI",
+    "api.sysapp.dk",
+    "CC BY 4.0",
+    "brugerflade til",
+    "distribuerer ikke modellens kode",
+    "pinnet commit",
+    "LICENSES/fjernvarme-businesscase_LICENSE.txt",
+    "LICENSES/df-data_LICENSE.txt"
+  ],
+  "readme_foerste_afsnit_skal_naevne": [
+    "github.com/skj-1964/fjernvarme-businesscase"
+  ],
+  "readme_foerste_afsnit_linjer": 12,
+  "kreditlinje": {
+    "skal_indeholde": [
+      "Bygger på",
+      "skj-1964",
+      "Billund Fjernvarme og Dansk Fjernvarme",
+      "df-data",
+      "Om og kredit"
+    ],
+    "layout_hook": "data-layout=\"kreditlinje\"",
+    "om_side_titel": "Om og kredit",
+    "app_kilde_rod": "app/src",
+    "skal_findes_i_skal": [
+      "app/src/components/layout",
+      "app/src/App.tsx"
+    ],
+    "skal_entry": "app/src/App.tsx",
+    "alias": {
+      "@/backend/data": [
+        "app/src/backend/rayfin/data",
+        "app/src/backend/rest/data"
+      ],
+      "@/backend/auth": [
+        "app/src/backend/rayfin/auth",
+        "app/src/backend/rest/auth"
+      ],
+      "@/backend/fejl": [
+        "app/src/backend/rayfin/fejl",
+        "app/src/backend/rest/fejl"
+      ],
+      "@/backend/temaer": [
+        "app/src/backend/rayfin/temaer",
+        "app/src/backend/rest/temaer"
+      ],
+      "@/": "app/src/"
+    }
+  },
+  "app_licenstekst_skal_findes": [
+    "CC BY 4.0",
+    "Permission is hereby granted"
+  ],
+  "tredjepart": [
+    {
+      "navn": "Rayfin app-skabelon (Microsoft)",
+      "fil": "app/LICENSE",
+      "skal_indeholde": [
+        "Microsoft Corporation",
+        "MIT License"
+      ]
+    }
+  ],
+  "ikke_antydning": [
+    "(?i)(godkendt|anbefalet|udgivet|leveret|støttet|sponsoreret|certificeret|autoriseret)\\s+af\\s+(dansk fjernvarme|billund|skj-1964|steen)",
+    "(?i)officiel(?:t|le)?\\s+(?:app|udgave|version|brugerflade|frontend)\\s+(?:til|for|fra)\\s+(?:dansk fjernvarme|billund|fjernvarme-businesscase)",
+    "(?i)official\\s+(?:app|edition|frontend|ui)\\s+(?:of|for|from)\\s+(?:dansk fjernvarme|billund|fjernvarme-businesscase)",
+    "(?i)\\bi samarbejde med\\s+(?:dansk fjernvarme|billund fjernvarme)\\b"
+  ],
+  "ikke_antydning_udelad": [
+    "offentlig/**",
+    "app/src/sider/dokumentation/indhold/repo/**",
+    "app/src/sider/dokumentation/indhold/kreditter/**",
+    "LICENSES/**"
+  ],
+  "ikke_antydning_undtagelser": [
+    "ingen godkendelse eller tilslutning",
+    "ikke godkendt af",
+    "not endorsed"
+  ]
+}

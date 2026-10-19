@@ -1,0 +1,316 @@
+{
+ "_om": "Udtrukket af TS-testene (valider_upload) med skema/vektorer/udtraek.mjs: input og TS' faktiske udfald for hvert kald, testene selv laver. Ret aldrig i hånden — udtræk igen.",
+ "kilder": {
+  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
+  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
+  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
+  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
+  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427",
+  "app/rayfin/functions/test/k4.spec.ts": "7a7b32738c6d7012fc5875b55784f002b147174247db4679b37ff39884887fde",
+  "app/rayfin/functions/test/k5.spec.ts": "315e3cc11b497ae105ab1c2a4552371beb00b554fd17fcb5d26aeec5edbaf5ae",
+  "app/rayfin/functions/test/logik.spec.ts": "f9507699c7679fd342ed5630a6151d048aaa0050eba3859eafa2d6338514cfc0",
+  "app/rayfin/functions/test/motor.spec.ts": "645d24741b0636fca77fc9dcca430184431f9f7b389dac982123d3dcc74ae11e",
+  "app/rayfin/functions/test/opret_vaerk.spec.ts": "99d2f3c44429535f4ae9741aef571bad67c0a1eef07161765f9c389bf8a1bf68",
+  "app/rayfin/functions/test/registrering.spec.ts": "05a8a0edaa4d02c8d48d6a1d921b867bcd3d31d82a03dd9d7f577be61f73e414",
+  "app/rayfin/functions/test/tidsserie.spec.ts": "49048b3d1da5c28742f15232852a301454a0e60486d5521f76432f165bbfa9d4",
+  "app/rayfin/functions/test/tidsserie_backend.spec.ts": "7c166c36baf80a999d547e0b5535b0276390d6b996a75256f07f2b9baa45aabe"
+ },
+ "tilfaelde": [
+  {
+   "navn": "k5.spec.ts › K5-F1: ingen prototypeforurening fra brugerskrevne stier > Codex' måling: 192 kvarterer à 1 MW er 48 MWh — også efter et træ med units.__proto__.pr_interval er bygget",
+   "input": {
+    "bytes": {
+     "$b64": "dGltZSxtdwoyMDI2LTAxLTA1VDAwOjAwOjAwWiwxCjIwMjYtMDEtMDVUMDA6MTU6MDBaLDEKMjAyNi0wMS0wNVQwMDozMDowMFosMQoyMDI2LTAxLTA1VDAwOjQ1OjAwWiwxCjIwMjYtMDEtMDVUMDE6MDA6MDBaLDEKMjAyNi0wMS0wNVQwMToxNTowMFosMQoyMDI2LTAxLTA1VDAxOjMwOjAwWiwxCjIwMjYtMDEtMDVUMDE6NDU6MDBaLDEKMjAyNi0wMS0wNVQwMjowMDowMFosMQoyMDI2LTAxLTA1VDAyOjE1OjAwWiwxCjIwMjYtMDEtMDVUMDI6MzA6MDBaLDEKMjAyNi0wMS0wNVQwMjo0NTowMFosMQoyMDI2LTAxLTA1VDAzOjAwOjAwWiwxCjIwMjYtMDEtMDVUMDM6MTU6MDBaLDEKMjAyNi0wMS0wNVQwMzozMDowMFosMQoyMDI2LTAxLTA1VDAzOjQ1OjAwWiwxCjIwMjYtMDEtMDVUMDQ6MDA6MDBaLDEKMjAyNi0wMS0wNVQwNDoxNTowMFosMQoyMDI2LTAxLTA1VDA0OjMwOjAwWiwxCjIwMjYtMDEtMDVUMDQ6NDU6MDBaLDEKMjAyNi0wMS0wNVQwNTowMDowMFosMQoyMDI2LTAxLTA1VDA1OjE1OjAwWiwxCjIwMjYtMDEtMDVUMDU6MzA6MDBaLDEKMjAyNi0wMS0wNVQwNTo0NTowMFosMQoyMDI2LTAxLTA1VDA2OjAwOjAwWiwxCjIwMjYtMDEtMDVUMDY6MTU6MDBaLDEKMjAyNi0wMS0wNVQwNjozMDowMFosMQoyMDI2LTAxLTA1VDA2OjQ1OjAwWiwxCjIwMjYtMDEtMDVUMDc6MDA6MDBaLDEKMjAyNi0wMS0wNVQwNzoxNTowMFosMQoyMDI2LTAxLTA1VDA3OjMwOjAwWiwxCjIwMjYtMDEtMDVUMDc6NDU6MDBaLDEKMjAyNi0wMS0wNVQwODowMDowMFosMQoyMDI2LTAxLTA1VDA4OjE1OjAwWiwxCjIwMjYtMDEtMDVUMDg6MzA6MDBaLDEKMjAyNi0wMS0wNVQwODo0NTowMFosMQoyMDI2LTAxLTA1VDA5OjAwOjAwWiwxCjIwMjYtMDEtMDVUMDk6MTU6MDBaLDEKMjAyNi0wMS0wNVQwOTozMDowMFosMQoyMDI2LTAxLTA1VDA5OjQ1OjAwWiwxCjIwMjYtMDEtMDVUMTA6MDA6MDBaLDEKMjAyNi0wMS0wNVQxMDoxNTowMFosMQoyMDI2LTAxLTA1VDEwOjMwOjAwWiwxCjIwMjYtMDEtMDVUMTA6NDU6MDBaLDEKMjAyNi0wMS0wNVQxMTowMDowMFosMQoyMDI2LTAxLTA1VDExOjE1OjAwWiwxCjIwMjYtMDEtMDVUMTE6MzA6MDBaLDEKMjAyNi0wMS0wNVQxMTo0NTowMFosMQoyMDI2LTAxLTA1VDEyOjAwOjAwWiwxCjIwMjYtMDEtMDVUMTI6MTU6MDBaLDEKMjAyNi0wMS0wNVQxMjozMDowMFosMQoyMDI2LTAxLTA1VDEyOjQ1OjAwWiwxCjIwMjYtMDEtMDVUMTM6MDA6MDBaLDEKMjAyNi0wMS0wNVQxMzoxNTowMFosMQoyMDI2LTAxLTA1VDEzOjMwOjAwWiwxCjIwMjYtMDEtMDVUMTM6NDU6MDBaLDEKMjAyNi0wMS0wNVQxNDowMDowMFosMQoyMDI2LTAxLTA1VDE0OjE1OjAwWiwxCjIwMjYtMDEtMDVUMTQ6MzA6MDBaLDEKMjAyNi0wMS0wNVQxNDo0NTowMFosMQoyMDI2LTAxLTA1VDE1OjAwOjAwWiwxCjIwMjYtMDEtMDVUMTU6MTU6MDBaLDEKMjAyNi0wMS0wNVQxNTozMDowMFosMQoyMDI2LTAxLTA1VDE1OjQ1OjAwWiwxCjIwMjYtMDEtMDVUMTY6MDA6MDBaLDEKMjAyNi0wMS0wNVQxNjoxNTowMFosMQoyMDI2LTAxLTA1VDE2OjMwOjAwWiwxCjIwMjYtMDEtMDVUMTY6NDU6MDBaLDEKMjAyNi0wMS0wNVQxNzowMDowMFosMQoyMDI2LTAxLTA1VDE3OjE1OjAwWiwxCjIwMjYtMDEtMDVUMTc6MzA6MDBaLDEKMjAyNi0wMS0wNVQxNzo0NTowMFosMQoyMDI2LTAxLTA1VDE4OjAwOjAwWiwxCjIwMjYtMDEtMDVUMTg6MTU6MDBaLDEKMjAyNi0wMS0wNVQxODozMDowMFosMQoyMDI2LTAxLTA1VDE4OjQ1OjAwWiwxCjIwMjYtMDEtMDVUMTk6MDA6MDBaLDEKMjAyNi0wMS0wNVQxOToxNTowMFosMQoyMDI2LTAxLTA1VDE5OjMwOjAwWiwxCjIwMjYtMDEtMDVUMTk6NDU6MDBaLDEKMjAyNi0wMS0wNVQyMDowMDowMFosMQoyMDI2LTAxLTA1VDIwOjE1OjAwWiwxCjIwMjYtMDEtMDVUMjA6MzA6MDBaLDEKMjAyNi0wMS0wNVQyMDo0NTowMFosMQoyMDI2LTAxLTA1VDIxOjAwOjAwWiwxCjIwMjYtMDEtMDVUMjE6MTU6MDBaLDEKMjAyNi0wMS0wNVQyMTozMDowMFosMQoyMDI2LTAxLTA1VDIxOjQ1OjAwWiwxCjIwMjYtMDEtMDVUMjI6MDA6MDBaLDEKMjAyNi0wMS0wNVQyMjoxNTowMFosMQoyMDI2LTAxLTA1VDIyOjMwOjAwWiwxCjIwMjYtMDEtMDVUMjI6NDU6MDBaLDEKMjAyNi0wMS0wNVQyMzowMDowMFosMQoyMDI2LTAxLTA1VDIzOjE1OjAwWiwxCjIwMjYtMDEtMDVUMjM6MzA6MDBaLDEKMjAyNi0wMS0wNVQyMzo0NTowMFosMQoyMDI2LTAxLTA2VDAwOjAwOjAwWiwxCjIwMjYtMDEtMDZUMDA6MTU6MDBaLDEKMjAyNi0wMS0wNlQwMDozMDowMFosMQoyMDI2LTAxLTA2VDAwOjQ1OjAwWiwxCjIwMjYtMDEtMDZUMDE6MDA6MDBaLDEKMjAyNi0wMS0wNlQwMToxNTowMFosMQoyMDI2LTAxLTA2VDAxOjMwOjAwWiwxCjIwMjYtMDEtMDZUMDE6NDU6MDBaLDEKMjAyNi0wMS0wNlQwMjowMDowMFosMQoyMDI2LTAxLTA2VDAyOjE1OjAwWiwxCjIwMjYtMDEtMDZUMDI6MzA6MDBaLDEKMjAyNi0wMS0wNlQwMjo0NTowMFosMQoyMDI2LTAxLTA2VDAzOjAwOjAwWiwxCjIwMjYtMDEtMDZUMDM6MTU6MDBaLDEKMjAyNi0wMS0wNlQwMzozMDowMFosMQoyMDI2LTAxLTA2VDAzOjQ1OjAwWiwxCjIwMjYtMDEtMDZUMDQ6MDA6MDBaLDEKMjAyNi0wMS0wNlQwNDoxNTowMFosMQoyMDI2LTAxLTA2VDA0OjMwOjAwWiwxCjIwMjYtMDEtMDZUMDQ6NDU6MDBaLDEKMjAyNi0wMS0wNlQwNTowMDowMFosMQoyMDI2LTAxLTA2VDA1OjE1OjAwWiwxCjIwMjYtMDEtMDZUMDU6MzA6MDBaLDEKMjAyNi0wMS0wNlQwNTo0NTowMFosMQoyMDI2LTAxLTA2VDA2OjAwOjAwWiwxCjIwMjYtMDEtMDZUMDY6MTU6MDBaLDEKMjAyNi0wMS0wNlQwNjozMDowMFosMQoyMDI2LTAxLTA2VDA2OjQ1OjAwWiwxCjIwMjYtMDEtMDZUMDc6MDA6MDBaLDEKMjAyNi0wMS0wNlQwNzoxNTowMFosMQoyMDI2LTAxLTA2VDA3OjMwOjAwWiwxCjIwMjYtMDEtMDZUMDc6NDU6MDBaLDEKMjAyNi0wMS0wNlQwODowMDowMFosMQoyMDI2LTAxLTA2VDA4OjE1OjAwWiwxCjIwMjYtMDEtMDZUMDg6MzA6MDBaLDEKMjAyNi0wMS0wNlQwODo0NTowMFosMQoyMDI2LTAxLTA2VDA5OjAwOjAwWiwxCjIwMjYtMDEtMDZUMDk6MTU6MDBaLDEKMjAyNi0wMS0wNlQwOTozMDowMFosMQoyMDI2LTAxLTA2VDA5OjQ1OjAwWiwxCjIwMjYtMDEtMDZUMTA6MDA6MDBaLDEKMjAyNi0wMS0wNlQxMDoxNTowMFosMQoyMDI2LTAxLTA2VDEwOjMwOjAwWiwxCjIwMjYtMDEtMDZUMTA6NDU6MDBaLDEKMjAyNi0wMS0wNlQxMTowMDowMFosMQoyMDI2LTAxLTA2VDExOjE1OjAwWiwxCjIwMjYtMDEtMDZUMTE6MzA6MDBaLDEKMjAyNi0wMS0wNlQxMTo0NTowMFosMQoyMDI2LTAxLTA2VDEyOjAwOjAwWiwxCjIwMjYtMDEtMDZUMTI6MTU6MDBaLDEKMjAyNi0wMS0wNlQxMjozMDowMFosMQoyMDI2LTAxLTA2VDEyOjQ1OjAwWiwxCjIwMjYtMDEtMDZUMTM6MDA6MDBaLDEKMjAyNi0wMS0wNlQxMzoxNTowMFosMQoyMDI2LTAxLTA2VDEzOjMwOjAwWiwxCjIwMjYtMDEtMDZUMTM6NDU6MDBaLDEKMjAyNi0wMS0wNlQxNDowMDowMFosMQoyMDI2LTAxLTA2VDE0OjE1OjAwWiwxCjIwMjYtMDEtMDZUMTQ6MzA6MDBaLDEKMjAyNi0wMS0wNlQxNDo0NTowMFosMQoyMDI2LTAxLTA2VDE1OjAwOjAwWiwxCjIwMjYtMDEtMDZUMTU6MTU6MDBaLDEKMjAyNi0wMS0wNlQxNTozMDowMFosMQoyMDI2LTAxLTA2VDE1OjQ1OjAwWiwxCjIwMjYtMDEtMDZUMTY6MDA6MDBaLDEKMjAyNi0wMS0wNlQxNjoxNTowMFosMQoyMDI2LTAxLTA2VDE2OjMwOjAwWiwxCjIwMjYtMDEtMDZUMTY6NDU6MDBaLDEKMjAyNi0wMS0wNlQxNzowMDowMFosMQoyMDI2LTAxLTA2VDE3OjE1OjAwWiwxCjIwMjYtMDEtMDZUMTc6MzA6MDBaLDEKMjAyNi0wMS0wNlQxNzo0NTowMFosMQoyMDI2LTAxLTA2VDE4OjAwOjAwWiwxCjIwMjYtMDEtMDZUMTg6MTU6MDBaLDEKMjAyNi0wMS0wNlQxODozMDowMFosMQoyMDI2LTAxLTA2VDE4OjQ1OjAwWiwxCjIwMjYtMDEtMDZUMTk6MDA6MDBaLDEKMjAyNi0wMS0wNlQxOToxNTowMFosMQoyMDI2LTAxLTA2VDE5OjMwOjAwWiwxCjIwMjYtMDEtMDZUMTk6NDU6MDBaLDEKMjAyNi0wMS0wNlQyMDowMDowMFosMQoyMDI2LTAxLTA2VDIwOjE1OjAwWiwxCjIwMjYtMDEtMDZUMjA6MzA6MDBaLDEKMjAyNi0wMS0wNlQyMDo0NTowMFosMQoyMDI2LTAxLTA2VDIxOjAwOjAwWiwxCjIwMjYtMDEtMDZUMjE6MTU6MDBaLDEKMjAyNi0wMS0wNlQyMTozMDowMFosMQoyMDI2LTAxLTA2VDIxOjQ1OjAwWiwxCjIwMjYtMDEtMDZUMjI6MDA6MDBaLDEKMjAyNi0wMS0wNlQyMjoxNTowMFosMQoyMDI2LTAxLTA2VDIyOjMwOjAwWiwxCjIwMjYtMDEtMDZUMjI6NDU6MDBaLDEKMjAyNi0wMS0wNlQyMzowMDowMFosMQoyMDI2LTAxLTA2VDIzOjE1OjAwWiwxCjIwMjYtMDEtMDZUMjM6MzA6MDBaLDEKMjAyNi0wMS0wNlQyMzo0NTowMFosMQo="
+    },
+    "rolle": "varmelast",
+    "valg": {
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed": "MW"
+    },
+    "vaerk": null
+   },
+   "ud": {
+    "status": "gyldig",
+    "normaliseret_sha256": "cb9da4369466fd636ef1f9c25fa86bf1c8fa15afc2496a20136d8d0b107af893",
+    "validering": {
+     "version": 1,
+     "rolle": "varmelast",
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed_kilde": "MW",
+     "enhed": "MW",
+     "tidskolonne": "time",
+     "vaerdikolonne": "mw",
+     "kilde_raekker": 192,
+     "kilde_oploesning": "15min",
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-06T23:00:00Z",
+     "oploesning": "1h",
+     "antal_raekker": 48,
+     "forventet_raekker": 48,
+     "antal_huller": 0,
+     "udfyldte_timer": 0,
+     "laengste_hul_timer": 0,
+     "daekning": 1,
+     "min": 1,
+     "max": 1,
+     "max_tid": "2026-01-05T00:00:00Z",
+     "middel": 1,
+     "sum_mwh": 48,
+     "aarssum_gwh": 8.76,
+     "benyttelsestid_t": 8760,
+     "huller": [],
+     "fund": [
+      {
+       "niveau": "info",
+       "kode": "kvarter_aggregeret",
+       "besked": "Kvarterværdierne er midlet til timeværdier (version 1 regner i timer). Originalen gemmes ikke."
+      },
+      {
+       "niveau": "advarsel",
+       "kode": "kort_serie",
+       "besked": "Serien dækker kun 2,0 døgn. Den kan bruges til kørsler inden for de døgn, men ikke til et årstal."
+      },
+      {
+       "niveau": "advarsel",
+       "kode": "fastfrosset",
+       "besked": "48 timer i træk med præcis 1 MW fra 05-01-2026 00:00 UTC. Det ligner en måler, der har stået stille."
+      }
+     ],
+     "fejl": [],
+     "advarsler": [
+      "Serien dækker kun 2,0 døgn. Den kan bruges til kørsler inden for de døgn, men ikke til et årstal.",
+      "48 timer i træk med præcis 1 MW fra 05-01-2026 00:00 UTC. Det ligner en måler, der har stået stille."
+     ]
+    }
+   }
+  },
+  {
+   "navn": "k5.spec.ts › K5-F1: ingen prototypeforurening fra brugerskrevne stier > enheden 'constructor' er en ukendt enhed (som oraklets KeyError), ikke Object",
+   "input": {
+    "bytes": {
+     "$b64": "dGltZSxtdwoyMDI2LTAxLTA1VDAwOjAwOjAwWiwxCjIwMjYtMDEtMDVUMDA6MTU6MDBaLDEKMjAyNi0wMS0wNVQwMDozMDowMFosMQoyMDI2LTAxLTA1VDAwOjQ1OjAwWiwxCjIwMjYtMDEtMDVUMDE6MDA6MDBaLDEKMjAyNi0wMS0wNVQwMToxNTowMFosMQoyMDI2LTAxLTA1VDAxOjMwOjAwWiwxCjIwMjYtMDEtMDVUMDE6NDU6MDBaLDEKMjAyNi0wMS0wNVQwMjowMDowMFosMQoyMDI2LTAxLTA1VDAyOjE1OjAwWiwxCjIwMjYtMDEtMDVUMDI6MzA6MDBaLDEKMjAyNi0wMS0wNVQwMjo0NTowMFosMQoyMDI2LTAxLTA1VDAzOjAwOjAwWiwxCjIwMjYtMDEtMDVUMDM6MTU6MDBaLDEKMjAyNi0wMS0wNVQwMzozMDowMFosMQoyMDI2LTAxLTA1VDAzOjQ1OjAwWiwxCjIwMjYtMDEtMDVUMDQ6MDA6MDBaLDEKMjAyNi0wMS0wNVQwNDoxNTowMFosMQoyMDI2LTAxLTA1VDA0OjMwOjAwWiwxCjIwMjYtMDEtMDVUMDQ6NDU6MDBaLDEKMjAyNi0wMS0wNVQwNTowMDowMFosMQoyMDI2LTAxLTA1VDA1OjE1OjAwWiwxCjIwMjYtMDEtMDVUMDU6MzA6MDBaLDEKMjAyNi0wMS0wNVQwNTo0NTowMFosMQoyMDI2LTAxLTA1VDA2OjAwOjAwWiwxCjIwMjYtMDEtMDVUMDY6MTU6MDBaLDEKMjAyNi0wMS0wNVQwNjozMDowMFosMQoyMDI2LTAxLTA1VDA2OjQ1OjAwWiwxCjIwMjYtMDEtMDVUMDc6MDA6MDBaLDEKMjAyNi0wMS0wNVQwNzoxNTowMFosMQoyMDI2LTAxLTA1VDA3OjMwOjAwWiwxCjIwMjYtMDEtMDVUMDc6NDU6MDBaLDEKMjAyNi0wMS0wNVQwODowMDowMFosMQoyMDI2LTAxLTA1VDA4OjE1OjAwWiwxCjIwMjYtMDEtMDVUMDg6MzA6MDBaLDEKMjAyNi0wMS0wNVQwODo0NTowMFosMQoyMDI2LTAxLTA1VDA5OjAwOjAwWiwxCjIwMjYtMDEtMDVUMDk6MTU6MDBaLDEKMjAyNi0wMS0wNVQwOTozMDowMFosMQoyMDI2LTAxLTA1VDA5OjQ1OjAwWiwxCjIwMjYtMDEtMDVUMTA6MDA6MDBaLDEKMjAyNi0wMS0wNVQxMDoxNTowMFosMQoyMDI2LTAxLTA1VDEwOjMwOjAwWiwxCjIwMjYtMDEtMDVUMTA6NDU6MDBaLDEKMjAyNi0wMS0wNVQxMTowMDowMFosMQoyMDI2LTAxLTA1VDExOjE1OjAwWiwxCjIwMjYtMDEtMDVUMTE6MzA6MDBaLDEKMjAyNi0wMS0wNVQxMTo0NTowMFosMQoyMDI2LTAxLTA1VDEyOjAwOjAwWiwxCjIwMjYtMDEtMDVUMTI6MTU6MDBaLDEKMjAyNi0wMS0wNVQxMjozMDowMFosMQoyMDI2LTAxLTA1VDEyOjQ1OjAwWiwxCjIwMjYtMDEtMDVUMTM6MDA6MDBaLDEKMjAyNi0wMS0wNVQxMzoxNTowMFosMQoyMDI2LTAxLTA1VDEzOjMwOjAwWiwxCjIwMjYtMDEtMDVUMTM6NDU6MDBaLDEKMjAyNi0wMS0wNVQxNDowMDowMFosMQoyMDI2LTAxLTA1VDE0OjE1OjAwWiwxCjIwMjYtMDEtMDVUMTQ6MzA6MDBaLDEKMjAyNi0wMS0wNVQxNDo0NTowMFosMQoyMDI2LTAxLTA1VDE1OjAwOjAwWiwxCjIwMjYtMDEtMDVUMTU6MTU6MDBaLDEKMjAyNi0wMS0wNVQxNTozMDowMFosMQoyMDI2LTAxLTA1VDE1OjQ1OjAwWiwxCjIwMjYtMDEtMDVUMTY6MDA6MDBaLDEKMjAyNi0wMS0wNVQxNjoxNTowMFosMQoyMDI2LTAxLTA1VDE2OjMwOjAwWiwxCjIwMjYtMDEtMDVUMTY6NDU6MDBaLDEKMjAyNi0wMS0wNVQxNzowMDowMFosMQoyMDI2LTAxLTA1VDE3OjE1OjAwWiwxCjIwMjYtMDEtMDVUMTc6MzA6MDBaLDEKMjAyNi0wMS0wNVQxNzo0NTowMFosMQoyMDI2LTAxLTA1VDE4OjAwOjAwWiwxCjIwMjYtMDEtMDVUMTg6MTU6MDBaLDEKMjAyNi0wMS0wNVQxODozMDowMFosMQoyMDI2LTAxLTA1VDE4OjQ1OjAwWiwxCjIwMjYtMDEtMDVUMTk6MDA6MDBaLDEKMjAyNi0wMS0wNVQxOToxNTowMFosMQoyMDI2LTAxLTA1VDE5OjMwOjAwWiwxCjIwMjYtMDEtMDVUMTk6NDU6MDBaLDEKMjAyNi0wMS0wNVQyMDowMDowMFosMQoyMDI2LTAxLTA1VDIwOjE1OjAwWiwxCjIwMjYtMDEtMDVUMjA6MzA6MDBaLDEKMjAyNi0wMS0wNVQyMDo0NTowMFosMQoyMDI2LTAxLTA1VDIxOjAwOjAwWiwxCjIwMjYtMDEtMDVUMjE6MTU6MDBaLDEKMjAyNi0wMS0wNVQyMTozMDowMFosMQoyMDI2LTAxLTA1VDIxOjQ1OjAwWiwxCjIwMjYtMDEtMDVUMjI6MDA6MDBaLDEKMjAyNi0wMS0wNVQyMjoxNTowMFosMQoyMDI2LTAxLTA1VDIyOjMwOjAwWiwxCjIwMjYtMDEtMDVUMjI6NDU6MDBaLDEKMjAyNi0wMS0wNVQyMzowMDowMFosMQoyMDI2LTAxLTA1VDIzOjE1OjAwWiwxCjIwMjYtMDEtMDVUMjM6MzA6MDBaLDEKMjAyNi0wMS0wNVQyMzo0NTowMFosMQoyMDI2LTAxLTA2VDAwOjAwOjAwWiwxCjIwMjYtMDEtMDZUMDA6MTU6MDBaLDEKMjAyNi0wMS0wNlQwMDozMDowMFosMQoyMDI2LTAxLTA2VDAwOjQ1OjAwWiwxCjIwMjYtMDEtMDZUMDE6MDA6MDBaLDEKMjAyNi0wMS0wNlQwMToxNTowMFosMQoyMDI2LTAxLTA2VDAxOjMwOjAwWiwxCjIwMjYtMDEtMDZUMDE6NDU6MDBaLDEKMjAyNi0wMS0wNlQwMjowMDowMFosMQoyMDI2LTAxLTA2VDAyOjE1OjAwWiwxCjIwMjYtMDEtMDZUMDI6MzA6MDBaLDEKMjAyNi0wMS0wNlQwMjo0NTowMFosMQoyMDI2LTAxLTA2VDAzOjAwOjAwWiwxCjIwMjYtMDEtMDZUMDM6MTU6MDBaLDEKMjAyNi0wMS0wNlQwMzozMDowMFosMQoyMDI2LTAxLTA2VDAzOjQ1OjAwWiwxCjIwMjYtMDEtMDZUMDQ6MDA6MDBaLDEKMjAyNi0wMS0wNlQwNDoxNTowMFosMQoyMDI2LTAxLTA2VDA0OjMwOjAwWiwxCjIwMjYtMDEtMDZUMDQ6NDU6MDBaLDEKMjAyNi0wMS0wNlQwNTowMDowMFosMQoyMDI2LTAxLTA2VDA1OjE1OjAwWiwxCjIwMjYtMDEtMDZUMDU6MzA6MDBaLDEKMjAyNi0wMS0wNlQwNTo0NTowMFosMQoyMDI2LTAxLTA2VDA2OjAwOjAwWiwxCjIwMjYtMDEtMDZUMDY6MTU6MDBaLDEKMjAyNi0wMS0wNlQwNjozMDowMFosMQoyMDI2LTAxLTA2VDA2OjQ1OjAwWiwxCjIwMjYtMDEtMDZUMDc6MDA6MDBaLDEKMjAyNi0wMS0wNlQwNzoxNTowMFosMQoyMDI2LTAxLTA2VDA3OjMwOjAwWiwxCjIwMjYtMDEtMDZUMDc6NDU6MDBaLDEKMjAyNi0wMS0wNlQwODowMDowMFosMQoyMDI2LTAxLTA2VDA4OjE1OjAwWiwxCjIwMjYtMDEtMDZUMDg6MzA6MDBaLDEKMjAyNi0wMS0wNlQwODo0NTowMFosMQoyMDI2LTAxLTA2VDA5OjAwOjAwWiwxCjIwMjYtMDEtMDZUMDk6MTU6MDBaLDEKMjAyNi0wMS0wNlQwOTozMDowMFosMQoyMDI2LTAxLTA2VDA5OjQ1OjAwWiwxCjIwMjYtMDEtMDZUMTA6MDA6MDBaLDEKMjAyNi0wMS0wNlQxMDoxNTowMFosMQoyMDI2LTAxLTA2VDEwOjMwOjAwWiwxCjIwMjYtMDEtMDZUMTA6NDU6MDBaLDEKMjAyNi0wMS0wNlQxMTowMDowMFosMQoyMDI2LTAxLTA2VDExOjE1OjAwWiwxCjIwMjYtMDEtMDZUMTE6MzA6MDBaLDEKMjAyNi0wMS0wNlQxMTo0NTowMFosMQoyMDI2LTAxLTA2VDEyOjAwOjAwWiwxCjIwMjYtMDEtMDZUMTI6MTU6MDBaLDEKMjAyNi0wMS0wNlQxMjozMDowMFosMQoyMDI2LTAxLTA2VDEyOjQ1OjAwWiwxCjIwMjYtMDEtMDZUMTM6MDA6MDBaLDEKMjAyNi0wMS0wNlQxMzoxNTowMFosMQoyMDI2LTAxLTA2VDEzOjMwOjAwWiwxCjIwMjYtMDEtMDZUMTM6NDU6MDBaLDEKMjAyNi0wMS0wNlQxNDowMDowMFosMQoyMDI2LTAxLTA2VDE0OjE1OjAwWiwxCjIwMjYtMDEtMDZUMTQ6MzA6MDBaLDEKMjAyNi0wMS0wNlQxNDo0NTowMFosMQoyMDI2LTAxLTA2VDE1OjAwOjAwWiwxCjIwMjYtMDEtMDZUMTU6MTU6MDBaLDEKMjAyNi0wMS0wNlQxNTozMDowMFosMQoyMDI2LTAxLTA2VDE1OjQ1OjAwWiwxCjIwMjYtMDEtMDZUMTY6MDA6MDBaLDEKMjAyNi0wMS0wNlQxNjoxNTowMFosMQoyMDI2LTAxLTA2VDE2OjMwOjAwWiwxCjIwMjYtMDEtMDZUMTY6NDU6MDBaLDEKMjAyNi0wMS0wNlQxNzowMDowMFosMQoyMDI2LTAxLTA2VDE3OjE1OjAwWiwxCjIwMjYtMDEtMDZUMTc6MzA6MDBaLDEKMjAyNi0wMS0wNlQxNzo0NTowMFosMQoyMDI2LTAxLTA2VDE4OjAwOjAwWiwxCjIwMjYtMDEtMDZUMTg6MTU6MDBaLDEKMjAyNi0wMS0wNlQxODozMDowMFosMQoyMDI2LTAxLTA2VDE4OjQ1OjAwWiwxCjIwMjYtMDEtMDZUMTk6MDA6MDBaLDEKMjAyNi0wMS0wNlQxOToxNTowMFosMQoyMDI2LTAxLTA2VDE5OjMwOjAwWiwxCjIwMjYtMDEtMDZUMTk6NDU6MDBaLDEKMjAyNi0wMS0wNlQyMDowMDowMFosMQoyMDI2LTAxLTA2VDIwOjE1OjAwWiwxCjIwMjYtMDEtMDZUMjA6MzA6MDBaLDEKMjAyNi0wMS0wNlQyMDo0NTowMFosMQoyMDI2LTAxLTA2VDIxOjAwOjAwWiwxCjIwMjYtMDEtMDZUMjE6MTU6MDBaLDEKMjAyNi0wMS0wNlQyMTozMDowMFosMQoyMDI2LTAxLTA2VDIxOjQ1OjAwWiwxCjIwMjYtMDEtMDZUMjI6MDA6MDBaLDEKMjAyNi0wMS0wNlQyMjoxNTowMFosMQoyMDI2LTAxLTA2VDIyOjMwOjAwWiwxCjIwMjYtMDEtMDZUMjI6NDU6MDBaLDEKMjAyNi0wMS0wNlQyMzowMDowMFosMQoyMDI2LTAxLTA2VDIzOjE1OjAwWiwxCjIwMjYtMDEtMDZUMjM6MzA6MDBaLDEKMjAyNi0wMS0wNlQyMzo0NTowMFosMQo="
+    },
+    "rolle": "varmelast",
+    "valg": {
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed": "constructor"
+    },
+    "vaerk": null
+   },
+   "ud": {
+    "status": "afvist",
+    "normaliseret_sha256": null,
+    "validering": {
+     "version": 1,
+     "rolle": "varmelast",
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed_kilde": "constructor",
+     "enhed": "MW",
+     "fund": [
+      {
+       "niveau": "fejl",
+       "kode": "enhed_ukendt",
+       "besked": "Enheden 'constructor' kendes ikke. Vælg MW, kW, MWh pr. interval eller kWh pr. interval."
+      }
+     ],
+     "fejl": [
+      "Enheden 'constructor' kendes ikke. Vælg MW, kW, MWh pr. interval eller kWh pr. interval."
+     ],
+     "advarsler": []
+    }
+   }
+  },
+  {
+   "navn": "tidsserie.spec.ts › validerUpload — den fælles tolker på modelrepoets egne filer > Andebys solprofil er gyldig som solprofil",
+   "input": {
+    "bytes": {
+     "$fil": "app/rayfin/functions/test/vektorer/solar_andeby_dmi_karup.csv"
+    },
+    "rolle": "solprofil",
+    "valg": {
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed": "MW"
+    },
+    "vaerk": null
+   },
+   "ud": {
+    "status": "gyldig",
+    "normaliseret_sha256": "35706793bf4dd9c81d88c2b045e39ef9866c17ccfb86e0703067fb42a9e93f29",
+    "validering": {
+     "version": 1,
+     "rolle": "solprofil",
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed_kilde": "MW",
+     "enhed": "MW",
+     "tidskolonne": "time",
+     "vaerdikolonne": "power_mw",
+     "kilde_raekker": 15384,
+     "kilde_oploesning": "1h",
+     "start": "2025-01-01T00:00:00Z",
+     "slut": "2026-10-03T23:00:00Z",
+     "oploesning": "1h",
+     "antal_raekker": 15384,
+     "forventet_raekker": 15384,
+     "antal_huller": 0,
+     "udfyldte_timer": 0,
+     "laengste_hul_timer": 0,
+     "daekning": 1,
+     "min": 0,
+     "max": 19.112946,
+     "max_tid": "2025-05-12T11:00:00Z",
+     "middel": 1.5614254161466459,
+     "sum_mwh": 24020.968602,
+     "aarssum_gwh": 13.678086645444619,
+     "benyttelsestid_t": 716,
+     "huller": [],
+     "sol_tyngdepunkt_time_utc": 10.952,
+     "fund": [],
+     "fejl": [],
+     "advarsler": []
+    }
+   }
+  },
+  {
+   "navn": "tidsserie.spec.ts › validerUpload — den fælles tolker på modelrepoets egne filer > Billund ab værk: gyldig, normaliseret til time,mw med kildens taltekst bevaret tegn for tegn",
+   "input": {
+    "bytes": {
+     "$fil": "app/rayfin/functions/test/vektorer/billund_abvaerk_hourly.csv"
+    },
+    "rolle": "varmelast",
+    "valg": {
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed": "MW"
+    },
+    "vaerk": null
+   },
+   "ud": {
+    "status": "gyldig",
+    "normaliseret_sha256": "cff819c7af35bfd08e5ee137d182a045b61c455cdc0ea177c17f81e8f96b7002",
+    "validering": {
+     "version": 1,
+     "rolle": "varmelast",
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed_kilde": "MW",
+     "enhed": "MW",
+     "tidskolonne": "timestamp",
+     "vaerdikolonne": "heat_mw_abvaerk",
+     "kilde_raekker": 11539,
+     "kilde_oploesning": "1h",
+     "start": "2025-02-28T12:00:00Z",
+     "slut": "2026-06-24T06:00:00Z",
+     "oploesning": "1h",
+     "antal_raekker": 11539,
+     "forventet_raekker": 11539,
+     "antal_huller": 0,
+     "udfyldte_timer": 0,
+     "laengste_hul_timer": 0,
+     "daekning": 1,
+     "min": 1.8,
+     "max": 41.98333333333333,
+     "max_tid": "2026-01-11T09:00:00Z",
+     "middel": 14.35957549758789,
+     "sum_mwh": 165695.14166666666,
+     "aarssum_gwh": 125.78988135886992,
+     "benyttelsestid_t": 2996,
+     "huller": [],
+     "fund": [],
+     "fejl": [],
+     "advarsler": []
+    }
+   }
+  },
+  {
+   "navn": "tidsserie.spec.ts › validerUpload — den fælles tolker på modelrepoets egne filer > Windows-1252 (Excel-eksport) læses — fordi backend får de rå bytes, ikke browserens afkodede tekst",
+   "input": {
+    "bytes": {
+     "$b64": "dGlkc3B1bmt0O3Zhcm1lICjmKQoyMDI2LTAxLTA1IDAwOjAwOzEsNQoyMDI2LTAxLTA1IDAxOjAwOzIK"
+    },
+    "rolle": "varmelast",
+    "valg": {
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed": "MW",
+     "kolonne": null
+    },
+    "vaerk": null
+   },
+   "ud": {
+    "status": "afvist",
+    "normaliseret_sha256": null,
+    "validering": {
+     "version": 1,
+     "rolle": "varmelast",
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed_kilde": "MW",
+     "enhed": "MW",
+     "tidskolonne": "tidspunkt",
+     "vaerdikolonne": "varme (æ)",
+     "kilde_raekker": 2,
+     "kilde_oploesning": "1h",
+     "fund": [
+      {
+       "niveau": "info",
+       "kode": "kodning_cp1252",
+       "besked": "Filen er ikke UTF-8; den er læst som Windows-1252 (typisk for Excel-eksport)."
+      },
+      {
+       "niveau": "fejl",
+       "kode": "for_kort",
+       "besked": "Serien har kun 2 timer med værdi; der skal mindst 48 til (en prøvekørsel er 2 døgn)."
+      }
+     ],
+     "fejl": [
+      "Serien har kun 2 timer med værdi; der skal mindst 48 til (en prøvekørsel er 2 døgn)."
+     ],
+     "advarsler": []
+    }
+   }
+  },
+  {
+   "navn": "tidsserie.spec.ts › validerUpload — den fælles tolker på modelrepoets egne filer > over grænsen gennem appen (4 MB pr. kald i base64) afvises med koden for_stor",
+   "input": {
+    "bytes": {
+     "$nul": 2900001
+    },
+    "rolle": "varmelast",
+    "valg": {
+     "tidszone": "UTC",
+     "tidsstempel": "start",
+     "enhed": "MW"
+    },
+    "vaerk": null
+   },
+   "ud": {
+    "status": "afvist",
+    "normaliseret_sha256": null,
+    "validering": {
+     "version": 1,
+     "rolle": "varmelast",
+     "fund": [
+      {
+       "niveau": "fejl",
+       "kode": "for_stor",
+       "besked": "Filen er for stor (2900001 bytes; grænsen gennem appen er 2900000 bytes). Send timeværdier i stedet for kvarterværdier, eller del filen op."
+      }
+     ],
+     "fejl": [
+      "Filen er for stor (2900001 bytes; grænsen gennem appen er 2900000 bytes). Send timeværdier i stedet for kvarterværdier, eller del filen op."
+     ],
+     "advarsler": []
+    }
+   }
+  }
+ ]
+}

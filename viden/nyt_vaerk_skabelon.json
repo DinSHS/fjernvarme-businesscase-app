@@ -1,0 +1,668 @@
+{
+  "_om": "Minimalt gyldigt værk som blade (KONTRAKT §3.2): én gaskedel, intet lager, varmelast skaleret fra et årligt varmebehov. Genereres af viden/vaerktoej/byg_nyt_vaerk.py; valideret af vaerktoej/tjek_nyt_vaerk.py (afflad -> modellens load_case -> 2-døgns kørsel). bekraeft = skønnet værdi, som skal rettes.",
+  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "standard_varmebehov_gwh": 50.0,
+  "skalering": {
+    "g_andeby_gwh": 105.52,
+    "kilde": "Målt: Andebys heat_load_params giver 105,52 GWh på jul 2025–jun 2026 med karup-vejr, spidslast 40,02 MW ved −18,25 °C (D11, udviklingsrapport). Rapport v4 §9 siger 'ca. 105 GWh'.",
+    "formel": {
+      "faktor": "f = G / 105,52",
+      "heat_load_params.gaf_mw_per_k": "0,7653 × f",
+      "heat_load_params.nettab_slope_mw_per_k": "0,4768 × f",
+      "heat_load_params.baseline_profile_mw": "Andebys 24 værdier × f (cases/andeby.yaml:158-162)",
+      "uændret": "t_ref 15, thermal_inertia_hours 24, t_net 12, weekly_dip 0,02",
+      "units.gaskedel.p_max_heat": "rund(0,5 × G) MW (spidslast ≈ 0,38 × G MW)"
+    },
+    "hvorfor_eksakt": "Syntesen er grundprofil + gaf × max(0, t_ref − glidende T) + nettab × max(0, t_net − T), og weekend-faktoren ganges på; alle tre led er lineære i de skalerede parametre, så årsenergien skalerer med f for samme vejr (src/data_loader.py:632-661; src/data_loader.py:712-729).",
+    "forbehold": "Faktoren gælder karup-vejret i det rullende år. Et andet DMI-område giver nogle procent andet årsbehov (README.md:193-195); har værket målt varmelast, er den bedre."
+  },
+  "guide_trin": [
+    {
+      "id": "navn",
+      "titel": "Navn og kode",
+      "felter": [
+        "meta.case_name",
+        "meta.titel"
+      ],
+      "regel": "kode: små bogstaver, tal og _ (KONTRAKT §3.1); unik."
+    },
+    {
+      "id": "klima",
+      "titel": "Klima og priszone",
+      "felter": [
+        "data.dmi_area",
+        "data.price_zone",
+        "electricity.spot_area"
+      ],
+      "regel": "spot_area sættes lig price_zone automatisk."
+    },
+    {
+      "id": "varmebehov",
+      "titel": "Varmebehov",
+      "felter": [
+        "heat_load_params.*"
+      ],
+      "regel": "Årligt varmebehov ab værk i GWh → parametrene efter formlen. 'Jeg har timedata': kun filer i modelrepoets data/ i denne version; heat_load_params skal stadig findes (run_case.py:377)."
+    },
+    {
+      "id": "enheder",
+      "titel": "Enheder",
+      "felter": [
+        "units.*"
+      ],
+      "regel": "Mindst én aktiv enhed; tilsammen skal de kunne dække spidslasten (ca. 0,38 MW pr. GWh/år). Tilføj fra enhedstyper.json; skabelonens gaskedel kan beholdes som spids/reserve."
+    },
+    {
+      "id": "lager",
+      "titel": "Lager (valgfrit)",
+      "felter": [
+        "storage.*"
+      ],
+      "regel": "Tom = intet lager. Et lager har volumen, ΔT, startindhold og lade-/afladeeffekt."
+    },
+    {
+      "id": "priser",
+      "titel": "Priser og tarif",
+      "felter": [
+        "prices.*",
+        "electricity.*"
+      ],
+      "regel": "Forudfyldt med Andebys tal og markeret [BEKRÆFT]. Pris skal findes for hvert brændsel, en aktiv enhed bruger; elafgift = elafgift_net."
+    },
+    {
+      "id": "gennemse",
+      "titel": "Gennemse og opret",
+      "felter": [],
+      "regel": "Kør klientvalideringen (validering.md) på hele bladlisten; vis antal [BEKRÆFT]."
+    },
+    {
+      "id": "efter",
+      "titel": "Efter oprettelse",
+      "felter": [],
+      "regel": "Liste over [BEKRÆFT]-felter + 'Bestil en prøvekørsel (2 døgn)': 5.–6. januar 2026 uden balancemarked, gab 0,0002/100 kr."
+    }
+  ],
+  "obligatoriske_felter": {
+    "_om": "Uden disse afviser modellen værket (validering.md). 'enabled' og ancillary er ikke strengt påkrævet (standarder), men skrives altid, så til/fra virker i scenarier (K3-N5).",
+    "altid": [
+      "meta.case_name",
+      "data.dmi_area",
+      "data.price_zone",
+      "time.start",
+      "time.end",
+      "time.resolution",
+      "heat_load_params.gaf_mw_per_k",
+      "prices.co2_eua.value",
+      "electricity.spot_area",
+      "electricity.tariff_consumption_flat",
+      "electricity.tariff_production_flat",
+      "electricity.electricity_tax",
+      "storage (blokken, evt. tom)",
+      "units.<n> (mindst én aktiv)"
+    ],
+    "pr_enhed": [
+      "type",
+      "p_max_heat",
+      "p_min_heat",
+      "alpha",
+      "fuel",
+      "eta_fuel_to_heat (når fuel ikke er electricity/solar)"
+    ],
+    "pr_lager": [
+      "volume_m3",
+      "delta_t_k",
+      "e_initial_mwh",
+      "p_max_charge_mw",
+      "p_max_discharge_mw",
+      "self_discharge_per_hour"
+    ],
+    "pr_braendsel_i_brug": [
+      "prices.<brændsel>.value"
+    ],
+    "hvis_tarifprofil": [
+      "electricity.tariff_consumption.unit",
+      "…net_tariff.bands.*",
+      "…net_tariff.seasons.*.months/weekday/weekend (alle 12 måneder, alle 24 timer)",
+      "…fixed_components.elafgift_net = electricity_tax"
+    ],
+    "kilde": "src/config.py:906-1165; src/tariff.py:110-161; src/data_loader.py:805-809"
+  },
+  "blade": [
+    {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"nyt_vaerk\"",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "navn",
+      "kommentar": "Værkets kode; bruges i outputfilernes navn."
+    },
+    {
+      "sti": "meta.titel",
+      "vaerdi_json": "\"Nyt værk\"",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "navn",
+      "kommentar": null
+    },
+    {
+      "sti": "meta.description",
+      "vaerdi_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\"",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "navn",
+      "kommentar": null
+    },
+    {
+      "sti": "meta.timezone_internal",
+      "vaerdi_json": "\"UTC\"",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "navn",
+      "kommentar": "Dokumentation; læses ikke af modellen."
+    },
+    {
+      "sti": "meta.timezone_reporting",
+      "vaerdi_json": "\"Europe/Copenhagen\"",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "navn",
+      "kommentar": null
+    },
+    {
+      "sti": "meta.discount_rate_real",
+      "vaerdi_json": "0.035",
+      "bekraeft": true,
+      "obligatorisk": false,
+      "trin": "navn",
+      "kommentar": "Real kalkulationsrente til annuitet; læses ikke af modellen (som Andeby)."
+    },
+    {
+      "sti": "data.dmi_area",
+      "vaerdi_json": "\"karup\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "klima",
+      "kommentar": "Vælg efter beliggenhed: vestkyst, karup, fyn, ringsted."
+    },
+    {
+      "sti": "data.price_zone",
+      "vaerdi_json": "\"DK1\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "klima",
+      "kommentar": "DK1 vest for Storebælt, DK2 øst for."
+    },
+    {
+      "sti": "electricity.spot_area",
+      "vaerdi_json": "\"DK1\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "klima",
+      "kommentar": "Skal være lig data.price_zone."
+    },
+    {
+      "sti": "time.start",
+      "vaerdi_json": "\"2025-07-01T00:00:00Z\"",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "tid",
+      "kommentar": "Rullende år; dækket af df-data."
+    },
+    {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-06-30T23:00:00Z\"",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "tid",
+      "kommentar": null
+    },
+    {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\"",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "tid",
+      "kommentar": "Version 1 kører kun 1h (KONTRAKT §6c)."
+    },
+    {
+      "sti": "solver.mip_rel_gap",
+      "vaerdi_json": "0.001",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "tid",
+      "kommentar": "Som Andeby."
+    },
+    {
+      "sti": "solver.mip_abs_gap",
+      "vaerdi_json": "1000.0",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "tid",
+      "kommentar": null
+    },
+    {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "3600.0",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "tid",
+      "kommentar": null
+    },
+    {
+      "sti": "heat_load_params.gaf_mw_per_k",
+      "vaerdi_json": "0.3626",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "varmebehov",
+      "kommentar": "Skaleret fra Andeby × 50/105.52"
+    },
+    {
+      "sti": "heat_load_params.t_ref",
+      "vaerdi_json": "15.0",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "varmebehov",
+      "kommentar": null
+    },
+    {
+      "sti": "heat_load_params.thermal_inertia_hours",
+      "vaerdi_json": "24",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "varmebehov",
+      "kommentar": null
+    },
+    {
+      "sti": "heat_load_params.nettab_slope_mw_per_k",
+      "vaerdi_json": "0.2259",
+      "bekraeft": true,
+      "obligatorisk": false,
+      "trin": "varmebehov",
+      "kommentar": "Skaleret fra Andeby × 50/105.52"
+    },
+    {
+      "sti": "heat_load_params.t_net",
+      "vaerdi_json": "12.0",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "varmebehov",
+      "kommentar": null
+    },
+    {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[2.102,2.132,2.181,2.259,2.285,2.422,2.649,2.656,2.537,2.348,2.263,2.225,2.162,2.118,2.092,2.065,2.099,2.181,2.24,2.259,2.244,2.24,2.184,2.08]",
+      "bekraeft": true,
+      "obligatorisk": false,
+      "trin": "varmebehov",
+      "kommentar": "Skaleret fra Andeby × 50/105.52"
+    },
+    {
+      "sti": "heat_load_params.weekly_dip",
+      "vaerdi_json": "0.02",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "varmebehov",
+      "kommentar": null
+    },
+    {
+      "sti": "heat_load_params._source",
+      "vaerdi_json": "\"Skabelon: Andeby × 50/105.52 GWh\"",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "varmebehov",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.enabled",
+      "vaerdi_json": "true",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.type",
+      "vaerdi_json": "\"gas_boiler\"",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.p_max_heat",
+      "vaerdi_json": "25.0",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "enheder",
+      "kommentar": "Skal dække spidslasten (ca. 19.0 MW ved 50 GWh); 0,5 MW pr. GWh giver luft."
+    },
+    {
+      "sti": "units.gaskedel.p_min_heat",
+      "vaerdi_json": "0.0",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.alpha",
+      "vaerdi_json": "0.0",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.fuel",
+      "vaerdi_json": "\"natural_gas\"",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.var_om",
+      "vaerdi_json": "30.0",
+      "bekraeft": true,
+      "obligatorisk": false,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.start_cost",
+      "vaerdi_json": "0.0",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.min_uptime",
+      "vaerdi_json": "1",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.min_downtime",
+      "vaerdi_json": "1",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.uc_enabled",
+      "vaerdi_json": "false",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.2",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "enheder",
+      "kommentar": "Naturgas ca. 0,2 t CO₂/MWh brændsel."
+    },
+    {
+      "sti": "units.gaskedel.ancillary.afrr_qualified",
+      "vaerdi_json": "false",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.ancillary.mfrr_qualified",
+      "vaerdi_json": "false",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "units.gaskedel.ancillary.fcr_qualified",
+      "vaerdi_json": "false",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "enheder",
+      "kommentar": null
+    },
+    {
+      "sti": "storage",
+      "vaerdi_json": "{}",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "lager",
+      "kommentar": "Intet lager. Blokken skal findes (config.py læser raw['storage'])."
+    },
+    {
+      "sti": "prices.natural_gas.value",
+      "vaerdi_json": "606.0",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": "Andebys gaspris; ekskl. moms pr. MWh brændsel."
+    },
+    {
+      "sti": "prices.natural_gas.unit",
+      "vaerdi_json": "\"DKK/MWh_fuel\"",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "prices.co2_eua.value",
+      "vaerdi_json": "600.0",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": "Kr. pr. ton CO₂; 0 hvis gasprisen indeholder CO₂-afgiften."
+    },
+    {
+      "sti": "prices.co2_eua.unit",
+      "vaerdi_json": "\"DKK/t_CO2\"",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption_flat",
+      "vaerdi_json": "125.0",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_production_flat",
+      "vaerdi_json": "4.1",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.electricity_tax",
+      "vaerdi_json": "4.0",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": "Skal være lig fixed_components.elafgift_net."
+    },
+    {
+      "sti": "electricity.tariff_consumption.unit",
+      "vaerdi_json": "\"kr_per_mwh\"",
+      "bekraeft": false,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.source",
+      "vaerdi_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\"",
+      "bekraeft": false,
+      "obligatorisk": false,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.fixed_components.energinet",
+      "vaerdi_json": "115.0",
+      "bekraeft": true,
+      "obligatorisk": false,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.fixed_components.dv",
+      "vaerdi_json": "0.0",
+      "bekraeft": true,
+      "obligatorisk": false,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+      "vaerdi_json": "4.0",
+      "bekraeft": true,
+      "obligatorisk": false,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+      "vaerdi_json": "7.4",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+      "vaerdi_json": "14.8",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+      "vaerdi_json": "29.5",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+      "vaerdi_json": "[10,11,12,1,2,3]",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+      "vaerdi_json": "\"lav\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+      "vaerdi_json": "\"spids\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+      "vaerdi_json": "\"hoej\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+      "vaerdi_json": "\"lav\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+      "vaerdi_json": "\"hoej\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+      "vaerdi_json": "\"hoej\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+      "vaerdi_json": "[4,5,6,7,8,9]",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+      "vaerdi_json": "\"lav\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+      "vaerdi_json": "\"hoej\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+      "vaerdi_json": "\"lav\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    },
+    {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+      "vaerdi_json": "\"lav\"",
+      "bekraeft": true,
+      "obligatorisk": true,
+      "trin": "priser",
+      "kommentar": null
+    }
+  ]
+}

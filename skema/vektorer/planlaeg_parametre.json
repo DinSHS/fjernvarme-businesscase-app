@@ -1,0 +1,581 @@
+{
+ "_om": "Genereret af skema/vektorer/generer.mts fra TS-implementeringen (planlaeg_parametre). Ret aldrig i hånden — generér igen.",
+ "kilder": {
+  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
+  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
+  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
+  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
+  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427"
+ },
+ "tilfaelde": [
+  {
+   "navn": "ret/opret og uændret springes over",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "prices.straw.value",
+      "handling": "ret",
+      "ny_json": "47.5"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "handling": "ret",
+      "ny_json": "12.0"
+     },
+     {
+      "sti": "units.halmkedel.p_min_heat",
+      "handling": "opret",
+      "ny_json": "2.0"
+     }
+    ]
+   },
+   "ud": {
+    "opret": [
+     {
+      "sti": "units.halmkedel.p_min_heat",
+      "ny_json": "2.0",
+      "sektion": "units",
+      "objekt": "halmkedel"
+     }
+    ],
+    "ret": [
+     {
+      "sti": "prices.straw.value",
+      "gammel_json": "45.0",
+      "ny_json": "47.5"
+     }
+    ],
+    "slet": []
+   }
+  },
+  {
+   "navn": "opret af eksisterende",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "prices.straw.value",
+      "handling": "opret",
+      "ny_json": "1.0"
+     }
+    ]
+   },
+   "afvisning": "\"prices.straw.value\" findes allerede — brug ret i stedet for opret."
+  },
+  {
+   "navn": "ret af manglende",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "prices.olie.value",
+      "handling": "ret",
+      "ny_json": "1.0"
+     }
+    ]
+   },
+   "afvisning": "\"prices.olie.value\" findes ikke i værket (måske slettet af en anden)."
+  },
+  {
+   "navn": "slet af manglende",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "prices.olie.value",
+      "handling": "slet",
+      "ny_json": null
+     }
+    ]
+   },
+   "afvisning": "\"prices.olie.value\" findes ikke i værket (måske slettet af en anden)."
+  },
+  {
+   "navn": "opret under et blad",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "prices.straw.value.x",
+      "handling": "opret",
+      "ny_json": "1.0"
+     }
+    ]
+   },
+   "afvisning": "\"prices.straw.value.x\" kan ikke oprettes, fordi \"prices.straw.value\" allerede er en værdi."
+  },
+  {
+   "navn": "opret over et blad",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "prices.straw",
+      "handling": "opret",
+      "ny_json": "1.0"
+     }
+    ]
+   },
+   "afvisning": "\"prices.straw\" kan ikke blive en værdi, fordi \"prices.straw.value\" ligger under den."
+  },
+  {
+   "navn": "intet ændres",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "prices.straw.value",
+      "handling": "ret",
+      "ny_json": "45.0"
+     }
+    ]
+   },
+   "afvisning": "Anmodningen ændrer ingenting."
+  },
+  {
+   "navn": "slet og opret under det slettede",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "prices.straw.value",
+      "handling": "slet",
+      "ny_json": null
+     },
+     {
+      "sti": "prices.straw.value.x",
+      "handling": "opret",
+      "ny_json": "1.0"
+     }
+    ]
+   },
+   "ud": {
+    "opret": [
+     {
+      "sti": "prices.straw.value.x",
+      "ny_json": "1.0",
+      "sektion": "prices",
+      "objekt": "straw"
+     }
+    ],
+    "ret": [],
+    "slet": [
+     {
+      "sti": "prices.straw.value",
+      "gammel_json": "45.0"
+     }
+    ]
+   }
+  },
+  {
+   "navn": "opret og opret under det nye",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "a.b",
+      "handling": "opret",
+      "ny_json": "1"
+     },
+     {
+      "sti": "a.b.c",
+      "handling": "opret",
+      "ny_json": "1"
+     }
+    ]
+   },
+   "afvisning": "\"a.b.c\" kan ikke oprettes, fordi \"a.b\" allerede er en værdi."
+  },
+  {
+   "navn": "opret under det nye i omvendt rækkefølge",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "a.b.c",
+      "handling": "opret",
+      "ny_json": "1"
+     },
+     {
+      "sti": "a.b",
+      "handling": "opret",
+      "ny_json": "1"
+     }
+    ]
+   },
+   "afvisning": "\"a.b\" kan ikke blive en værdi, fordi \"a.b.c\" ligger under den."
+  },
+  {
+   "navn": "opret med objekt (units)",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "units.ny.type",
+      "handling": "opret",
+      "ny_json": "\"boiler\""
+     },
+     {
+      "sti": "prices.gas.value",
+      "handling": "opret",
+      "ny_json": "1.0"
+     },
+     {
+      "sti": "storage.t.volume_m3",
+      "handling": "opret",
+      "ny_json": "1.0"
+     },
+     {
+      "sti": "meta.x.y",
+      "handling": "opret",
+      "ny_json": "1"
+     }
+    ]
+   },
+   "ud": {
+    "opret": [
+     {
+      "sti": "units.ny.type",
+      "ny_json": "\"boiler\"",
+      "sektion": "units",
+      "objekt": "ny"
+     },
+     {
+      "sti": "prices.gas.value",
+      "ny_json": "1.0",
+      "sektion": "prices",
+      "objekt": "gas"
+     },
+     {
+      "sti": "storage.t.volume_m3",
+      "ny_json": "1.0",
+      "sektion": "storage",
+      "objekt": "t"
+     },
+     {
+      "sti": "meta.x.y",
+      "ny_json": "1",
+      "sektion": "meta",
+      "objekt": null
+     }
+    ],
+    "ret": [],
+    "slet": []
+   }
+  },
+  {
+   "navn": "opret med to segmenter",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "units.ny",
+      "handling": "opret",
+      "ny_json": "{}"
+     }
+    ]
+   },
+   "ud": {
+    "opret": [
+     {
+      "sti": "units.ny",
+      "ny_json": "{}",
+      "sektion": "units",
+      "objekt": null
+     }
+    ],
+    "ret": [],
+    "slet": []
+   }
+  },
+  {
+   "navn": "slet alt",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "prices.straw.value",
+      "handling": "slet",
+      "ny_json": null
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "handling": "slet",
+      "ny_json": null
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "handling": "slet",
+      "ny_json": null
+     }
+    ]
+   },
+   "ud": {
+    "opret": [],
+    "ret": [],
+    "slet": [
+     {
+      "sti": "prices.straw.value",
+      "gammel_json": "45.0"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "gammel_json": "12.0"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "gammel_json": "true"
+     }
+    ]
+   }
+  },
+  {
+   "navn": "ret samme værdi med anden form",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "prices.straw.value",
+      "handling": "ret",
+      "ny_json": "45"
+     }
+    ]
+   },
+   "ud": {
+    "opret": [],
+    "ret": [
+     {
+      "sti": "prices.straw.value",
+      "gammel_json": "45.0",
+      "ny_json": "45"
+     }
+    ],
+    "slet": []
+   }
+  },
+  {
+   "navn": "opret \"a.b-x\" mellem \"a.b\" og \"a.b.c\"",
+   "input": {
+    "nuvaerende": [
+     [
+      "prices.straw.value",
+      "45.0"
+     ],
+     [
+      "units.halmkedel.p_max_heat",
+      "12.0"
+     ],
+     [
+      "units.halmkedel.enabled",
+      "true"
+     ]
+    ],
+    "aendringer": [
+     {
+      "sti": "units.halmkedel-x",
+      "handling": "opret",
+      "ny_json": "1"
+     }
+    ]
+   },
+   "ud": {
+    "opret": [
+     {
+      "sti": "units.halmkedel-x",
+      "ny_json": "1",
+      "sektion": "units",
+      "objekt": null
+     }
+    ],
+    "ret": [],
+    "slet": []
+   }
+  }
+ ]
+}

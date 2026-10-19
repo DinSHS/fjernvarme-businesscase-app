@@ -1,0 +1,76 @@
+{
+ "_om": "Kørslens effektive første og sidste time (UTC, begge med) - modellens egen akse. Kilde: run_case._apply_time_override (scenariets --start/--end: bar slutdato = døgnets sidste time) og data_loader.make_time_index (værkets time-blok PRÆCIS som den står: bar dato = midnat, intet udvides). Bruges af fabric/tests/test_k5.py (mod byg_case og mod modellens make_time_index) og af appens bygFrossetInput-dækningstjek (K5-F5). timer = antal intervaller.",
+ "vektorer": [
+  {
+   "navn": "K5-F5: vaerkets egne klokkeslaet",
+   "time_start": "2026-01-05T12:00:00Z",
+   "time_end": "2026-01-07T11:00:00Z",
+   "start": null,
+   "slut": null,
+   "foerste": "2026-01-05T12:00:00Z",
+   "sidste": "2026-01-07T11:00:00Z",
+   "timer": 48
+  },
+  {
+   "navn": "bar slutdato i vaerket = midnat",
+   "time_start": "2026-01-05",
+   "time_end": "2026-01-07",
+   "start": null,
+   "slut": null,
+   "foerste": "2026-01-05T00:00:00Z",
+   "sidste": "2026-01-07T00:00:00Z",
+   "timer": 49
+  },
+  {
+   "navn": "vaerk uden Z",
+   "time_start": "2026-01-05T00:00:00",
+   "time_end": "2026-01-06T23:00:00",
+   "start": null,
+   "slut": null,
+   "foerste": "2026-01-05T00:00:00Z",
+   "sidste": "2026-01-06T23:00:00Z",
+   "timer": 48
+  },
+  {
+   "navn": "Andeby-form helaar",
+   "time_start": "2026-01-01T00:00:00Z",
+   "time_end": "2026-12-31T23:00:00Z",
+   "start": null,
+   "slut": null,
+   "foerste": "2026-01-01T00:00:00Z",
+   "sidste": "2026-12-31T23:00:00Z",
+   "timer": 8760
+  },
+  {
+   "navn": "scenariets datoer = hele doegn",
+   "time_start": "2026-01-05T12:00:00Z",
+   "time_end": "2026-01-07T11:00:00Z",
+   "start": "2026-01-05",
+   "slut": "2026-01-06",
+   "foerste": "2026-01-05T00:00:00Z",
+   "sidste": "2026-01-06T23:00:00Z",
+   "timer": 48
+  },
+  {
+   "navn": "scenariet ét doegn",
+   "time_start": "2026-01-01T00:00:00Z",
+   "time_end": "2026-12-31T23:00:00Z",
+   "start": "2026-03-29",
+   "slut": "2026-03-29",
+   "foerste": "2026-03-29T00:00:00Z",
+   "sidste": "2026-03-29T23:00:00Z",
+   "timer": 24
+  },
+  {
+   "navn": "offset afvises (modellen fejler selv: Inferred time zone not equal to passed time zone)",
+   "time_start": "2026-01-05T13:00:00+01:00",
+   "time_end": "2026-01-06T12:00:00+01:00",
+   "start": null,
+   "slut": null,
+   "foerste": null,
+   "sidste": null,
+   "timer": null,
+   "afvises": true
+  }
+ ]
+}

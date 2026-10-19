@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0",
+  "scenarie_id": "andeby__gh__2026-01-05_2026-01-16",
+  "meta": {
+    "case_name": "andeby",
+    "titel": "Andeby — fiktivt referenceværk",
+    "beskrivelse": "Fiktivt referenceværk til regulerings-analyser. Halmkedel (12 MW) som grundlast; solvarme (profil-drevet loft via solar_thermal-enhedstypen); flåde skaleret til ~100 GWh. Afledt af billund_2025 (faktor 0,784 på heat_load-parametrene).\n",
+    "gruppe": "andeby",
+    "rolle_i_gruppe": null
+  },
+  "koersel": {
+    "datakilde": "github",
+    "periode": {
+      "start": "2026-01-05",
+      "slut": "2026-01-16",
+      "oploesning": "1h"
+    },
+    "med_balancering": false,
+    "enheder_til": [
+      "vp_luft_vand",
+      "elkedel_ny",
+      "halmkedel",
+      "gasmotor",
+      "gaskedel_agg",
+      "solvarme"
+    ],
+    "enheder_fra": [
+      "elkedel_gl",
+      "fliskedel"
+    ],
+    "overrides": [],
+    "foresight_haircut_pct": null
+  },
+  "sporbarhed": {
+    "model_commit": "2fdfb97",
+    "koert_tidspunkt": "2026-10-16T08:09:06.743067+00:00",
+    "solve_status": "optimal",
+    "model_type": "MILP"
+  },
+  "noegletal": {
+    "objektiv_dkk": 3424408.0,
+    "varmeefterspoergsel_mwh": 7039.6,
+    "samlet_produktion_mwh": 7008.1,
+    "nettab_mwh": 1870.4,
+    "nettab_pct": 26.6,
+    "balanceindtaegt_dkk": null,
+    "tank_arbitrage_dkk": null,
+    "co2_ton": 475.4
+  },
+  "enheder": [
+    {
+      "navn": "halmkedel",
+      "p_max_mw": 12.0,
+      "produktion_mwh": 3448.0,
+      "andel_pct": 49.2,
+      "fuldlasttimer": 288,
+      "kapacitetsfaktor_pct": 99.8
+    },
+    {
+      "navn": "gaskedel_agg",
+      "p_max_mw": 20.0,
+      "produktion_mwh": 2013.7,
+      "andel_pct": 28.7,
+      "fuldlasttimer": 228,
+      "kapacitetsfaktor_pct": 35.0
+    },
+    {
+      "navn": "vp_luft_vand",
+      "p_max_mw": 4.462,
+      "produktion_mwh": 938.7,
+      "andel_pct": 13.4,
+      "fuldlasttimer": 287,
+      "kapacitetsfaktor_pct": 73.0
+    },
+    {
+      "navn": "elkedel_ny",
+      "p_max_mw": 4.0,
+      "produktion_mwh": 472.0,
+      "andel_pct": 6.7,
+      "fuldlasttimer": 118,
+      "kapacitetsfaktor_pct": 41.0
+    },
+    {
+      "navn": "gasmotor",
+      "p_max_mw": 10.5,
+      "produktion_mwh": 126.0,
+      "andel_pct": 1.8,
+      "fuldlasttimer": 12,
+      "kapacitetsfaktor_pct": 4.2
+    },
+    {
+      "navn": "solvarme",
+      "p_max_mw": 22.0,
+      "produktion_mwh": 9.6,
+      "andel_pct": 0.1,
+      "fuldlasttimer": 7,
+      "kapacitetsfaktor_pct": 0.2
+    }
+  ],
+  "filer": {
+    "manifest": "andeby__gh__2026-01-05_2026-01-16_manifest.json",
+    "hourly_csv": "andeby__gh__2026-01-05_2026-01-16_hourly.csv",
+    "kpi_csv": "andeby__gh__2026-01-05_2026-01-16_kpi.csv",
+    "monthly_csv": "andeby__gh__2026-01-05_2026-01-16_monthly.csv",
+    "dispatch_png": "andeby__gh__2026-01-05_2026-01-16_dispatch.png"
+  }
+}

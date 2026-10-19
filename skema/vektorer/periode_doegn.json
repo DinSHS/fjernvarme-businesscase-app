@@ -1,0 +1,324 @@
+{
+ "_om": "Genereret af skema/vektorer/generer.mts fra TS-implementeringen (periode_doegn). Ret aldrig i hånden — generér igen.",
+ "kilder": {
+  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
+  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
+  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
+  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
+  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427"
+ },
+ "tilfaelde": [
+  {
+   "navn": "scenariedatoer inklusive",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-01-05",
+     "periode_slut": "2026-01-16"
+    },
+    "vaerdier": {}
+   },
+   "ud": {
+    "start": "2026-01-05",
+    "slut": "2026-01-16",
+    "doegn": 12
+   }
+  },
+  {
+   "navn": "samme dag",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-01-05",
+     "periode_slut": "2026-01-05"
+    },
+    "vaerdier": {}
+   },
+   "ud": {
+    "start": "2026-01-05",
+    "slut": "2026-01-05",
+    "doegn": 1
+   }
+  },
+  {
+   "navn": "skudår 366",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2024-01-01",
+     "periode_slut": "2024-12-31"
+    },
+    "vaerdier": {}
+   },
+   "ud": {
+    "start": "2024-01-01",
+    "slut": "2024-12-31",
+    "doegn": 366
+   }
+  },
+  {
+   "navn": "over sommertid",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-03-28",
+     "periode_slut": "2026-03-30"
+    },
+    "vaerdier": {}
+   },
+   "ud": {
+    "start": "2026-03-28",
+    "slut": "2026-03-30",
+    "doegn": 3
+   }
+  },
+  {
+   "navn": "29. feb ikke-skudår",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2025-02-29",
+     "periode_slut": "2025-03-01"
+    },
+    "vaerdier": {}
+   },
+   "afvisning": "Periodens start: \"2025-02-29\" er ikke en gyldig dato."
+  },
+  {
+   "navn": "2026-02-30",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-02-30",
+     "periode_slut": "2026-03-01"
+    },
+    "vaerdier": {}
+   },
+   "afvisning": "Periodens start: \"2026-02-30\" er ikke en gyldig dato."
+  },
+  {
+   "navn": "kun start",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-01-05"
+    },
+    "vaerdier": {}
+   },
+   "afvisning": "Periode: både start- og slutdato skal udfyldes (eller ingen af dem)."
+  },
+  {
+   "navn": "kun slut",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_slut": "2026-01-05"
+    },
+    "vaerdier": {}
+   },
+   "afvisning": "Periode: både start- og slutdato skal udfyldes (eller ingen af dem)."
+  },
+  {
+   "navn": "slut før start",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-02-01",
+     "periode_slut": "2026-01-01"
+    },
+    "vaerdier": {}
+   },
+   "afvisning": "Periodens slut (2026-01-01) ligger før start (2026-02-01)."
+  },
+  {
+   "navn": "format med klokkeslæt",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-01-05T00:00",
+     "periode_slut": "2026-01-06"
+    },
+    "vaerdier": {}
+   },
+   "afvisning": "Periodens start skal være en dato på formen ÅÅÅÅ-MM-DD (fik \"2026-01-05T00:00\")."
+  },
+  {
+   "navn": "tom tekst = ingen",
+   "input": {
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "",
+     "periode_slut": ""
+    },
+    "vaerdier": {
+     "time.start": "2026-01-05T00:00:00Z",
+     "time.end": "2026-01-05T23:00:00Z"
+    }
+   },
+   "ud": {
+    "start": "2026-01-05T00:00:00Z",
+    "slut": "2026-01-05T23:00:00Z",
+    "doegn": 1
+   }
+  },
+  {
+   "navn": "værk helår",
+   "input": {
+    "scenarie": {
+     "med_balancering": false
+    },
+    "vaerdier": {
+     "time.start": "2025-07-01T00:00:00Z",
+     "time.end": "2026-06-30T23:00:00Z",
+     "time.resolution": "1h"
+    }
+   },
+   "ud": {
+    "start": "2025-07-01T00:00:00Z",
+    "slut": "2026-06-30T23:00:00Z",
+    "doegn": 365
+   }
+  },
+  {
+   "navn": "værk 15min-skridt",
+   "input": {
+    "scenarie": {
+     "med_balancering": false
+    },
+    "vaerdier": {
+     "time.start": "2026-01-05T00:00:00Z",
+     "time.end": "2026-01-05T23:45:00Z",
+     "time.resolution": "15min"
+    }
+   },
+   "ud": {
+    "start": "2026-01-05T00:00:00Z",
+    "slut": "2026-01-05T23:45:00Z",
+    "doegn": 1
+   }
+  },
+  {
+   "navn": "værk ukendt opløsning",
+   "input": {
+    "scenarie": {
+     "med_balancering": false
+    },
+    "vaerdier": {
+     "time.start": "2026-01-05T00:00:00Z",
+     "time.end": "2026-01-05T23:00:00Z",
+     "time.resolution": "30min"
+    }
+   },
+   "ud": {
+    "start": "2026-01-05T00:00:00Z",
+    "slut": "2026-01-05T23:00:00Z",
+    "doegn": 1
+   }
+  },
+  {
+   "navn": "værk brøkdel af døgn",
+   "input": {
+    "scenarie": {
+     "med_balancering": false
+    },
+    "vaerdier": {
+     "time.start": "2026-01-05T00:00:00Z",
+     "time.end": "2026-01-05T12:30:00Z"
+    }
+   },
+   "ud": {
+    "start": "2026-01-05T00:00:00Z",
+    "slut": "2026-01-05T12:30:00Z",
+    "doegn": 0.5625
+   }
+  },
+  {
+   "navn": "værk mangler start",
+   "input": {
+    "scenarie": {
+     "med_balancering": false
+    },
+    "vaerdier": {
+     "time.end": "2026-01-05T23:00:00Z"
+    }
+   },
+   "afvisning": "Værkets time.start mangler eller er ikke en tekst."
+  },
+  {
+   "navn": "værk start som tal",
+   "input": {
+    "scenarie": {
+     "med_balancering": false
+    },
+    "vaerdier": {
+     "time.start": 5,
+     "time.end": "2026-01-05T23:00:00Z"
+    }
+   },
+   "afvisning": "Værkets time.start mangler eller er ikke en tekst."
+  },
+  {
+   "navn": "værk ulæselig start",
+   "input": {
+    "scenarie": {
+     "med_balancering": false
+    },
+    "vaerdier": {
+     "time.start": "i går",
+     "time.end": "2026-01-05T23:00:00Z"
+    }
+   },
+   "afvisning": "Værkets time.start: \"i går\" kan ikke læses som tidspunkt."
+  },
+  {
+   "navn": "værk slut før start",
+   "input": {
+    "scenarie": {
+     "med_balancering": false
+    },
+    "vaerdier": {
+     "time.start": "2026-01-06T00:00:00Z",
+     "time.end": "2026-01-05T23:00:00Z"
+    }
+   },
+   "afvisning": "Værkets time.end ligger før time.start."
+  },
+  {
+   "navn": "værk med mellemrum",
+   "input": {
+    "scenarie": {
+     "med_balancering": false
+    },
+    "vaerdier": {
+     "time.start": "2026-01-05 00:00:00",
+     "time.end": "2026-01-06 23:00:00"
+    }
+   },
+   "ud": {
+    "start": "2026-01-05 00:00:00",
+    "slut": "2026-01-06 23:00:00",
+    "doegn": 2
+   }
+  },
+  {
+   "navn": "værk bare datoer",
+   "input": {
+    "scenarie": {
+     "med_balancering": false
+    },
+    "vaerdier": {
+     "time.start": "2026-01-05",
+     "time.end": "2026-01-07"
+    }
+   },
+   "ud": {
+    "start": "2026-01-05",
+    "slut": "2026-01-07",
+    "doegn": 2.0416666666666665
+   }
+  }
+ ]
+}

@@ -1,0 +1,640 @@
+{
+  "_om": "Referencetal fra modelrepoet, udtrykt som værk + scenarie i appens datamodel (KONTRAKT v2 §3.1, §3.4, §3.5), så de kan genskabes i Fabric. 'vaerk.kode' er lowercase-normaliseret fra filnavnet (KONTRAKT §3.1). Tom periode = værkets time-blok. 'tolerance_dkk' = max(mip_abs_gap, mip_rel_gap × objektiv) med casens egne gab: HiGHS stopper, når ét af de to gab er nået, så en ny kørsel kan ligge så langt fra tallet uden at være forkert. Tallene afhænger af df-data; README kræver df-data fra 5. oktober 2026 eller senere.",
+  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "kontrakt_version": 2,
+  "datakrav": {
+    "df_data": "fra 5. oktober 2026 eller senere; nye dataopdateringer ændrer ikke januar–juni 2026",
+    "datakilde": "github (df-data)",
+    "kilde": "README.md:130-134"
+  },
+  "objektiv_betyder": "Modellens samlede driftsomkostning i kr. for vinduet (manifest noegletal.objektiv_dkk). Med settle realized er det trin 2-objektivet, afregnet på det realiserede.",
+  "grupper": [
+    {
+      "id": "readme",
+      "navn": "README-referencetal (gældende)",
+      "kilde": "README.md:128-159",
+      "koert": "2026-10-15, robust reservation som standard, rullende Billund-cases med flis- og halmkedel slukket 1. juli",
+      "referencer": [
+        {
+          "id": "spora_anker",
+          "navn": "Spor A-anker",
+          "vindue": "2. marts–23. juni 2026",
+          "vaerk": {
+            "kode": "billund_spora",
+            "kilde_fil": "cases/billund_sporA.yaml"
+          },
+          "scenarie": {
+            "navn": "Spor A-anker",
+            "periode_start": null,
+            "periode_slut": null,
+            "med_balancering": true,
+            "balancing_method": null,
+            "mip_rel_gap": null,
+            "mip_abs_gap": null,
+            "tidsgraense_s": null,
+            "ekstra_flag": null,
+            "heat_csv": null
+          },
+          "aendringer": [],
+          "case_gab": {
+            "mip_rel_gap": 0.005,
+            "mip_abs_gap": 5000,
+            "time_limit_s": 600,
+            "kilde": "kodens standard, casen har ingen solver-blok (doc/KOERSEL.md:64-66)"
+          },
+          "forventet": {
+            "objektiv_dkk": 4698390,
+            "tolerance_dkk": 23492
+          },
+          "loesetid": "ca. 2 minutter (sandkasse, 2 kerner)",
+          "kommando": "python run_case.py cases/billund_sporA.yaml --data-source github --with-balancing",
+          "noter": [
+            "Syntetisk varmelast (intet heat_csv), DMI-område fyn.",
+            "Slutter 23. juni, fordi ankeret er regnet før den sidste uge af juni blev splejset ind."
+          ],
+          "kilde": "README.md:138; README.md:144; README.md:148-150"
+        },
+        {
+          "id": "sporb",
+          "navn": "Spor B",
+          "vindue": "2. marts–30. juni 2026",
+          "vaerk": {
+            "kode": "billund_sporb",
+            "kilde_fil": "cases/billund_sporB.yaml"
+          },
+          "scenarie": {
+            "navn": "Spor B",
+            "periode_start": null,
+            "periode_slut": null,
+            "med_balancering": true,
+            "balancing_method": null,
+            "mip_rel_gap": null,
+            "mip_abs_gap": null,
+            "tidsgraense_s": null,
+            "ekstra_flag": null,
+            "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
+          },
+          "aendringer": [],
+          "case_gab": {
+            "mip_rel_gap": 0.005,
+            "mip_abs_gap": 5000,
+            "time_limit_s": 600,
+            "kilde": "kodens standard (doc/KOERSEL.md:64-66)"
+          },
+          "forventet": {
+            "objektiv_dkk": 3964586,
+            "tolerance_dkk": 19823
+          },
+          "loesetid": "ca. 2 minutter",
+          "kommando": "python run_case.py cases/billund_sporB.yaml --data-source github --with-balancing --heat-csv data/billund_abvaerk_hourly_splejset_jun2026.csv",
+          "noter": [
+            "Mod Billunds afregning marts–juni 2026 (ex post): 121 % (aFRR 108 %, mFRR 132 %)."
+          ],
+          "kilde": "README.md:139; README.md:155-157"
+        },
+        {
+          "id": "billund_rullende",
+          "navn": "Billund rullende år",
+          "vindue": "juli 2025–juni 2026",
+          "vaerk": {
+            "kode": "billund_spora_rullende",
+            "kilde_fil": "cases/billund_sporA_rullende.yaml"
+          },
+          "scenarie": {
+            "navn": "Billund rullende år, med balancering",
+            "periode_start": null,
+            "periode_slut": null,
+            "med_balancering": true,
+            "balancing_method": null,
+            "mip_rel_gap": null,
+            "mip_abs_gap": null,
+            "tidsgraense_s": null,
+            "ekstra_flag": null,
+            "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
+          },
+          "aendringer": [],
+          "case_gab": {
+            "mip_rel_gap": 0.005,
+            "mip_abs_gap": 5000,
+            "time_limit_s": 600,
+            "kilde": "kodens standard (doc/KOERSEL.md:64-66)"
+          },
+          "forventet": {
+            "objektiv_dkk": 20341652,
+            "tolerance_dkk": 101708
+          },
+          "loesetid": "ca. 4 minutter",
+          "kommando": "python run_case.py cases/billund_sporA_rullende.yaml --data-source github --with-balancing --heat-csv data/billund_abvaerk_hourly_splejset_jun2026.csv",
+          "noter": [
+            "Samme tal som rapport v4 tabel 4.1 (med tank, med balancemarked)."
+          ],
+          "kilde": "README.md:140; README.md:148-151"
+        },
+        {
+          "id": "andeby_helaar_bal",
+          "navn": "Andeby helår, med balancering",
+          "vindue": "juli 2025–juni 2026",
+          "vaerk": {
+            "kode": "andeby",
+            "kilde_fil": "cases/andeby.yaml"
+          },
+          "scenarie": {
+            "navn": "Andeby helår, med balancering",
+            "periode_start": null,
+            "periode_slut": null,
+            "med_balancering": true,
+            "balancing_method": null,
+            "mip_rel_gap": null,
+            "mip_abs_gap": null,
+            "tidsgraense_s": null,
+            "ekstra_flag": null,
+            "heat_csv": null
+          },
+          "aendringer": [],
+          "case_gab": {
+            "mip_rel_gap": 0.001,
+            "mip_abs_gap": 1000,
+            "time_limit_s": 3600,
+            "kilde": "cases/andeby.yaml:142-145"
+          },
+          "forventet": {
+            "objektiv_dkk": 23067291,
+            "tolerance_dkk": null,
+            "opnaaet_gab_pct": 0.12
+          },
+          "loesetid": "ca. 1 time; ca. 3,5 GB hukommelse (robust reservation fordobler driftsdelen)",
+          "kommando": "python run_case.py cases/andeby.yaml --data-source github --with-balancing",
+          "noter": [
+            "Stopper ved casens tidsgrænse på 1 time med gab 0,12 % (mål 0,1 %). Tallet er derfor ikke reproducerbart til kronen; en ny kørsel kan lande et andet sted inden for ca. 0,12 % (ca. 28.000 kr.).",
+            "Regn den på forhånd; kør ikke helår live.",
+            "Andebys balancetal er et potentiale ved fuld tilgængelighed, ikke hvad et værk vil tjene."
+          ],
+          "kilde": "README.md:141; README.md:146; README.md:150-152; README.md:158-159"
+        },
+        {
+          "id": "andeby_helaar_spot",
+          "navn": "Andeby helår, uden balancering",
+          "vindue": "juli 2025–juni 2026",
+          "vaerk": {
+            "kode": "andeby",
+            "kilde_fil": "cases/andeby.yaml"
+          },
+          "scenarie": {
+            "navn": "Andeby helår, uden balancering",
+            "periode_start": null,
+            "periode_slut": null,
+            "med_balancering": false,
+            "balancing_method": null,
+            "mip_rel_gap": null,
+            "mip_abs_gap": null,
+            "tidsgraense_s": null,
+            "ekstra_flag": null,
+            "heat_csv": null
+          },
+          "aendringer": [],
+          "case_gab": {
+            "mip_rel_gap": 0.001,
+            "mip_abs_gap": 1000,
+            "time_limit_s": 3600,
+            "kilde": "cases/andeby.yaml:142-145"
+          },
+          "forventet": {
+            "objektiv_dkk": 30430965,
+            "tolerance_dkk": 30431
+          },
+          "loesetid": "6–10 minutter",
+          "kommando": "python run_case.py cases/andeby.yaml --data-source github",
+          "noter": [
+            "Andeby fik 8. oktober 2026 en solprofil fra målt DMI-globalstråling; Andeby-tal fra før den dato kan ikke sammenlignes."
+          ],
+          "kilde": "README.md:142; README.md:150-153"
+        }
+      ]
+    },
+    {
+      "id": "budstrategi_andeby_vinter",
+      "navn": "Kontroltal: budstrategi på Andeby, vintervinduet",
+      "kilde": "doc/BUDSTRATEGI.md:226-254",
+      "koert": "2026-10-15, robust reservation som standard",
+      "anvendelse": "Hurtig røgtest af motoren i Fabric: 12 døgn, løser på sekunder. Dækker uden/med balancering, set på strenge og bool og to-trins-afregningen.",
+      "referencer": [
+        {
+          "id": "w1_uden_balance",
+          "navn": "(1) Uden balance",
+          "vaerk": {
+            "kode": "andeby",
+            "kilde_fil": "cases/andeby.yaml"
+          },
+          "scenarie": {
+            "navn": "Vinter, uden balance",
+            "periode_start": "2026-01-05",
+            "periode_slut": "2026-01-16",
+            "med_balancering": false,
+            "balancing_method": null,
+            "mip_rel_gap": null,
+            "mip_abs_gap": null,
+            "tidsgraense_s": null,
+            "ekstra_flag": null,
+            "heat_csv": null
+          },
+          "aendringer": [],
+          "case_gab": {
+            "mip_rel_gap": 0.001,
+            "mip_abs_gap": 1000,
+            "kilde": "cases/andeby.yaml:142-145"
+          },
+          "forventet": {
+            "objektiv_dkk": 3424408,
+            "tolerance_dkk": 3424
+          },
+          "kommando": "python run_case.py cases/andeby.yaml --data-source github --start 2026-01-05 --end 2026-01-16",
+          "genskabt": [
+            {
+              "af": "fv-fabric, lokalt (kode fra zip @ b49aeb0, df-data @ 392992c)",
+              "dato": "2026-10-16",
+              "objektiv_dkk": 3424408,
+              "status": "optimal, MILP, 287 timerækker, 16 s",
+              "kilde": "udviklingsrapport (F1)"
+            }
+          ]
+        },
+        {
+          "id": "w2_kender_aktivering",
+          "navn": "(2) Byd frit, kender aktiveringerne",
+          "vaerk": {
+            "kode": "andeby",
+            "kilde_fil": "cases/andeby.yaml"
+          },
+          "scenarie": {
+            "navn": "Vinter, balance, realized",
+            "periode_start": "2026-01-05",
+            "periode_slut": "2026-01-16",
+            "med_balancering": true,
+            "balancing_method": null,
+            "mip_rel_gap": null,
+            "mip_abs_gap": null,
+            "tidsgraense_s": null,
+            "ekstra_flag": null,
+            "heat_csv": null
+          },
+          "aendringer": [
+            {
+              "type": "set",
+              "sti": "balancing.activation.foresight",
+              "vaerdi_json": "\"realized\"",
+              "raekkefoelge": 1
+            }
+          ],
+          "case_gab": {
+            "mip_rel_gap": 0.001,
+            "mip_abs_gap": 1000
+          },
+          "forventet": {
+            "objektiv_dkk": 2869989,
+            "tolerance_dkk": 2870,
+            "balancens_vaerdi_dkk": 554000
+          },
+          "kommando": "python run_case.py cases/andeby.yaml --data-source github --start 2026-01-05 --end 2026-01-16 --with-balancing --set balancing.activation.foresight=realized",
+          "noter": [
+            "Et loft, ingen kan nå."
+          ]
+        },
+        {
+          "id": "w3_prognose",
+          "navn": "(3) Byd frit, prognose",
+          "vaerk": {
+            "kode": "andeby",
+            "kilde_fil": "cases/andeby.yaml"
+          },
+          "scenarie": {
+            "navn": "Vinter, balance, trailing30 afregnet",
+            "periode_start": "2026-01-05",
+            "periode_slut": "2026-01-16",
+            "med_balancering": true,
+            "balancing_method": null,
+            "mip_rel_gap": null,
+            "mip_abs_gap": null,
+            "tidsgraense_s": null,
+            "ekstra_flag": null,
+            "heat_csv": null
+          },
+          "aendringer": [
+            {
+              "type": "set",
+              "sti": "balancing.activation.foresight",
+              "vaerdi_json": "\"trailing30\"",
+              "raekkefoelge": 1
+            },
+            {
+              "type": "set",
+              "sti": "balancing.activation.settle",
+              "vaerdi_json": "\"realized\"",
+              "raekkefoelge": 2
+            }
+          ],
+          "case_gab": {
+            "mip_rel_gap": 0.001,
+            "mip_abs_gap": 1000
+          },
+          "forventet": {
+            "objektiv_dkk": 3163413,
+            "tolerance_dkk": 3163,
+            "trin1_prognose_dkk": 2720352,
+            "balancens_vaerdi_dkk": 261000
+          },
+          "kommando": "python run_case.py cases/andeby.yaml --data-source github --start 2026-01-05 --end 2026-01-16 --with-balancing --set balancing.activation.foresight=trailing30 --set balancing.activation.settle=realized",
+          "noter": [
+            "Lover mest, skuffer mest: elkedlen køres for at fange aktiveringer, der ikke kommer.",
+            "Trin 1-objektivet står kun i skærmudskriften ('Trin 1-objektiv (på prognose)'), ikke i manifestet."
+          ]
+        },
+        {
+          "id": "w4_beregnet_budpris",
+          "navn": "(4) Beregnet budpris, prognose",
+          "vaerk": {
+            "kode": "andeby",
+            "kilde_fil": "cases/andeby.yaml"
+          },
+          "scenarie": {
+            "navn": "Vinter, balance, beregnet budpris",
+            "periode_start": "2026-01-05",
+            "periode_slut": "2026-01-16",
+            "med_balancering": true,
+            "balancing_method": null,
+            "mip_rel_gap": null,
+            "mip_abs_gap": null,
+            "tidsgraense_s": null,
+            "ekstra_flag": null,
+            "heat_csv": null
+          },
+          "aendringer": [
+            {
+              "type": "set",
+              "sti": "balancing.activation.foresight",
+              "vaerdi_json": "\"trailing30\"",
+              "raekkefoelge": 1
+            },
+            {
+              "type": "set",
+              "sti": "balancing.activation.settle",
+              "vaerdi_json": "\"realized\"",
+              "raekkefoelge": 2
+            },
+            {
+              "type": "set",
+              "sti": "balancing.reservation_gate.enabled",
+              "vaerdi_json": "true",
+              "raekkefoelge": 3
+            }
+          ],
+          "case_gab": {
+            "mip_rel_gap": 0.001,
+            "mip_abs_gap": 1000
+          },
+          "forventet": {
+            "objektiv_dkk": 3268332,
+            "tolerance_dkk": 3268,
+            "trin1_prognose_dkk": 3247444,
+            "balancens_vaerdi_dkk": 156000
+          },
+          "kommando": "python run_case.py cases/andeby.yaml --data-source github --start 2026-01-05 --end 2026-01-16 --with-balancing --set balancing.activation.foresight=trailing30 --set balancing.activation.settle=realized --set balancing.reservation_gate.enabled=true",
+          "noter": [
+            "Lover mindre, men holder."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rapport_v4",
+      "navn": "Rapport v4 (historisk; regnet ved commit 405b428, 20 commits før b49aeb0)",
+      "kilde": "doc/rapport_billund_v4.pdf",
+      "advarsel": "Rapportens tal er regnet ved en ældre commit og kan afvige ved b49aeb0. Hvor README har et nyere tal for samme kørsel, har README forrang (fx Andeby helår med balancering: README 23.067.291 mod rapportens 23.048.152; begge stopper på tidsgrænsen).",
+      "referencer": [
+        {
+          "id": "firkant_spot_med_tank",
+          "navn": "Billund rullende år: kun spot, med tank",
+          "vaerk": {
+            "kode": "billund_spora_rullende"
+          },
+          "scenarie": {
+            "med_balancering": false,
+            "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
+          },
+          "aendringer": [],
+          "forventet": {
+            "objektiv_dkk": 27030284
+          },
+          "kilde": "rapport v4 §4.1, tabel 4.1"
+        },
+        {
+          "id": "firkant_spot_uden_tank",
+          "navn": "Billund rullende år: kun spot, uden tank",
+          "vaerk": {
+            "kode": "billund_spora_rullende"
+          },
+          "scenarie": {
+            "med_balancering": false,
+            "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
+          },
+          "aendringer": [
+            {
+              "type": "disable",
+              "sti": "tank_eksisterende"
+            }
+          ],
+          "forventet": {
+            "objektiv_dkk": 32032991
+          },
+          "kilde": "rapport v4 §4.1, tabel 4.1"
+        },
+        {
+          "id": "firkant_bal_med_tank",
+          "navn": "Billund rullende år: med balancemarked, med tank",
+          "vaerk": {
+            "kode": "billund_spora_rullende"
+          },
+          "scenarie": {
+            "med_balancering": true,
+            "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
+          },
+          "aendringer": [],
+          "forventet": {
+            "objektiv_dkk": 20341652
+          },
+          "kilde": "rapport v4 §4.1, tabel 4.1"
+        },
+        {
+          "id": "firkant_bal_uden_tank",
+          "navn": "Billund rullende år: med balancemarked, uden tank",
+          "vaerk": {
+            "kode": "billund_spora_rullende"
+          },
+          "scenarie": {
+            "med_balancering": true,
+            "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
+          },
+          "aendringer": [
+            {
+              "type": "disable",
+              "sti": "tank_eksisterende"
+            }
+          ],
+          "forventet": {
+            "objektiv_dkk": 25320485
+          },
+          "kilde": "rapport v4 §4.1, tabel 4.1"
+        },
+        {
+          "id": "tank_4000",
+          "navn": "Billund rullende år: kun spot, tank 4.000 m³",
+          "vaerk": {
+            "kode": "billund_spora_rullende"
+          },
+          "scenarie": {
+            "med_balancering": false,
+            "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
+          },
+          "aendringer": [
+            {
+              "type": "set",
+              "sti": "storage.tank_eksisterende.volume_m3",
+              "vaerdi_json": "4000"
+            }
+          ],
+          "forventet": {
+            "objektiv_dkk": 27883032,
+            "vaerdi_mod_ingen_tank_dkk": 4149959
+          },
+          "kilde": "rapport v4 §4.3, tabel 4.3"
+        },
+        {
+          "id": "tank_8000",
+          "navn": "Billund rullende år: kun spot, tank 8.000 m³",
+          "vaerk": {
+            "kode": "billund_spora_rullende"
+          },
+          "scenarie": {
+            "med_balancering": false,
+            "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
+          },
+          "aendringer": [
+            {
+              "type": "set",
+              "sti": "storage.tank_eksisterende.volume_m3",
+              "vaerdi_json": "8000"
+            }
+          ],
+          "forventet": {
+            "objektiv_dkk": 27377536,
+            "vaerdi_mod_ingen_tank_dkk": 4655455
+          },
+          "kilde": "rapport v4 §4.3, tabel 4.3"
+        },
+        {
+          "id": "andeby_spot_uden_tanke",
+          "navn": "Andeby helår: kun spot, uden tanke",
+          "vaerk": {
+            "kode": "andeby"
+          },
+          "scenarie": {
+            "med_balancering": false
+          },
+          "aendringer": [
+            {
+              "type": "disable",
+              "sti": "tank_lav"
+            },
+            {
+              "type": "disable",
+              "sti": "tank_hoej"
+            }
+          ],
+          "forventet": {
+            "objektiv_dkk": 34606561,
+            "tankenes_vaerdi_dkk": 4175596
+          },
+          "kilde": "rapport v4 §9, tabel 9.1"
+        },
+        {
+          "id": "andeby_bal_uden_tanke",
+          "navn": "Andeby helår: med balancemarked, uden tanke",
+          "vaerk": {
+            "kode": "andeby"
+          },
+          "scenarie": {
+            "med_balancering": true
+          },
+          "aendringer": [
+            {
+              "type": "disable",
+              "sti": "tank_lav"
+            },
+            {
+              "type": "disable",
+              "sti": "tank_hoej"
+            }
+          ],
+          "forventet": {
+            "objektiv_dkk": 27404938,
+            "tankenes_vaerdi_dkk": 4356786
+          },
+          "kilde": "rapport v4 §9, tabel 9.1",
+          "noter": [
+            "Rapportens 'med tanke'-tal er 23.048.152; README's nyere er 23.067.291. Tankværdien 4.356.786 er regnet mod rapportens tal."
+          ]
+        }
+      ]
+    }
+  ],
+  "validering_billund": {
+    "navn": "Spor B ex post mod Billunds afregning, forbrugssidens opregulering, marts–juni 2026",
+    "kilde": "rapport v4 §5.2, tabel 5.1",
+    "enhed": "kr.",
+    "raekker": [
+      {
+        "post": "aFRR, kapacitet",
+        "realiseret": 860532,
+        "model": 940929,
+        "forhold_pct": 109
+      },
+      {
+        "post": "aFRR, aktivering (netto)",
+        "realiseret": 616985,
+        "model": 659592,
+        "forhold_pct": 107
+      },
+      {
+        "post": "aFRR i alt",
+        "realiseret": 1477517,
+        "model": 1600521,
+        "forhold_pct": 108
+      },
+      {
+        "post": "mFRR, kapacitet",
+        "realiseret": 1289237,
+        "model": 1789479,
+        "forhold_pct": 139
+      },
+      {
+        "post": "mFRR, aktivering (netto)",
+        "realiseret": 411658,
+        "model": 463867,
+        "forhold_pct": 113
+      },
+      {
+        "post": "mFRR i alt",
+        "realiseret": 1700894,
+        "model": 2253346,
+        "forhold_pct": 132
+      },
+      {
+        "post": "I alt",
+        "realiseret": 3178412,
+        "model": 3853867,
+        "forhold_pct": 121
+      }
+    ],
+    "note": "Tabellen er rekonstrueret fra PDF'ens tekstlag (kolonnerne er ombrudt); hver række er efterregnet: kapacitet + aktivering = i alt (realiseret mFRR og totalen afviger 1 kr. af afrunding i kilden), og forholdet passer på hele procent.",
+    "forbehold": "Kalibreringen gælder kun marts–juni 2026 og kun med Billunds reservation pr. måned som loft. Gasmotorernes balanceindtægt (1,31 mio. kr., 29 %) og nedregulering er ikke med."
+  }
+}

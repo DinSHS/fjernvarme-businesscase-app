@@ -1,0 +1,1524 @@
+{
+ "version": 1,
+ "konstanter": {
+  "MOTOR_ID": "00000000-0000-4000-8000-00000000f001",
+  "NIL_UUID": "00000000-0000-0000-0000-000000000000"
+ },
+ "typer": {
+  "uuid": {
+   "rayfin": {
+    "mssql": "UNIQUEIDENTIFIER",
+    "postgresql": "UUID"
+   },
+   "ddl": {
+    "sqlite": "CHAR(36)",
+    "postgresql": "UUID",
+    "mssql": "UNIQUEIDENTIFIER"
+   }
+  },
+  "text": {
+   "rayfin": {
+    "mssql": "NVARCHAR({max})",
+    "postgresql": "VARCHAR({max})"
+   },
+   "ddl": {
+    "sqlite": "VARCHAR({max})",
+    "postgresql": "VARCHAR({max})",
+    "mssql": "NVARCHAR({max})"
+   }
+  },
+  "set": {
+   "rayfin": {
+    "mssql": "NVARCHAR({laengste})",
+    "postgresql": "VARCHAR({laengste})"
+   },
+   "ddl": {
+    "sqlite": "VARCHAR({laengste})",
+    "postgresql": "VARCHAR({laengste})",
+    "mssql": "NVARCHAR({laengste})"
+   }
+  },
+  "int": {
+   "rayfin": {
+    "mssql": "INT",
+    "postgresql": "INTEGER"
+   },
+   "ddl": {
+    "sqlite": "INTEGER",
+    "postgresql": "INTEGER",
+    "mssql": "INT"
+   }
+  },
+  "decimal": {
+   "rayfin": {
+    "mssql": "DECIMAL({precision},{scale})",
+    "postgresql": "NUMERIC({precision},{scale})"
+   },
+   "ddl": {
+    "sqlite": "NUMERIC({precision},{scale})",
+    "postgresql": "NUMERIC({precision},{scale})",
+    "mssql": "DECIMAL({precision},{scale})"
+   }
+  },
+  "boolean": {
+   "rayfin": {
+    "mssql": "BIT",
+    "postgresql": "BOOLEAN"
+   },
+   "ddl": {
+    "sqlite": "INTEGER",
+    "postgresql": "BOOLEAN",
+    "mssql": "BIT"
+   }
+  },
+  "datetime": {
+   "rayfin": {
+    "mssql": "DATETIME2",
+    "postgresql": "TIMESTAMP WITH TIME ZONE"
+   },
+   "ddl": {
+    "sqlite": "CHAR(24)",
+    "postgresql": "TIMESTAMP(3)",
+    "mssql": "DATETIME2(3)"
+   }
+  }
+ },
+ "tabeller": [
+  {
+   "entitet": "Vaerk",
+   "tabel": "Vaerks",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "kode",
+     "type": "text",
+     "max": 60,
+     "min": 1,
+     "nullable": false,
+     "unik": true,
+     "moenster": "^[a-z0-9_]+$"
+    },
+    {
+     "navn": "navn",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "beskrivelse",
+     "type": "text",
+     "max": 4000,
+     "nullable": true
+    },
+    {
+     "navn": "kilde",
+     "type": "set",
+     "vaerdier": [
+      "repo",
+      "app"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "kilde_fil",
+     "type": "text",
+     "max": 300,
+     "nullable": true
+    },
+    {
+     "navn": "repo_commit",
+     "type": "text",
+     "max": 40,
+     "nullable": true
+    },
+    {
+     "navn": "kopieret_fra_id",
+     "type": "uuid",
+     "nullable": true,
+     "ref": "Vaerk"
+    },
+    {
+     "navn": "revision",
+     "type": "int",
+     "nullable": false
+    },
+    {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    {
+     "navn": "oprettet_af",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "aendret_af",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "oprettet",
+     "type": "datetime",
+     "nullable": false
+    },
+    {
+     "navn": "aendret",
+     "type": "datetime",
+     "nullable": false
+    }
+   ],
+   "invarianter": []
+  },
+  {
+   "entitet": "VaerkParameter",
+   "tabel": "VaerkParameters",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "vaerk_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Vaerk"
+    },
+    {
+     "navn": "sti",
+     "type": "text",
+     "max": 400,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "vaerdi_json",
+     "type": "text",
+     "max": 4000,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "sektion",
+     "type": "text",
+     "max": 60,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "objekt",
+     "type": "text",
+     "max": 120,
+     "nullable": true
+    },
+    {
+     "navn": "kommentar",
+     "type": "text",
+     "max": 2000,
+     "nullable": true
+    },
+    {
+     "navn": "bekraeft",
+     "type": "boolean",
+     "nullable": false
+    },
+    {
+     "navn": "raekkefoelge",
+     "type": "int",
+     "nullable": false
+    },
+    {
+     "navn": "aendret_af",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "aendret",
+     "type": "datetime",
+     "nullable": false
+    }
+   ],
+   "invarianter": [
+    {
+     "navn": "en_vaerdi_pr_sti",
+     "type": "unik",
+     "kolonner": [
+      "vaerk_id",
+      "sti"
+     ],
+     "ddl": true
+    }
+   ]
+  },
+  {
+   "entitet": "Aendringslog",
+   "tabel": "Aendringslogs",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "vaerk_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Vaerk"
+    },
+    {
+     "navn": "revision",
+     "type": "int",
+     "nullable": false
+    },
+    {
+     "navn": "sti",
+     "type": "text",
+     "max": 400,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "handling",
+     "type": "set",
+     "vaerdier": [
+      "opret",
+      "ret",
+      "slet"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "gammel_json",
+     "type": "text",
+     "max": 4000,
+     "nullable": true
+    },
+    {
+     "navn": "ny_json",
+     "type": "text",
+     "max": 4000,
+     "nullable": true
+    },
+    {
+     "navn": "aendret_af",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "tidspunkt",
+     "type": "datetime",
+     "nullable": false
+    },
+    {
+     "navn": "anmodning_id",
+     "type": "uuid",
+     "nullable": true,
+     "ref": "Aendringsanmodning"
+    }
+   ],
+   "invarianter": []
+  },
+  {
+   "entitet": "Aendringsanmodning",
+   "tabel": "Aendringsanmodnings",
+   "klient": {
+    "read": true,
+    "create": {
+     "policy": [
+      {
+       "felt": "anmodet_af",
+       "lig": "$bruger"
+      },
+      {
+       "felt": "status",
+       "lig": "ny"
+      }
+     ]
+    },
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "vaerk_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Vaerk",
+     "ref_undtagelser": [
+      "NIL_UUID"
+     ]
+    },
+    {
+     "navn": "forventet_revision",
+     "type": "int",
+     "nullable": false
+    },
+    {
+     "navn": "aendringer_json",
+     "type": "text",
+     "max": 4000,
+     "min": 2,
+     "nullable": false
+    },
+    {
+     "navn": "anmodet_af",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "anmodet",
+     "type": "datetime",
+     "nullable": false
+    },
+    {
+     "navn": "status",
+     "type": "set",
+     "vaerdier": [
+      "ny",
+      "udfoert",
+      "afvist"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "svar",
+     "type": "text",
+     "max": 2000,
+     "nullable": true
+    }
+   ],
+   "invarianter": []
+  },
+  {
+   "entitet": "Scenarie",
+   "tabel": "Scenaries",
+   "klient": {
+    "read": true,
+    "create": {
+     "policy": [
+      {
+       "felt": "oprettet_af",
+       "lig": "$bruger"
+      }
+     ]
+    },
+    "update": {
+     "undtaget": [
+      "oprettet",
+      "oprettet_af",
+      "vaerk_id"
+     ]
+    },
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "vaerk_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Vaerk"
+    },
+    {
+     "navn": "navn",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "beskrivelse",
+     "type": "text",
+     "max": 4000,
+     "nullable": true
+    },
+    {
+     "navn": "reference_scenarie_id",
+     "type": "uuid",
+     "nullable": true,
+     "ref": "Scenarie"
+    },
+    {
+     "navn": "periode_start",
+     "type": "text",
+     "max": 20,
+     "nullable": true,
+     "moenster": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    {
+     "navn": "periode_slut",
+     "type": "text",
+     "max": 20,
+     "nullable": true,
+     "moenster": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    {
+     "navn": "med_balancering",
+     "type": "boolean",
+     "nullable": false
+    },
+    {
+     "navn": "balancing_method",
+     "type": "set",
+     "vaerdier": [
+      "legacy",
+      "activation_value"
+     ],
+     "nullable": true
+    },
+    {
+     "navn": "mip_rel_gap",
+     "type": "decimal",
+     "precision": 18,
+     "scale": 10,
+     "nullable": true
+    },
+    {
+     "navn": "mip_abs_gap",
+     "type": "decimal",
+     "precision": 28,
+     "scale": 4,
+     "nullable": true
+    },
+    {
+     "navn": "tidsgraense_s",
+     "type": "int",
+     "nullable": true
+    },
+    {
+     "navn": "ekstra_flag",
+     "type": "text",
+     "max": 300,
+     "nullable": true
+    },
+    {
+     "navn": "heat_csv",
+     "type": "text",
+     "max": 300,
+     "nullable": true
+    },
+    {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    {
+     "navn": "oprettet_af",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "oprettet",
+     "type": "datetime",
+     "nullable": false
+    }
+   ],
+   "invarianter": []
+  },
+  {
+   "entitet": "ScenarieAendring",
+   "tabel": "ScenarieAendrings",
+   "klient": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "scenarie_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Scenarie"
+    },
+    {
+     "navn": "type",
+     "type": "set",
+     "vaerdier": [
+      "set",
+      "enable",
+      "disable"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "sti",
+     "type": "text",
+     "max": 400,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "vaerdi_json",
+     "type": "text",
+     "max": 4000,
+     "nullable": true
+    },
+    {
+     "navn": "raekkefoelge",
+     "type": "int",
+     "nullable": false
+    }
+   ],
+   "invarianter": [
+    {
+     "navn": "en_aendring_pr_sti",
+     "type": "unik",
+     "kolonner": [
+      "scenarie_id",
+      "sti"
+     ],
+     "ddl": false
+    }
+   ]
+  },
+  {
+   "entitet": "Bestilling",
+   "tabel": "Bestillings",
+   "klient": {
+    "read": true,
+    "create": {
+     "policy": [
+      {
+       "felt": "bestilt_af",
+       "lig": "$bruger"
+      }
+     ]
+    },
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "scenarie_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Scenarie"
+    },
+    {
+     "navn": "klient_noegle",
+     "type": "text",
+     "max": 60,
+     "min": 1,
+     "nullable": false,
+     "unik": true
+    },
+    {
+     "navn": "bestilt_af",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "bestilt",
+     "type": "datetime",
+     "nullable": false
+    }
+   ],
+   "invarianter": []
+  },
+  {
+   "entitet": "Koersel",
+   "tabel": "Koersels",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "bestilling_id",
+     "type": "uuid",
+     "nullable": false,
+     "unik": true,
+     "ref": "Bestilling"
+    },
+    {
+     "navn": "scenarie_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Scenarie"
+    },
+    {
+     "navn": "vaerk_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Vaerk"
+    },
+    {
+     "navn": "vaerk_revision",
+     "type": "int",
+     "nullable": false
+    },
+    {
+     "navn": "input_hash",
+     "type": "text",
+     "max": 64,
+     "min": 64,
+     "nullable": false,
+     "moenster": "^[0-9a-f]{64}$"
+    },
+    {
+     "navn": "status",
+     "type": "set",
+     "vaerdier": [
+      "koe",
+      "startet",
+      "koerer",
+      "indlaeser",
+      "faerdig",
+      "fejl",
+      "annulleret"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "fase",
+     "type": "text",
+     "max": 200,
+     "nullable": true
+    },
+    {
+     "navn": "bestilt_af",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "bestilt",
+     "type": "datetime",
+     "nullable": false
+    },
+    {
+     "navn": "modtaget",
+     "type": "datetime",
+     "nullable": true
+    },
+    {
+     "navn": "startet",
+     "type": "datetime",
+     "nullable": true
+    },
+    {
+     "navn": "afsluttet",
+     "type": "datetime",
+     "nullable": true
+    },
+    {
+     "navn": "hjerteslag",
+     "type": "datetime",
+     "nullable": true
+    },
+    {
+     "navn": "annuller_anmodet",
+     "type": "datetime",
+     "nullable": true
+    },
+    {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
+    {
+     "navn": "arbejder_id",
+     "type": "text",
+     "max": 100,
+     "nullable": true
+    },
+    {
+     "navn": "fabric_job_id",
+     "type": "text",
+     "max": 100,
+     "nullable": true
+    },
+    {
+     "navn": "kilde",
+     "type": "set",
+     "vaerdier": [
+      "app",
+      "notebook"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "model_commit",
+     "type": "text",
+     "max": 40,
+     "nullable": true,
+     "moenster": "^[0-9a-f]{40}$"
+    },
+    {
+     "navn": "data_commit",
+     "type": "text",
+     "max": 40,
+     "nullable": true,
+     "moenster": "^[0-9a-f]{40}$"
+    },
+    {
+     "navn": "miljoe_json",
+     "type": "text",
+     "max": 4000,
+     "nullable": true
+    },
+    {
+     "navn": "case_sti",
+     "type": "text",
+     "max": 400,
+     "nullable": true
+    },
+    {
+     "navn": "output_sti",
+     "type": "text",
+     "max": 400,
+     "nullable": true
+    },
+    {
+     "navn": "output_stem",
+     "type": "text",
+     "max": 400,
+     "nullable": true
+    },
+    {
+     "navn": "oploesning",
+     "type": "text",
+     "max": 10,
+     "nullable": true,
+     "moenster": "^(1h|15min)$"
+    },
+    {
+     "navn": "interval_min",
+     "type": "int",
+     "nullable": true
+    },
+    {
+     "navn": "antal_interval_model",
+     "type": "int",
+     "nullable": true
+    },
+    {
+     "navn": "antal_interval_csv",
+     "type": "int",
+     "nullable": true
+    },
+    {
+     "navn": "solve_status",
+     "type": "text",
+     "max": 60,
+     "nullable": true
+    },
+    {
+     "navn": "er_milp",
+     "type": "boolean",
+     "nullable": true
+    },
+    {
+     "navn": "objektiv_dkk",
+     "type": "decimal",
+     "precision": 28,
+     "scale": 4,
+     "nullable": true
+    },
+    {
+     "navn": "oensket_rel_gap",
+     "type": "decimal",
+     "precision": 18,
+     "scale": 10,
+     "nullable": true
+    },
+    {
+     "navn": "oensket_abs_gap",
+     "type": "decimal",
+     "precision": 28,
+     "scale": 4,
+     "nullable": true
+    },
+    {
+     "navn": "opnaaet_gap",
+     "type": "decimal",
+     "precision": 18,
+     "scale": 10,
+     "nullable": true
+    },
+    {
+     "navn": "best_bound",
+     "type": "decimal",
+     "precision": 28,
+     "scale": 4,
+     "nullable": true
+    },
+    {
+     "navn": "loesetid_s",
+     "type": "decimal",
+     "precision": 18,
+     "scale": 3,
+     "nullable": true
+    },
+    {
+     "navn": "fejlbesked",
+     "type": "text",
+     "max": 4000,
+     "nullable": true
+    },
+    {
+     "navn": "manifest_json",
+     "type": "text",
+     "max": 4000,
+     "nullable": true
+    }
+   ],
+   "invarianter": []
+  },
+  {
+   "entitet": "KoerselInput",
+   "tabel": "KoerselInputs",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "koersel_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Koersel"
+    },
+    {
+     "navn": "sti",
+     "type": "text",
+     "max": 400,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "vaerdi_json",
+     "type": "text",
+     "max": 4000,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "kilde",
+     "type": "set",
+     "vaerdier": [
+      "vaerk",
+      "aendring",
+      "scenarie"
+     ],
+     "nullable": false
+    }
+   ],
+   "invarianter": [
+    {
+     "navn": "en_vaerdi_pr_kilde_og_sti",
+     "type": "unik",
+     "kolonner": [
+      "koersel_id",
+      "kilde",
+      "sti"
+     ],
+     "ddl": true
+    }
+   ]
+  },
+  {
+   "entitet": "KoerselNoegletal",
+   "tabel": "KoerselNoegletals",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "koersel_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Koersel"
+    },
+    {
+     "navn": "gruppe",
+     "type": "text",
+     "max": 60,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "objekt",
+     "type": "text",
+     "max": 120,
+     "nullable": true
+    },
+    {
+     "navn": "marked",
+     "type": "text",
+     "max": 20,
+     "nullable": true
+    },
+    {
+     "navn": "noegle",
+     "type": "text",
+     "max": 120,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "precision": 28,
+     "scale": 10,
+     "nullable": true
+    },
+    {
+     "navn": "enhed",
+     "type": "text",
+     "max": 40,
+     "nullable": true
+    }
+   ],
+   "invarianter": [
+    {
+     "navn": "naturlig_noegle",
+     "type": "unik",
+     "kolonner": [
+      "koersel_id",
+      "gruppe",
+      "objekt",
+      "marked",
+      "noegle"
+     ],
+     "ddl": false,
+     "null_er_vaerdi": true
+    }
+   ]
+  },
+  {
+   "entitet": "KoerselMaaned",
+   "tabel": "KoerselMaaneds",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "koersel_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Koersel"
+    },
+    {
+     "navn": "maaned",
+     "type": "text",
+     "max": 7,
+     "min": 1,
+     "nullable": false,
+     "moenster": "^([0-9]{4}-(0[1-9]|1[0-2])|periode)$"
+    },
+    {
+     "navn": "objekt",
+     "type": "text",
+     "max": 120,
+     "nullable": true
+    },
+    {
+     "navn": "noegle",
+     "type": "text",
+     "max": 120,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "precision": 28,
+     "scale": 10,
+     "nullable": true
+    }
+   ],
+   "invarianter": [
+    {
+     "navn": "naturlig_noegle",
+     "type": "unik",
+     "kolonner": [
+      "koersel_id",
+      "maaned",
+      "objekt",
+      "noegle"
+     ],
+     "ddl": false,
+     "null_er_vaerdi": true
+    }
+   ]
+  },
+  {
+   "entitet": "KoerselTime",
+   "tabel": "KoerselTimes",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "koersel_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Koersel"
+    },
+    {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
+    {
+     "navn": "varmelast_mw",
+     "type": "decimal",
+     "precision": 18,
+     "scale": 6,
+     "nullable": false
+    },
+    {
+     "navn": "spotpris",
+     "type": "decimal",
+     "precision": 18,
+     "scale": 6,
+     "nullable": true
+    },
+    {
+     "navn": "t_ude",
+     "type": "decimal",
+     "precision": 18,
+     "scale": 6,
+     "nullable": true
+    },
+    {
+     "navn": "vaerdier_json",
+     "type": "text",
+     "max": 4000,
+     "min": 1,
+     "nullable": false
+    }
+   ],
+   "invarianter": [
+    {
+     "navn": "et_interval_pr_tid",
+     "type": "unik",
+     "kolonner": [
+      "koersel_id",
+      "tid"
+     ],
+     "ddl": true
+    }
+   ]
+  },
+  {
+   "entitet": "Motor",
+   "tabel": "Motors",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "model_commit",
+     "type": "text",
+     "max": 40,
+     "nullable": true,
+     "moenster": "^[0-9a-f]{40}$"
+    },
+    {
+     "navn": "data_commit",
+     "type": "text",
+     "max": 40,
+     "nullable": true,
+     "moenster": "^[0-9a-f]{40}$"
+    },
+    {
+     "navn": "sidste_jobstart",
+     "type": "datetime",
+     "nullable": true
+    },
+    {
+     "navn": "sidste_job_id",
+     "type": "text",
+     "max": 100,
+     "nullable": true
+    },
+    {
+     "navn": "aendret",
+     "type": "datetime",
+     "nullable": false
+    }
+   ],
+   "invarianter": [
+    {
+     "navn": "en_raekke",
+     "type": "fast_id",
+     "kolonner": [
+      "id"
+     ],
+     "vaerdi": "MOTOR_ID",
+     "ddl": false
+    }
+   ]
+  },
+  {
+   "entitet": "Tidsserie",
+   "tabel": "Tidsseries",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "vaerk_id",
+     "type": "uuid",
+     "nullable": false,
+     "ref": "Vaerk"
+    },
+    {
+     "navn": "rolle",
+     "type": "set",
+     "vaerdier": [
+      "varmelast",
+      "solprofil"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "navn",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "filnavn",
+     "type": "text",
+     "max": 300,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "sti",
+     "type": "text",
+     "max": 400,
+     "nullable": true
+    },
+    {
+     "navn": "sha256",
+     "type": "text",
+     "max": 64,
+     "nullable": true,
+     "moenster": "^[0-9a-f]{64}$"
+    },
+    {
+     "navn": "oploesning",
+     "type": "text",
+     "max": 10,
+     "nullable": true,
+     "moenster": "^(1h|15min)$"
+    },
+    {
+     "navn": "start",
+     "type": "datetime",
+     "nullable": true
+    },
+    {
+     "navn": "slut",
+     "type": "datetime",
+     "nullable": true
+    },
+    {
+     "navn": "antal_raekker",
+     "type": "int",
+     "nullable": true
+    },
+    {
+     "navn": "antal_huller",
+     "type": "int",
+     "nullable": true
+    },
+    {
+     "navn": "enhed",
+     "type": "text",
+     "max": 20,
+     "nullable": true
+    },
+    {
+     "navn": "tidsstempel",
+     "type": "set",
+     "vaerdier": [
+      "start",
+      "slut"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "tidszone",
+     "type": "text",
+     "max": 40,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "kilde",
+     "type": "set",
+     "vaerdier": [
+      "csv",
+      "vaerksark",
+      "repo"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "status",
+     "type": "set",
+     "vaerdier": [
+      "validerer",
+      "gyldig",
+      "afvist"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "validering_json",
+     "type": "text",
+     "max": 4000,
+     "nullable": true
+    },
+    {
+     "navn": "aktiv",
+     "type": "boolean",
+     "nullable": false
+    },
+    {
+     "navn": "uploadet_af",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "uploadet",
+     "type": "datetime",
+     "nullable": false
+    }
+   ],
+   "invarianter": [
+    {
+     "navn": "hoejst_en_aktiv",
+     "type": "unik",
+     "kolonner": [
+      "vaerk_id",
+      "rolle"
+     ],
+     "hvor": {
+      "aktiv": true
+     },
+     "ddl": true
+    }
+   ]
+  },
+  {
+   "entitet": "Vaerksarkimport",
+   "tabel": "Vaerksarkimports",
+   "klient": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+   },
+   "kolonner": [
+    {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false,
+     "pk": true
+    },
+    {
+     "navn": "filnavn",
+     "type": "text",
+     "max": 300,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "sti",
+     "type": "text",
+     "max": 400,
+     "nullable": true
+    },
+    {
+     "navn": "status",
+     "type": "set",
+     "vaerdier": [
+      "koe",
+      "koerer",
+      "faerdig",
+      "fejl"
+     ],
+     "nullable": false
+    },
+    {
+     "navn": "vaerk_id",
+     "type": "uuid",
+     "nullable": true,
+     "ref": "Vaerk"
+    },
+    {
+     "navn": "tidsserie_id",
+     "type": "uuid",
+     "nullable": true,
+     "ref": "Tidsserie"
+    },
+    {
+     "navn": "log",
+     "type": "text",
+     "max": 4000,
+     "nullable": true
+    },
+    {
+     "navn": "fabric_job_id",
+     "type": "text",
+     "max": 100,
+     "nullable": true
+    },
+    {
+     "navn": "timeslut",
+     "type": "boolean",
+     "nullable": true
+    },
+    {
+     "navn": "uploadet_af",
+     "type": "text",
+     "max": 200,
+     "min": 1,
+     "nullable": false
+    },
+    {
+     "navn": "uploadet",
+     "type": "datetime",
+     "nullable": false
+    }
+   ],
+   "invarianter": []
+  }
+ ]
+}

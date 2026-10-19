@@ -1,0 +1,4102 @@
+{
+ "_om": "Genereret af skema/vektorer/generer.mts fra TS-implementeringen (input_hash). Ret aldrig i hånden — generér igen.",
+ "kilder": {
+  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
+  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
+  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
+  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
+  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427"
+ },
+ "tilfaelde": [
+  {
+   "navn": "målt (169838dd…)",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "50.0"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.slut",
+      "vaerdi_json": "\"2026-01-07\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.start",
+      "vaerdi_json": "\"2026-01-05\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "solver.mip_rel_gap",
+      "vaerdi_json": "0.0002"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "300.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ]
+   },
+   "ud": "169838dd844ee523800416924a0752dc230fbca2c9646e95a8732211adb899cd"
+  },
+  {
+   "navn": "målt omvendt",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "300.0"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "solver.mip_rel_gap",
+      "vaerdi_json": "0.0002"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.start",
+      "vaerdi_json": "\"2026-01-05\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.slut",
+      "vaerdi_json": "\"2026-01-07\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "50.0"
+     }
+    ]
+   },
+   "ud": "169838dd844ee523800416924a0752dc230fbca2c9646e95a8732211adb899cd"
+  },
+  {
+   "navn": "tom",
+   "input": {
+    "raekker": []
+   },
+   "ud": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+   "navn": "12",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "x",
+      "vaerdi_json": "12"
+     }
+    ]
+   },
+   "ud": "ba8a42ecf9f56d43c919cd50aa022137411edeaf7688ff85cd39742bea0eca76"
+  },
+  {
+   "navn": "12.0",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "x",
+      "vaerdi_json": "12.0"
+     }
+    ]
+   },
+   "ud": "c218b5017ae420e653154b0a9184676118ad80d42e1d88dee6f0fda0a73df7d1"
+  },
+  {
+   "navn": "æøå og citat",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"Ærø \\\"værk\\\"\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "meta.note",
+      "vaerdi_json": "\"å\""
+     }
+    ]
+   },
+   "ud": "08e3e7becfa163f8b8df5f76b337a789a2d115cd9503f62314355dda63ebeac2"
+  },
+  {
+   "navn": "kontroltegn i en værdi",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": "\"linje1\\nlinje2\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b",
+      "vaerdi_json": "x\ny\tz\u0001\u001f "
+     }
+    ]
+   },
+   "ud": "556f0dd9214fc77f6feb0803bee7c577c51a76c5c8667d51c46fddc55c03af0a"
+  },
+  {
+   "navn": "astralt tegn mod U+E000",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a😀",
+      "vaerdi_json": "2"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a￿",
+      "vaerdi_json": "3"
+     }
+    ]
+   },
+   "ud": "b6d7f9dbc22f89bf00beba8d360259331bb9cc18d884a9894304b1ed6bc0b04d"
+  },
+  {
+   "navn": "astralt i værdien",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": "\"😀\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": "\"\""
+     }
+    ]
+   },
+   "ud": "01bd47b3f5e5795064e107d88b99da9674773deb549b7ed2f54afa4d1ff7fd35"
+  },
+  {
+   "navn": "samme sti, forskellig kilde",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "s",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "s",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "s",
+      "vaerdi_json": "1"
+     }
+    ]
+   },
+   "ud": "c6002e96330bbf0527c03efdc7172be3cf0be40f56b2482ff0a690da0845103e"
+  },
+  {
+   "navn": "samme kilde og sti, forskellig værdi",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "s",
+      "vaerdi_json": "2"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "s",
+      "vaerdi_json": "10"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "s",
+      "vaerdi_json": "1"
+     }
+    ]
+   },
+   "ud": "16299c382d8e4783a6bf5759e4df909cd71597d1eeed2c2ef689172474a34b13"
+  },
+  {
+   "navn": "tilfældig 0",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": " ",
+      "vaerdi_json": "-._b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_",
+      "vaerdi_json": "a_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\",
+      "vaerdi_json": "😀a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀",
+      "vaerdi_json": "-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "Æa",
+      "vaerdi_json": "\"b-ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "øa .-",
+      "vaerdi_json": "_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "a😀1b_",
+      "vaerdi_json": "😀_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ". a😀.",
+      "vaerdi_json": "\\-å"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "Æ_\"\\",
+      "vaerdi_json": "1b\\1\"a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"å",
+      "vaerdi_json": "😀\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1Æ",
+      "vaerdi_json": "\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\" -a😀",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\\\",
+      "vaerdi_json": " 11"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"a",
+      "vaerdi_json": "😀\\."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀b_1",
+      "vaerdi_json": "\"1\\å"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀_øbø\\",
+      "vaerdi_json": "b\"å å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø",
+      "vaerdi_json": "\\ø😀_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æb-",
+      "vaerdi_json": " \"øåø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"ø😀\\",
+      "vaerdi_json": " 1øb\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_-",
+      "vaerdi_json": "a."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀_\\",
+      "vaerdi_json": "😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " \\.",
+      "vaerdi_json": " \"1Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "aøÆ",
+      "vaerdi_json": "1 "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-Æ\"",
+      "vaerdi_json": "."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " _",
+      "vaerdi_json": "å"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_😀b",
+      "vaerdi_json": "😀_1\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": ".a😀ø ø",
+      "vaerdi_json": ".1.\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-åÆ\\",
+      "vaerdi_json": "bÆø1_ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "b",
+      "vaerdi_json": "Æøbå_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æ1Æ-",
+      "vaerdi_json": "ø-\\ø"
+     }
+    ]
+   },
+   "ud": "b7206ba78332171c736ebb419dba1993a22a2761b76eee57ea5aa50efc381528"
+  },
+  {
+   "navn": "tilfældig 1",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "øÆbÆ_",
+      "vaerdi_json": "😀 ø.Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\\\-",
+      "vaerdi_json": ".😀 "
+     },
+     {
+      "kilde": "aendring",
+      "sti": ".😀.b",
+      "vaerdi_json": "aø.ø😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "._",
+      "vaerdi_json": "1\"-\\-\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b😀a-a",
+      "vaerdi_json": "\\-_\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "11a",
+      "vaerdi_json": "b1\". "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "å",
+      "vaerdi_json": "aø1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀_\\å_\\",
+      "vaerdi_json": "1-😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "11",
+      "vaerdi_json": "å\\aøøa"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1_1å",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "åaa-",
+      "vaerdi_json": "-a\\.."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ÆÆ",
+      "vaerdi_json": "\\-Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "._._1Æ",
+      "vaerdi_json": "Æ-å1 b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"",
+      "vaerdi_json": "\""
+     }
+    ]
+   },
+   "ud": "93e75ed397465966ac9565d4252addcec3c9c0224146d833ea3a4503b5f14225"
+  },
+  {
+   "navn": "tilfældig 2",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": ".1",
+      "vaerdi_json": "ÆÆ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"",
+      "vaerdi_json": "b.åb"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1a øa",
+      "vaerdi_json": "\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "øø\"_ø",
+      "vaerdi_json": "\\ "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b",
+      "vaerdi_json": "\"_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a\\_\"a\"",
+      "vaerdi_json": "\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " _\"\\😀",
+      "vaerdi_json": "aa\"b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-øø",
+      "vaerdi_json": "b_"
+     }
+    ]
+   },
+   "ud": "8a49ce7b562e3457173e4ee3190094ca73918b78d48611417e1bcc8bc0d59171"
+  },
+  {
+   "navn": "tilfældig 3",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": " aåå",
+      "vaerdi_json": "øb1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\" \\_.",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "å-",
+      "vaerdi_json": "_a\"aa"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"",
+      "vaerdi_json": "aÆ.."
+     },
+     {
+      "kilde": "aendring",
+      "sti": " b",
+      "vaerdi_json": "Æ\\b\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1_\\",
+      "vaerdi_json": "_\\-_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\".1😀ø",
+      "vaerdi_json": "_Æb"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b",
+      "vaerdi_json": "-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "aåÆå_",
+      "vaerdi_json": "\"Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀å",
+      "vaerdi_json": "åø_\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1\"_å-",
+      "vaerdi_json": ""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\",
+      "vaerdi_json": "ø\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_.-_",
+      "vaerdi_json": "Æa😀b-"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "øa\"",
+      "vaerdi_json": "-"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\a",
+      "vaerdi_json": "😀1aaa"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_ ",
+      "vaerdi_json": "-å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1",
+      "vaerdi_json": "a😀\\øbø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\" ø",
+      "vaerdi_json": "Æ😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "å",
+      "vaerdi_json": "\\.ab\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\ \\",
+      "vaerdi_json": "ba"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b\\_b",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"åb",
+      "vaerdi_json": "Æa"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "._",
+      "vaerdi_json": ".åå\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀.\"-_",
+      "vaerdi_json": ".1\\😀b"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ÆÆÆ\\",
+      "vaerdi_json": "😀😀a\"😀Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": ".😀\\Æ",
+      "vaerdi_json": "Æ-_  "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø",
+      "vaerdi_json": "-."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "a",
+      "vaerdi_json": "_Æ.\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".\"\\_-ø",
+      "vaerdi_json": "\"a\\ÆÆ\""
+     }
+    ]
+   },
+   "ud": "7c3434400627fc7b25fca0ca7847ab739439e11b636046beb9c2b8c69773aa3e"
+  },
+  {
+   "navn": "tilfældig 4",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "å\"Æ",
+      "vaerdi_json": "\\a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ø ",
+      "vaerdi_json": "b .1å"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a\\-Æ",
+      "vaerdi_json": "\\.😀 "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1",
+      "vaerdi_json": "å\\1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "b\\\\_.-",
+      "vaerdi_json": "-😀bå"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a\\baø",
+      "vaerdi_json": "1\"ab"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø",
+      "vaerdi_json": "åø "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1b--Æ",
+      "vaerdi_json": "1\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\😀.å",
+      "vaerdi_json": "b. øbå"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " 1a.",
+      "vaerdi_json": " "
+     }
+    ]
+   },
+   "ud": "74d97cc28c76fb211667d220a65061814f99e3bed98608f844a6e6162bd0c0ef"
+  },
+  {
+   "navn": "tilfældig 5",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "ø-øb",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b_",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀11åÆ-",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"-😀",
+      "vaerdi_json": "\\åa 😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "a",
+      "vaerdi_json": "ø-\"-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "",
+      "vaerdi_json": " ø.😀 "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "åb",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".å.😀Æ",
+      "vaerdi_json": "1\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-a\\.😀",
+      "vaerdi_json": "øa"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1Æå",
+      "vaerdi_json": "ø\"\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_b_å\"b",
+      "vaerdi_json": "åøÆ"
+     }
+    ]
+   },
+   "ud": "1cc36e20fdaee65b853ad9fc59b806388658aa63c4713cf45c44038e6ef5a894"
+  },
+  {
+   "navn": "tilfældig 6",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": ".\"ø\"",
+      "vaerdi_json": "-ø\\."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_11Æ",
+      "vaerdi_json": "\"1å😀\"a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "b1 ",
+      "vaerdi_json": " å😀ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ÆÆ",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "a",
+      "vaerdi_json": "a-\\b _"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "b_ \\b",
+      "vaerdi_json": "😀a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-",
+      "vaerdi_json": "ø😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-ø_",
+      "vaerdi_json": "aÆø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\" _.",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a.\"",
+      "vaerdi_json": "- ba1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"_Æ.",
+      "vaerdi_json": "1-1ø"
+     }
+    ]
+   },
+   "ud": "47b435a80a1c7810972440b5e16b6648e4187b9ee31c71947b6aa70d53357006"
+  },
+  {
+   "navn": "tilfældig 7",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "  ø",
+      "vaerdi_json": "1åba"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀ø😀\\_",
+      "vaerdi_json": "\\- "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æ",
+      "vaerdi_json": "\\ø -"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æåøø\"Æ",
+      "vaerdi_json": "\\Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_åø\\😀",
+      "vaerdi_json": "åÆ😀-_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_\"",
+      "vaerdi_json": "åøÆ1ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "å-b \"\\",
+      "vaerdi_json": "åb-"
+     }
+    ]
+   },
+   "ud": "a7d6bd33e47abcba5d098b92a4b7f28d6c7c8d0e2f43cc2fcbebdea64ce46183"
+  },
+  {
+   "navn": "tilfældig 8",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": ".",
+      "vaerdi_json": "_ \"\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø1.å\\",
+      "vaerdi_json": "-__åå."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-",
+      "vaerdi_json": "Æ  😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"b",
+      "vaerdi_json": ". ."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\\\",
+      "vaerdi_json": "Æ_1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"\\ø-",
+      "vaerdi_json": "-__"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀a\\ 😀",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "11\"",
+      "vaerdi_json": "aÆ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀bå.ø",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "  ",
+      "vaerdi_json": "\"_ -åø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\1",
+      "vaerdi_json": "b_b_ \\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø😀__",
+      "vaerdi_json": ".\\😀.b"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1b",
+      "vaerdi_json": "a\\_-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"_\"\\Æ",
+      "vaerdi_json": "åÆ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\__",
+      "vaerdi_json": "b."
+     }
+    ]
+   },
+   "ud": "e2a359d4681982c557d21bd3544184f3c32b9653500ff385f4970dd6802441c3"
+  },
+  {
+   "navn": "tilfældig 9",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": "a\" ",
+      "vaerdi_json": "b\\😀aa"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-1b",
+      "vaerdi_json": "å\\-😀_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "bÆ.å😀",
+      "vaerdi_json": "-_1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"",
+      "vaerdi_json": "\"aÆ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø_a",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀😀-\"Æå",
+      "vaerdi_json": "b.b__"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1.1",
+      "vaerdi_json": "_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"",
+      "vaerdi_json": "ø1Æ_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a--å-",
+      "vaerdi_json": "\"åÆa"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-😀 ",
+      "vaerdi_json": "ø.b-ø\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1- _-",
+      "vaerdi_json": "bø😀åÆ "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1a",
+      "vaerdi_json": "😀aøø\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀-\\",
+      "vaerdi_json": "11aø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "__b_",
+      "vaerdi_json": "å- \"\"å"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø",
+      "vaerdi_json": "å"
+     }
+    ]
+   },
+   "ud": "058d4309e4e3192296f1ac4851651a244febfefad3744997493ad07d3d177d06"
+  },
+  {
+   "navn": "tilfældig 10",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": "",
+      "vaerdi_json": "-."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": ".øå😀 ",
+      "vaerdi_json": "😀1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-bø-_",
+      "vaerdi_json": "ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "bø",
+      "vaerdi_json": "å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_b_-_\"",
+      "vaerdi_json": "-bÆ_Æ."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": " åa"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"aÆ\\Æ1",
+      "vaerdi_json": "a\"-"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-.1-",
+      "vaerdi_json": "Æ\\😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "å \"",
+      "vaerdi_json": "-"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1",
+      "vaerdi_json": "😀aaø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1\"å_",
+      "vaerdi_json": "\\ \\ø\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"\"ø😀",
+      "vaerdi_json": "ab1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_øb ",
+      "vaerdi_json": ".å\"\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀\"\"\\",
+      "vaerdi_json": ".._ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-ø11\\",
+      "vaerdi_json": "-😀.1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b",
+      "vaerdi_json": "😀øaa"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-\\1å😀",
+      "vaerdi_json": "😀aå😀Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-Æ-",
+      "vaerdi_json": "b.a."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀\\\"",
+      "vaerdi_json": "å.Æ_"
+     }
+    ]
+   },
+   "ud": "7f6e4e304f7428bcd26181795a43622979db0001c964a3426f42773ba3168fa1"
+  },
+  {
+   "navn": "tilfældig 11",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": ".\" .",
+      "vaerdi_json": "_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_a-ø-",
+      "vaerdi_json": "-  "
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"ø1a\"",
+      "vaerdi_json": "Æ1\"øÆb"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1\"",
+      "vaerdi_json": "Æ_\\b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_-ab",
+      "vaerdi_json": "\\\\Æ.😀😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø\"aø",
+      "vaerdi_json": " "
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a😀 b-",
+      "vaerdi_json": "b-.1.a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\\\ø_1",
+      "vaerdi_json": "\\_å-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a😀a",
+      "vaerdi_json": "åÆ\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a😀a_",
+      "vaerdi_json": "\\-1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\1-1\\",
+      "vaerdi_json": "_å\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " \\",
+      "vaerdi_json": "😀Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " ø1.a😀",
+      "vaerdi_json": ""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\- -",
+      "vaerdi_json": ". .a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀",
+      "vaerdi_json": "Æ\\1øa"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " a.",
+      "vaerdi_json": "._å- \""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-ø-",
+      "vaerdi_json": "å b\"._"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b\"😀-",
+      "vaerdi_json": "ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": " b ",
+      "vaerdi_json": "Æ1- "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "å",
+      "vaerdi_json": "\\-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " å😀\"ø",
+      "vaerdi_json": "__"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "å\\-ø1a",
+      "vaerdi_json": "😀 "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\ø",
+      "vaerdi_json": "b_- ø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-Æøb-",
+      "vaerdi_json": "ø\\  .."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æ",
+      "vaerdi_json": "b_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æ😀",
+      "vaerdi_json": "😀 \\ba"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " \\😀😀",
+      "vaerdi_json": "Æ  å- "
+     }
+    ]
+   },
+   "ud": "94572c2b9915b85f090f07a35a0a67004b0f872d58eeacf8ae676a53502fa53c"
+  },
+  {
+   "navn": "tilfældig 12",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "å",
+      "vaerdi_json": "--"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø_.",
+      "vaerdi_json": "_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_a_ÆÆb",
+      "vaerdi_json": " \\å-ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "åbå_",
+      "vaerdi_json": "å1_\\."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a\\\"\\",
+      "vaerdi_json": "a-å\"_1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\",
+      "vaerdi_json": "_- 😀-."
+     }
+    ]
+   },
+   "ud": "fca4f6fbb90056eaf19e49d405ae05991cb73a07fa46217536d46e599aa0ef83"
+  },
+  {
+   "navn": "tilfældig 13",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "\"-\"._",
+      "vaerdi_json": "._\"_Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"😀_",
+      "vaerdi_json": "😀øÆ\"1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-\\ø\"",
+      "vaerdi_json": "\"\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b\"",
+      "vaerdi_json": "\"1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø",
+      "vaerdi_json": "_\\\\\"_å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_.",
+      "vaerdi_json": "-Æ_."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".-Æa😀",
+      "vaerdi_json": ".åå"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "å.Æå😀",
+      "vaerdi_json": "  Æ.\"ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_",
+      "vaerdi_json": "-1-\\1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "Æ\"a-\\",
+      "vaerdi_json": "1b11a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø1_--",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "øøb Æb",
+      "vaerdi_json": "øø å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "",
+      "vaerdi_json": " 1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"",
+      "vaerdi_json": "øÆ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"å",
+      "vaerdi_json": "å\\\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-åb-",
+      "vaerdi_json": "1å_😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_\\",
+      "vaerdi_json": "\"Æøø😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æ1aa",
+      "vaerdi_json": "_\\Æ "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "11a😀",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "åø",
+      "vaerdi_json": "å\"ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "aÆb1\\",
+      "vaerdi_json": "\"Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "øå😀.aø",
+      "vaerdi_json": "å"
+     }
+    ]
+   },
+   "ud": "6fd7198aecfb5d0f11da7363a6b91f6d5b5d5c4d4f487fc5951244017a17ea3a"
+  },
+  {
+   "navn": "tilfældig 14",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": "bø\\",
+      "vaerdi_json": "a\"b😀-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1",
+      "vaerdi_json": "  b"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\ \"1",
+      "vaerdi_json": "_ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ\"øb",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "øÆ_ø1",
+      "vaerdi_json": "Æ øåbå"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "a\\",
+      "vaerdi_json": "a-å -"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\Æå",
+      "vaerdi_json": "ø \"-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀1",
+      "vaerdi_json": "😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b\\ø \"",
+      "vaerdi_json": "-øa"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a-11",
+      "vaerdi_json": "\"1 \""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_",
+      "vaerdi_json": "ø\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "..ba1",
+      "vaerdi_json": "åb\".-"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "",
+      "vaerdi_json": "ø😀.."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "Æ",
+      "vaerdi_json": "ø1.b\\ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1",
+      "vaerdi_json": "a11ø-"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "__ø -",
+      "vaerdi_json": "å\"."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"å",
+      "vaerdi_json": ".b\"b_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\\\_Æ\"",
+      "vaerdi_json": "åÆa-"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ååå..Æ",
+      "vaerdi_json": "åaaa"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀",
+      "vaerdi_json": "ø\"_b-."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-1😀_",
+      "vaerdi_json": "_-ø1"
+     }
+    ]
+   },
+   "ud": "7eeca85ac79a5c8559c49aa8022b577504c6d85488090abf1b256942b9450e8f"
+  },
+  {
+   "navn": "tilfældig 15",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "ø",
+      "vaerdi_json": "._"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-Æ",
+      "vaerdi_json": "Æ1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".1😀å",
+      "vaerdi_json": "-Æ "
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "åa.Æ\\ ",
+      "vaerdi_json": "\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø",
+      "vaerdi_json": "\\\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "øb",
+      "vaerdi_json": "1b."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "..b 1",
+      "vaerdi_json": " b😀å."
+     },
+     {
+      "kilde": "aendring",
+      "sti": ".1",
+      "vaerdi_json": "1.aø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\.å😀",
+      "vaerdi_json": "a ab"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "øaå😀",
+      "vaerdi_json": "\\ _ å\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ\"\"\"1",
+      "vaerdi_json": "\\øø \"\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a- 1",
+      "vaerdi_json": "å"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": ".ø \\",
+      "vaerdi_json": "åÆ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "å_😀bb",
+      "vaerdi_json": "b.\"å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æ.",
+      "vaerdi_json": "😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "b.baÆ",
+      "vaerdi_json": "b ø\\Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ø😀.\"😀",
+      "vaerdi_json": "😀a1 "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ø \\  ",
+      "vaerdi_json": "-øåå\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ",
+      "vaerdi_json": "😀Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1Æ- ",
+      "vaerdi_json": " "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "..😀",
+      "vaerdi_json": "1\\"
+     }
+    ]
+   },
+   "ud": "e47bb00573fdb379783e2d1ecb4690e98479be353565f5faf9210d6fa5191e63"
+  },
+  {
+   "navn": "tilfældig 16",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "_b\"11ø",
+      "vaerdi_json": "ø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b-",
+      "vaerdi_json": "_😀åø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_å1ø1",
+      "vaerdi_json": "_bbåø."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b\"😀",
+      "vaerdi_json": "."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀ø-",
+      "vaerdi_json": "_å"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": "..a-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀\\",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀",
+      "vaerdi_json": "-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\ 😀ø.å",
+      "vaerdi_json": "abø_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æ-Æ_\" ",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\😀",
+      "vaerdi_json": "1a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_\"\"-",
+      "vaerdi_json": "_øÆÆ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø\".å\"1",
+      "vaerdi_json": ".b"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"b",
+      "vaerdi_json": "1 \\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀ø. 1ø",
+      "vaerdi_json": "aøøå.a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "11",
+      "vaerdi_json": "😀a"
+     }
+    ]
+   },
+   "ud": "5046d2dfd5bb39b36ac02f51b5b5ec4131df7ce08abd91ccc3ac0f8861ef45ff"
+  },
+  {
+   "navn": "tilfældig 17",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "å.😀_\"1",
+      "vaerdi_json": "😀.a1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ1",
+      "vaerdi_json": "Æ\\_\"b"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ba-",
+      "vaerdi_json": "bb-a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\. 😀\\a",
+      "vaerdi_json": ".ø."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\\"ø",
+      "vaerdi_json": "_\\a\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": ".",
+      "vaerdi_json": "😀Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\\\_",
+      "vaerdi_json": "å"
+     }
+    ]
+   },
+   "ud": "b087e699cf89ff64c4e95c88a1b25c24a53563a418ae0742819f14e81cbbe72a"
+  },
+  {
+   "navn": "tilfældig 18",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "\"_-\\",
+      "vaerdi_json": "\\Æ ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀\\.",
+      "vaerdi_json": "_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "øå",
+      "vaerdi_json": "._-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "Æ\"-",
+      "vaerdi_json": "-_1b."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_1å\\\"",
+      "vaerdi_json": "-b\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"",
+      "vaerdi_json": "1 \"\\_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø\"",
+      "vaerdi_json": "øa b-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ø",
+      "vaerdi_json": "a-\"😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀\" ",
+      "vaerdi_json": "\\\\ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "aø -å",
+      "vaerdi_json": "_1_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "11\\\\",
+      "vaerdi_json": "😀Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "åbÆ",
+      "vaerdi_json": "😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "._ÆÆ",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1.😀_",
+      "vaerdi_json": ""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1aø.",
+      "vaerdi_json": "\\.ø "
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-Æ- ",
+      "vaerdi_json": "-- -b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "a",
+      "vaerdi_json": "😀Æ.-ø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-1å",
+      "vaerdi_json": "å1b"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " a_\\",
+      "vaerdi_json": "å--😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b\"å\"",
+      "vaerdi_json": "__"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "  ",
+      "vaerdi_json": "øø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": " \"..",
+      "vaerdi_json": "\""
+     }
+    ]
+   },
+   "ud": "017c37819d9cf12a3697de1e6d8029042c882888db32f2cfaf93c4de39e92afe"
+  },
+  {
+   "navn": "tilfældig 19",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "Æ.-a1",
+      "vaerdi_json": "1\\å\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "å",
+      "vaerdi_json": "a😀_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"1",
+      "vaerdi_json": "_bb\\-"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": ".å ",
+      "vaerdi_json": " Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"1_",
+      "vaerdi_json": ".ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"a\"",
+      "vaerdi_json": "-.\"-b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b_",
+      "vaerdi_json": "ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1 \"",
+      "vaerdi_json": "\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø",
+      "vaerdi_json": "\"å\" a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀å ",
+      "vaerdi_json": "___"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "a😀11Æ ",
+      "vaerdi_json": " \"_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\1a.å",
+      "vaerdi_json": "1\\_å "
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"-",
+      "vaerdi_json": " "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-_",
+      "vaerdi_json": "\\å"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ø😀\"",
+      "vaerdi_json": "😀1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a-_😀",
+      "vaerdi_json": "."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "bb\\\\",
+      "vaerdi_json": "1\\Æ\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"a",
+      "vaerdi_json": "\\_1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1a😀a1\\",
+      "vaerdi_json": "-ø ø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_b.. \\",
+      "vaerdi_json": "Æ_\""
+     }
+    ]
+   },
+   "ud": "01f45fd5485646e4f160f81d160e03403a528a36690fd93b1d9ade67bdc436a8"
+  },
+  {
+   "navn": "tilfældig 20",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "aa-Æ-_",
+      "vaerdi_json": "åø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "øåb",
+      "vaerdi_json": "Æå_b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀Æ",
+      "vaerdi_json": "-😀Æ1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b-\"-\\-",
+      "vaerdi_json": "_b"
+     }
+    ]
+   },
+   "ud": "d297b424dce1ceb005366128275f2a09f6b904530ec53243615a6637ea82cad9"
+  },
+  {
+   "navn": "tilfældig 21",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": "å",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "",
+      "vaerdi_json": "Æ\"-\"\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-\"\"\"ø",
+      "vaerdi_json": "-.ø-å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\\\ø",
+      "vaerdi_json": " .\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\å\"",
+      "vaerdi_json": "\"1ø.a\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-b-",
+      "vaerdi_json": "åb1- -"
+     }
+    ]
+   },
+   "ud": "ba55177b1d65f9706d3ad19ec212da5f5fcc8f161fa0e93bc9ab7686419bad39"
+  },
+  {
+   "navn": "tilfældig 22",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": " ",
+      "vaerdi_json": "Æ😀.aåå"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀  a1",
+      "vaerdi_json": "ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\1",
+      "vaerdi_json": "😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-😀\\",
+      "vaerdi_json": " .1-a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a.😀😀",
+      "vaerdi_json": "😀."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1.1å",
+      "vaerdi_json": "å"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "åa",
+      "vaerdi_json": "å\"Æ\\ "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_-ååaø",
+      "vaerdi_json": "_Æ_\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "a",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-.1b\\",
+      "vaerdi_json": "å\"\\Æa"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æ",
+      "vaerdi_json": "\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"b \"\"Æ",
+      "vaerdi_json": "_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\b ",
+      "vaerdi_json": "😀\"1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ1.",
+      "vaerdi_json": " _aåÆ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " ",
+      "vaerdi_json": "Æ\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø1.",
+      "vaerdi_json": "-."
+     }
+    ]
+   },
+   "ud": "24ab8abd34e0b2c43f09eeca5a06c8bc05d1cf813b04d33a00b608f76353cbd5"
+  },
+  {
+   "navn": "tilfældig 23",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "Æ",
+      "vaerdi_json": "Æ--.1-"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æø",
+      "vaerdi_json": ". .-ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"\\\"",
+      "vaerdi_json": "b\"\\😀b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b1",
+      "vaerdi_json": "__ ø. "
+     },
+     {
+      "kilde": "scenarie",
+      "sti": ".a -",
+      "vaerdi_json": ".\\åÆ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀_ b-",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-ÆÆ \"_",
+      "vaerdi_json": "_\\ø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ø",
+      "vaerdi_json": "\\a\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": ".a\\.\"",
+      "vaerdi_json": "😀_-ba\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": " "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".\".\"åb",
+      "vaerdi_json": "øø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "- åÆ",
+      "vaerdi_json": "\\-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_å_b😀1",
+      "vaerdi_json": "😀-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "Æ",
+      "vaerdi_json": ".Æ😀 b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "",
+      "vaerdi_json": "\\\"ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " .😀å",
+      "vaerdi_json": " "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " \"_a",
+      "vaerdi_json": "😀.øa\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"-b",
+      "vaerdi_json": "1-a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "å 1_",
+      "vaerdi_json": " b-"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "b\"Æ😀",
+      "vaerdi_json": ""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a",
+      "vaerdi_json": "\\\\\"åå"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\ø",
+      "vaerdi_json": " \\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "__😀_",
+      "vaerdi_json": "."
+     }
+    ]
+   },
+   "ud": "e28251df2c9d2321186d66fdf6247256f9f2fa33710f3a125e7b2585bf9cc766"
+  },
+  {
+   "navn": "tilfældig 24",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": " ..-a_",
+      "vaerdi_json": " \\ø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "11\"Æ",
+      "vaerdi_json": "1\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_1_\" ",
+      "vaerdi_json": "."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1😀😀",
+      "vaerdi_json": "å Æb- "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "øb",
+      "vaerdi_json": "åaÆ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "åÆ1",
+      "vaerdi_json": "1.åÆ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_",
+      "vaerdi_json": ". "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø\"bø\"\"",
+      "vaerdi_json": " \"😀å"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "bbÆ ",
+      "vaerdi_json": "Æ_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "",
+      "vaerdi_json": "\"å_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a_",
+      "vaerdi_json": "1. ._"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "øåø",
+      "vaerdi_json": "  "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"😀. _",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø😀",
+      "vaerdi_json": "øb😀😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-.",
+      "vaerdi_json": "_1b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "å_",
+      "vaerdi_json": "-."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_ . ",
+      "vaerdi_json": "a😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "åå\\",
+      "vaerdi_json": " ø_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ååå",
+      "vaerdi_json": "å."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀_",
+      "vaerdi_json": "_ \""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_😀\\\"_",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀",
+      "vaerdi_json": "b1😀_a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "å\\\"._",
+      "vaerdi_json": "\\\\11😀"
+     }
+    ]
+   },
+   "ud": "4e0f9344c187d55d0b052052a78a12cfae1231b6ce87f1a2e8e5f3b4c4546b62"
+  },
+  {
+   "navn": "tilfældig 25",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": "å😀...",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "øa",
+      "vaerdi_json": "😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "",
+      "vaerdi_json": "å-bÆ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø_-",
+      "vaerdi_json": "\"Æb å"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1",
+      "vaerdi_json": "😀åb"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1.",
+      "vaerdi_json": "Æø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_😀",
+      "vaerdi_json": "å_ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a1aø",
+      "vaerdi_json": "b1Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " ",
+      "vaerdi_json": "b. Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"",
+      "vaerdi_json": "øÆ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "",
+      "vaerdi_json": ".b\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-\\",
+      "vaerdi_json": "\\ÆÆå"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ø",
+      "vaerdi_json": "_ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"",
+      "vaerdi_json": "åÆ\"Æ\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "å1 _",
+      "vaerdi_json": "a1a_a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø\\",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "a1\\a.",
+      "vaerdi_json": "aå \\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "Æ",
+      "vaerdi_json": "1øÆ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø",
+      "vaerdi_json": "\\_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æbb",
+      "vaerdi_json": " ø-"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø\\.ø_a",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø- ",
+      "vaerdi_json": "\\ba.1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ😀",
+      "vaerdi_json": "- 😀 "
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-",
+      "vaerdi_json": "a\\😀"
+     }
+    ]
+   },
+   "ud": "2d7186cc65f97ece441e56751e329fdc7733f2ab4648e21c345b375741c6a840"
+  },
+  {
+   "navn": "tilfældig 26",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": " _",
+      "vaerdi_json": "1\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "å",
+      "vaerdi_json": "Æ."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1a_ ",
+      "vaerdi_json": "a\"å."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-_",
+      "vaerdi_json": "_Æ_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "  Æ-\\",
+      "vaerdi_json": "aa-\\_😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": ".a\\1b",
+      "vaerdi_json": ".a.b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\.. .",
+      "vaerdi_json": "b-\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1Æ",
+      "vaerdi_json": "-\"\\Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "bø Æ",
+      "vaerdi_json": "\\\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_å a",
+      "vaerdi_json": "øbb\\Æ_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".1a",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": " \"",
+      "vaerdi_json": "-- -\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a b ",
+      "vaerdi_json": "1-ø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " ",
+      "vaerdi_json": "- _.."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"",
+      "vaerdi_json": " 1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀😀 😀åb",
+      "vaerdi_json": "😀\"1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "å\"b",
+      "vaerdi_json": "ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " ",
+      "vaerdi_json": " b."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"ø",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " b ",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-\\\"å ",
+      "vaerdi_json": "bÆå"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1ø",
+      "vaerdi_json": "😀øa\\-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\" ",
+      "vaerdi_json": ". Æ\"1_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a.\\åø\"",
+      "vaerdi_json": "-.ø."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_Æ",
+      "vaerdi_json": "ø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"-\"-😀",
+      "vaerdi_json": "_-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1😀😀åÆb",
+      "vaerdi_json": "a\\-"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1.Æ",
+      "vaerdi_json": "-"
+     }
+    ]
+   },
+   "ud": "4b6a026c4c28e96fa50499f152e8e3bd3a11156e5beff2670ad7d42559cb3fe6"
+  },
+  {
+   "navn": "tilfældig 27",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": "_\\å.1 ",
+      "vaerdi_json": ""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-\"\\-",
+      "vaerdi_json": " aÆåa"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": "Æ😀 "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ø1\\1",
+      "vaerdi_json": "ø\"øå"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "b.ø\"\"1",
+      "vaerdi_json": "\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": " ",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀\"\\_",
+      "vaerdi_json": "-1aå"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ååÆa-ø",
+      "vaerdi_json": "\\_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø\"b",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".å\\",
+      "vaerdi_json": "😀bÆ bb"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1-.1",
+      "vaerdi_json": "øa\\-Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "a\"\\\"b",
+      "vaerdi_json": "😀. "
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀😀Æ \\ø",
+      "vaerdi_json": "-bå"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": "-å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1\"",
+      "vaerdi_json": "b😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-",
+      "vaerdi_json": "_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"😀.\\",
+      "vaerdi_json": "bb"
+     }
+    ]
+   },
+   "ud": "1dadf91bf8f4e9b4ec7cc82759cff68bc42b32d98b02a60aa32759ee456c76e7"
+  },
+  {
+   "navn": "tilfældig 28",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": "-bb",
+      "vaerdi_json": " aa 1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "Æ\\_b",
+      "vaerdi_json": "-åb"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"b ",
+      "vaerdi_json": "a_.😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\øaå",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø.1 ",
+      "vaerdi_json": "ø1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "bå",
+      "vaerdi_json": "1\"\"\""
+     }
+    ]
+   },
+   "ud": "832e43e19ccd4e1b8c825f49d065c95129770e9357d8bc5f7113ec3620033b6e"
+  },
+  {
+   "navn": "tilfældig 29",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "Æ_\"_",
+      "vaerdi_json": "😀\\_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": " Æ1",
+      "vaerdi_json": "😀😀a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"\\",
+      "vaerdi_json": "b._Æøø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\" -😀 ",
+      "vaerdi_json": "\\-😀\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a😀😀 ",
+      "vaerdi_json": "Æ\"-1 "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ø",
+      "vaerdi_json": "\"_Æ1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀ø",
+      "vaerdi_json": "__Æø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ1",
+      "vaerdi_json": "b-aa"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "ø_",
+      "vaerdi_json": "ø😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b\"_åaå",
+      "vaerdi_json": "1ø-"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "bÆ.",
+      "vaerdi_json": " ø😀bb"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_Æ😀",
+      "vaerdi_json": "\\"
+     }
+    ]
+   },
+   "ud": "096d5ad403843282984f7a4b5f5bcee84570ca735a95cc146934f64fb2cbbded"
+  },
+  {
+   "navn": "tilfældig 30",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": "1-Æa",
+      "vaerdi_json": "\\\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "aø\"b",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ",
+      "vaerdi_json": "a1\"aa"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-.b\"ø",
+      "vaerdi_json": "-.ø."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"å😀",
+      "vaerdi_json": "åå\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": " 😀1__\"",
+      "vaerdi_json": "\"Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b😀__",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"",
+      "vaerdi_json": ".a å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\\\- ",
+      "vaerdi_json": ".- \"😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b  ",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_",
+      "vaerdi_json": ".\\😀.1Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1_😀bå\\",
+      "vaerdi_json": "\"b_ø-ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æa",
+      "vaerdi_json": ".a_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "å.-",
+      "vaerdi_json": "øaÆ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ-_",
+      "vaerdi_json": " .\"-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-",
+      "vaerdi_json": "😀😀 "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_aa",
+      "vaerdi_json": ""
+     }
+    ]
+   },
+   "ud": "1de11099b9278aaca4280a2f85799b60fc3ae75147f219cf50943211f9bc1651"
+  },
+  {
+   "navn": "tilfældig 31",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "\"_\"",
+      "vaerdi_json": "-ø1😀b😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\"_  .1",
+      "vaerdi_json": "bb"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æb😀😀_",
+      "vaerdi_json": ""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "å",
+      "vaerdi_json": "\\"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\1_1Æ",
+      "vaerdi_json": "😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀😀",
+      "vaerdi_json": "ø1😀_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø",
+      "vaerdi_json": ".øaa_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀a",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-",
+      "vaerdi_json": "øÆø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " Æ",
+      "vaerdi_json": "1-å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "å.Æa",
+      "vaerdi_json": "øå.ø1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "bø",
+      "vaerdi_json": "å 😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø\"",
+      "vaerdi_json": "aÆø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ". ",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": ".Æ\\1a ",
+      "vaerdi_json": "\\ "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-\\-a",
+      "vaerdi_json": ". "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1-😀",
+      "vaerdi_json": "1å"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b_ø",
+      "vaerdi_json": "øå"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\\"",
+      "vaerdi_json": "Æ1"
+     }
+    ]
+   },
+   "ud": "ae676cbc466690e8dbc954a8ac89ac480ffeea96fb67f55d06d5fbc558c4c59b"
+  },
+  {
+   "navn": "tilfældig 32",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": "Æ",
+      "vaerdi_json": "\"Æ_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-",
+      "vaerdi_json": "11\\ Æ1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1b.",
+      "vaerdi_json": "\\\\\\\\a."
+     },
+     {
+      "kilde": "aendring",
+      "sti": " ø_",
+      "vaerdi_json": "1 \""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø-å",
+      "vaerdi_json": " "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "bÆ\"",
+      "vaerdi_json": "\\_"
+     }
+    ]
+   },
+   "ud": "af4350304af803a812408c76672bd74f5a1aebf147e73e8d27b59d1a4b9eb595"
+  },
+  {
+   "navn": "tilfældig 33",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": ".-11\\",
+      "vaerdi_json": "ø-"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ\\😀_",
+      "vaerdi_json": " bøb😀\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-",
+      "vaerdi_json": "_ \"ø_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_b.Æ",
+      "vaerdi_json": " _-.a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ab😀\"",
+      "vaerdi_json": "bøb1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "øb😀 😀",
+      "vaerdi_json": "😀1 aÆ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\a.",
+      "vaerdi_json": "Æ.\\ "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-\"",
+      "vaerdi_json": "Æ\"11a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\ ",
+      "vaerdi_json": "åå"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "- a.\\😀",
+      "vaerdi_json": "Æ😀1-bø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_1😀ÆÆ.",
+      "vaerdi_json": "Æå_1å"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "øå",
+      "vaerdi_json": "\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"\"😀_",
+      "vaerdi_json": "😀-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\",
+      "vaerdi_json": "ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø.",
+      "vaerdi_json": " _"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a1",
+      "vaerdi_json": "ø😀Æø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\å\" ",
+      "vaerdi_json": "aå😀\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": " ",
+      "vaerdi_json": "aÆaå ."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_😀._ø",
+      "vaerdi_json": "a1😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\".-b",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-b",
+      "vaerdi_json": "aå1 Æ "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-",
+      "vaerdi_json": "Æ1😀a\"😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "åÆøøå",
+      "vaerdi_json": "1😀\"Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "bå",
+      "vaerdi_json": "aø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "b-Æ",
+      "vaerdi_json": "aå😀øb"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø-",
+      "vaerdi_json": " "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "bb",
+      "vaerdi_json": "😀\" "
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ab ",
+      "vaerdi_json": " a"
+     }
+    ]
+   },
+   "ud": "b81b4dae7a3c3846d586bb380c982573cd90d088e7e864602d1577d910773d4c"
+  },
+  {
+   "navn": "tilfældig 34",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "-a\\ ",
+      "vaerdi_json": "Æ-øøÆ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ.11b",
+      "vaerdi_json": "bå"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\åÆ.",
+      "vaerdi_json": "😀\"1.a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "å\\aa-",
+      "vaerdi_json": "bbb😀😀 "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a_b\"",
+      "vaerdi_json": "-😀1aå"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀abb_å",
+      "vaerdi_json": ".\\\"😀\\_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1",
+      "vaerdi_json": "\\..b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "Æ-å1",
+      "vaerdi_json": " -\"1\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "åÆå",
+      "vaerdi_json": "Æ..Æ😀"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " ÆÆa--",
+      "vaerdi_json": "a__ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æ😀",
+      "vaerdi_json": "Æø ø"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "",
+      "vaerdi_json": "_\\ø\\"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b1. aå",
+      "vaerdi_json": "å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀",
+      "vaerdi_json": "\\ø"
+     }
+    ]
+   },
+   "ud": "44306258285625a0ee8fc2ed68e61fa1309d0fdfecba94855e51496d2bf78767"
+  },
+  {
+   "navn": "tilfældig 35",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "ø😀Æ",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_😀aaÆ",
+      "vaerdi_json": "1øa"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀Æå.ø-",
+      "vaerdi_json": "_b1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-ø. .",
+      "vaerdi_json": "_1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "øÆ😀",
+      "vaerdi_json": "b11a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀\"_  ",
+      "vaerdi_json": "\\b.bb"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "bø.1\"\\",
+      "vaerdi_json": " øb"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-",
+      "vaerdi_json": "-"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "å_\"\"\"😀",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_",
+      "vaerdi_json": "å😀b\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "_\"",
+      "vaerdi_json": "øø1Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "😀",
+      "vaerdi_json": " aå"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b-ø",
+      "vaerdi_json": "åa\"_😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-Æ",
+      "vaerdi_json": " 😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "å1_😀åø",
+      "vaerdi_json": " ø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "__ \"",
+      "vaerdi_json": "Æ_Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "å😀\"\\.a",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "b",
+      "vaerdi_json": "Æa øÆ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " åø",
+      "vaerdi_json": "b\\å\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ø",
+      "vaerdi_json": "-bb"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a\".\\å\"",
+      "vaerdi_json": "aa-"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "å",
+      "vaerdi_json": "ø1\\😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"1b",
+      "vaerdi_json": "a\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\"\"1",
+      "vaerdi_json": "_a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "Æa",
+      "vaerdi_json": "a__a\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\😀b",
+      "vaerdi_json": "Æ1\"-ø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "bb_",
+      "vaerdi_json": "\""
+     }
+    ]
+   },
+   "ud": "d291c8fa2b9c48a948b31063ed08c8bc86ed7084489a7ef0157ee5da4f6705e5"
+  },
+  {
+   "navn": "tilfældig 36",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "a-b_.😀",
+      "vaerdi_json": "b😀b_aø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "åÆ",
+      "vaerdi_json": "b "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\ b ø",
+      "vaerdi_json": "1a."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_a1-😀Æ",
+      "vaerdi_json": "ø Æa\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "ab",
+      "vaerdi_json": ".a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1-\\_\"",
+      "vaerdi_json": "1\\\\å_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_ø",
+      "vaerdi_json": "."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_ø",
+      "vaerdi_json": "ba.Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"😀_\\a\\",
+      "vaerdi_json": "--1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\åå😀",
+      "vaerdi_json": " _b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".\"",
+      "vaerdi_json": ".Æ"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1_1._.",
+      "vaerdi_json": "\"_-1\\a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "\\",
+      "vaerdi_json": ".å\\"
+     }
+    ]
+   },
+   "ud": "aa94b3e87e11579c6ea1351c6f67a2d5c9060b6ed90824342f838fe1fae40adc"
+  },
+  {
+   "navn": "tilfældig 37",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "scenarie",
+      "sti": "Æ.",
+      "vaerdi_json": "😀ÆøÆa"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\å-\".Æ",
+      "vaerdi_json": "aaa"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " ø\"",
+      "vaerdi_json": "\"ø😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀1Æø",
+      "vaerdi_json": "-1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " ",
+      "vaerdi_json": "aÆ\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "😀1😀",
+      "vaerdi_json": " "
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "bbÆå",
+      "vaerdi_json": "øø "
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " Æå",
+      "vaerdi_json": "-😀a."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\",
+      "vaerdi_json": "\"😀--😀b"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "å\\bÆÆ",
+      "vaerdi_json": ".Æ1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": ".",
+      "vaerdi_json": "_\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": " å\"",
+      "vaerdi_json": ".øå"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": "1b \\😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-",
+      "vaerdi_json": "å\"1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "-b",
+      "vaerdi_json": "b\"😀aåa"
+     },
+     {
+      "kilde": "aendring",
+      "sti": ".\"b_",
+      "vaerdi_json": "-å.\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "\\aå",
+      "vaerdi_json": "Æ.\\-b."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a.-",
+      "vaerdi_json": "."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a__",
+      "vaerdi_json": "bb."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "  -.",
+      "vaerdi_json": "😀b-b\\"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "-.\"åÆ\\",
+      "vaerdi_json": "ø"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " øå_1",
+      "vaerdi_json": "b😀"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "å-Æ",
+      "vaerdi_json": "\\øa"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " 1",
+      "vaerdi_json": "\"b."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b",
+      "vaerdi_json": "_1"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": " _bå\\",
+      "vaerdi_json": "\\.a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æ",
+      "vaerdi_json": "Æ1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀😀__",
+      "vaerdi_json": "Æ😀-😀_b"
+     }
+    ]
+   },
+   "ud": "00155fcba8f77732035c86d82237a1fe517628e0de8bc816139f68bcd2a55af4"
+  },
+  {
+   "navn": "tilfældig 38",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "ø\\a\"1",
+      "vaerdi_json": "\". aø "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"b",
+      "vaerdi_json": "-b  å"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a.",
+      "vaerdi_json": "Æ😀å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "Æ",
+      "vaerdi_json": "\\_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "b\"_a 1",
+      "vaerdi_json": "b_ "
+     },
+     {
+      "kilde": "aendring",
+      "sti": "😀.Æ- å",
+      "vaerdi_json": "å_\\øÆb"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1-.",
+      "vaerdi_json": "ø-_å\\Æ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": ".åÆ-b.",
+      "vaerdi_json": "_Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": " \\.å",
+      "vaerdi_json": "_-\"å_"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_",
+      "vaerdi_json": "ab.b ."
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "-_a\"",
+      "vaerdi_json": "a\\a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "1- ",
+      "vaerdi_json": "-."
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\_bÆ",
+      "vaerdi_json": "Æ😀-åÆ"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "_\"",
+      "vaerdi_json": "Æ.b1"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": ".Æ_Æ",
+      "vaerdi_json": "b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "øø_Æ1 ",
+      "vaerdi_json": "b1\"."
+     },
+     {
+      "kilde": "scenarie",
+      "sti": ".aå",
+      "vaerdi_json": ".åøb.b"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "øÆb.b",
+      "vaerdi_json": "_ø😀"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "1\\.",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\"-Æ-",
+      "vaerdi_json": "Æ-"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "øå",
+      "vaerdi_json": "Æ"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø",
+      "vaerdi_json": "_"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "a",
+      "vaerdi_json": "😀a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "bÆÆ",
+      "vaerdi_json": "😀😀a"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "å 😀\\",
+      "vaerdi_json": "..-"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "Æb aÆ",
+      "vaerdi_json": "å.øabø"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "ø😀_Æa",
+      "vaerdi_json": "a"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "11a\\a",
+      "vaerdi_json": "å"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "øa1😀 ",
+      "vaerdi_json": "..ø"
+     }
+    ]
+   },
+   "ud": "75c3d25a7bbbbacf715d581020424fea8a2000908da719f2a00bac912d91c204"
+  },
+  {
+   "navn": "tilfældig 39",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "aendring",
+      "sti": " b\" ",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "1",
+      "vaerdi_json": "\""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "11a",
+      "vaerdi_json": "b\"😀a \""
+     },
+     {
+      "kilde": "aendring",
+      "sti": "\\å.\\",
+      "vaerdi_json": "😀 😀_"
+     },
+     {
+      "kilde": "aendring",
+      "sti": " å",
+      "vaerdi_json": "---Æø"
+     }
+    ]
+   },
+   "ud": "b492a61317bb142263250ad4baa5ef59c8a8424d7385f4d6713249f05593fca2"
+  }
+ ]
+}

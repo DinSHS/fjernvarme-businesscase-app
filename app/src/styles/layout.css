@@ -1,0 +1,231 @@
+/* =====================================================================
+   LAYOUTSYSTEMET — ÉN fil for gitter, kort, typografi og kontroller.
+
+   Farverne er TEMAETS (src/styles/temaer/*.json → CSS-variabler, se
+   app/TEMAER.md). Her står kun FORMEN: størrelser, afstande, gitter og
+   tilstande. Ingen side må have egne størrelser for de roller, tokens dækker —
+   brug komponenterne i src/components/layout/.
+
+   Designsprog: rolig, faglig, IBCS-inspireret. Data i fokus; ingen pynt,
+   ingen gradienter i indholdet (signaturstriben øverst er temaets eneste
+   ornament). Ét 12-spalte-gitter; kort i samme række er lige høje; kortets
+   fodnote står nederst. Tal i tal-fonten med faste cifre. Ingen VERSALER:
+   hierarki bæres af vægt, størrelse og farve.
+
+   Typografisk skala (forhold ≈ 1,125 omkring brødteksten 13 px):
+     --t-sidetitel             24 / 30  650   sidens h1
+     --t-budskab               15 / 22        sidens budskab (én sætning, IBCS SAY)
+     --t-kort-titel            14 / 20  650   kortets titel, linje 1 (hvad + afgrænsning)
+     --t-kort-budskab          13 / 19        kortets titel, linje 2 (budskab regnet af data)
+     --t-brod                  13 / 20        brødtekst og formularer
+     --t-tabel                 12.5 / 18      tabeller
+     --t-tabelhoved            11.5 / 16 600  tabelhoveder
+     --t-akse / --t-datalabel  11             grafer
+     --t-fodnote               11.5 / 16      fodnoter, kilder
+     --t-mærke                 11 / 16  600   mærker og områdenavn
+
+   Stabile hooks til et layout-tjek (brug dem, ikke tilfældige klassenavne):
+     data-layout="side" | "kort" | "kort-titel" | "kort-budskab" | "fodnote" | "tabel"
+   ===================================================================== */
+
+:root {
+  --l-gap: 16px;              /* gitterets ene gap — mellem kort, rækker og spalter */
+  --l-kort-pad: 16px;         /* kortets indre luft */
+  --l-side-max: 1440px;       /* sidens maksbredde */
+  --l-side-pad: 24px;
+  --l-kontrol-h: 32px;        /* knapper, felter, segmenter: én højde */
+  --l-tekst-maks: 80ch;       /* læselinjens længde for brødtekst og budskaber */
+
+  --t-sidetitel: 24px;    --t-sidetitel-lh: 30px;
+  --t-budskab: 15px;      --t-budskab-lh: 22px;
+  --t-kort-titel: 14px;   --t-kort-titel-lh: 20px;
+  --t-kort-budskab: 13px; --t-kort-budskab-lh: 19px;
+  --t-brod: 13px;         --t-brod-lh: 20px;
+  --t-tabel: 12.5px;      --t-tabel-lh: 18px;
+  --t-tabelhoved: 11.5px;
+  --t-akse: 11px;
+  --t-datalabel: 11px;
+  --t-fodnote: 11.5px;    --t-fodnote-lh: 16px;
+  --t-mærke: 11px;
+
+  --r-kort: 10px;
+  --r-felt: 6px;
+
+  --overgang: 120ms ease-out;  /* kun på svar på brugerens handling (hover, tryk) */
+}
+
+/* ---------------- Skal: top, navigation, indhold ---------------- */
+.fjv-top { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--dash-hairline); background: var(--color-card); }
+.fjv-top-indre { max-width: var(--l-side-max); margin: 0 auto; padding: 10px var(--l-side-pad); display: flex; align-items: center; gap: 24px; }
+.fjv-appnavn { font-family: var(--font-heading); font-size: var(--t-kort-titel); line-height: 18px; font-weight: 700; color: var(--dash-ink); white-space: nowrap; letter-spacing: -0.005em; }
+.fjv-appnavn small { display: block; font-family: var(--font-base); font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); font-weight: 400; color: var(--dash-ink-2); letter-spacing: 0; }
+.fjv-nav { display: flex; gap: 2px; flex: 1; flex-wrap: wrap; }
+.fjv-nav a { font-size: var(--t-brod); font-weight: 600; color: var(--dash-ink-2); padding: 6px 12px; border-radius: var(--r-felt); text-decoration: none;
+  transition: background-color var(--overgang), color var(--overgang); }
+.fjv-nav a:hover { color: var(--dash-ink); background: var(--color-hover); }
+.fjv-nav a[aria-current="page"] { color: var(--color-primary-foreground); background: var(--dash-navy); }
+.fjv-top-hoejre { display: flex; align-items: center; gap: 8px; }
+.fjv-indhold { max-width: var(--l-side-max); margin: 0 auto; padding: 24px var(--l-side-pad) 48px; display: flex; flex-direction: column; gap: var(--l-gap); }
+.fjv-indhold > * { min-width: 0; }
+/* Smal skærm: toppen brydes om, og navigationen får sin egen vandret rullende linje. Siden må aldrig blive
+   bredere end skærmen — kun en tabel må rulle, inde i sit kort (.fjv-tabelrul). */
+@media (max-width: 899px) {
+  :root { --l-side-pad: 16px; }
+  .fjv-top { position: static; }
+  .fjv-top-indre { flex-wrap: wrap; gap: 8px 16px; }
+  .fjv-top-hoejre { margin-left: auto; }
+  .fjv-nav { order: 3; flex: 1 0 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .fjv-nav a { white-space: nowrap; }
+  .fjv-indhold { padding-top: 16px; }
+}
+
+/* ---------------- Side: titel, budskab ---------------- */
+.fjv-side { display: flex; flex-direction: column; gap: var(--l-gap); }
+.fjv-side > * { min-width: 0; }
+.fjv-side-hoved { display: flex; flex-direction: column; gap: 2px; padding-bottom: 4px; }
+.fjv-side-omraade { font-size: var(--t-mærke); line-height: 16px; font-weight: 600; color: var(--dash-ink-2); }
+.fjv-side-titel { font-family: var(--font-heading); font-size: var(--t-sidetitel); line-height: var(--t-sidetitel-lh); font-weight: 650; letter-spacing: -0.012em; color: var(--dash-ink); text-wrap: balance; }
+.fjv-side-budskab { font-size: var(--t-budskab); line-height: var(--t-budskab-lh); color: var(--dash-ink); max-width: var(--l-tekst-maks); margin-top: 4px; text-wrap: pretty; }
+.fjv-side-handlinger { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+
+/* ---------------- Gitter: ét 12-spalte-gitter ---------------- */
+/* Formerne er spænd på de 12 spalter. Under 900 px: én spalte. Kort i samme række er lige høje. */
+.fjv-gitter { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--l-gap); align-items: stretch; }
+@media (min-width: 900px) {
+  .fjv-gitter { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .fjv-gitter > * { grid-column: span 12; }
+  .fjv-gitter-8-4 > :nth-child(2n+1), .fjv-gitter-4-8 > :nth-child(2n) { grid-column: span 8; }
+  .fjv-gitter-8-4 > :nth-child(2n), .fjv-gitter-4-8 > :nth-child(2n+1) { grid-column: span 4; }
+  .fjv-gitter-6-6 > * { grid-column: span 6; }
+  .fjv-gitter-4-4-4 > * { grid-column: span 4; }
+  .fjv-gitter-3-3-3-3 > * { grid-column: span 3; }
+  .fjv-gitter-3-9 > :nth-child(2n+1) { grid-column: span 3; }
+  .fjv-gitter-3-9 > :nth-child(2n) { grid-column: span 9; }
+}
+
+/* ---------------- Kort ---------------- */
+.fjv-kort { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: var(--l-kort-pad);
+  border: 1px solid var(--dash-hairline); border-radius: var(--r-kort); background: var(--color-card); box-shadow: var(--fjv-skygge-kort); }
+.fjv-kort-hoved { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.fjv-kort-titelblok { min-width: 0; flex: 1 1 auto; }
+.fjv-kort-titel { font-family: var(--font-heading); font-size: var(--t-kort-titel); line-height: var(--t-kort-titel-lh); font-weight: 650; color: var(--dash-ink); }
+.fjv-kort-titel .fjv-afgraensning { font-family: var(--font-base); font-weight: 400; color: var(--dash-ink-2); }
+.fjv-kort-budskab { font-size: var(--t-kort-budskab); line-height: var(--t-kort-budskab-lh); color: var(--dash-ink); margin-top: 2px; max-width: var(--l-tekst-maks); text-wrap: pretty; }
+.fjv-kort-indhold { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.fjv-kort > .fjv-fod { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--dash-grid); }
+.fjv-fod, [data-layout="fodnote"] { font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink-3); }
+
+/* ---------------- Tekst ---------------- */
+.fjv-brod { font-size: var(--t-brod); line-height: var(--t-brod-lh); color: var(--dash-ink); }
+.fjv-brod p + p { margin-top: 8px; }
+.fjv-tal { font-family: var(--font-numeric); font-variant-numeric: tabular-nums lining-nums; }
+.fjv-mono { font-family: var(--font-monospace); font-size: 12px; }
+
+/* ---------------- Tabel ---------------- */
+/* IBCS: kraftig linje under hovedet, hårfine linjer mellem rækker, tal højrestillet i tal-fonten. */
+.fjv-tabelrul { overflow-x: auto; }
+.fjv-tabel { width: 100%; border-collapse: collapse; font-size: var(--t-tabel); line-height: var(--t-tabel-lh); }
+.fjv-tabel th { font-size: var(--t-tabelhoved); line-height: 16px; font-weight: 600; color: var(--dash-ink-2);
+  text-align: left; vertical-align: bottom; padding: 6px 10px 7px; border-bottom: 1.5px solid var(--dash-ink); white-space: nowrap; }
+.fjv-tabel td { padding: 7px 10px; border-bottom: 1px solid var(--dash-grid); color: var(--dash-ink); vertical-align: baseline; }
+.fjv-tabel tbody tr:last-child td { border-bottom: 0; } /* kortets fodnote har sin egen skillelinje — ingen dobbeltstreg */
+.fjv-tabel th.fjv-h, .fjv-tabel td.fjv-h { text-align: right; font-family: var(--font-numeric); font-variant-numeric: tabular-nums lining-nums; }
+.fjv-tabel th.fjv-h { font-family: var(--font-base); }
+.fjv-tabel tr[data-valgbar="true"] { cursor: pointer; }
+.fjv-tabel tr[data-valgbar="true"] td { transition: background-color var(--overgang); }
+.fjv-tabel tr[data-valgbar="true"]:hover td { background: var(--color-hover); }
+.fjv-tabel tr[aria-selected="true"] td { background: var(--color-accent); }
+.fjv-tabel tr[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--dash-navy); }
+
+/* ---------------- Mærker ---------------- */
+/* Tone bæres af BÅDE en form (prik) og teksten — aldrig af farven alene. */
+.fjv-maerke { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; border-radius: 999px; padding: 0 8px; min-height: 20px;
+  font-size: var(--t-mærke); line-height: 16px; font-weight: 600; background: var(--dash-elevated); color: var(--dash-ink-2); }
+/* Tonede baggrunde er AFLEDTE tokens (tema-kerne.ts, afledte()) — samme hex som kontrastscriptet måler (K6 F10). */
+.fjv-maerke[data-tone="ok"] { color: var(--dash-pos); background: var(--fjv-maerke-ok-bg); }
+.fjv-maerke[data-tone="advarsel"] { color: var(--dash-amber); background: var(--fjv-maerke-advarsel-bg); }
+.fjv-maerke[data-tone="fejl"] { color: var(--dash-neg); background: var(--fjv-maerke-fejl-bg); }
+.fjv-maerke[data-tone]:not([data-tone="neutral"])::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: none; }
+.fjv-maerke[data-tone="advarsel"]::before { border-radius: 1px; transform: rotate(45deg); }
+.fjv-maerke[data-tone="fejl"]::before { border-radius: 1px; }
+
+/* ---------------- Knapper ---------------- */
+.fjv-knap { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--l-kontrol-h); border-radius: var(--r-felt); padding: 0 12px;
+  font: inherit; font-size: var(--t-brod); line-height: 18px; font-weight: 600; white-space: nowrap;
+  border: 1px solid var(--dash-navy); background: var(--dash-navy); color: var(--color-primary-foreground); cursor: pointer;
+  transition: background-color var(--overgang), border-color var(--overgang), color var(--overgang); }
+.fjv-knap:hover:not(:disabled) { background: var(--fjv-knap-hover); border-color: var(--fjv-knap-hover); }
+.fjv-knap:active:not(:disabled) { background: var(--fjv-knap-aktiv); border-color: var(--fjv-knap-aktiv); }
+.fjv-knap[data-variant="sekundaer"] { background: var(--color-card); color: var(--dash-ink); border-color: var(--fjv-streg-felt); }
+.fjv-knap[data-variant="sekundaer"]:hover:not(:disabled) { background: var(--color-hover); border-color: var(--dash-ink-3); }
+.fjv-knap[data-variant="sekundaer"]:active:not(:disabled) { background: var(--color-accent); }
+.fjv-knap:disabled { opacity: 0.5; cursor: not-allowed; }
+.fjv-knap svg { flex: none; }
+
+/* Ikonknap (topbjælken): samme højde som knapperne, ikon + kort etiket. */
+.fjv-ikonknap { display: inline-flex; align-items: center; gap: 6px; height: var(--l-kontrol-h); padding: 0 10px; border-radius: var(--r-felt);
+  border: 1px solid var(--fjv-streg-felt); background: var(--color-card); color: var(--dash-ink); font: inherit; font-size: var(--t-brod); font-weight: 600; cursor: pointer;
+  transition: background-color var(--overgang); }
+.fjv-ikonknap:hover { background: var(--color-hover); }
+.fjv-ikonknap[aria-expanded="true"] { background: var(--color-accent); }
+.fjv-ikonknap svg { color: var(--dash-ink-2); }
+
+/* ---------------- Formularfelter ---------------- */
+/* Kanten er temaets streg_felt: ≥ 3:1 mod fladen (WCAG 1.4.11, målt af scripts/kontrast.ts). */
+.fjv-felt { width: 100%; min-height: var(--l-kontrol-h); border: 1px solid var(--fjv-streg-felt); border-radius: var(--r-felt); background: var(--color-card); color: var(--dash-ink);
+  padding: 5px 9px; font: inherit; font-size: var(--t-brod); line-height: 20px; transition: border-color var(--overgang), box-shadow var(--overgang); }
+textarea.fjv-felt { min-height: 64px; line-height: var(--t-brod-lh); }
+.fjv-felt::placeholder { color: var(--dash-ink-3); opacity: 1; }
+.fjv-felt:hover:not(:disabled):not(:focus) { border-color: var(--dash-ink-3); }
+.fjv-felt:focus, .fjv-felt:focus-visible { outline: none; border-color: var(--fjv-fokus); box-shadow: 0 0 0 1px var(--fjv-fokus); }
+.fjv-felt:disabled { opacity: 0.55; cursor: not-allowed; background: var(--dash-elevated); }
+.fjv-felt[aria-invalid="true"] { border-color: var(--dash-neg); box-shadow: 0 0 0 1px var(--dash-neg); }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--dash-navy); }
+
+/* ---------------- Tilstande: indlæsning, tom, fejl ---------------- */
+.fjv-tilstand { font-size: var(--t-brod); line-height: var(--t-brod-lh); color: var(--dash-ink-2); padding: 8px 0; }
+.fjv-tilstand[data-tone="fejl"] { color: var(--dash-neg); white-space: pre-wrap; }
+/* Tom: en rolig ramme, der viser, hvor indholdet kommer — ikke en hvid plet. */
+.fjv-tom { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border: 1px dashed var(--dash-hairline); border-radius: var(--r-felt);
+  font-size: var(--t-brod); line-height: var(--t-brod-lh); color: var(--dash-ink-2); background: var(--dash-elevated); }
+.fjv-tom svg { flex: none; color: var(--dash-ink-3); }
+/* Fejl: tonet flade + ikon + forklaring + handling. */
+.fjv-fejl { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--r-felt);
+  border: 1px solid var(--fjv-fejl-kant); background: var(--fjv-fejl-bg);
+  font-size: var(--t-brod); line-height: var(--t-brod-lh); color: var(--dash-ink); }
+.fjv-fejl > svg { flex: none; margin-top: 2px; color: var(--dash-neg); }
+.fjv-fejl-tekst { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.fjv-fejl-tekst strong { display: block; font-weight: 600; color: var(--dash-neg); }
+.fjv-fejl .fjv-knap { flex: none; }
+.fjv-skelet { border-radius: var(--r-felt); background: linear-gradient(90deg, var(--dash-elevated) 0%, var(--color-hover) 50%, var(--dash-elevated) 100%) 0 0 / 200% 100%;
+  animation: fjv-glid 1.6s ease-in-out infinite; }
+@keyframes fjv-glid { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .fjv-skelet { animation: none; } }
+
+/* ---------------- Temavælger ---------------- */
+.fjv-tema { position: relative; }
+.fjv-tema-panel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: min(360px, calc(100vw - 32px));
+  max-height: min(70vh, 620px); overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px;
+  background: var(--color-popover); color: var(--dash-ink); border: 1px solid var(--dash-hairline); border-radius: var(--r-kort);
+  box-shadow: 0 12px 32px -12px color-mix(in srgb, var(--dash-ink) 35%, transparent), 0 2px 6px -2px color-mix(in srgb, var(--dash-ink) 18%, transparent); }
+.fjv-tema-panel fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.fjv-tema-panel legend { font-size: var(--t-mærke); line-height: 16px; font-weight: 600; color: var(--dash-ink-2); margin-bottom: 6px; padding: 0; }
+.fjv-tema-gruppe { display: flex; flex-direction: column; gap: 2px; }
+.fjv-tema-valg { position: relative; display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: var(--r-felt); cursor: pointer; }
+.fjv-tema-valg:hover { background: var(--color-hover); }
+.fjv-tema-valg[data-valgt] { background: var(--color-accent); }
+.fjv-tema-valg input, .fjv-segment input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.fjv-tema-valg:has(input:focus-visible), .fjv-segment label:has(input:focus-visible) { outline: 2px solid var(--fjv-fokus); outline-offset: 1px; }
+.fjv-tema-proeve { flex: none; display: grid; grid-template-columns: repeat(3, 10px); gap: 3px; padding: 5px; border: 1px solid; border-radius: 6px; }
+.fjv-tema-proeve i { display: block; width: 10px; height: 18px; border-radius: 2px; }
+.fjv-tema-tekst { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+.fjv-tema-titel { font-size: var(--t-brod); line-height: 18px; font-weight: 600; }
+.fjv-tema-besk { font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink-2); }
+.fjv-tema-flueben { flex: none; color: var(--dash-navy); }
+.fjv-segment { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; border-radius: var(--r-felt); background: var(--dash-elevated); border: 1px solid var(--dash-hairline); }
+.fjv-segment label { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 28px; border-radius: calc(var(--r-felt) - 2px);
+  font-size: var(--t-brod); font-weight: 600; color: var(--dash-ink-2); cursor: pointer; }
+.fjv-segment label:hover { color: var(--dash-ink); }
+.fjv-segment label[data-valgt] { background: var(--color-card); color: var(--dash-ink); box-shadow: 0 0 0 1px var(--fjv-streg-felt); }
+/* Smal skærm: kun ikonet i knappen. */
+@media (max-width: 899px) { .fjv-tema-navn { display: none; } }

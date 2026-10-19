@@ -1,0 +1,5 @@
+/* Kreditlinjen i sidefoden — kun tokens. */
+.fjv-kredit { max-width: var(--l-side-max); margin: 0 auto; padding: 12px var(--l-side-pad) 28px; border-top: 1px solid var(--dash-hairline);
+  font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink-3); text-align: center; }
+.fjv-kredit a { color: var(--dash-ink-2); text-decoration: underline; text-underline-offset: 2px; }
+.fjv-kredit a:hover { color: var(--dash-ink); }

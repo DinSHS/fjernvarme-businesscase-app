@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* =====================================================================
+   FARVER KOMMER FRA TEMAET — ikke fra denne fil.
+
+   src/styles/tema.ts skriver det valgte temas tokens (src/styles/temaer/*.json)
+   ind i <style id="fjv-tema"> og sætter data-tema / data-modus / .dark på <html>.
+   Værdierne herunder er kun FALDBAGEN, før JavaScript har kørt (= "Nordisk",
+   lys); de overskrives straks. Ret aldrig en farve her for at ændre udseendet —
+   ret temaet og kør `node scripts/kontrast.ts`. Format: app/TEMAER.md.
+
+   `static`: layout.css læser tokens UDEN om Tailwind. En almindelig @theme
+   udsender kun de variabler Tailwind selv bruger — så havde kort hverken
+   baggrund eller kant (målt i skærmbillede 2026-10-16).
+   ===================================================================== */
+@theme static {
+  --color-background: #f3f5f8;
+  --color-foreground: #16202b;
+  --color-card: #ffffff;
+  --color-card-foreground: #16202b;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #16202b;
+  --color-primary: #1d4f7c;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #eef1f5;
+  --color-secondary-foreground: #16202b;
+  --color-muted: #eef1f5;
+  --color-muted-foreground: #475566;
+  --color-accent: #dde7f2;
+  --color-accent-foreground: #16202b;
+  --color-destructive: #c2410c;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #dde3ea;
+  --color-input: #8592a2;
+  --color-ring: #1f62a8;
+  --color-brand: #1d4f7c;
+  --color-brand-foreground: #1f62a8;
+  --color-hover: #e9eef4;
+
+  --dash-elevated: #eef1f5;
+  --dash-hairline: #dde3ea;
+  --dash-ink: #16202b;
+  --dash-ink-2: #475566;
+  --dash-ink-3: #5a6878;
+  --dash-navy: #1d4f7c;
+  --dash-series: #1f62a8;
+  --dash-series-2: #7aa7d6;
+  --dash-amber: #8a5a00;
+  --dash-pos: #007a80;
+  --dash-neg: #c2410c;
+  --dash-grid: #e6eaef;
+
+  /* Kategoriske seriefarver: tildel med enhedsfarve() (src/lib/serie-farver.ts); 1-8 cykles ALDRIG, 9+ = 0 "øvrige". */
+  --fjv-serie-1: #1c86db; --fjv-serie-2: #ce664e; --fjv-serie-3: #029183; --fjv-serie-4: #876200;
+  --fjv-serie-5: #a12a88; --fjv-serie-6: #2b5503; --fjv-serie-7: #6d4bd2; --fjv-serie-8: #f73491;
+  --fjv-serie-0: #2f2f2f;
+  /* Afledte flader (tema-kerne.ts, afledte()): tonede mærker, fejlboks, knap under mus/tryk — målt som tekstbaggrund. */
+  --fjv-maerke-ok-bg: #ebf4f5; --fjv-maerke-advarsel-bg: #f6f2eb; --fjv-maerke-fejl-bg: #faf0ec;
+  --fjv-fejl-bg: #fbf2ee; --fjv-fejl-kant: #e7b39e; --fjv-knap-hover: #19446b; --fjv-knap-aktiv: #163c5e;
+  /* IBCS: faktisk, forrige år, plan (omrids), afvigelser. Sekventiel 1→5 = svag→stærk; divergerende 1 og 5 er polerne. */
+  --fjv-ac: #26303c; --fjv-py: #7f8a97; --fjv-pl: #26303c; --fjv-delta-pos: #007a80; --fjv-delta-neg: #c2410c;
+  --fjv-sek-1: #d6e4f2; --fjv-sek-2: #a9c6e4; --fjv-sek-3: #6f9fd0; --fjv-sek-4: #3a76b4; --fjv-sek-5: #1d4f7c;
+  --fjv-div-1: #c2410c; --fjv-div-2: #eba184; --fjv-div-3: #e7e9ec; --fjv-div-4: #8fb4dc; --fjv-div-5: #1f62a8;
+  --fjv-streg-felt: #8592a2;
+  --fjv-fokus: #1f62a8;
+  --fjv-signatur: linear-gradient(90deg, #1d4f7c 0.0% 66.7%, #5b8fc4 66.7% 83.3%, #a9c6e4 83.3% 100.0%);
+  --fjv-skygge-kort: none;
+
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-2xl: 12px;
+  --radius-3xl: 16px;
+  --radius-4xl: 24px;
+  --radius-full: 9999px;
+  --radius: 6px;
+
+  --spacing-none: 0;
+  --spacing-xxs: 2px;
+  --spacing-xs: 4px;
+  --spacing-s-nudge: 6px;
+  --spacing-s: 8px;
+  --spacing-m-nudge: 10px;
+  --spacing-m: 12px;
+  --spacing-l: 16px;
+  --spacing-xl: 20px;
+  --spacing-xxl: 24px;
+  --spacing-xxxl: 32px;
+
+  --text-100: 10px;
+  --text-200: 12px;
+  --text-300: 14px;
+  --text-400: 16px;
+  --text-500: 20px;
+  --text-600: 24px;
+  --text-hero-700: 28px;
+  --text-hero-800: 32px;
+  --text-hero-900: 40px;
+  --text-hero-1000: 68px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Systemskrifter — ingen webfont at hente (Fabric-iframen og offline community-installationer).
+     Segoe UI Variable er Windows 11's optiske skrift; resten er faldbagen på andre platforme.
+     Tal står i Bahnschrift (DIN 1451-familie, faste cifre) — samme skrift som vejskilte og tekniske tegninger. */
+  --font-heading: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+  --font-base: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+  --font-monospace: 'Cascadia Mono', Consolas, 'SF Mono', Menlo, 'Courier New', monospace;
+  --font-numeric: Bahnschrift, 'DIN Alternate', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html { color-scheme: light; }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-base);
+    font-feature-settings: "kern";
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Én fokusring for hele appen: kun ved tastatur (focus-visible), i temaets fokusfarve (≥ 3:1 mod fladen, målt). */
+  :focus-visible { outline: 2px solid var(--fjv-fokus); outline-offset: 2px; }
+  ::selection { background: var(--color-accent); color: var(--dash-ink); }
+
+  /* Tabulære cifre overalt, hvor tal skal kunne sammenlignes lodret. */
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* Signaturstriben øverst — temaets egen (fx husets grafiske linje 4-1-1, eller fremløb → retur). */
+  .grafisk-linje { height: 3px; background: var(--fjv-signatur); }
+
+  /* Faktaboks — tag-formen med afskåret øverste højre hjørne. */
+  .chamfer {
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}

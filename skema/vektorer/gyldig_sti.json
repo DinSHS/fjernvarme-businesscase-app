@@ -1,0 +1,218 @@
+{
+ "_om": "Genereret af skema/vektorer/generer.mts fra TS-implementeringen (gyldig_sti). Ret aldrig i hånden — generér igen.",
+ "kilder": {
+  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
+  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
+  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
+  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
+  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427"
+ },
+ "tilfaelde": [
+  {
+   "navn": "\"a\"",
+   "input": {
+    "sti": "a"
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"a.b\"",
+   "input": {
+    "sti": "a.b"
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"\"",
+   "input": {
+    "sti": ""
+   },
+   "ud": false
+  },
+  {
+   "navn": "\".\"",
+   "input": {
+    "sti": "."
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"a.\"",
+   "input": {
+    "sti": "a."
+   },
+   "ud": false
+  },
+  {
+   "navn": "\".a\"",
+   "input": {
+    "sti": ".a"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"a..b\"",
+   "input": {
+    "sti": "a..b"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\" a\"",
+   "input": {
+    "sti": " a"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"a \"",
+   "input": {
+    "sti": "a "
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"a. b\"",
+   "input": {
+    "sti": "a. b"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"a.b \"",
+   "input": {
+    "sti": "a.b "
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"\\ta\"",
+   "input": {
+    "sti": "\ta"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"a. b\"",
+   "input": {
+    "sti": "a. b"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"a.b\"",
+   "input": {
+    "sti": "a.b"
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"a. b\"",
+   "input": {
+    "sti": "a. b"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"a.﻿b\"",
+   "input": {
+    "sti": "a.﻿b"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"a.᠎b\"",
+   "input": {
+    "sti": "a.᠎b"
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"a.b\\nc\"",
+   "input": {
+    "sti": "a.b\nc"
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"__proto__\"",
+   "input": {
+    "sti": "__proto__"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"a.constructor\"",
+   "input": {
+    "sti": "a.constructor"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"prototype.a\"",
+   "input": {
+    "sti": "prototype.a"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"a.__proto__x\"",
+   "input": {
+    "sti": "a.__proto__x"
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"sssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+   "input": {
+    "sti": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"sssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+   "input": {
+    "sti": "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"sssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+   "input": {
+    "sti": "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss😀"
+   },
+   "ud": false
+  },
+  {
+   "navn": "\"æ.ø.å\"",
+   "input": {
+    "sti": "æ.ø.å"
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"units.halmkedel-x.y\"",
+   "input": {
+    "sti": "units.halmkedel-x.y"
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"a/b\"",
+   "input": {
+    "sti": "a/b"
+   },
+   "ud": true
+  },
+  {
+   "navn": "\"a\\u0000b\"",
+   "input": {
+    "sti": "a\u0000b"
+   },
+   "ud": true
+  }
+ ]
+}

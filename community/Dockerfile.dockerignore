@@ -1,0 +1,6 @@
+# BuildKit læser <Dockerfile>.dockerignore ved siden af Dockerfilen (konteksten er repoets rod).
+**/_lokal
+**/_byg
+**/__pycache__
+**/node_modules
+**/.venv

@@ -1,0 +1,1745 @@
+{
+ "_om": "Udtrukket af TS-testene (saml_nyt_vaerk) med skema/vektorer/udtraek.mjs: input og TS' faktiske udfald for hvert kald, testene selv laver. Ret aldrig i hånden — udtræk igen.",
+ "kilder": {
+  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
+  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
+  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
+  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
+  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427",
+  "app/rayfin/functions/test/k4.spec.ts": "7a7b32738c6d7012fc5875b55784f002b147174247db4679b37ff39884887fde",
+  "app/rayfin/functions/test/k5.spec.ts": "315e3cc11b497ae105ab1c2a4552371beb00b554fd17fcb5d26aeec5edbaf5ae",
+  "app/rayfin/functions/test/logik.spec.ts": "f9507699c7679fd342ed5630a6151d048aaa0050eba3859eafa2d6338514cfc0",
+  "app/rayfin/functions/test/motor.spec.ts": "645d24741b0636fca77fc9dcca430184431f9f7b389dac982123d3dcc74ae11e",
+  "app/rayfin/functions/test/opret_vaerk.spec.ts": "99d2f3c44429535f4ae9741aef571bad67c0a1eef07161765f9c389bf8a1bf68",
+  "app/rayfin/functions/test/registrering.spec.ts": "05a8a0edaa4d02c8d48d6a1d921b867bcd3d31d82a03dd9d7f577be61f73e414",
+  "app/rayfin/functions/test/tidsserie.spec.ts": "49048b3d1da5c28742f15232852a301454a0e60486d5521f76432f165bbfa9d4",
+  "app/rayfin/functions/test/tidsserie_backend.spec.ts": "7c166c36baf80a999d547e0b5535b0276390d6b996a75256f07f2b9baa45aabe"
+ },
+ "tilfaelde": [
+  {
+   "navn": "k4.spec.ts › K4-F1: modelkrav ved betroet oprettelse > Codex' modprøve 1: én række units.x = null afvises (modellen: KeyError 'time')",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 1,
+      "blade": [
+       {
+        "sti": "units.x",
+        "ny_json": "null"
+       }
+      ]
+     }
+    ],
+    "antal": 1,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "Værket kan ikke bruges af modellen: meta.case_name mangler eller er ikke en tekst; data.dmi_area mangler eller er ikke en tekst; data.price_zone mangler eller er ikke en tekst; time.resolution mangler eller er ikke en tekst; electricity.spot_area mangler eller er ikke en tekst; time.start mangler eller er ikke en dato (ÅÅÅÅ-MM-DD); time.end mangler eller er ikke en dato (ÅÅÅÅ-MM-DD); heat_load_params.gaf_mw_per_k mangler eller er ikke et tal (og 10 mere)."
+  },
+  {
+   "navn": "k4.spec.ts › K4-F1: modelkrav ved betroet oprettelse > Codex' modprøve 2: hele skabelonen med gaspris 1e400 afvises (ikke-endelig marginalomkostning)",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 1,
+      "blade": [
+       {
+        "sti": "meta.case_name",
+        "ny_json": "\"k4_review\""
+       },
+       {
+        "sti": "meta.titel",
+        "ny_json": "\"K4 review\""
+       },
+       {
+        "sti": "meta.description",
+        "ny_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\""
+       },
+       {
+        "sti": "meta.timezone_internal",
+        "ny_json": "\"UTC\""
+       },
+       {
+        "sti": "meta.timezone_reporting",
+        "ny_json": "\"Europe/Copenhagen\""
+       },
+       {
+        "sti": "meta.discount_rate_real",
+        "ny_json": "0.035"
+       },
+       {
+        "sti": "data.dmi_area",
+        "ny_json": "\"karup\""
+       },
+       {
+        "sti": "data.price_zone",
+        "ny_json": "\"DK1\""
+       },
+       {
+        "sti": "electricity.spot_area",
+        "ny_json": "\"DK1\""
+       },
+       {
+        "sti": "electricity.tariff_consumption_flat",
+        "ny_json": "125.0"
+       },
+       {
+        "sti": "electricity.tariff_production_flat",
+        "ny_json": "4.1"
+       },
+       {
+        "sti": "electricity.electricity_tax",
+        "ny_json": "4.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.unit",
+        "ny_json": "\"kr_per_mwh\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.source",
+        "ny_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.fixed_components.energinet",
+        "ny_json": "115.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.fixed_components.dv",
+        "ny_json": "0.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+        "ny_json": "4.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+        "ny_json": "7.4"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+        "ny_json": "14.8"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+        "ny_json": "29.5"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+        "ny_json": "[10, 11, 12, 1, 2, 3]"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+        "ny_json": "\"spids\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+        "ny_json": "[4, 5, 6, 7, 8, 9]"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "time.start",
+        "ny_json": "\"2025-07-01T00:00:00Z\""
+       },
+       {
+        "sti": "time.end",
+        "ny_json": "\"2026-06-30T23:00:00Z\""
+       },
+       {
+        "sti": "time.resolution",
+        "ny_json": "\"1h\""
+       },
+       {
+        "sti": "solver.mip_rel_gap",
+        "ny_json": "0.001"
+       },
+       {
+        "sti": "solver.mip_abs_gap",
+        "ny_json": "1000.0"
+       },
+       {
+        "sti": "solver.time_limit",
+        "ny_json": "3600.0"
+       },
+       {
+        "sti": "heat_load_params.gaf_mw_per_k",
+        "ny_json": "0.3626"
+       },
+       {
+        "sti": "heat_load_params.t_ref",
+        "ny_json": "15.0"
+       },
+       {
+        "sti": "heat_load_params.thermal_inertia_hours",
+        "ny_json": "24"
+       },
+       {
+        "sti": "heat_load_params.nettab_slope_mw_per_k",
+        "ny_json": "0.2259"
+       },
+       {
+        "sti": "heat_load_params.t_net",
+        "ny_json": "12.0"
+       },
+       {
+        "sti": "heat_load_params.baseline_profile_mw",
+        "ny_json": "[2.102, 2.132, 2.181, 2.259, 2.285, 2.422, 2.649, 2.656, 2.537, 2.348, 2.263, 2.225, 2.162, 2.118, 2.092, 2.065, 2.099, 2.181, 2.24, 2.259, 2.244, 2.24, 2.184, 2.08]"
+       },
+       {
+        "sti": "heat_load_params.weekly_dip",
+        "ny_json": "0.02"
+       },
+       {
+        "sti": "heat_load_params._source",
+        "ny_json": "\"Skabelon: Andeby × 50/105.52 GWh\""
+       },
+       {
+        "sti": "storage",
+        "ny_json": "{}"
+       },
+       {
+        "sti": "prices.natural_gas.value",
+        "ny_json": "1e400"
+       },
+       {
+        "sti": "prices.natural_gas.unit",
+        "ny_json": "\"DKK/MWh_fuel\""
+       },
+       {
+        "sti": "prices.co2_eua.value",
+        "ny_json": "600.0"
+       },
+       {
+        "sti": "prices.co2_eua.unit",
+        "ny_json": "\"DKK/t_CO2\""
+       },
+       {
+        "sti": "units.gaskedel.enabled",
+        "ny_json": "true"
+       },
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       },
+       {
+        "sti": "units.gaskedel.p_max_heat",
+        "ny_json": "25.0"
+       },
+       {
+        "sti": "units.gaskedel.p_min_heat",
+        "ny_json": "0.0"
+       },
+       {
+        "sti": "units.gaskedel.alpha",
+        "ny_json": "0.0"
+       },
+       {
+        "sti": "units.gaskedel.fuel",
+        "ny_json": "\"natural_gas\""
+       },
+       {
+        "sti": "units.gaskedel.eta_fuel_to_heat",
+        "ny_json": "0.95"
+       },
+       {
+        "sti": "units.gaskedel.var_om",
+        "ny_json": "30.0"
+       },
+       {
+        "sti": "units.gaskedel.start_cost",
+        "ny_json": "0.0"
+       },
+       {
+        "sti": "units.gaskedel.min_uptime",
+        "ny_json": "1"
+       },
+       {
+        "sti": "units.gaskedel.min_downtime",
+        "ny_json": "1"
+       },
+       {
+        "sti": "units.gaskedel.uc_enabled",
+        "ny_json": "false"
+       },
+       {
+        "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
+        "ny_json": "0.2"
+       },
+       {
+        "sti": "units.gaskedel.ancillary.afrr_qualified",
+        "ny_json": "false"
+       },
+       {
+        "sti": "units.gaskedel.ancillary.mfrr_qualified",
+        "ny_json": "false"
+       },
+       {
+        "sti": "units.gaskedel.ancillary.fcr_qualified",
+        "ny_json": "false"
+       }
+      ]
+     }
+    ],
+    "antal": 1,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "Værket kan ikke bruges af modellen: prices.natural_gas.value er ikke et endeligt tal (Infinity); prices.natural_gas.value mangler eller er ikke et tal."
+  },
+  {
+   "navn": "k5.spec.ts › K5-F1: ingen prototypeforurening fra brugerskrevne stier > et nyt værk med et prototype-segment afvises",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 1,
+      "blade": [
+       {
+        "sti": "units.__proto__.pr_interval",
+        "ny_json": "true"
+       }
+      ]
+     }
+    ],
+    "antal": 1,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "Ugyldig sti \"units.__proto__.pr_interval\"."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > afviser en del fra et andet udkast",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "ffffffff-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 1,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       }
+      ]
+     }
+    ],
+    "antal": 1,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "En del hører til et andet udkast."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > afviser en del med andet antal",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 2,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       }
+      ]
+     },
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 2,
+      "af": 3,
+      "blade": [
+       {
+        "sti": "a.b",
+        "ny_json": "1"
+       }
+      ]
+     }
+    ],
+    "antal": 2,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "Del 2 siger 3 dele, men oprettelsen siger 2."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > afviser en del to gange",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 2,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       }
+      ]
+     },
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 2,
+      "blade": [
+       {
+        "sti": "a.b",
+        "ny_json": "1"
+       }
+      ]
+     }
+    ],
+    "antal": 2,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "Del 1 findes to gange — send oprettelsen igen fra begyndelsen."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > afviser en manglende del",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 3,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       }
+      ]
+     },
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 3,
+      "af": 3,
+      "blade": [
+       {
+        "sti": "a.b",
+        "ny_json": "1"
+       }
+      ]
+     }
+    ],
+    "antal": 3,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "Del 2 af 3 mangler — send oprettelsen igen fra begyndelsen."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > afviser en ugyldig sti",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 1,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       },
+       {
+        "sti": "a..b",
+        "ny_json": "1"
+       }
+      ]
+     }
+    ],
+    "antal": 1,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "Ugyldig sti \"a..b\"."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > afviser en værdi der ikke er JSON",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 1,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       },
+       {
+        "sti": "prices.gas.value",
+        "ny_json": "12,5"
+       }
+      ]
+     }
+    ],
+    "antal": 1,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "prices.gas.value: værdien er ikke gyldig JSON (12,5)."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > afviser et blad under et andet blad",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 1,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       },
+       {
+        "sti": "units.gaskedel",
+        "ny_json": "1"
+       }
+      ]
+     }
+    ],
+    "antal": 1,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "\"units.gaskedel\" kan ikke være en værdi, fordi \"units.gaskedel.type\" ligger under den."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > afviser et blad under et andet med en nabo imellem (a.b, a.b-x, a.b.c)",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 1,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       },
+       {
+        "sti": "a.b",
+        "ny_json": "1"
+       },
+       {
+        "sti": "a.b-x",
+        "ny_json": "1"
+       },
+       {
+        "sti": "a.b.c",
+        "ny_json": "1"
+       }
+      ]
+     }
+    ],
+    "antal": 1,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "\"a.b\" kan ikke være en værdi, fordi \"a.b.c\" ligger under den."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > afviser ingen enhed",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 1,
+      "blade": [
+       {
+        "sti": "meta.case_name",
+        "ny_json": "\"k4_review\""
+       },
+       {
+        "sti": "meta.titel",
+        "ny_json": "\"K4 review\""
+       },
+       {
+        "sti": "meta.description",
+        "ny_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\""
+       },
+       {
+        "sti": "meta.timezone_internal",
+        "ny_json": "\"UTC\""
+       },
+       {
+        "sti": "meta.timezone_reporting",
+        "ny_json": "\"Europe/Copenhagen\""
+       },
+       {
+        "sti": "meta.discount_rate_real",
+        "ny_json": "0.035"
+       },
+       {
+        "sti": "data.dmi_area",
+        "ny_json": "\"karup\""
+       },
+       {
+        "sti": "data.price_zone",
+        "ny_json": "\"DK1\""
+       },
+       {
+        "sti": "electricity.spot_area",
+        "ny_json": "\"DK1\""
+       },
+       {
+        "sti": "electricity.tariff_consumption_flat",
+        "ny_json": "125.0"
+       },
+       {
+        "sti": "electricity.tariff_production_flat",
+        "ny_json": "4.1"
+       },
+       {
+        "sti": "electricity.electricity_tax",
+        "ny_json": "4.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.unit",
+        "ny_json": "\"kr_per_mwh\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.source",
+        "ny_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.fixed_components.energinet",
+        "ny_json": "115.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.fixed_components.dv",
+        "ny_json": "0.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+        "ny_json": "4.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+        "ny_json": "7.4"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+        "ny_json": "14.8"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+        "ny_json": "29.5"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+        "ny_json": "[10, 11, 12, 1, 2, 3]"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+        "ny_json": "\"spids\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+        "ny_json": "[4, 5, 6, 7, 8, 9]"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "time.start",
+        "ny_json": "\"2025-07-01T00:00:00Z\""
+       },
+       {
+        "sti": "time.end",
+        "ny_json": "\"2026-06-30T23:00:00Z\""
+       },
+       {
+        "sti": "time.resolution",
+        "ny_json": "\"1h\""
+       },
+       {
+        "sti": "solver.mip_rel_gap",
+        "ny_json": "0.001"
+       },
+       {
+        "sti": "solver.mip_abs_gap",
+        "ny_json": "1000.0"
+       },
+       {
+        "sti": "solver.time_limit",
+        "ny_json": "3600.0"
+       },
+       {
+        "sti": "heat_load_params.gaf_mw_per_k",
+        "ny_json": "0.3626"
+       },
+       {
+        "sti": "heat_load_params.t_ref",
+        "ny_json": "15.0"
+       },
+       {
+        "sti": "heat_load_params.thermal_inertia_hours",
+        "ny_json": "24"
+       },
+       {
+        "sti": "heat_load_params.nettab_slope_mw_per_k",
+        "ny_json": "0.2259"
+       },
+       {
+        "sti": "heat_load_params.t_net",
+        "ny_json": "12.0"
+       },
+       {
+        "sti": "heat_load_params.baseline_profile_mw",
+        "ny_json": "[2.102, 2.132, 2.181, 2.259, 2.285, 2.422, 2.649, 2.656, 2.537, 2.348, 2.263, 2.225, 2.162, 2.118, 2.092, 2.065, 2.099, 2.181, 2.24, 2.259, 2.244, 2.24, 2.184, 2.08]"
+       },
+       {
+        "sti": "heat_load_params.weekly_dip",
+        "ny_json": "0.02"
+       },
+       {
+        "sti": "heat_load_params._source",
+        "ny_json": "\"Skabelon: Andeby × 50/105.52 GWh\""
+       },
+       {
+        "sti": "storage",
+        "ny_json": "{}"
+       },
+       {
+        "sti": "prices.natural_gas.value",
+        "ny_json": "606.0"
+       },
+       {
+        "sti": "prices.natural_gas.unit",
+        "ny_json": "\"DKK/MWh_fuel\""
+       },
+       {
+        "sti": "prices.co2_eua.value",
+        "ny_json": "600.0"
+       },
+       {
+        "sti": "prices.co2_eua.unit",
+        "ny_json": "\"DKK/t_CO2\""
+       }
+      ]
+     }
+    ],
+    "antal": 1,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "Værket kan ikke bruges af modellen: værket skal have mindst én aktiv enhed (units.<navn>)."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > afviser samme sti i to dele",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 2,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       }
+      ]
+     },
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 2,
+      "af": 2,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       }
+      ]
+     }
+    ],
+    "antal": 2,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "afvisning": "Stien \"units.gaskedel.type\" står to gange."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › samlNytVaerk > samler dele i nummerorden uanset fundrækkefølge og nummererer bladene",
+   "input": {
+    "dele": [
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 2,
+      "af": 2,
+      "blade": [
+       {
+        "sti": "meta.description",
+        "ny_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\""
+       },
+       {
+        "sti": "meta.timezone_internal",
+        "ny_json": "\"UTC\""
+       },
+       {
+        "sti": "meta.timezone_reporting",
+        "ny_json": "\"Europe/Copenhagen\""
+       },
+       {
+        "sti": "meta.discount_rate_real",
+        "ny_json": "0.035"
+       },
+       {
+        "sti": "data.dmi_area",
+        "ny_json": "\"karup\""
+       },
+       {
+        "sti": "data.price_zone",
+        "ny_json": "\"DK1\""
+       },
+       {
+        "sti": "electricity.spot_area",
+        "ny_json": "\"DK1\""
+       },
+       {
+        "sti": "electricity.tariff_consumption_flat",
+        "ny_json": "125.0"
+       },
+       {
+        "sti": "electricity.tariff_production_flat",
+        "ny_json": "4.1"
+       },
+       {
+        "sti": "electricity.electricity_tax",
+        "ny_json": "4.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.unit",
+        "ny_json": "\"kr_per_mwh\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.source",
+        "ny_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.fixed_components.energinet",
+        "ny_json": "115.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.fixed_components.dv",
+        "ny_json": "0.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+        "ny_json": "4.0"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+        "ny_json": "7.4"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+        "ny_json": "14.8"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+        "ny_json": "29.5"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+        "ny_json": "[10, 11, 12, 1, 2, 3]"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+        "ny_json": "\"spids\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+        "ny_json": "[4, 5, 6, 7, 8, 9]"
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+        "ny_json": "\"hoej\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+        "ny_json": "\"lav\""
+       },
+       {
+        "sti": "time.start",
+        "ny_json": "\"2025-07-01T00:00:00Z\""
+       },
+       {
+        "sti": "time.end",
+        "ny_json": "\"2026-06-30T23:00:00Z\""
+       },
+       {
+        "sti": "time.resolution",
+        "ny_json": "\"1h\""
+       },
+       {
+        "sti": "solver.mip_rel_gap",
+        "ny_json": "0.001"
+       },
+       {
+        "sti": "solver.mip_abs_gap",
+        "ny_json": "1000.0"
+       },
+       {
+        "sti": "solver.time_limit",
+        "ny_json": "3600.0"
+       },
+       {
+        "sti": "heat_load_params.gaf_mw_per_k",
+        "ny_json": "0.3626"
+       },
+       {
+        "sti": "heat_load_params.t_ref",
+        "ny_json": "15.0"
+       },
+       {
+        "sti": "heat_load_params.thermal_inertia_hours",
+        "ny_json": "24"
+       },
+       {
+        "sti": "heat_load_params.nettab_slope_mw_per_k",
+        "ny_json": "0.2259"
+       },
+       {
+        "sti": "heat_load_params.t_net",
+        "ny_json": "12.0"
+       },
+       {
+        "sti": "heat_load_params.baseline_profile_mw",
+        "ny_json": "[2.102, 2.132, 2.181, 2.259, 2.285, 2.422, 2.649, 2.656, 2.537, 2.348, 2.263, 2.225, 2.162, 2.118, 2.092, 2.065, 2.099, 2.181, 2.24, 2.259, 2.244, 2.24, 2.184, 2.08]"
+       },
+       {
+        "sti": "heat_load_params.weekly_dip",
+        "ny_json": "0.02"
+       },
+       {
+        "sti": "heat_load_params._source",
+        "ny_json": "\"Skabelon: Andeby × 50/105.52 GWh\""
+       },
+       {
+        "sti": "storage",
+        "ny_json": "{}"
+       },
+       {
+        "sti": "prices.natural_gas.value",
+        "ny_json": "606.0"
+       },
+       {
+        "sti": "prices.natural_gas.unit",
+        "ny_json": "\"DKK/MWh_fuel\""
+       },
+       {
+        "sti": "prices.co2_eua.value",
+        "ny_json": "600.0"
+       },
+       {
+        "sti": "prices.co2_eua.unit",
+        "ny_json": "\"DKK/t_CO2\""
+       },
+       {
+        "sti": "units.gaskedel.enabled",
+        "ny_json": "true"
+       },
+       {
+        "sti": "units.gaskedel.p_max_heat",
+        "ny_json": "25.0"
+       },
+       {
+        "sti": "units.gaskedel.p_min_heat",
+        "ny_json": "0.0"
+       },
+       {
+        "sti": "units.gaskedel.alpha",
+        "ny_json": "0.0"
+       },
+       {
+        "sti": "units.gaskedel.fuel",
+        "ny_json": "\"natural_gas\""
+       },
+       {
+        "sti": "units.gaskedel.eta_fuel_to_heat",
+        "ny_json": "0.95"
+       },
+       {
+        "sti": "units.gaskedel.var_om",
+        "ny_json": "30.0"
+       },
+       {
+        "sti": "units.gaskedel.start_cost",
+        "ny_json": "0.0"
+       },
+       {
+        "sti": "units.gaskedel.min_uptime",
+        "ny_json": "1"
+       },
+       {
+        "sti": "units.gaskedel.min_downtime",
+        "ny_json": "1"
+       },
+       {
+        "sti": "units.gaskedel.uc_enabled",
+        "ny_json": "false"
+       },
+       {
+        "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
+        "ny_json": "0.2"
+       },
+       {
+        "sti": "units.gaskedel.ancillary.afrr_qualified",
+        "ny_json": "false"
+       },
+       {
+        "sti": "units.gaskedel.ancillary.mfrr_qualified",
+        "ny_json": "false"
+       },
+       {
+        "sti": "units.gaskedel.ancillary.fcr_qualified",
+        "ny_json": "false"
+       }
+      ]
+     },
+     {
+      "handling": "opret_vaerk_del",
+      "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "nr": 1,
+      "af": 2,
+      "blade": [
+       {
+        "sti": "units.gaskedel.type",
+        "ny_json": "\"gas_boiler\""
+       },
+       {
+        "sti": "meta.case_name",
+        "ny_json": "\"k4_review\"",
+        "bekraeft": true,
+        "kommentar": "skøn"
+       },
+       {
+        "sti": "meta.titel",
+        "ny_json": "\"K4 review\""
+       }
+      ]
+     }
+    ],
+    "antal": 2,
+    "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+   },
+   "ud": [
+    {
+     "sti": "units.gaskedel.type",
+     "vaerdi_json": "\"gas_boiler\"",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 1
+    },
+    {
+     "sti": "meta.case_name",
+     "vaerdi_json": "\"k4_review\"",
+     "sektion": "meta",
+     "objekt": null,
+     "bekraeft": true,
+     "kommentar": "skøn",
+     "raekkefoelge": 2
+    },
+    {
+     "sti": "meta.titel",
+     "vaerdi_json": "\"K4 review\"",
+     "sektion": "meta",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 3
+    },
+    {
+     "sti": "meta.description",
+     "vaerdi_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\"",
+     "sektion": "meta",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 4
+    },
+    {
+     "sti": "meta.timezone_internal",
+     "vaerdi_json": "\"UTC\"",
+     "sektion": "meta",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 5
+    },
+    {
+     "sti": "meta.timezone_reporting",
+     "vaerdi_json": "\"Europe/Copenhagen\"",
+     "sektion": "meta",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 6
+    },
+    {
+     "sti": "meta.discount_rate_real",
+     "vaerdi_json": "0.035",
+     "sektion": "meta",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 7
+    },
+    {
+     "sti": "data.dmi_area",
+     "vaerdi_json": "\"karup\"",
+     "sektion": "data",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 8
+    },
+    {
+     "sti": "data.price_zone",
+     "vaerdi_json": "\"DK1\"",
+     "sektion": "data",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 9
+    },
+    {
+     "sti": "electricity.spot_area",
+     "vaerdi_json": "\"DK1\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 10
+    },
+    {
+     "sti": "electricity.tariff_consumption_flat",
+     "vaerdi_json": "125.0",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 11
+    },
+    {
+     "sti": "electricity.tariff_production_flat",
+     "vaerdi_json": "4.1",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 12
+    },
+    {
+     "sti": "electricity.electricity_tax",
+     "vaerdi_json": "4.0",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 13
+    },
+    {
+     "sti": "electricity.tariff_consumption.unit",
+     "vaerdi_json": "\"kr_per_mwh\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 14
+    },
+    {
+     "sti": "electricity.tariff_consumption.source",
+     "vaerdi_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 15
+    },
+    {
+     "sti": "electricity.tariff_consumption.fixed_components.energinet",
+     "vaerdi_json": "115.0",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 16
+    },
+    {
+     "sti": "electricity.tariff_consumption.fixed_components.dv",
+     "vaerdi_json": "0.0",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 17
+    },
+    {
+     "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+     "vaerdi_json": "4.0",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 18
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+     "vaerdi_json": "7.4",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 19
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+     "vaerdi_json": "14.8",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 20
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+     "vaerdi_json": "29.5",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 21
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+     "vaerdi_json": "[10, 11, 12, 1, 2, 3]",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 22
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+     "vaerdi_json": "\"lav\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 23
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+     "vaerdi_json": "\"spids\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 24
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+     "vaerdi_json": "\"hoej\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 25
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+     "vaerdi_json": "\"lav\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 26
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+     "vaerdi_json": "\"hoej\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 27
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+     "vaerdi_json": "\"hoej\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 28
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+     "vaerdi_json": "[4, 5, 6, 7, 8, 9]",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 29
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+     "vaerdi_json": "\"lav\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 30
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+     "vaerdi_json": "\"hoej\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 31
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+     "vaerdi_json": "\"lav\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 32
+    },
+    {
+     "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+     "vaerdi_json": "\"lav\"",
+     "sektion": "electricity",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 33
+    },
+    {
+     "sti": "time.start",
+     "vaerdi_json": "\"2025-07-01T00:00:00Z\"",
+     "sektion": "time",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 34
+    },
+    {
+     "sti": "time.end",
+     "vaerdi_json": "\"2026-06-30T23:00:00Z\"",
+     "sektion": "time",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 35
+    },
+    {
+     "sti": "time.resolution",
+     "vaerdi_json": "\"1h\"",
+     "sektion": "time",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 36
+    },
+    {
+     "sti": "solver.mip_rel_gap",
+     "vaerdi_json": "0.001",
+     "sektion": "solver",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 37
+    },
+    {
+     "sti": "solver.mip_abs_gap",
+     "vaerdi_json": "1000.0",
+     "sektion": "solver",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 38
+    },
+    {
+     "sti": "solver.time_limit",
+     "vaerdi_json": "3600.0",
+     "sektion": "solver",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 39
+    },
+    {
+     "sti": "heat_load_params.gaf_mw_per_k",
+     "vaerdi_json": "0.3626",
+     "sektion": "heat_load_params",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 40
+    },
+    {
+     "sti": "heat_load_params.t_ref",
+     "vaerdi_json": "15.0",
+     "sektion": "heat_load_params",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 41
+    },
+    {
+     "sti": "heat_load_params.thermal_inertia_hours",
+     "vaerdi_json": "24",
+     "sektion": "heat_load_params",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 42
+    },
+    {
+     "sti": "heat_load_params.nettab_slope_mw_per_k",
+     "vaerdi_json": "0.2259",
+     "sektion": "heat_load_params",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 43
+    },
+    {
+     "sti": "heat_load_params.t_net",
+     "vaerdi_json": "12.0",
+     "sektion": "heat_load_params",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 44
+    },
+    {
+     "sti": "heat_load_params.baseline_profile_mw",
+     "vaerdi_json": "[2.102, 2.132, 2.181, 2.259, 2.285, 2.422, 2.649, 2.656, 2.537, 2.348, 2.263, 2.225, 2.162, 2.118, 2.092, 2.065, 2.099, 2.181, 2.24, 2.259, 2.244, 2.24, 2.184, 2.08]",
+     "sektion": "heat_load_params",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 45
+    },
+    {
+     "sti": "heat_load_params.weekly_dip",
+     "vaerdi_json": "0.02",
+     "sektion": "heat_load_params",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 46
+    },
+    {
+     "sti": "heat_load_params._source",
+     "vaerdi_json": "\"Skabelon: Andeby × 50/105.52 GWh\"",
+     "sektion": "heat_load_params",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 47
+    },
+    {
+     "sti": "storage",
+     "vaerdi_json": "{}",
+     "sektion": "storage",
+     "objekt": null,
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 48
+    },
+    {
+     "sti": "prices.natural_gas.value",
+     "vaerdi_json": "606.0",
+     "sektion": "prices",
+     "objekt": "natural_gas",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 49
+    },
+    {
+     "sti": "prices.natural_gas.unit",
+     "vaerdi_json": "\"DKK/MWh_fuel\"",
+     "sektion": "prices",
+     "objekt": "natural_gas",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 50
+    },
+    {
+     "sti": "prices.co2_eua.value",
+     "vaerdi_json": "600.0",
+     "sektion": "prices",
+     "objekt": "co2_eua",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 51
+    },
+    {
+     "sti": "prices.co2_eua.unit",
+     "vaerdi_json": "\"DKK/t_CO2\"",
+     "sektion": "prices",
+     "objekt": "co2_eua",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 52
+    },
+    {
+     "sti": "units.gaskedel.enabled",
+     "vaerdi_json": "true",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 53
+    },
+    {
+     "sti": "units.gaskedel.p_max_heat",
+     "vaerdi_json": "25.0",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 54
+    },
+    {
+     "sti": "units.gaskedel.p_min_heat",
+     "vaerdi_json": "0.0",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 55
+    },
+    {
+     "sti": "units.gaskedel.alpha",
+     "vaerdi_json": "0.0",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 56
+    },
+    {
+     "sti": "units.gaskedel.fuel",
+     "vaerdi_json": "\"natural_gas\"",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 57
+    },
+    {
+     "sti": "units.gaskedel.eta_fuel_to_heat",
+     "vaerdi_json": "0.95",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 58
+    },
+    {
+     "sti": "units.gaskedel.var_om",
+     "vaerdi_json": "30.0",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 59
+    },
+    {
+     "sti": "units.gaskedel.start_cost",
+     "vaerdi_json": "0.0",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 60
+    },
+    {
+     "sti": "units.gaskedel.min_uptime",
+     "vaerdi_json": "1",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 61
+    },
+    {
+     "sti": "units.gaskedel.min_downtime",
+     "vaerdi_json": "1",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 62
+    },
+    {
+     "sti": "units.gaskedel.uc_enabled",
+     "vaerdi_json": "false",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 63
+    },
+    {
+     "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
+     "vaerdi_json": "0.2",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 64
+    },
+    {
+     "sti": "units.gaskedel.ancillary.afrr_qualified",
+     "vaerdi_json": "false",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 65
+    },
+    {
+     "sti": "units.gaskedel.ancillary.mfrr_qualified",
+     "vaerdi_json": "false",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 66
+    },
+    {
+     "sti": "units.gaskedel.ancillary.fcr_qualified",
+     "vaerdi_json": "false",
+     "sektion": "units",
+     "objekt": "gaskedel",
+     "bekraeft": false,
+     "kommentar": null,
+     "raekkefoelge": 67
+    }
+   ]
+  }
+ ]
+}

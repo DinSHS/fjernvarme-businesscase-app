@@ -1,0 +1,7 @@
+unit,p_max_mw,production_mwh,share_pct,capacity_factor_pct,operating_hours
+halmkedel,12.0,3448.0,49.2,99.8,288
+gaskedel_agg,20.0,2013.7,28.7,35.0,228
+vp_luft_vand,4.462,938.7,13.4,73.0,287
+elkedel_ny,4.0,472.0,6.7,41.0,118
+gasmotor,10.5,126.0,1.8,4.2,12
+solvarme,22.0,9.6,0.1,0.2,7

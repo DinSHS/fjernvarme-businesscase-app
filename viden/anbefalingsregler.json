@@ -1,0 +1,166 @@
+{
+  "_om": "Regler for at gøre en differens mellem to kørsler til en ærlig anbefaling og en historie i klartekst (brief 15, afsnit A og A2). Gælder et par reference (a) og scenarie (b) af samme værk; Δ = objektiv(b) − objektiv(a), negativ = scenariet er billigere. Formuleringen pr. knap står i knapper.json → anbefaling. Kilder er fil:linje i modelrepoet @ b49aeb0 eller målinger i udviklingsrapport",
+  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "kontrakt_version": "2.2",
+
+  "kategorier": [
+    {"id": "anbefalet", "maerke": "Anbefalet", "tone": "ok",
+     "betydning": "Scenariet er billigere end referencen med en margin ud over solverens tolerance, og der er intet forbehold, der kan vende konklusionen."},
+    {"id": "fraraades", "maerke": "Frarådes", "tone": "fejl",
+     "betydning": "Scenariet er dyrere end referencen med en margin ud over solverens tolerance."},
+    {"id": "kan_ikke_afgoeres", "maerke": "Kan ikke afgøres", "tone": "neutral",
+     "betydning": "Forskellen er inden for solverens tolerance eller under væsentlighedsgrænsen, kørslerne er ikke sammenlignelige, eller fortegnet kan ikke passe."},
+    {"id": "undersoeg_naermere", "maerke": "Undersøg nærmere", "tone": "advarsel",
+     "betydning": "Lovende eller tydelig, men med et væsentligt forbehold (kort vindue, Spor A, [BEKRÆFT]-værdier, løst gab, første times artefakt …). Næste skridt fjerner forbeholdet."}
+  ],
+  "ikke_beslutning": {
+    "maerke": "Følsomhed", "tone": "neutral",
+    "betydning": "Knapper af typen 'foelsomhed' og 'metode' (fx gaspris +20 %, DMI-område, indtægtsmetode) beskriver noget, værket ikke selv vælger. De får ingen anbefalingskategori — kun historien og følsomheden ('X kr. pr. …'). Typen står i knapper.json → anbefaling.type."
+  },
+
+  "beregning": {
+    "delta": "Δ = objektiv(scenarie) − objektiv(reference) i kr.; brug de præcise objektiver (Koersel.objektiv_dkk), ikke afrundede.",
+    "gab_kr": "Pr. kørsel: |objektiv − best_bound|; ellers opnået_gap × |objektiv|; ellers (kun ved status optimal) max(ønsket rel × |objektiv|, ønsket abs) som loft (analyser/beregn.ts absolutGab).",
+    "tolerance": "T = gab_kr(reference) + gab_kr(scenarie) (KONTRAKT §6b). Ukendt, hvis et af gabene er ukendt.",
+    "vaesentlighed": "V = max(1.000 kr.; 0,001 × |objektiv(reference)|) — 0,1 % af periodens driftsomkostning. Under det er forskellen for lille til at bære en beslutning, også når solveren har bevist den.",
+    "margin": "Forskellen er tydelig, når |Δ| > 2 × T OG |Δ| > V. Faktoren 2 giver plads til solverstøj mellem miljøer (målt 28 kr. på Spor A mellem 2 og 8 kerner, KONTRAKT §6b) og til, at gabet er et loft.",
+    "t0_korrektion": "Ændrer scenariet et lager (til/fra, volumen, lade-/afladeeffekt, startindhold), indeholder Δ første intervals ubundne lagerbalance: kørslen med tank får gratis varme dér (src/reporting.py:314-338). Er begge kørslers omkostning i første interval tilgængelig (ønske til fv-fabric: nøgletallet objektiv.t0_omkostning_dkk), bruges Δ_korr = Δ − (t0(scenarie) − t0(reference)) i kategori og historie, og begge tal vises. Ellers gælder forbeholdet 't0_lager'. Målt: Andeby vinter (D01/D02) — tankene leverede 33,2 MWh gratis i første time; uden tank kostede samme time ca. 22.300 kr. mere, dvs. omkring halvdelen af tankværdien på 44.220 kr. (udviklingsrapport).",
+    "gange_tolerancen": "n = |Δ| / T, afrundet ned til helt tal; er T = 0 (begge løst til optimum), skrives 'begge kørsler er løst til optimum' i stedet for n."
+  },
+
+  "beslutningsraekkefoelge": [
+    {"trin": 1, "hvis": "En af kørslerne er ikke 'faerdig', eller kørslerne er ikke direkte sammenlignelige (en §6b-advarsel: værk, periode, opløsning, data_commit, model_commit, ønsket rel/abs gab). Manglende metadata = ikke sammenlignelige.", "kategori": "kan_ikke_afgoeres",
+     "begrundelse": "Kørslerne er ikke sammenlignelige: {felter} afviger, så differensen blander flere effekter."},
+    {"trin": 2, "hvis": "Inputforskellen indeholder andet end knappens egne ændringer (fx både tank fra og gaspris op). Gælder også 'balancemarkedets værdi': kun når den eneste forskel er _koersel.med_balancering (evt. _koersel.balancing_method) (K3-N3).", "kategori": "kan_ikke_afgoeres",
+     "begrundelse": "Scenariet ændrer flere ting på én gang ({antal} ændringer); bidragene kan ikke skilles ad (doc/KOERSEL.md:43-44)."},
+    {"trin": 3, "hvis": "T ukendt.", "kategori": "kan_ikke_afgoeres",
+     "begrundelse": "Solverens tolerance kendes ikke for begge kørsler, så forskellen kan ikke vurderes."},
+    {"trin": 4, "hvis": "Knappens forventede fortegn (knapper.json → anbefaling.forventet_fortegn) er brudt med mere end T.", "kategori": "kan_ikke_afgoeres",
+     "begrundelse": "Fortegnet kan ikke passe: {forklaring}. Tjek gab, starttilstand og første interval, før tallet bruges."},
+    {"trin": 5, "hvis": "|Δ| ≤ 2 × T eller |Δ| ≤ V.", "kategori": "kan_ikke_afgoeres",
+     "begrundelse": "Forskellen på {delta} er inden for solverens tolerance ({T}) eller under væsentlighedsgrænsen ({V}) og kan ikke skelnes fra nul."},
+    {"trin": 6, "hvis": "Et forbehold med virkning 'nedgrader_begge' er opfyldt.", "kategori": "undersoeg_naermere",
+     "begrundelse": "{forbehold}"},
+    {"trin": 7, "hvis": "Δ > 0 (scenariet er dyrere).", "kategori": "fraraades",
+     "begrundelse": "Scenariet gør driften {delta} kr. dyrere — {n} gange solverens tolerance."},
+    {"trin": 8, "hvis": "Δ < 0 og et forbehold med virkning 'nedgrader' er opfyldt.", "kategori": "undersoeg_naermere",
+     "begrundelse": "Scenariet er {delta} kr. billigere, men: {forbehold}"},
+    {"trin": 9, "hvis": "Ellers (Δ < 0).", "kategori": "anbefalet",
+     "begrundelse": "Scenariet gør driften {delta} kr. billigere — {n} gange solverens tolerance, uden blokerende forbehold."}
+  ],
+
+  "forbehold": [
+    {"id": "faa_doegn", "virkning": "nedgrader", "betingelse": "Perioden er under 14 døgn.",
+     "tekst": "Perioden er kun {doegn} døgn. Et kort vindue viser retningen, ikke størrelsen.", "kilde": "doc/BUDSTRATEGI.md:263"},
+    {"id": "kort_periode_beslutning", "virkning": "nedgrader", "betingelse": "Knappen er en investering eller en varig beslutning (anbefaling.kraever_helaar = true), og perioden er under 365 døgn.",
+     "tekst": "Perioden er {doegn} døgn. En investering skal regnes på et helt år; et kort vindue kan ikke ganges op.", "kilde": "doc/BUDSTRATEGI.md:263; doc/EGET_VAERK.md:142"},
+    {"id": "en_saeson", "virkning": "note", "betingelse": "Alle periodens måneder ligger i oktober–marts (vinter) eller i april–september (sommer).",
+     "tekst": "Perioden dækker kun {saeson}. Tankens værdi er størst i forår og sommer, hvor døgnets prisspænd er størst; en vinterperiode alene undervurderer eller overvurderer året.", "kilde": "rapport v4, bilag A"},
+    {"id": "spor_a", "virkning": "nedgrader", "betingelse": "Mindst én af kørslerne har balancemarked og er Spor A (intet månedsloft; ikke driven-gate).",
+     "tekst": "Balancetallet er Spor A: en øvre grænse ved fuld tilgængelighed, ikke en prognose.", "kilde": "README.md:120-122; doc/BALANCEMARKED.md:112-120"},
+    {"id": "kender_aktiveringerne", "virkning": "nedgrader", "betingelse": "Mindst én kørsel har balancemarked med effektivt balancing.activation.foresight = realized (også standarden, når blokken mangler).",
+     "tekst": "Modellen kender aktiveringerne på forhånd; det er et loft, ingen kan nå. Kør med en prognose (trailing30, settle realized).", "kilde": "doc/BUDSTRATEGI.md:76-86; doc/BUDSTRATEGI.md:254; src/config.py:232"},
+    {"id": "bekraeft", "virkning": "nedgrader", "betingelse": "Et af de ændrede felter — eller et felt på en enhed/et lager, scenariet slår til eller fra — er markeret [BEKRÆFT] i værket (VaerkParameter.bekraeft).",
+     "tekst": "{antal} af de værdier, scenariet afhænger af, er markeret [BEKRÆFT]: {felter}. Bekræft dem, før tallet bruges.", "kilde": "cases/andeby.yaml:43-46"},
+    {"id": "gab_loest", "virkning": "nedgrader", "betingelse": "Ønsket relativt gab > 0,0002 eller ønsket absolut gab > 1.000 kr. i en af kørslerne.",
+     "tekst": "Kørslerne er regnet med et løst gab ({gab}). Til differenser: 0,0002 og højst 100 kr.", "kilde": "doc/KOERSEL.md:57-60; knapper.json → anbefalet_differens"},
+    {"id": "ikke_optimal", "virkning": "nedgrader", "betingelse": "En af kørslerne har solve_status ≠ optimal (fx stoppet ved tidsgrænsen).",
+     "tekst": "{rolle} stoppede ved tidsgrænsen med gab {gab}; tallet er ikke bevist optimalt.", "kilde": "README.md:146"},
+    {"id": "profilbunden", "virkning": "nedgrader", "betingelse": "Scenariet ændrer en enhed med production_profile_path (fx solvarme).",
+     "tekst": "{enhed} følger en produktionsprofil; resultatet afhænger af profilens skalering og dækning.", "kilde": "cases/andeby.yaml:53-60"},
+    {"id": "t0_lager", "virkning": "nedgrader_begge", "betingelse": "Scenariet ændrer et lager, perioden er under 90 døgn, og t0-korrektionen er ikke tilgængelig.",
+     "tekst": "Modellens første time er ubundet for tanken og giver den gratis varme; på {doegn} døgn kan det være en stor del af forskellen (målt: ca. halvdelen af tankværdien i Andeby 5.–16. jan 2026). Regn et længere vindue.", "kilde": "src/reporting.py:314-338; udviklingsrapport"},
+    {"id": "fiktivt_vaerk", "virkning": "note", "betingelse": "Værkets meta.titel eller meta.description indeholder 'fiktiv' (Andeby og kopier af det).",
+     "tekst": "Værket er fiktivt: tallene viser metoden, ikke et rigtigt værks økonomi.", "kilde": "cases/andeby.yaml:4-6"},
+    {"id": "spor_b_kalibrering", "virkning": "note", "betingelse": "Spor B (månedsloft eller driven-gate).",
+     "tekst": "Spor B er kalibreret på marts–juni 2026 og forudsiger ikke andre perioder.", "kilde": "doc/BALANCEMARKED.md:215-217"}
+  ],
+
+  "skalering": {
+    "formel": "aarligt ≈ Δ × 365 / doegn",
+    "vis_kun_hvis": "7 ≤ doegn < 365. Ved ≥ 365 døgn er Δ allerede et år.",
+    "tekst": "Skaleret til et år er det ca. {aarligt} — kun hvis perioden er repræsentativ, og det er en enkelt sæson ikke.",
+    "afrunding": "Som kr.-reglen i historie.afrunding, og altid med 'ca.'."
+  },
+
+  "investering": {
+    "tekst": "Modellen regner kun driften. Investeringsbeløbet findes ikke i modellen, og det årlige beløb er driftsbesparelsen før kapitalomkostning, skat og faste D&V.",
+    "kilde": "README.md:28; src/config.py:763 (investment.enabled læses, men bruges ikke)",
+    "annuitet": {
+      "formel": "A = I × r / (1 − (1 + r)^(−n))",
+      "forklaring": "I = investering (kr.), r = real kalkulationsrente, n = levetid (år). Investeringen betaler sig, når den årlige driftsbesparelse fra et helår er større end A plus enhedens faste årlige omkostninger.",
+      "r_forslag": "meta.discount_rate_real, hvis værket har det (Andeby og Billund: 0,035). Feltet læses ikke af modellen.",
+      "kilde": "cases/andeby.yaml:74"
+    },
+    "gaelder_for_knapper": ["ny_enhed", "tankstoerrelse", "tankens_vaerdi", "praekvalifikation"]
+  },
+
+  "historie": {
+    "_om": "2–3 sætninger regnet af data, til sammenligningssiden, anbefalingslisten og scenariesiden (brief 15, A2). Ingen sætning uden tal; ingen tal uden enhed.",
+    "saetning_1": {
+      "formaal": "Hvad er ændret, i fagsprog, fra det frosne input-diff (scenarie mod reference).",
+      "skabelon": "I dette scenarie {aendringer}{reference_tekst}.",
+      "reference_tekst": " — ellers som {referencens navn}",
+      "aendringer": [
+        {"type": "units.<n>.enabled → false", "tekst": "slår {typenavn} {n} fra", "eksempel": "slår varmepumpen vp_luft_vand fra"},
+        {"type": "units.<n>.enabled → true", "tekst": "slår {typenavn} {n} til", "eksempel": "slår elkedlen elkedel_gl til"},
+        {"type": "storage.<n>.enabled → false (alle lagre)", "tekst": "slår tanken fra / slår begge tanke fra / slår alle {antal} lagre fra"},
+        {"type": "storage.<n>.enabled → false (nogle)", "tekst": "slår lageret {n} fra"},
+        {"type": "storage.<n>.volume_m3", "tekst": "ændrer {n} fra {a} til {b} m³"},
+        {"type": "prices.<b>.value", "tekst": "hæver/sænker {brændselsnavn, lille begyndelsesbogstav}prisen fra {a} til {b} kr./MWh ({±p} %)", "eksempel": "hæver gasprisen fra 606 til 727 kr./MWh (+20 %)"},
+        {"type": "prices.co2_eua.value", "tekst": "hæver/sænker CO₂-kvoteprisen fra {a} til {b} kr./t"},
+        {"type": "electricity.electricity_tax", "tekst": "hæver/sænker elafgiften fra {a} til {b} kr./MWh"},
+        {"type": "_koersel.med_balancering", "tekst": "slår balancemarkedet (aFRR og mFRR) til / fra"},
+        {"type": "_koersel.balancing_method", "tekst": "regner balanceindtægten med {knapper.json visningsnavne.balancing_method}"},
+        {"type": "balancing.activation.foresight", "tekst": "lader modellen byde med {visningsnavne.foresight}"},
+        {"type": "balancing.reservation_gate.enabled → true", "tekst": "byder kun, når kapacitetsprisen er over budprisen"},
+        {"type": "balancing.ancillary_caps.total_mw", "tekst": "hæver/sænker den samlede prækvalifikation fra {a} til {b} MW"},
+        {"type": "data.dmi_area", "tekst": "bruger vejret fra {b} i stedet for {a}"},
+        {"type": "_koersel.heat_csv", "tekst": "bruger målt varmelast ({fil}) i stedet for syntesen"},
+        {"type": "øvrige set", "tekst": "ændrer {etiket, lille begyndelsesbogstav}{ for objekt} fra {a} til {b} {enhed}"}
+      ],
+      "sammensaetning": "Højst tre ændringer nævnes; flere = 'og {k} andre ændringer'. Liste: 'a', 'a og b', 'a, b og c'. Navne og enheder fra felt_katalog.json, enhedstyper.json (typenavn) og knapper.json → visningsnavne. Procent med fortegn og én decimal kun under 10 %, ellers hele procent."
+    },
+    "saetning_2": {
+      "formaal": "De 2–3 vigtigste konsekvenser i fysiske størrelser og kroner.",
+      "skabelon": "Det {konsekvenser}.",
+      "kandidater": [
+        {"id": "flytning", "tekst": "flytter {E} fra {enhed_ned} til {enhed_op}", "beregning": "Største |Δ produktion| op og ned (produktion_mwh pr. enhed). E = den mindste af de to (det, der faktisk flyttes); er der kun én retning: 'øger/sænker {enhed}s produktion med {E}'.",
+         "vaesentlig_hvis": "E ≥ max(10 MWh; 1 % af varmebehovet)"},
+        {"id": "balance", "tekst": "øger/sænker balanceindtægten (netto) med {kr} (aFRR {a}, mFRR {b})", "beregning": "Δ balancering.netto_dkk (i alt og pr. marked). Netto, aldrig netto + brutto.",
+         "vaesentlig_hvis": "Mindst én kørsel har balancemarked og |Δ netto| ≥ max(10.000 kr.; 5 % af |Δ|)"},
+        {"id": "co2", "tekst": "øger/sænker CO₂-udledningen med {t} t", "beregning": "Δ miljoe.co2_ton.",
+         "vaesentlig_hvis": "|Δ CO₂| ≥ max(1 t; 1 % af referencens)"},
+        {"id": "el", "tekst": "øger/sænker elforbruget med {E}", "beregning": "Σ Δ el.forbrug_mwh over enheder.",
+         "vaesentlig_hvis": "Kun hvis 'flytning' ikke er væsentlig, og |Δ| ≥ max(10 MWh; 5 % af referencens elforbrug)"},
+        {"id": "omkostning", "tekst": "gør driften {kr} billigere/dyrere i perioden ({periode})", "beregning": "Δ (eller Δ_korr, se beregning.t0_korrektion).",
+         "vaesentlig_hvis": "Altid — og altid sidst."}
+      ],
+      "udvaelgelse": "Tag de væsentlige kandidater i rækkefølgen flytning, balance, co2, el, og højst to af dem; tilføj altid omkostning til sidst. Saml med kommaer og 'og'."
+    },
+    "saetning_3": {
+      "formaal": "Hvor sikkert det er, koblet til anbefalingskategorien.",
+      "skabeloner": {
+        "anbefalet": "Forskellen er {n} gange solverens tolerance — den er reel. Anbefaling: gennemfør, og {første næste skridt}.",
+        "fraraades": "Forskellen er {n} gange solverens tolerance — den er reel. {knappens hvis_dyrere-konklusion}.",
+        "kan_ikke_afgoeres": "{begrundelsen fra beslutningsrækkefølgen}.",
+        "undersoeg_naermere": "{n-tekst}, men {første forbehold, lille begyndelsesbogstav}. Næste skridt: {første næste skridt}."
+      },
+      "n_tekst": "n ≥ 2: 'Forskellen er {n} gange solverens tolerance'; T = 0: 'Begge kørsler er løst til optimum'; n > 100: 'mere end 100 gange'."
+    },
+    "afrunding": {
+      "kr": "< 10.000: nærmeste 100 kr.; < 1 mio.: nærmeste 1.000 kr. (89.000 kr.); ≥ 1 mio.: én decimal og 'mio. kr.' (2,5 mio. kr.).",
+      "energi": "< 100 MWh: hele MWh; < 1.000 MWh: nærmeste 10 MWh; ≥ 1.000 MWh: GWh med én decimal (1,2 GWh).",
+      "co2": "Hele ton.",
+      "procent": "Én decimal under 10 %, ellers hele procent.",
+      "format": "Dansk: tusindtalspunktum, decimalkomma, enhed altid med.",
+      "fortegn_i_ord": "billigere/dyrere, øger/sænker, hæver/sænker, flytter … fra … til …; aldrig '+' eller '−' i en sætning."
+    },
+    "eksempel": {
+      "par": "P1 (D01 → D02, Andeby vinter uden tankene)",
+      "tekst": "I dette scenarie slår vi begge tanke fra — ellers som Andeby vinter (reference). Det flytter ca. 110 MWh til gaskedlen (mest fra elkedlen), øger CO₂-udledningen med 21 t og gør driften 44.000 kr. dyrere i perioden 5.–16. januar 2026. Begge kørsler er løst til optimum, men omkring halvdelen af forskellen skyldes modellens første time, hvor tanken leverer gratis varme — undersøg nærmere med et længere vindue.",
+      "kategori": "undersoeg_naermere",
+      "beregnet_af": "D01/D02 kpi og manifest: gaskedel +105,7 MWh, elkedel −61,6 MWh; CO₂ 475,4 → 496,8 t; Δ 44.219,87 kr.; t0: 33,2 MWh gratis, ca. 22.300 kr. (udviklingsrapport)."
+    }
+  }
+}

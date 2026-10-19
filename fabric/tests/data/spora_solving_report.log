@@ -1,0 +1,21 @@
+Solving report
+  Model             linopy-problem-cw14c8ia
+  Status            Optimal
+  Primal bound      4698389.6323
+  Dual bound        4696081.66858
+  Gap               0.0491% (tolerance: 0.5%)
+  P-D integral      4.67550310112
+  Solution status   feasible
+                    4698389.6323 (objective)
+                    0 (bound viol.)
+                    4.06024420434e-15 (int. viol.)
+                    0 (row viol.)
+  Timing            166.60
+                    11.21 (Presolve)
+                        MIP    time [calls] = 4.82 [1]
+                        subMIP time [calls] = 6.40 [4]
+                    155.37 (Solve)
+                        MIP    time [calls] = 79.76 [1]
+                        subMIP time [calls] = 75.61 [4]
+                    0.00 (Postsolve)
+                        MIP    time [calls] = 0.00 [1]

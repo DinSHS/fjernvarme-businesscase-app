@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    // Eget buildinfo: `tsBuildInfoFile` arves fra ../tsconfig.json, og to
+    // projekter kan ikke skrive til samme fil (TS6377).
+    "tsBuildInfoFile": ".temp/tsconfig.rayfin.tsbuildinfo",
+    "outDir": ".temp/compiled",
+    "rootDir": ".",
+    "declaration": true,
+    "composite": true,
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
+  },
+  "include": ["**/*"],
+  "exclude": [".temp/**/*", "functions/**/*"]
+}

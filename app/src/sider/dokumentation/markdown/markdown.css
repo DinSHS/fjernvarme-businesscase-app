@@ -1,0 +1,29 @@
+/* Markdown i kort: kun tokens fra layout.css/global.css — ingen egne størrelser eller farver. */
+.fjv-md { min-width: 0; overflow-wrap: anywhere; }
+.fjv-md > * + * { margin-top: 10px; }
+.fjv-md p, .fjv-md li { max-width: 100ch; }
+.fjv-md ul, .fjv-md ol { padding-left: 22px; }
+.fjv-md ul { list-style: disc; }
+.fjv-md ol { list-style: decimal; }
+.fjv-md li + li { margin-top: 4px; }
+.fjv-md li > * + * { margin-top: 6px; }
+.fjv-md a { color: var(--dash-series); text-decoration: underline; text-underline-offset: 2px; }
+.fjv-md a:hover { color: var(--dash-navy); }
+.fjv-md strong { font-weight: 650; }
+.fjv-md-h { color: var(--dash-ink); font-weight: 700; line-height: var(--t-kort-titel-lh); scroll-margin-top: 16px; }
+.fjv-md > .fjv-md-h { margin-top: 20px; }
+.fjv-md > .fjv-md-h:first-child { margin-top: 0; }
+.fjv-md-h[data-niveau="1"] { font-size: var(--t-budskab); line-height: var(--t-budskab-lh); }
+.fjv-md-h[data-niveau="2"] { font-size: var(--t-kort-titel); padding-top: 10px; border-top: 1px solid var(--dash-hairline); }
+.fjv-md > .fjv-md-h[data-niveau="2"]:first-child { padding-top: 0; border-top: 0; }
+.fjv-md-h[data-niveau="3"], .fjv-md-h[data-niveau="4"], .fjv-md-h[data-niveau="5"], .fjv-md-h[data-niveau="6"] { font-size: var(--t-brod); line-height: var(--t-brod-lh); font-weight: 650; color: var(--dash-ink-2); }
+.fjv-md-kode { font-family: var(--font-monospace); font-size: var(--t-tabel); background: var(--dash-elevated); border: 1px solid var(--dash-hairline); border-radius: 4px; padding: 0 4px; }
+.fjv-md-pre { font-family: var(--font-monospace); font-size: var(--t-tabel); line-height: var(--t-tabel-lh); background: var(--dash-elevated); border: 1px solid var(--dash-hairline);
+  border-radius: var(--r-felt); padding: 10px 12px; overflow-x: auto; white-space: pre; overflow-wrap: normal; }
+.fjv-md-pre code { font-family: inherit; font-size: inherit; background: none; border: 0; padding: 0; }
+.fjv-md-citat { border-left: 3px solid var(--dash-series-2); padding-left: 12px; color: var(--dash-ink-2); }
+.fjv-md-streg { border: 0; border-top: 1px solid var(--dash-hairline); }
+.fjv-md-tabel th, .fjv-md-tabel td { vertical-align: top; text-transform: none; letter-spacing: normal; }
+.fjv-md-tabel th { font-size: var(--t-tabelhoved); text-transform: uppercase; letter-spacing: 0.06em; }
+.fjv-md-tabel td { min-width: 6ch; }
+.fjv-md :target, .fjv-md [data-maal="true"] { scroll-margin-top: 16px; }

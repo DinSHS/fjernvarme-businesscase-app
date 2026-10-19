@@ -1,0 +1,124 @@
+Indlæser case: cases/andeby.yaml
+  Override: analyseperiode = 2026-01-05T00:00:00..2026-01-16T23:00:00 (1h)
+  Aktive enheder: 6/8 — vp_luft_vand, elkedel_ny, halmkedel, gasmotor, gaskedel_agg, solvarme
+  Lagre:   2
+    tank_lav: 7000 m³ → 244.2 MWh termisk kapacitet
+    tank_hoej: 3000 m³ → 191.9 MWh termisk kapacitet
+
+Henter data fra df-data (https://github.com/skj-1964/df-data.git)...
+  Heat-load params (fra andeby.yaml):
+    β_gaf = 0.7653 MW/K   T_ref = 15.0°C   EMA = 24h
+    β_net = 0.4768 MW/K   T_net = 12.0°C   (dual-slope v2 / legacy)
+    baseline_profile_mw: gns 4.75 MW, min 4.36, max 5.61
+  288 timesteps  [2026-01-05T00:00:00.000000 → 2026-01-16T23:00:00.000000]
+  Varmelast: min=14.4, gns=24.4, max=40.0 MW  (årssum 7.0 GWh)
+    GAF (rumvarme):        3.8 GWh (gns 13.20 MW)
+    Baseline (guf-navn):   1.4 GWh (gns 4.75 MW)
+    Nettab-tillæg:         1.9 GWh (gns 6.49 MW)
+  Spot:      min=342, gns=812, max=2018 DKK/MWh
+  Udetemp:   min=-18.2, gns=-1.6, max=6.8 °C
+
+Bygger model...
+  Deaktiverede enheder: elkedel_gl, fliskedel
+  UC aktiveret på: halmkedel
+    halmkedel: p_min=4.0 MW, UT=4h, DT=6h, c_start=8000 DKK, u0=1
+  Balancing: kvalificerede enheder {elkedel_ny, vp_luft_vand} men ingen balancing-data i kørsel — spring over. Kør med --with-balancing for at aktivere.
+  Forbrugstarif: profil aktiv (Fiktivt netselskab, A-høj-lignende. Erstat med dit eget prisblad.). Simpelt timegennemsnit 135.6 DKK/MWh eksklusive elafgift (4.0); flad værdi i casen er 125.0. Faste poster 115.0.
+  ADVARSEL: både tariff_consumption og tariff_consumption_flat er sat. Profilen vinder. Flad 125.0 er ikke i brug.
+  Variable:  4,320
+  Bindinger: 2,588
+
+Løser med highs...
+  MILP-mode: solver=highs, options: mip_rel_gap=0.001, mip_abs_gap=1000.0, time_limit=3600.0, presolve=on, parallel=on
+Running HiGHS 1.15.1 (git hash: 04024d7): Copyright (c) 2026 under MIT licence terms
+Includes third-party software components, see THIRD_PARTY_NOTICES.md for full details
+MIP linopy-problem-3b8d9yen has 2588 rows; 4320 cols; 11465 nonzeros; 864 integer variables (864 binary)
+Coefficient ranges:
+  Matrix  [1e+00, 1e+01]
+  Cost    [2e+02, 8e+03]
+  Bound   [3e-02, 2e+02]
+  RHS     [1e+00, 1e+02]
+Presolving model
+2578 rows, 4032 cols, 11164 nonzeros 0s
+2275 rows, 3152 cols, 11162 nonzeros 0s
+2234 rows, 3146 cols, 11236 nonzeros 0s
+Presolve reductions: rows 2234(-354); columns 3146(-1174); nonzeros 11236(-229) 
+
+Solving MIP model with:
+   2234 rows
+   3146 cols (697 binary, 0 integer, 0 implied int., 2449 continuous, 0 domain fixed)
+   11236 nonzeros
+   Thread count 4 (of 8 threads). Using 7 max workers. Parallel search on
+
+Src: B => Branching; C => Central rounding; F => Feasibility pump; H => Heuristic;
+     I => Shifting; J => Feasibility jump; L => Sub-MIP; P => Empty MIP; R => Randomized rounding;
+     S => Solve LP; T => Evaluate node; U => Unbounded; X => User solution; Y => HiGHS solution;
+     Z => ZI Round; l => Trivial lower; p => Trivial point; u => Trivial upper; z => Trivial zero
+
+        Nodes      |    B&B Tree     |            Objective Bounds              |  Dynamic Constraints |       Work      
+Src  Proc. InQueue |  Leaves   Expl. | BestBound       BestSol              Gap |   Cuts   InLp Confl. | LpIters     Time
+
+         0       0         0   0.00%   -862290.556632  inf                  inf        0      0      0         0     0.5s
+ T       0       0         0   0.00%   -862290.556632  3424407.957529   125.18%        0      0      0      1572     0.5s
+         1       0         1 100.00%   3424407.957529  3424407.957529     0.00%        0      0      0      1572     0.6s
+
+Solving report
+  Model             linopy-problem-3b8d9yen
+  Status            Optimal
+  Primal bound      3424407.95753
+  Dual bound        3424407.95753
+  Gap               0% (tolerance: 0.1%)
+  P-D integral      0.000867752741442
+  Solution status   feasible
+                    3424407.95753 (objective)
+                    0 (bound viol.)
+                    0 (int. viol.)
+                    0 (row viol.)
+  Timing            0.55
+                    0.20 (Presolve)
+                    0.35 (Solve)
+                    0.00 (Postsolve)
+  Max sub-MIP depth 0
+  Nodes             1
+  Repair LPs        0
+  LP iterations     1572
+                    0 (strong br.)
+                    0 (separation)
+                    0 (heuristics)
+  MILP-mode: skyggepriser springes over (ikke veldefinerede for MILP).
+  Udtrukket fra løsning: heat_prod, storage_energy, charge, discharge, storage_net, commit, startup, shutdown
+
+=== KPI'er ===
+
+--- Samlet ---
+Varmeefterspørgsel:          7,040 MWh
+Samlet produktion:           7,008 MWh
+Differens:                      31 MWh
+  heraf nettab:              1,870 MWh  (26.6% af varmebehov)
+Objektiv:                3,424,408 DKK
+Status:               ('ok', 'optimal')
+Model-type:           MILP (unit commitment aktivt)
+
+--- Unit commitment (MILP) ---
+  enhed               starts hours_on avg_blok   CF|on  start_kost
+  halmkedel                0      288     nanh  99.8%         0 kDKK
+        unit  p_max_mw  production_mwh  share_pct  capacity_factor_pct  operating_hours
+   halmkedel    12.000          3448.0       49.2                 99.8              288
+gaskedel_agg    20.000          2013.7       28.7                 35.0              228
+vp_luft_vand     4.462           938.7       13.4                 73.0              287
+  elkedel_ny     4.000           472.0        6.7                 41.0              118
+    gasmotor    10.500           126.0        1.8                  4.2               12
+    solvarme    22.000             9.6        0.1                  0.2                7
+
+=== Månedsopdelt (GWh, °C, DKK/MWh) ===
+CSV gemt:  C:\fjvt\lok_f1\andeby__gh__2026-01-05_2026-01-16_monthly.csv
+    halmkedel_gwh  gaskedel_agg_gwh  vp_luft_vand_gwh  elkedel_ny_gwh  gasmotor_gwh  solvarme_gwh  heat_load_gwh  spot_mean_dkk_mwh  t_out_c
+1            3.45              2.01              0.94            0.47          0.13          0.01           7.04                812     -1.6
+År           3.45              2.01              0.94            0.47          0.13          0.01           7.04                812     -1.6
+CSV gemt:  C:\fjvt\lok_f1\andeby__gh__2026-01-05_2026-01-16_hourly.csv  (287 rækker × 26 kolonner)
+Plot gemt: C:\fjvt\lok_f1\andeby__gh__2026-01-05_2026-01-16_dispatch.png
+Manifest gemt: andeby__gh__2026-01-05_2026-01-16_manifest.json
+[fjv] fuld tidsserie gemt: andeby__gh__2026-01-05_2026-01-16_fjv_fuld.csv
+
+Output i: C:\fjvt\lok_f1
+Filnavn-stem: andeby__gh__2026-01-05_2026-01-16

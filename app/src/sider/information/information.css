@@ -1,0 +1,33 @@
+/* Information: kun tokens. */
+.fjv-emne-hoved { display: flex; flex-direction: column; gap: var(--l-gap); min-width: 0; }
+.fjv-emne-hoved > * { min-width: 0; }
+.fjv-emne-hoved > .fjv-kort { flex: 1 1 auto; }
+
+.fjv-veje { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 2px; font-size: var(--t-brod); line-height: var(--t-brod-lh); }
+.fjv-veje a { display: block; padding: 4px 8px; margin: 0 -8px; border-radius: var(--r-felt); color: var(--dash-series); text-decoration: none; }
+.fjv-veje a:hover { background: var(--dash-elevated); text-decoration: underline; }
+.fjv-veje small { display: block; color: var(--dash-ink-2); font-size: var(--t-tabel); line-height: var(--t-tabel-lh); }
+
+.fjv-begr { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; font-size: var(--t-brod); line-height: var(--t-brod-lh); }
+.fjv-begr strong { display: block; font-weight: 650; }
+.fjv-begr span { color: var(--dash-ink-2); font-size: var(--t-tabel); line-height: var(--t-tabel-lh); }
+
+.fjv-nabo { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.fjv-nabo a { color: var(--dash-series); text-decoration: none; }
+.fjv-nabo a:hover { text-decoration: underline; }
+
+.fjv-soeg { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.fjv-soeg .fjv-felt { max-width: 420px; }
+.fjv-ordliste { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 32px; }
+@media (min-width: 900px) { .fjv-ordliste { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.fjv-ord { padding: 10px 8px; border-top: 1px solid var(--dash-hairline); font-size: var(--t-brod); line-height: var(--t-brod-lh); scroll-margin-top: 16px; }
+.fjv-ord[data-maal="true"] { background: var(--color-accent); border-radius: var(--r-felt); }
+.fjv-ord dt { font-weight: 650; color: var(--dash-ink); }
+.fjv-ord dt a { color: inherit; text-decoration: none; }
+.fjv-ord dt a:hover { text-decoration: underline; }
+.fjv-ord dd { color: var(--dash-ink); margin: 2px 0 0; }
+.fjv-ord a { color: var(--dash-series); }
+.fjv-ord-aliasanker { position: relative; display: block; height: 0; }
+
+.fjv-ref-sub { display: block; color: var(--dash-ink-3); font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); }
+.fjv-ref-tal { white-space: nowrap; }

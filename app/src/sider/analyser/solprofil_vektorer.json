@@ -1,0 +1,30 @@
+{
+  "_om": "Codex K5-F12: hvem en frosset solprofil bruges af. Fælles vektorer for appens visning (datagrundlag.ts solprofil()) og motorens regel (fabric/fjv/byg_case.py _saet_solprofil). 'motor': ok = profilen sættes, advarsel = 'solprofil-tidsserien bruges ikke', fejl = InputFejl. Ejer: fv-analyse2; ændres reglen i motoren, ret vektorerne her og fortæl det.",
+  "markoer": "tidsserie:solprofil",
+  "tilfaelde": [
+    { "navn": "én aktiv solar_thermal uden markør", "frosset": true,
+      "enheder": { "solvarme": { "type": "solar_thermal", "enabled": true, "production_profile_path": "data/solar_andeby_dmi_karup.csv" }, "gaskedel": { "type": "gas_boiler", "enabled": true } },
+      "forventet": { "slags": "tidsserie", "brugere": ["solvarme"] }, "motor": "ok" },
+    { "navn": "solvarmen slået fra", "frosset": true,
+      "enheder": { "solvarme": { "type": "solar_thermal", "enabled": false, "production_profile_path": "data/solar_andeby_dmi_karup.csv" } },
+      "forventet": { "slags": "tidsserie_ubrugt", "grund": "værket har ingen aktiv solvarmeenhed" }, "motor": "advarsel" },
+    { "navn": "markeret, aktiv", "frosset": true,
+      "enheder": { "sol_a": { "type": "solar_thermal", "enabled": true, "production_profile_path": "tidsserie:solprofil" }, "sol_b": { "type": "solar_thermal", "enabled": true, "production_profile_path": "data/x.csv" } },
+      "forventet": { "slags": "tidsserie", "brugere": ["sol_a"] }, "motor": "ok" },
+    { "navn": "markeret, slået fra", "frosset": true,
+      "enheder": { "sol_a": { "type": "solar_thermal", "enabled": false, "production_profile_path": "tidsserie:solprofil" } },
+      "forventet": { "slags": "tidsserie_ubrugt", "grund": "solvarmeenheden er slået fra" }, "motor": "advarsel" },
+    { "navn": "to aktive solar_thermal uden markør", "frosset": true,
+      "enheder": { "sol_a": { "type": "solar_thermal", "enabled": true }, "sol_b": { "type": "solar_thermal", "enabled": true } },
+      "forventet": { "slags": "tidsserie_ubrugt" }, "motor": "fejl" },
+    { "navn": "markeret, aktiv, ingen frosset solprofil", "frosset": false,
+      "enheder": { "sol_a": { "type": "solar_thermal", "enabled": true, "production_profile_path": "tidsserie:solprofil" } },
+      "forventet": { "slags": "markoer_uden_serie" }, "motor": "fejl" },
+    { "navn": "markeret, slået fra, ingen frosset solprofil", "frosset": false,
+      "enheder": { "sol_a": { "type": "solar_thermal", "enabled": false, "production_profile_path": "tidsserie:solprofil" } },
+      "forventet": { "slags": "ingen" }, "motor": "ok" },
+    { "navn": "repo-fil, ingen frosset solprofil", "frosset": false,
+      "enheder": { "solvarme": { "type": "solar_thermal", "enabled": true, "production_profile_path": "data/solar_andeby_dmi_karup.csv" } },
+      "forventet": { "slags": "repo" }, "motor": "ok" }
+  ]
+}

@@ -1,0 +1,9 @@
+.fjv-dok-liste { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: var(--t-brod); line-height: var(--t-brod-lh); }
+.fjv-dok-titel { font-weight: 650; color: var(--dash-series); text-decoration: none; }
+.fjv-dok-titel:hover { text-decoration: underline; }
+.fjv-dok-hvad { display: block; color: var(--dash-ink-2); font-size: var(--t-tabel); line-height: var(--t-tabel-lh); margin-top: 2px; }
+.fjv-lnk { color: var(--dash-series); text-decoration: underline; text-underline-offset: 2px; }
+.fjv-lnk:hover { color: var(--dash-navy); }
+.fjv-licens > summary { cursor: pointer; font-size: var(--t-brod); font-weight: 650; color: var(--dash-series); padding: 4px 0; }
+.fjv-licens[open] > summary { margin-bottom: 8px; }
+.fjv-md q { quotes: "«" "»"; }

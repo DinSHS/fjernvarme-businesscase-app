@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable",
+      "ESNext.Decorators",
+    ],
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "strict": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      // tsc ser Fabric-udgaven; rest-mappen typetjekkes mod samme kontrakt i src/backend/tjek.ts.
+      "@/backend/data": ["./src/backend/rayfin/data.ts"],
+      "@/backend/auth": ["./src/backend/rayfin/auth.ts"],
+      "@/backend/fejl": ["./src/backend/rayfin/fejl.ts"],
+      "@/backend/temaer": ["./src/backend/rayfin/temaer.ts"],
+      "@/*": [
+        "./src/*"
+      ]
+    },
+  },
+  // `rayfin/` is a separate composite project (the entity definitions). Do NOT
+  // set `emitDecoratorMetadata` here: it requires `experimentalDecorators`,
+  // which is incompatible with Rayfin's TC39 Stage 3 decorators.
+  "include": [
+    "src"
+  ],
+  "references": [
+    { "path": "./rayfin" }
+  ]
+}

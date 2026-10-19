@@ -1,0 +1,538 @@
+{
+  "_om": "Demo-bibliotek: et lille sæt reference/scenarie-par, der viser differensmetoden på rigtige værker. 'koersler' er de unikke kørsler (hver = én Scenarie + ScenarieAendring-rækker i appens form, KONTRAKT v2.1 §3.4–3.5: enable/disable har enhedens NAVN i sti). 'par' parrer dem til spørgsmål med en forventning, der kan efterprøves. Kør i rækkefølgen 'koer_raekkefoelge' (Andeby helår med balancering til sidst). Valideret af viden/vaerktoej/tjek_demo.py mod værkernes stier og motorens egen byg_case + modellens load_case.",
+  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "kontrakt_version": "2.1",
+  "faelles": {
+    "vintervindue": {
+      "periode_start": "2026-01-05",
+      "periode_slut": "2026-01-16",
+      "kilde": "doc/KOERSEL.md:109-110"
+    },
+    "stramt_gab": {
+      "mip_rel_gap": 0.0002,
+      "mip_abs_gap": 100.0,
+      "begrundelse": "Differenser kræver stramt gab, og det absolutte gab skal også ned, ellers binder det først (målt, udviklingsrapport). 100 kr. er småt mod de forventede differenser (tusinder til hundredtusinder af kr.)."
+    },
+    "sammenlignelighed": "Hvert pars to kørsler har samme værk, periode, opløsning, gab og datakilde (KONTRAKT §6b) og bør regnes i samme miljø.",
+    "tolerance_regel": "En differens er 'inden for solverens tolerance', når |Δ| < summen af de to kørslers opnåede absolutte gab (KONTRAKT §6b). Ved forventninger om fortegn tillades denne tolerance."
+  },
+  "koersler": [
+    {
+      "id": "D01",
+      "koer_raekkefoelge": 1,
+      "navn": "Demo: Andeby vinter — reference",
+      "vaerk_kode": "andeby",
+      "scenarie": {
+        "periode_start": "2026-01-05",
+        "periode_slut": "2026-01-16",
+        "med_balancering": false,
+        "balancing_method": null,
+        "mip_rel_gap": 0.0002,
+        "mip_abs_gap": 100.0,
+        "tidsgraense_s": null,
+        "ekstra_flag": null,
+        "heat_csv": null
+      },
+      "aendringer": [],
+      "forventet_objektiv_dkk": 3424408,
+      "forventet_tolerance_dkk": 100,
+      "forventet_grundlag": "fv-fabric F5 (2b91e6be) gav 3.424.407,96 med gab 0 %; BUDSTRATEGI-kontroltal 3.424.408 (doc/BUDSTRATEGI.md:249).",
+      "forventet_loesetid": "under 1 minut"
+    },
+    {
+      "id": "D02",
+      "koer_raekkefoelge": 2,
+      "navn": "Demo: Andeby vinter — uden tankene",
+      "vaerk_kode": "andeby",
+      "scenarie": {
+        "periode_start": "2026-01-05",
+        "periode_slut": "2026-01-16",
+        "med_balancering": false,
+        "balancing_method": null,
+        "mip_rel_gap": 0.0002,
+        "mip_abs_gap": 100.0,
+        "tidsgraense_s": null,
+        "ekstra_flag": null,
+        "heat_csv": null
+      },
+      "aendringer": [
+        {
+          "type": "disable",
+          "sti": "tank_lav",
+          "vaerdi_json": null,
+          "raekkefoelge": 1
+        },
+        {
+          "type": "disable",
+          "sti": "tank_hoej",
+          "vaerdi_json": null,
+          "raekkefoelge": 2
+        }
+      ],
+      "forventet_loesetid": "under 1 minut"
+    },
+    {
+      "id": "D03",
+      "koer_raekkefoelge": 3,
+      "navn": "Demo: Andeby vinter — uden varmepumpen",
+      "vaerk_kode": "andeby",
+      "scenarie": {
+        "periode_start": "2026-01-05",
+        "periode_slut": "2026-01-16",
+        "med_balancering": false,
+        "balancing_method": null,
+        "mip_rel_gap": 0.0002,
+        "mip_abs_gap": 100.0,
+        "tidsgraense_s": null,
+        "ekstra_flag": null,
+        "heat_csv": null
+      },
+      "aendringer": [
+        {
+          "type": "disable",
+          "sti": "vp_luft_vand",
+          "vaerdi_json": null,
+          "raekkefoelge": 1
+        }
+      ],
+      "forventet_loesetid": "under 1 minut"
+    },
+    {
+      "id": "D04",
+      "koer_raekkefoelge": 4,
+      "navn": "Demo: Andeby vinter — gaspris +20 %",
+      "vaerk_kode": "andeby",
+      "scenarie": {
+        "periode_start": "2026-01-05",
+        "periode_slut": "2026-01-16",
+        "med_balancering": false,
+        "balancing_method": null,
+        "mip_rel_gap": 0.0002,
+        "mip_abs_gap": 100.0,
+        "tidsgraense_s": null,
+        "ekstra_flag": null,
+        "heat_csv": null
+      },
+      "aendringer": [
+        {
+          "type": "set",
+          "sti": "prices.natural_gas.value",
+          "vaerdi_json": "727.2",
+          "raekkefoelge": 1
+        }
+      ],
+      "noter": [
+        "Andebys gaspris er 606 kr./MWh brændsel (cases/andeby.yaml:171); +20 % = 727,2."
+      ],
+      "forventet_loesetid": "under 1 minut"
+    },
+    {
+      "id": "D05",
+      "koer_raekkefoelge": 5,
+      "navn": "Demo: Andeby vinter — med den gamle 12 MW elkedel",
+      "vaerk_kode": "andeby",
+      "scenarie": {
+        "periode_start": "2026-01-05",
+        "periode_slut": "2026-01-16",
+        "med_balancering": false,
+        "balancing_method": null,
+        "mip_rel_gap": 0.0002,
+        "mip_abs_gap": 100.0,
+        "tidsgraense_s": null,
+        "ekstra_flag": null,
+        "heat_csv": null
+      },
+      "aendringer": [
+        {
+          "type": "enable",
+          "sti": "elkedel_gl",
+          "vaerdi_json": null,
+          "raekkefoelge": 1
+        }
+      ],
+      "noter": [
+        "elkedel_gl står i Andeby med enabled: false (cases/andeby.yaml:296-312)."
+      ],
+      "forventet_loesetid": "under 1 minut"
+    },
+    {
+      "id": "D06",
+      "koer_raekkefoelge": 6,
+      "navn": "Demo: Andeby vinter — med balancemarked",
+      "vaerk_kode": "andeby",
+      "scenarie": {
+        "periode_start": "2026-01-05",
+        "periode_slut": "2026-01-16",
+        "med_balancering": true,
+        "balancing_method": null,
+        "mip_rel_gap": 0.0002,
+        "mip_abs_gap": 100.0,
+        "tidsgraense_s": null,
+        "ekstra_flag": null,
+        "heat_csv": null
+      },
+      "aendringer": [],
+      "forventet_objektiv_dkk": 3000363,
+      "forventet_tolerance_dkk": 100,
+      "forventet_grundlag": "fv-fabric F5 (44cc8284) gav 3.000.362,97 med gab 0 % (Andebys egen budstrategi: foresight profile, settle forecast, cases/andeby.yaml:480-484).",
+      "forventet_loesetid": "under 1 minut"
+    },
+    {
+      "id": "D07",
+      "koer_raekkefoelge": 7,
+      "navn": "Demo: Andeby vinter — med balancemarked, uden tankene",
+      "vaerk_kode": "andeby",
+      "scenarie": {
+        "periode_start": "2026-01-05",
+        "periode_slut": "2026-01-16",
+        "med_balancering": true,
+        "balancing_method": null,
+        "mip_rel_gap": 0.0002,
+        "mip_abs_gap": 100.0,
+        "tidsgraense_s": null,
+        "ekstra_flag": null,
+        "heat_csv": null
+      },
+      "aendringer": [
+        {
+          "type": "disable",
+          "sti": "tank_lav",
+          "vaerdi_json": null,
+          "raekkefoelge": 1
+        },
+        {
+          "type": "disable",
+          "sti": "tank_hoej",
+          "vaerdi_json": null,
+          "raekkefoelge": 2
+        }
+      ],
+      "forventet_loesetid": "under 1 minut"
+    },
+    {
+      "id": "D08",
+      "koer_raekkefoelge": 8,
+      "navn": "Demo: Andeby vinter — balancemarked, kender aktiveringerne",
+      "vaerk_kode": "andeby",
+      "scenarie": {
+        "periode_start": "2026-01-05",
+        "periode_slut": "2026-01-16",
+        "med_balancering": true,
+        "balancing_method": null,
+        "mip_rel_gap": 0.0002,
+        "mip_abs_gap": 100.0,
+        "tidsgraense_s": null,
+        "ekstra_flag": null,
+        "heat_csv": null
+      },
+      "aendringer": [
+        {
+          "type": "set",
+          "sti": "balancing.activation.foresight",
+          "vaerdi_json": "\"realized\"",
+          "raekkefoelge": 1
+        }
+      ],
+      "forventet_objektiv_dkk": 2869989,
+      "forventet_tolerance_dkk": 3000,
+      "forventet_grundlag": "BUDSTRATEGI-kontroltal (2) 2.869.989 kr., regnet med Andebys gab 0,1 %/1.000 kr. (doc/BUDSTRATEGI.md:250); tolerancen dækker den gang.",
+      "forventet_loesetid": "under 1 minut"
+    },
+    {
+      "id": "D09",
+      "koer_raekkefoelge": 9,
+      "navn": "Demo: Billund Spor B — med balancemarked",
+      "vaerk_kode": "billund_sporb",
+      "scenarie": {
+        "periode_start": null,
+        "periode_slut": null,
+        "med_balancering": true,
+        "balancing_method": null,
+        "mip_rel_gap": 0.0002,
+        "mip_abs_gap": 1000.0,
+        "tidsgraense_s": 1800,
+        "ekstra_flag": null,
+        "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
+      },
+      "aendringer": [],
+      "forventet_objektiv_dkk": 3964586,
+      "forventet_tolerance_dkk": 19823,
+      "forventet_grundlag": "README-referencetal 3.964.586 kr. med kodens standardgab 0,5 %/5.000 kr. (README.md:139); med det stramme gab her kan objektivet ligge op til ca. 19.800 kr. lavere, ikke højere.",
+      "forventet_loesetid": "2–10 minutter",
+      "noter": [
+        "Kræver heat_csv. Notebookens manuelle parametre har ikke heat_csv; kør via appens bestillingsvej (eller udvid parametrene)."
+      ]
+    },
+    {
+      "id": "D10",
+      "koer_raekkefoelge": 10,
+      "navn": "Demo: Billund Spor B — uden balancemarked",
+      "vaerk_kode": "billund_sporb",
+      "scenarie": {
+        "periode_start": null,
+        "periode_slut": null,
+        "med_balancering": false,
+        "balancing_method": null,
+        "mip_rel_gap": 0.0002,
+        "mip_abs_gap": 1000.0,
+        "tidsgraense_s": 1800,
+        "ekstra_flag": null,
+        "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
+      },
+      "aendringer": [],
+      "forventet_loesetid": "1–5 minutter",
+      "noter": [
+        "Kræver heat_csv, se D09."
+      ]
+    },
+    {
+      "id": "D11",
+      "koer_raekkefoelge": 11,
+      "navn": "Demo: Andeby helår — uden balancemarked",
+      "vaerk_kode": "andeby",
+      "scenarie": {
+        "periode_start": null,
+        "periode_slut": null,
+        "med_balancering": false,
+        "balancing_method": null,
+        "mip_rel_gap": null,
+        "mip_abs_gap": null,
+        "tidsgraense_s": null,
+        "ekstra_flag": null,
+        "heat_csv": null
+      },
+      "aendringer": [],
+      "forventet_objektiv_dkk": 30430965,
+      "forventet_tolerance_dkk": 30431,
+      "forventet_grundlag": "README-referencetal (README.md:142) med Andebys egen solver-blok 0,1 %/1.000 kr./3.600 s (cases/andeby.yaml:142-145) — derfor intet stramt gab her: kørslen skal genskabe README-tallet.",
+      "forventet_loesetid": "6–10 minutter (README.md:150-151)"
+    },
+    {
+      "id": "D12",
+      "koer_raekkefoelge": 12,
+      "navn": "Demo: Andeby helår — med balancemarked",
+      "vaerk_kode": "andeby",
+      "scenarie": {
+        "periode_start": null,
+        "periode_slut": null,
+        "med_balancering": true,
+        "balancing_method": null,
+        "mip_rel_gap": null,
+        "mip_abs_gap": null,
+        "tidsgraense_s": null,
+        "ekstra_flag": null,
+        "heat_csv": null
+      },
+      "aendringer": [],
+      "forventet_objektiv_dkk": 23067291,
+      "forventet_tolerance_dkk": 28000,
+      "forventet_grundlag": "README-referencetal 23.067.291 kr., stoppet ved tidsgrænsen 3.600 s med gab 0,12 % (README.md:141; README.md:146). En ny kørsel rammer også tidsgrænsen og kan lande inden for ca. 0,12 % (ca. 28.000 kr.); opnået gab skal læses.",
+      "forventet_loesetid": "ca. 1 time, ca. 3,5 GB (README.md:150-151) — køres SIDST",
+      "noter": [
+        "2 vCPU / 16 GB i Fabric (fv-fabric F1) mod sandkassens 2 kerner i README; tidsgrænsen 3.600 s er kontraktens loft (KONTRAKT §3.0)."
+      ]
+    }
+  ],
+  "par": [
+    {
+      "id": "P1",
+      "reference": "D01",
+      "scenarie": "D02",
+      "spoergsmaal": "Hvad er Andebys tanke værd i en vinteruge uden balancemarked?",
+      "knap": "tankens_vaerdi",
+      "forventning": {
+        "fortegn": "Δ = D02 − D01 > 0 (uden tank er driften dyrere; mængden af mulige driftsplaner bliver kun mindre).",
+        "stoerrelse": "Positiv og af størrelsesorden 10.000–200.000 kr. for 12 døgn. Andebys tanke er 4.175.596 kr. værd over et helt år på spot (rapport v4 §9, tabel 9.1) ≈ 11.400 kr./døgn i snit; vinteren kan afvige begge veje.",
+        "hvem_overtager": "Elkedel og varmepumpe kører mindre i billige timer; halm- og gaskedel kører mere (mønstret fra Billund, rapport v4 §4.1).",
+        "forbehold": "Første time er ubundet for tanken (src/reporting.py:314-338). Målt: ca. 22.300 kr. af Δ = 44.220 kr. skyldes den — anbefalingen er 'Undersøg nærmere' (anbefalingsregler.json → t0_lager)."
+      },
+      "maalt_2026_10_16": {
+        "delta_dkk": 44219.87,
+        "forventning_ramt": true,
+        "vurdering": "Gaskedlen +105,7 MWh, elkedlen −61,6 og varmepumpen −15,6 MWh (D01→D02). Som forventet: el ned, gas op. Første interval: tankene leverede 33,2 MWh gratis (afladning 8,2 + 25 MW, indhold uændret); uden tank kostede samme time ca. 22.300 kr. mere — omkring halvdelen af Δ. Tankens reelle værdi i vinduet er derfor nærmere 22.000 kr."
+      }
+    },
+    {
+      "id": "P2",
+      "reference": "D01",
+      "scenarie": "D03",
+      "spoergsmaal": "Hvad er varmepumpen værd i en vinteruge?",
+      "knap": "enhedens_vaerdi",
+      "forventning": {
+        "fortegn": "Δ = D03 − D01 ≥ 0 (en enhed mindre kan ikke gøre driften billigere), inden for tolerancen.",
+        "stoerrelse": "Stor om vinteren: halmkedlen er allerede fuldt udnyttet, så varmepumpens varme erstattes af gaskedlen. Værdien er omtrent (gasvarmens pris − varmepumpens elpris/COP) × varmepumpens produktion — målt ca. 500 kr./MWh × 939 MWh. (Rettet efter kørsel 2026-10-16; første udgave sagde 'lille til moderat'.)",
+        "hvem_overtager": "Gaskedlen, fordi halmkedlen allerede kører fuldt (målt: gaskedlen +935 MWh)."
+      },
+      "maalt_2026_10_16": {
+        "delta_dkk": 473383.83,
+        "forventning_ramt": false,
+        "vurdering": "Varmepumpens 938,7 MWh overtages næsten helt af gaskedlen (+934,8 MWh); halmkedlen kører allerede 99,8 % af sin kapacitet. Det svarer til ca. 506 kr. pr. flyttet MWh: forskellen mellem varmepumpens el (ca. spot/COP) og gas på marginalen. Forventningen om 'lille til moderat' var forkert — se rettet tekst."
+      }
+    },
+    {
+      "id": "P3",
+      "reference": "D01",
+      "scenarie": "D04",
+      "spoergsmaal": "Hvor følsom er Andebys vinterøkonomi for gasprisen?",
+      "knap": "braendselspris",
+      "forventning": {
+        "fortegn": "Δ = D04 − D01 ≥ 0.",
+        "oevre_graense": "Δ ≤ 0,2 × 606 × (gasforbrug i D01) = 121,2 kr. × Σ(gasenheders varme / virkningsgrad) i MWh brændsel. Referencens drift er stadig mulig til den nye pris, så stigningen kan ikke overstige den. Gasmotor η = 0,49, gaskedel η = 0,95 (cases/andeby.yaml:356; cases/andeby.yaml:379).",
+        "stoerrelse": "Tæt på den øvre grænse, hvis gas er spids og ikke kan undgås; mærkbart under, hvis halm og el kan overtage."
+      },
+      "maalt_2026_10_16": {
+        "delta_dkk": 265776.04,
+        "forventning_ramt": true,
+        "vurdering": "Inden for grænsen 0 ≤ Δ ≤ 288.071 kr. (121,2 kr. × 2.376,8 MWh gas i D01) — 92 % af grænsen: gassen er næsten uundgåelig. Elkedlen tager +284 MWh, gaskedlen −242 og gasmotoren −42 MWh."
+      }
+    },
+    {
+      "id": "P4",
+      "reference": "D01",
+      "scenarie": "D05",
+      "spoergsmaal": "Hvad sparer en ekstra 12 MW elkedel i en vinteruge (investeringsspørgsmål)?",
+      "knap": "ny_enhed",
+      "forventning": {
+        "fortegn": "Δ = D05 − D01 ≤ 0 inden for tolerancen: en ekstra enhed kan kun udvide mulighederne. Et positivt Δ større end tolerancen er en fejl i kæden.",
+        "hvorfor_med": "Det er netop det tilfælde, hvor et for løst gab tidligere vendte fortegnet (cases/andeby.yaml:122-126). Med stramt gab skal fortegnet holde.",
+        "stoerrelse": "Mærkbar om vinteren: med gas på marginalen fortrænger en ekstra elkedel gaskedlen i alle timer, hvor spot + tarif + elafgift er under gasvarmens pris. (Rettet efter kørsel 2026-10-16; første udgave sagde 'kan være nær 0'.)"
+      },
+      "maalt_2026_10_16": {
+        "delta_dkk": -133801.23,
+        "forventning_ramt": false,
+        "vurdering": "Den gamle elkedel kører 1.283,8 MWh og fortrænger 1.206 MWh fra gaskedlen. Fortegnet holder. Forventningen 'kan være nær 0' var forkert: med gas på marginalen til ca. 850 kr./MWh er en elkedel billigere i alle timer, hvor spot + tarif + afgift er lavere."
+      }
+    },
+    {
+      "id": "P5",
+      "reference": "D01",
+      "scenarie": "D06",
+      "spoergsmaal": "Hvad er balancemarkedet værd for Andeby i en vinteruge?",
+      "knap": "balancemarkedets_vaerdi",
+      "forventning": {
+        "fortegn": "Δ = D06 − D01 < 0 (balancemarkedet sænker omkostningen).",
+        "stoerrelse": "Ca. −424.045 kr. (3.000.363 − 3.424.408, fv-fabric F5). Til sammenligning: BUDSTRATEGI's prognose-strategier gav 156.000–261.000 kr. og 'kender aktiveringerne' 554.000 kr. (doc/BUDSTRATEGI.md:247-252).",
+        "forbehold": "Andeby har ikke Billunds månedsloft: tallet er et potentiale ved fuld tilgængelighed, ikke en forventning (cases/andeby.yaml:454-458). Vis aFRR og mFRR, kapacitet og aktivering hver for sig."
+      },
+      "maalt_2026_10_16": {
+        "delta_dkk": -424044.98,
+        "forventning_ramt": true,
+        "vurdering": "Præcis som F5. Balanceindtægt netto 547.201 kr. (aFRR 299.848, mFRR 247.353), brutto 664.048 kr. Værdien (424.045) er mindre end nettoindtægten, som forventet. Elkedlen kører 1.032 MWh mod 472 (footroom)."
+      }
+    },
+    {
+      "id": "P6",
+      "reference": "D06",
+      "scenarie": "D07",
+      "spoergsmaal": "Er tanken mere værd, når balancemarkedet er åbent?",
+      "knap": "tankens_vaerdi",
+      "forventning": {
+        "fortegn": "Δ = D07 − D06 > 0.",
+        "sammenlign_med": "P1. Er tankværdien med balancemarked større end uden, er tanken en forudsætning for at byde (footroom/robust reservation). Er de ens, begrænser budstrategien mængden så meget, at tanken ikke kommer i spil (doc/BUDSTRATEGI.md:270). Hos Billund var de næsten ens ved 17,52 MW (rapport v4 §4.1).",
+        "forbehold": "Robust reservation (standard) kræver, at varmen kan afsættes uden aktivering — uden tank begrænser det buddet (doc/BUDSTRATEGI.md:92)."
+      },
+      "maalt_2026_10_16": {
+        "delta_dkk": 73487.5,
+        "forventning_ramt": true,
+        "vurdering": "Tanken er 73.488 kr. værd med balancemarked mod 44.220 kr. uden (P1) — 66 % mere. Her hjælper tanken altså med at kunne byde; nettoindtægten falder fra 547.201 til 512.552 kr. uden tanke. Samme forbehold om første interval som P1 gælder; sammenligningen P1/P6 er dog fair, fordi artefakten indgår i begge."
+      }
+    },
+    {
+      "id": "P7",
+      "reference": "D06",
+      "scenarie": "D08",
+      "spoergsmaal": "Hvor meget puster perfekt kendskab til aktiveringerne balancetallet op?",
+      "knap": "budstrategi_viden",
+      "forventning": {
+        "fortegn": "Forventet D08 < D06 (kender modellen aktiveringerne, vælger den præcis timerne med prisspidser). Ikke garanteret matematisk, fordi de to kørsler afregnes på forskelligt grundlag.",
+        "stoerrelse": "D08 ≈ 2.869.989 kr. (BUDSTRATEGI-kontroltal); forskellen til D06 er et mål for, hvor meget foresight-antagelsen betyder.",
+        "forbehold": "D08 er et loft, ingen kan nå (doc/BUDSTRATEGI.md:254)."
+      },
+      "maalt_2026_10_16": {
+        "delta_dkk": -130374.1,
+        "forventning_ramt": true,
+        "vurdering": "D08 = 2.869.988,87 kr. mod BUDSTRATEGI-kontroltallet 2.869.989 (0,13 kr. fra). Nettoindtægten stiger til 681.108 kr., når modellen kender aktiveringerne — et loft, ingen kan nå."
+      }
+    },
+    {
+      "id": "P8",
+      "reference": "D10",
+      "scenarie": "D09",
+      "spoergsmaal": "Hvad var balancemarkedet værd for Billund i marts–juni 2026 med den reservation, værket faktisk stillede?",
+      "knap": "balancemarkedets_vaerdi",
+      "forventning": {
+        "fortegn": "Δ = D09 − D10 < 0.",
+        "stoerrelse": "Mindre end modellens balanceindtægt (netto 3.853.867 kr. i valideringen, rapport v4 §5.2, tabel 5.1), fordi den ikke-producerede varme skal laves et andet sted. Den realiserede forbrugsside-indtægt var 3.178.412 kr.",
+        "forbehold": "Spor B er beskrivende og forudsiger ikke; motorernes balanceindtægt og nedregulering er ikke med (rapport v4 §5.4)."
+      },
+      "maalt_2026_10_16": {
+        "delta_dkk": -2467024.48,
+        "forventning_ramt": true,
+        "vurdering": "D09 = 3.964.585,72 kr. mod README 3.964.586 (0,28 kr. fra) ved 0,0133 % gab. Balancemarkedets værdi 2,47 mio. kr. er under modellens nettoindtægt i valideringen (3,85 mio.), som forventet."
+      }
+    },
+    {
+      "id": "P9",
+      "reference": "D11",
+      "scenarie": "D12",
+      "spoergsmaal": "Hvad er balancemarkedet værd for Andeby over et helt år?",
+      "knap": "balancemarkedets_vaerdi",
+      "forventning": {
+        "fortegn": "Δ = D12 − D11 < 0.",
+        "stoerrelse": "Ca. −7.363.674 kr. (23.067.291 − 30.430.965, README.md:141-142).",
+        "forbehold": "Kørslerne har ikke samme opnåede gab (D12 stopper ved tidsgrænsen), så de er ikke direkte sammenlignelige efter KONTRAKT §6b; appen skal vise advarslen. Andebys balancetal er et potentiale, ikke en forventning (README.md:157-159). Året blander aFRR-markedet før og efter faldet i vinteren 2025/26 (doc/BALANCEMARKED.md:162-165)."
+      },
+      "maalt_2026_10_16": {
+        "delta_dkk": -7378128.7,
+        "forventning_ramt": true,
+        "vurdering": "D12 = 23.052.841,18 kr., løst optimalt til 0,087 % gab på 36 min (README's kørsel ramte tidsgrænsen ved 0,12 %); 14.450 kr. (0,063 %) under README's 23.067.291, inden for begge kørslers gab. Balancemarkedets værdi over året 7,38 mio. kr. mod README-forskellen 7,36 mio. Nettoindtægt 10.648.236 kr. (aFRR 6.773.853, mFRR 3.874.383), brutto 12.096.247 — værdien er under nettoindtægten, som forventet. aFRR dominerer over året, fordi andet halvår 2025 havde høje aFRR-kapacitetspriser (rapport v4 §5.3). Sammenlignelige efter §6b (samme ønskede gab); summen af de opnåede gab (ca. 25.400 kr.) er langt under Δ."
+      }
+    }
+  ],
+  "notebook_bemaerkning": "Kørslerne kan bestilles via appens Scenarie + Bestilling (foretrukket, så de ligner app-kørsler) eller via fjv_koer_scenarie's manuelle parametre: vaerk_kode, scenarie_navn, aendringer_json (listen 'aendringer' som JSON), start/slut, med_balancering, mip_rel_gap/mip_abs_gap/tidsgraense_s som tekst. De manuelle parametre har ikke heat_csv, så D09/D10 kræver appens vej eller en ny parameter.",
+  "koersel_status": {
+    "maalt": "2026-10-16 08:45 (D01–D11) og 10:16 UTC (D12), Fabric (fjv_koer_scenarie, 2 vCPU), data_commit 392992c, model_commit b49aeb0",
+    "koersels_id": {
+      "D01": "87eac214-8da3-4cea-b867-b9c89e9c4983",
+      "D02": "770072d0-10fa-4074-b525-74b68f71d769",
+      "D03": "129041ed-3ef0-4caf-9382-07e4384212e0",
+      "D04": "087fde50-daca-4fe8-818e-847fe18d8af4",
+      "D05": "48c07316-ae55-45d7-9e04-754aba9dd11e",
+      "D06": "e623dd12-c50f-4501-ab33-c815767f84e9",
+      "D07": "192c7207-a950-4780-b24d-ea3808d3e050",
+      "D08": "d48dc028-0bd4-49f9-bdb2-02f765ec9f5f",
+      "D09": "ee0bfffd-7b68-40ec-be4c-0c26692fcc57",
+      "D10": "013d3427-5e89-4d21-8144-dcb0d80d8c34",
+      "D11": "9c6a054c-0d5f-4713-bcbf-8004feb0a27e",
+      "D12": "70b0f577-3114-4d65-9a26-1e21cb3eea62"
+    },
+    "objektiv_dkk": {
+      "D01": 3424407.96,
+      "D02": 3468627.83,
+      "D03": 3897791.79,
+      "D04": 3690184.0,
+      "D05": 3290606.73,
+      "D06": 3000362.97,
+      "D07": 3073850.47,
+      "D08": 2869988.87,
+      "D09": 3964585.72,
+      "D10": 6431610.2,
+      "D11": 30430969.88,
+      "D12": 23052841.18
+    },
+    "opnaaet_gab": {
+      "D01": 0.0,
+      "D02": 0.0,
+      "D03": 0.0,
+      "D04": 0.0,
+      "D05": 0.0,
+      "D06": 0.0,
+      "D07": 0.0,
+      "D08": 0.0,
+      "D09": 0.000133,
+      "D10": 0.000193,
+      "D11": 0.000176,
+      "D12": 0.00087
+    }
+  }
+}

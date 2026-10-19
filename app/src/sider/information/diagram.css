@@ -1,0 +1,20 @@
+/* Arkitekturdiagrammet: farver og størrelser kun via tokens. */
+.fjv-dia { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.fjv-dia svg { width: 100%; height: auto; display: block; }
+.fjv-dia .fjv-dia-smal { display: none; max-width: 420px; margin: 0 auto; }
+@media (max-width: 899px) {
+  .fjv-dia .fjv-dia-bred { display: none; }
+  .fjv-dia .fjv-dia-smal { display: block; }
+}
+.fjv-dia-boks { fill: var(--color-card); stroke: var(--dash-ink-3); stroke-width: 1.25; }
+.fjv-dia-titel { font-size: var(--t-brod); font-weight: 700; fill: var(--dash-ink); }
+.fjv-dia-tekst { font-size: var(--t-akse); fill: var(--dash-ink-2); }
+.fjv-dia-pil { stroke: var(--dash-series); stroke-width: 1.75; }
+.fjv-dia-spids { fill: var(--dash-series); }
+.fjv-dia-nr { fill: var(--dash-navy); stroke: var(--color-card); stroke-width: 2; }
+.fjv-dia-nr-tal { font-size: var(--t-datalabel); font-weight: 700; fill: var(--color-primary-foreground); }
+.fjv-dia-trin { display: grid; gap: 6px 24px; list-style: none; padding: 0; font-size: var(--t-brod); line-height: var(--t-brod-lh); color: var(--dash-ink); }
+@media (min-width: 900px) { .fjv-dia-trin { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.fjv-dia-trin li { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.fjv-dia-trin-nr { flex: none; display: inline-flex; width: 18px; height: 18px; align-items: center; justify-content: center; border-radius: 999px;
+  background: var(--dash-navy); color: var(--color-primary-foreground); font-size: var(--t-mærke); font-weight: 700; }

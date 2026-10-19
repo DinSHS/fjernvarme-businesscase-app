@@ -1,0 +1,7 @@
+# Resten: LF i repoet OG i arbejdsmappen (filer med indbyggede hash, fx viden/data_krav.json, skal være byte-ens overalt). Står FØRST, fordi den sidste matchende linje vinder.
+* text=auto eol=lf
+# Linjeskift normaliseres ikke på licenstekster: de gengives byte for byte fra kilden og kontrolleres med SHA-256.
+LICENSES/* -text
+# Skriptet til git-hooks skal altid have LF, også på Windows
+scripts/hooks/* text eol=lf
+*.sh text eol=lf

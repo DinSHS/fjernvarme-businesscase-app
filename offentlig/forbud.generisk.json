@@ -1,0 +1,32 @@
+{
+  "_om": "Den GENERISKE forbudsliste, som repo-gaten (scripts/tjek.py) altid bruger. Den navngiver ingen organisation og indeholder intet id: det, der er specifikt for en installation, staar i lokale, git-ignorerede filer (config/installation.json, config/forbud.lokal.json), og gaten laeser vaerdierne derfra. Her staar kun moenstre, der er forkerte i ENHVER installation: rigtige servernavne og app-adresser, tenant-konti, absolutte brugerstier, interne stier, lokal tilstand og private temaer.",
+  "litteraler": [
+    {"vaerdi": "oa/fjv", "regel": "intern-sti", "forklaring": "intern orkestreringsmappe"},
+    {"vaerdi": "oa\\fjv", "regel": "intern-sti", "forklaring": "intern orkestreringsmappe (Windows)"},
+    {"vaerdi": "pbidedicated.windows.net", "regel": "tenant-host", "forklaring": "kapacitetsspecifik adresse (indeholder kapacitets- og workspace-id)"}
+  ],
+  "regex": [
+    {"moenster": "[a-z0-9-]{20,}\\.database\\.fabric\\.microsoft\\.com", "regel": "tenant-host", "forklaring": "servernavn for en Fabric SQL database"},
+    {"moenster": "https://[a-z0-9-]+\\.webapp\\.fabricapps\\.net", "regel": "tenant-host", "forklaring": "adressen paa en udrullet Fabric-app"},
+    {"moenster": "[A-Za-z]:[\\\\/]+Users[\\\\/]+[^\\\\/\\s\"']+", "regel": "intern-sti", "forklaring": "absolut Windows-brugersti"},
+    {"moenster": "/(?:c|C)/Users/[^/\\s\"']+", "regel": "intern-sti", "forklaring": "absolut brugersti (Git Bash)"},
+    {"moenster": "@[A-Za-z0-9-]+\\.onmicrosoft\\.com", "regel": "e-mail", "forklaring": "tenant-konto (onmicrosoft.com)"},
+    {"moenster": "(?i)\"uofficielt\"\\s*:\\s*true", "regel": "tema-uofficielt", "forklaring": "et uofficielt temas datafil hoerer til lokalt (app/src/styles/temaer/privat/)"}
+  ],
+  "guids": [],
+  "tilladte_emails": ["a@b.dk", "x@y.dk", "en.anden@example.com", "rayfin-functions@1.0.0", "i@izs.me"],
+  "tilladte_email_domaener": ["example.com", "example.org", "example.dk", "example.net", "b.dk", "microsoft.com",
+                              "users.noreply.github.com", "test", "invalid", "example", "localhost"],
+  "forbudte_filnavne": [
+    {"moenster": "**/.env", "regel": "lokal-tilstand"},
+    {"moenster": "**/.env.*", "regel": "lokal-tilstand"},
+    {"moenster": "**/.deployments.json", "regel": "lokal-tilstand"},
+    {"moenster": "**/config/installation.json", "regel": "lokal-tilstand"},
+    {"moenster": "**/config/forbud.lokal.json", "regel": "lokal-tilstand"},
+    {"moenster": "**/installation.lokal.json", "regel": "lokal-tilstand"},
+    {"moenster": "**/*.log", "regel": "log"},
+    {"moenster": "**/*.pem", "regel": "noegle"},
+    {"moenster": "**/*.pfx", "regel": "noegle"},
+    {"moenster": "**/temaer/privat/**", "regel": "tema"}
+  ]
+}

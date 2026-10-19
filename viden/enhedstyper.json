@@ -1,0 +1,450 @@
+{
+  "_om": "Enhedstyper i fjernvarmemodellen @ b49aeb0. Typen er en etiket; økonomien styres af fuel og alpha. Standardværdier fra src/config.py (dataclass Unit).",
+  "kilde": {
+    "dataclass": "src/config.py:492",
+    "validering": "src/config.py:522",
+    "typeliste": "scripts/vaerksark_til_yaml.py:73",
+    "marginalomkostning": "src/model.py:31"
+  },
+  "standardvaerdier": {
+    "enabled": true,
+    "var_om": 0.0,
+    "start_cost": 0.0,
+    "min_uptime": 1,
+    "min_downtime": 1,
+    "co2_emissions_per_mwh_fuel": 0.0,
+    "uc_enabled": false,
+    "initial_status": 1,
+    "eta_fuel_to_heat": null,
+    "cop_curve": null,
+    "production_profile_path": null,
+    "ancillary": {
+      "afrr_qualified": false,
+      "mfrr_qualified": false,
+      "fcr_qualified": false
+    }
+  },
+  "braendselsnavne": {
+    "electricity": "El",
+    "solar": "Sol",
+    "natural_gas": "Naturgas",
+    "straw": "Halm",
+    "flis": "Flis",
+    "wood_pellets": "Træpiller",
+    "waste_heat": "Overskudsvarme",
+    "co2_eua": "CO₂-kvoter"
+  },
+  "regler": [
+    "p_min_heat ≤ p_max_heat (config.py).",
+    "fuel ∉ {electricity, solar} kræver eta_fuel_to_heat.",
+    "cop_curve kun for type heat_pump med fuel electricity.",
+    "Med uc_enabled: initial_status ∈ {0,1}, min_uptime og min_downtime ≥ 1.",
+    "Ukendte felter afvises (Unit(**felter)).",
+    "Kun fuel electricity kan byde i balancemarkedet (BALANCEMARKED.md)."
+  ],
+  "typer": {
+    "heat_pump": {
+      "navn": "Varmepumpe",
+      "beskrivelse": "El-forbrugende. COP fra en målt ydelsestabel (anbefalet) eller en lineær kurve. Kan byde op-regulering i aFRR/mFRR.",
+      "fuel": [
+        "electricity"
+      ],
+      "paakraevede": [
+        "type",
+        "p_max_heat",
+        "p_min_heat",
+        "alpha",
+        "fuel"
+      ],
+      "valgfri": [
+        "enabled",
+        "var_om",
+        "uc_enabled",
+        "start_cost",
+        "min_uptime",
+        "min_downtime",
+        "initial_status",
+        "commissioned",
+        "notes",
+        "cop_curve",
+        "ancillary"
+      ],
+      "irrelevante": [
+        "eta_fuel_to_heat",
+        "co2_emissions_per_mwh_fuel",
+        "production_profile_path"
+      ],
+      "kan_byde_balance": true,
+      "skabelon": {
+        "enabled": true,
+        "type": "heat_pump",
+        "p_max_heat": 4.0,
+        "p_min_heat": 0.0,
+        "alpha": -0.333,
+        "fuel": "electricity",
+        "var_om": 13.4,
+        "start_cost": 0.0,
+        "min_uptime": 1,
+        "min_downtime": 1,
+        "uc_enabled": false,
+        "cop_curve": {
+          "type": "table",
+          "points": [
+            {
+              "t_ambient": -10.0,
+              "heat_mw": 3.0,
+              "el_mw": 1.25
+            },
+            {
+              "t_ambient": 0.0,
+              "heat_mw": 3.4,
+              "el_mw": 1.17
+            },
+            {
+              "t_ambient": 16.0,
+              "heat_mw": 4.0,
+              "el_mw": 1.18
+            }
+          ]
+        },
+        "ancillary": {
+          "afrr_qualified": false,
+          "mfrr_qualified": false,
+          "fcr_qualified": false
+        }
+      },
+      "noter": [
+        "alpha bruges kun uden cop_curve: COP = −1/alpha.",
+        "Med type table er varmeloftet min(p_max_heat, tabellens varme ved T_ude).",
+        "Skabelonens tal er pladsholdere; erstat med målte punkter."
+      ]
+    },
+    "electric_boiler": {
+      "navn": "Elkedel",
+      "beskrivelse": "El-forbrugende med COP 1 (alpha −1). Kan byde op-regulering.",
+      "fuel": [
+        "electricity"
+      ],
+      "paakraevede": [
+        "type",
+        "p_max_heat",
+        "p_min_heat",
+        "alpha",
+        "fuel"
+      ],
+      "valgfri": [
+        "enabled",
+        "var_om",
+        "uc_enabled",
+        "start_cost",
+        "min_uptime",
+        "min_downtime",
+        "initial_status",
+        "commissioned",
+        "notes",
+        "ancillary"
+      ],
+      "irrelevante": [
+        "eta_fuel_to_heat",
+        "co2_emissions_per_mwh_fuel",
+        "cop_curve",
+        "production_profile_path"
+      ],
+      "kan_byde_balance": true,
+      "skabelon": {
+        "enabled": true,
+        "type": "electric_boiler",
+        "p_max_heat": 10.0,
+        "p_min_heat": 0.0,
+        "alpha": -1.0,
+        "fuel": "electricity",
+        "var_om": 6.7,
+        "start_cost": 0.0,
+        "min_uptime": 1,
+        "min_downtime": 1,
+        "uc_enabled": false,
+        "ancillary": {
+          "afrr_qualified": false,
+          "mfrr_qualified": false,
+          "fcr_qualified": false
+        }
+      },
+      "noter": [
+        "alpha skal være −1 (1 MWh el giver 1 MWh varme)."
+      ]
+    },
+    "biomass_boiler": {
+      "navn": "Biomassekedel",
+      "beskrivelse": "Halm, flis eller træpiller. Typisk grundlast med minimumslast og min. driftstid (unit commitment).",
+      "fuel": [
+        "straw",
+        "flis",
+        "wood_pellets"
+      ],
+      "paakraevede": [
+        "type",
+        "p_max_heat",
+        "p_min_heat",
+        "alpha",
+        "fuel",
+        "eta_fuel_to_heat"
+      ],
+      "valgfri": [
+        "enabled",
+        "var_om",
+        "uc_enabled",
+        "start_cost",
+        "min_uptime",
+        "min_downtime",
+        "initial_status",
+        "commissioned",
+        "notes",
+        "co2_emissions_per_mwh_fuel"
+      ],
+      "irrelevante": [
+        "cop_curve",
+        "production_profile_path"
+      ],
+      "kan_byde_balance": false,
+      "skabelon": {
+        "enabled": true,
+        "type": "biomass_boiler",
+        "p_max_heat": 10.0,
+        "p_min_heat": 3.0,
+        "alpha": 0.0,
+        "fuel": "straw",
+        "eta_fuel_to_heat": 0.95,
+        "var_om": 30.0,
+        "start_cost": 5000.0,
+        "min_uptime": 4,
+        "min_downtime": 6,
+        "uc_enabled": true,
+        "initial_status": 0,
+        "ancillary": {
+          "afrr_qualified": false,
+          "mfrr_qualified": false,
+          "fcr_qualified": false
+        }
+      },
+      "noter": [
+        "Prisen for brændslet skal stå under prices.",
+        "initial_status 1 uden tank kan gøre sommeren uløselig (rapport v4, afsnit 4.4)."
+      ]
+    },
+    "gas_boiler": {
+      "navn": "Gaskedel",
+      "beskrivelse": "Naturgas, typisk spids og reserve.",
+      "fuel": [
+        "natural_gas"
+      ],
+      "paakraevede": [
+        "type",
+        "p_max_heat",
+        "p_min_heat",
+        "alpha",
+        "fuel",
+        "eta_fuel_to_heat"
+      ],
+      "valgfri": [
+        "enabled",
+        "var_om",
+        "uc_enabled",
+        "start_cost",
+        "min_uptime",
+        "min_downtime",
+        "initial_status",
+        "commissioned",
+        "notes",
+        "co2_emissions_per_mwh_fuel"
+      ],
+      "irrelevante": [
+        "cop_curve",
+        "production_profile_path"
+      ],
+      "kan_byde_balance": false,
+      "skabelon": {
+        "enabled": true,
+        "type": "gas_boiler",
+        "p_max_heat": 15.0,
+        "p_min_heat": 0.0,
+        "alpha": 0.0,
+        "fuel": "natural_gas",
+        "eta_fuel_to_heat": 0.95,
+        "var_om": 30.0,
+        "start_cost": 500.0,
+        "min_uptime": 1,
+        "min_downtime": 1,
+        "uc_enabled": false,
+        "co2_emissions_per_mwh_fuel": 0.2,
+        "ancillary": {
+          "afrr_qualified": false,
+          "mfrr_qualified": false,
+          "fcr_qualified": false
+        }
+      },
+      "noter": [
+        "co2_emissions_per_mwh_fuel ca. 0,2 t/MWh for naturgas."
+      ]
+    },
+    "gas_engine_chp": {
+      "navn": "Gasmotor (kraftvarme)",
+      "beskrivelse": "Naturgas til el og varme. alpha = el/varme > 0 giver elsalg til spot minus produktionstarif. Byder ikke i balancemarkedet i modellen.",
+      "fuel": [
+        "natural_gas"
+      ],
+      "paakraevede": [
+        "type",
+        "p_max_heat",
+        "p_min_heat",
+        "alpha",
+        "fuel",
+        "eta_fuel_to_heat"
+      ],
+      "valgfri": [
+        "enabled",
+        "var_om",
+        "uc_enabled",
+        "start_cost",
+        "min_uptime",
+        "min_downtime",
+        "initial_status",
+        "commissioned",
+        "notes",
+        "co2_emissions_per_mwh_fuel"
+      ],
+      "irrelevante": [
+        "cop_curve",
+        "production_profile_path"
+      ],
+      "kan_byde_balance": false,
+      "skabelon": {
+        "enabled": true,
+        "type": "gas_engine_chp",
+        "p_max_heat": 5.0,
+        "p_min_heat": 1.0,
+        "alpha": 0.84,
+        "fuel": "natural_gas",
+        "eta_fuel_to_heat": 0.49,
+        "var_om": 60.0,
+        "start_cost": 2000.0,
+        "min_uptime": 2,
+        "min_downtime": 2,
+        "uc_enabled": false,
+        "initial_status": 0,
+        "co2_emissions_per_mwh_fuel": 0.2,
+        "ancillary": {
+          "afrr_qualified": false,
+          "mfrr_qualified": false,
+          "fcr_qualified": false
+        }
+      },
+      "noter": [
+        "eta_fuel_to_heat er varmevirkningsgraden alene; elvirkningsgraden ligger i alpha.",
+        "Motorernes balanceindtægt er ikke med (README)."
+      ]
+    },
+    "solar_thermal": {
+      "navn": "Solvarme",
+      "beskrivelse": "Gratis varme; produktionen bindes time for time af en profil-CSV (production_profile_path).",
+      "fuel": [
+        "solar"
+      ],
+      "paakraevede": [
+        "type",
+        "p_max_heat",
+        "p_min_heat",
+        "alpha",
+        "fuel"
+      ],
+      "valgfri": [
+        "enabled",
+        "var_om",
+        "production_profile_path",
+        "notes",
+        "commissioned"
+      ],
+      "irrelevante": [
+        "eta_fuel_to_heat",
+        "co2_emissions_per_mwh_fuel",
+        "cop_curve",
+        "uc_enabled",
+        "start_cost"
+      ],
+      "kan_byde_balance": false,
+      "skabelon": {
+        "enabled": true,
+        "type": "solar_thermal",
+        "p_max_heat": 10.0,
+        "p_min_heat": 0.0,
+        "alpha": 0.0,
+        "fuel": "solar",
+        "var_om": 0.0,
+        "start_cost": 0.0,
+        "uc_enabled": false,
+        "production_profile_path": null,
+        "ancillary": {
+          "afrr_qualified": false,
+          "mfrr_qualified": false,
+          "fcr_qualified": false
+        }
+      },
+      "noter": [
+        "Uden profil er loftet p_max_heat hele døgnet hele året — urealistisk; sæt en profil, der dækker perioden.",
+        "Profilstien er relativ til modelrepoets rod (fx data/solar_andeby_dmi_karup.csv)."
+      ]
+    },
+    "waste_heat": {
+      "navn": "Overskudsvarme",
+      "beskrivelse": "Købt overskudsvarme til en pris pr. MWh (prices.waste_heat).",
+      "fuel": [
+        "waste_heat"
+      ],
+      "paakraevede": [
+        "type",
+        "p_max_heat",
+        "p_min_heat",
+        "alpha",
+        "fuel",
+        "eta_fuel_to_heat"
+      ],
+      "valgfri": [
+        "enabled",
+        "var_om",
+        "uc_enabled",
+        "start_cost",
+        "min_uptime",
+        "min_downtime",
+        "initial_status",
+        "commissioned",
+        "notes"
+      ],
+      "irrelevante": [
+        "cop_curve",
+        "production_profile_path"
+      ],
+      "kan_byde_balance": false,
+      "skabelon": {
+        "enabled": true,
+        "type": "waste_heat",
+        "p_max_heat": 3.0,
+        "p_min_heat": 0.0,
+        "alpha": 0.0,
+        "fuel": "waste_heat",
+        "eta_fuel_to_heat": 1.0,
+        "var_om": 0.0,
+        "start_cost": 0.0,
+        "min_uptime": 1,
+        "min_downtime": 1,
+        "uc_enabled": false,
+        "ancillary": {
+          "afrr_qualified": false,
+          "mfrr_qualified": false,
+          "fcr_qualified": false
+        }
+      },
+      "noter": [
+        "eta_fuel_to_heat er påkrævet af valideringen, men indgår ikke i omkostningen: prisen bruges direkte pr. MWh varme (model.py)."
+      ]
+    }
+  }
+}

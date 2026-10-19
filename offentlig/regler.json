@@ -1,0 +1,306 @@
+{
+  "_om": "Eksportregler (historiske, brugt til den ene eksport fra det oprindelige arbejdsrepo) + undtagelser og binaere_filer, som repo-gaten (scripts/tjek.py) stadig bruger. Mønstre: * = inden for ét mappeniveau, ** = på tværs. Filen er generisk og indeholder ingen organisationsspecifikke værdier.",
+  "udeladt_mapper": [
+    {
+      "navn": "node_modules",
+      "grund": "afhængigheder"
+    },
+    {
+      "navn": ".git",
+      "grund": "versionshistorik"
+    },
+    {
+      "navn": "dist",
+      "grund": "byggeoutput (bygges igen i eksporten)"
+    },
+    {
+      "navn": "_lokal",
+      "grund": "lokal arbejdsmappe: egen venv, udpakninger, kørselsoutput"
+    },
+    {
+      "navn": ".byg",
+      "grund": "byggeoutput fra skærmbillede-harnessen"
+    },
+    {
+      "navn": "billeder",
+      "grund": "genererede skærmbilleder"
+    },
+    {
+      "navn": "__pycache__",
+      "grund": "bytekode"
+    },
+    {
+      "navn": ".temp",
+      "grund": "genererede Rayfin-artefakter"
+    },
+    {
+      "navn": ".venv",
+      "grund": "virtuelt miljø"
+    },
+    {
+      "navn": "dist-rest",
+      "grund": "byggeoutput for community-udgaven (bygges igen fra den rensede eksport)"
+    },
+    {
+      "navn": "dist-community",
+      "grund": "byggeoutput (bygges igen fra den rensede eksport)"
+    }
+  ],
+  "udeladt_filer": [
+    {
+      "moenster": "app/.env*",
+      "grund": "deploy-tilstand: item-, workspace- og tenant-id og publishable key"
+    },
+    {
+      "moenster": "app/rayfin/.env",
+      "grund": "deploy-tilstand"
+    },
+    {
+      "moenster": "app/rayfin/.deployments.json",
+      "grund": "deploy-tilstand (item-id pr. workspace)"
+    },
+    {
+      "moenster": "**/*.log",
+      "grund": "deploy- og kørselslogs (stier, id'er)"
+    },
+    {
+      "moenster": "**/*.tsbuildinfo",
+      "grund": "byggeartefakt"
+    },
+    {
+      "moenster": "**/*.pyc",
+      "grund": "bytekode"
+    },
+    {
+      "moenster": "app/skaermbilleder/harness/fixtures.json",
+      "grund": "udtræk af den rigtige database (værker, kørsler, e-mails)"
+    },
+    {
+      "moenster": "app/skaermbilleder/ruter.txt",
+      "grund": "rigtige kørsels-id'er fra den private database"
+    },
+    {
+      "moenster": "offentlig/forbud.privat.json",
+      "grund": "selve forbudslisten (indeholder det, den forbyder)"
+    },
+    {
+      "moenster": "offentlig/tests/test_forbudslisten.py",
+      "grund": "tester den private forbudsliste (indeholder eksempler paa det forbudte)"
+    },
+    {
+      "moenster": "offentlig/skabeloner/**",
+      "grund": "bruges kun som erstatninger (se erstat), ikke på egen sti"
+    },
+    {
+      "moenster": "README.public.md",
+      "grund": "eksporteres som README.md (se erstat)"
+    },
+    {
+      "moenster": "fabric/ryd_tidsserier.py",
+      "grund": "testoprydning i den private SQL-database"
+    },
+    {
+      "moenster": "fabric/fabric_miljoe.py",
+      "grund": "Fabric-udgavens installationsbinding: workspace- og lakehouse-id (K6-F1, fv-fabric3)"
+    },
+    {
+      "moenster": "fabric/FABRIC_INSTALLATION.md",
+      "grund": "en Fabric-installations: workspace, item-id'er, kapacitet (K6-F1, fv-fabric3)"
+    },
+    {
+      "moenster": "app/scripts/probe.mjs",
+      "grund": "kører mod den rigtige backend med et delegeret token"
+    },
+    {
+      "moenster": "app/scripts/*_live.mjs",
+      "grund": "live-test mod den rigtige backend"
+    },
+    {
+      "moenster": "app/scripts/ryd_testdata.py",
+      "grund": "testoprydning i den private database"
+    },
+    {
+      "moenster": "app/src/styles/temaer/privat/**",
+      "grund": "organisationstemaer (private og uofficielle): maa ikke offentliggoeres, foer organisationen har givet lov"
+    },
+    {
+      "moenster": "**/deploymetadata.json",
+      "grund": "genereret udrulningsmetadata (funktionskode, id'er)"
+    },
+    {
+      "moenster": "app/AGENTS.md",
+      "grund": "agentvejledning for Fabric-udgaven (interne henvisninger, udrulning)"
+    },
+    {
+      "moenster": "app/README.md",
+      "grund": "Fabric-udgavens app-beskrivelse (workspace- og item-id'er); offentlig README er README.public.md"
+    },
+    {
+      "moenster": "app/src/sider/analyser/anbefaling.spec.ts",
+      "grund": "kraever skaermbillede-fixturen (udtraek af den rigtige database, selv privat); filsaettet skal vaere lukket under import"
+    },
+    {
+      "moenster": "app/src/sider/analyser/datagrundlag.spec.ts",
+      "grund": "kraever skaermbillede-fixturen (udtraek af den rigtige database, selv privat); filsaettet skal vaere lukket under import"
+    },
+    {
+      "moenster": "app/src/sider/analyser/k5.spec.ts",
+      "grund": "kraever skaermbillede-fixturen (udtraek af den rigtige database, selv privat); filsaettet skal vaere lukket under import"
+    },
+    {
+      "moenster": "app/src/sider/analyser/sammensaetning.spec.ts",
+      "grund": "kraever skaermbillede-fixturen (udtraek af den rigtige database, selv privat); filsaettet skal vaere lukket under import"
+    },
+    {
+      "moenster": "app/skaermbilleder/harness/**",
+      "grund": "kraever skaermbillede-fixturen (udtraek af den rigtige database, selv privat); filsaettet skal vaere lukket under import"
+    },
+    {
+      "moenster": "fabric/_byg/**",
+      "grund": "genereret af byg.py"
+    },
+    {
+      "moenster": "community/_byg/**",
+      "grund": "genereret af pakke.py (byggemappe)"
+    },
+    {
+      "moenster": "fabric/tests/test_k6.py",
+      "grund": "tester den private installationsbinding (kraever de rigtige vaerdier)"
+    }
+  ],
+  "erstat": [
+    {
+      "fil": "README.md",
+      "med": "README.public.md",
+      "grund": "den offentlige README begynder med kreditten"
+    },
+    {
+      "fil": "app/rayfin/functions/src/konfig.ts",
+      "med": "offentlig/skabeloner/konfig.ts",
+      "grund": "Fabric-id'er (workspace, database, notebooks, lakehouse) -> pladsholdere"
+    },
+    {
+      "fil": "fabric/fabric_miljoe.py",
+      "med": "offentlig/skabeloner/fabric_miljoe.py",
+      "grund": "installationens id'er laeses fra den lokale config/installation.json"
+    },
+    {
+      "fil": ".gitignore",
+      "med": "offentlig/skabeloner/gitignore",
+      "grund": "repoets .gitignore (build, lokal tilstand, installation, lokale temaer)"
+    },
+    {
+      "fil": ".gitattributes",
+      "med": "offentlig/skabeloner/gitattributes",
+      "grund": "licenstekster byte for byte, hooks med LF"
+    }
+  ],
+  "hoester_id_fra": [
+    "app/.env.local",
+    "app/rayfin/.env",
+    "app/rayfin/.deployments.json",
+    "app/.env.fabric"
+  ],
+  "tekstfiler_over_bytes": 8000000,
+  "respekter_gitignore": true,
+  "binaere_filer": [
+    "**/*.png",
+    "**/*.jpg",
+    "**/*.jpeg",
+    "**/*.gif",
+    "**/*.webp",
+    "**/*.ico",
+    "**/*.woff",
+    "**/*.woff2",
+    "**/*.ttf",
+    "**/*.otf",
+    "**/*.pdf"
+  ],
+  "omskriv_filer": [
+    "app/package.json",
+    "app/docs/**",
+    "app/src/backend/rayfin/auth.ts",
+    "app/src/sider/dokumentation/indhold/egne/*.md",
+    "app/src/sider/konfiguration/nyt-vaerk-guide.spec.tsx",
+    "app/skaermbilleder/harness/*.ts",
+    "app/skaermbilleder/harness/*.tsx",
+    "app/src/backend/rayfin/temaer.ts",
+    "app/rayfin/rayfin.yml"
+  ],
+  "omskriv": [
+    {
+      "navn": "kildeangivelse",
+      "filer": [
+        "viden/**",
+        "skema/**",
+        "community/**",
+        "app/src/**",
+        "app/rayfin/**",
+        "app/skaermbilleder/**"
+      ],
+      "moenster": "oa[\\\\/]+fjv[\\\\/]+(?:rapporter|briefs)[\\\\/]+[\\w.-]+",
+      "med": "udviklingsrapport",
+      "grund": "kildeangivelser peger paa interne rapporter uden offentligt mal; teksten bevares, stien erstattes"
+    }
+  ],
+  "undtagelser": [
+    {
+      "fil": "LICENSE",
+      "regler": [
+        "organisation"
+      ],
+      "grund": "den navngivne rettighedshaver i appens egen licens (produktejerens beslutning 2026-10-17); kun denne fil og kun denne regel"
+    },
+    {
+      "fil": "*.whl::fjernvarme_app/_ressourcer/LICENSE",
+      "regler": [
+        "organisation"
+      ],
+      "grund": "wheel'ens kopi af appens egen LICENSE (samme fil, samme beslutning)"
+    },
+    {
+      "fil": "*.whl::*.dist-info/licenses/LICENSE",
+      "regler": [
+        "organisation"
+      ],
+      "grund": "wheel'ens metadata-kopi af appens egen LICENSE (samme fil, samme beslutning)"
+    },
+    {
+      "fil": "app/scripts/tjek_bundle.mjs",
+      "regler": [
+        "organisation",
+        "tema"
+      ],
+      "grund": "scriptet beviser, at bundlen IKKE indeholder de private navne og id'er; moenstrene maa nave dem"
+    },
+    {
+      "fil": "app/src/backend/__tests__/udgave-temaer.spec.ts",
+      "regler": [
+        "organisation",
+        "tema"
+      ],
+      "grund": "testen asserterer fravaer af de private temaer i den offentlige udgave"
+    },
+    {
+      "fil": "app/src/sider/dokumentation/kredit.spec.tsx",
+      "regler": [
+        "organisation"
+      ],
+      "grund": "testen asserterer fravaer af organisationsnavne i kreditteksterne"
+    },
+    {
+      "fil": "app/rayfin/functions/test/vektorer/*.xlsx::xl/sharedStrings.xml",
+      "regler": [
+        "tema"
+      ],
+      "grund": "modelforfatterens egen vaerksdata_skabelon.xlsx (kildens indhold, ikke et tema)"
+    },
+    {
+      "fil": "fabric/tests/data/*.log",
+      "regler": [
+        "log"
+      ],
+      "grund": "testdata (en optaget solverlog som fixture), ikke en kørselslog"
+    }
+  ]
+}

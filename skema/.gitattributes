@@ -1,0 +1,3 @@
+# Genererede filer og kontrakten er LF overalt (byg.py skriver LF; core.autocrlf ville ellers give CRLF ved checkout).
+* text=auto eol=lf
+*.xlsx binary

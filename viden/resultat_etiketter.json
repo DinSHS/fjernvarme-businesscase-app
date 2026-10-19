@@ -1,0 +1,595 @@
+{
+  "_om": "Danske etiketter og forklaringer til modellens resultatfelter, til fv-fabric's maaleregister.json (KONTRAKT v2 §3, Måleregister) og fv-app's visninger. fv-fabric ejer registeret (kilde, gruppe, aggregering); dette er fv-ekspert's faglige del. <enhed>, <lager> og <marked> er pladsholdere i kolonnenavnet. Kilder er fil:linje i modelrepoet @ b49aeb0.",
+  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "manifest_noegletal": [
+    {
+      "noegle": "objektiv_dkk",
+      "etiket": "Samlet driftsomkostning (objektiv)",
+      "enhed": "kr.",
+      "forklaring": "Det tal, optimeringen minimerer: brændsel, el, tariffer, afgifter, D&V og starter minus elsalg og balanceindtægt (brutto) for hele perioden. Afrundet til hele kr. i manifestet; brug det præcise tal fra løsningen til differenser.",
+      "kilde": "src/manifest.py:208; src/solve.py:216-218"
+    },
+    {
+      "noegle": "varmeefterspoergsel_mwh",
+      "etiket": "Varmebehov",
+      "enhed": "MWh",
+      "forklaring": "Summen af varmebehovet over alle intervaller i perioden.",
+      "kilde": "src/manifest.py:155"
+    },
+    {
+      "noegle": "samlet_produktion_mwh",
+      "etiket": "Samlet varmeproduktion",
+      "enhed": "MWh",
+      "forklaring": "Summen af alle enheders produktion. Kan afvige lidt fra varmebehovet på grund af tankens varmetab og den forventede aktivering.",
+      "kilde": "src/manifest.py:156; src/reporting.py:87-90"
+    },
+    {
+      "noegle": "nettab_mwh",
+      "etiket": "Nettab",
+      "enhed": "MWh",
+      "forklaring": "Syntesens nettabsled. Tom ved målt varmelast, hvor nettabet allerede er i målingen.",
+      "kilde": "src/manifest.py:157-158"
+    },
+    {
+      "noegle": "nettab_pct",
+      "etiket": "Nettab i procent af varmebehov",
+      "enhed": "%",
+      "forklaring": "Nettab delt med varmebehov. Tom ved målt varmelast.",
+      "kilde": "src/manifest.py:212-213"
+    },
+    {
+      "noegle": "balanceindtaegt_dkk.i_alt",
+      "etiket": "Balanceindtægt, netto, i alt",
+      "enhed": "kr.",
+      "forklaring": "Kapacitet + netto aktiveringsbetaling (kun aktiveringsprisen) for aFRR og mFRR. Ikke det samme som balancemarkedets værdi: den findes kun som differens i samlet omkostning mellem en kørsel med og uden balancering.",
+      "kilde": "src/manifest.py:62-113"
+    },
+    {
+      "noegle": "balanceindtaegt_dkk.afrr",
+      "etiket": "Balanceindtægt aFRR, netto",
+      "enhed": "kr.",
+      "forklaring": "aFRR-kapacitet + netto aFRR-aktivering.",
+      "kilde": "src/manifest.py:98-106"
+    },
+    {
+      "noegle": "balanceindtaegt_dkk.mfrr",
+      "etiket": "Balanceindtægt mFRR, netto",
+      "enhed": "kr.",
+      "forklaring": "mFRR-kapacitet + netto mFRR-aktivering.",
+      "kilde": "src/manifest.py:98-107"
+    },
+    {
+      "noegle": "balanceindtaegt_dkk.brutto.i_alt",
+      "etiket": "Balanceindtægt, brutto, i alt",
+      "enhed": "kr.",
+      "forklaring": "Som netto plus den sparede forbrugsomkostning (spot, tarif, afgift) ved aktivering. Det er dette beløb, der indgår i objektivet. Vis aldrig netto og brutto i samme sum.",
+      "kilde": "src/manifest.py:73-77; src/manifest.py:108-112"
+    },
+    {
+      "noegle": "balanceindtaegt_dkk.brutto.afrr",
+      "etiket": "Balanceindtægt aFRR, brutto",
+      "enhed": "kr.",
+      "forklaring": "aFRR netto + sparet forbrug ved aFRR-aktivering.",
+      "kilde": "src/manifest.py:108-112"
+    },
+    {
+      "noegle": "balanceindtaegt_dkk.brutto.mfrr",
+      "etiket": "Balanceindtægt mFRR, brutto",
+      "enhed": "kr.",
+      "forklaring": "mFRR netto + sparet forbrug ved mFRR-aktivering.",
+      "kilde": "src/manifest.py:108-112"
+    },
+    {
+      "noegle": "tank_arbitrage_dkk",
+      "etiket": "Tankens arbitrageværdi (skyggepris)",
+      "enhed": "kr.",
+      "forklaring": "Kun ved ren LP. Ved MILP (alle repoets værker) findes skyggepriser ikke, og feltet er tomt — ikke nul. Tankens værdi regnes i stedet som differens med og uden tank.",
+      "kilde": "src/manifest.py:116-127"
+    },
+    {
+      "noegle": "co2_ton",
+      "etiket": "CO₂-udledning",
+      "enhed": "t",
+      "forklaring": "Brændsel × udledningsfaktor for enheder med co2_emissions_per_mwh_fuel > 0. Biomasse regnes CO₂-neutral.",
+      "kilde": "src/manifest.py:130-147"
+    }
+  ],
+  "kpi_csv": [
+    {
+      "kolonne": "unit",
+      "etiket": "Enhed",
+      "enhed": null,
+      "forklaring": "Enhedsnavnet (identitet, ikke et tal).",
+      "kilde": "src/reporting.py:77"
+    },
+    {
+      "kolonne": "p_max_mw",
+      "etiket": "Nominel varmeeffekt",
+      "enhed": "MW",
+      "forklaring": "Enhedens p_max_heat. For varmepumpe med ydelsestabel og for solvarme kan det faktiske loft være lavere time for time.",
+      "kilde": "src/reporting.py:70; src/reporting.py:78"
+    },
+    {
+      "kolonne": "production_mwh",
+      "etiket": "Varmeproduktion",
+      "enhed": "MWh",
+      "forklaring": "Enhedens samlede produktion i perioden.",
+      "kilde": "src/reporting.py:79"
+    },
+    {
+      "kolonne": "share_pct",
+      "etiket": "Andel af varmeproduktionen",
+      "enhed": "%",
+      "forklaring": "Enhedens produktion delt med alle enheders.",
+      "kilde": "src/reporting.py:80"
+    },
+    {
+      "kolonne": "capacity_factor_pct",
+      "etiket": "Kapacitetsfaktor",
+      "enhed": "%",
+      "forklaring": "Produktion delt med nominel effekt × periodens timer.",
+      "kilde": "src/reporting.py:74; src/reporting.py:81"
+    },
+    {
+      "kolonne": "operating_hours",
+      "etiket": "Driftsintervaller",
+      "enhed": "antal",
+      "forklaring": "Antal tidsintervaller, hvor enheden producerer. Ved 1h er det driftstimer, ved 15min kvarterer. Manifestet kalder det fejlagtigt 'fuldlasttimer'.",
+      "kilde": "src/reporting.py:75; src/manifest.py:228"
+    },
+    {
+      "kolonne": "(afledt) fuldlasttimer",
+      "etiket": "Fuldlasttimer",
+      "enhed": "timer",
+      "forklaring": "Produktion i MWh delt med nominel effekt i MW. Beregnes af appen/notebooken; findes ikke i modellens output.",
+      "kilde": "KONTRAKT §3.10"
+    }
+  ],
+  "maaned": [
+    {
+      "kolonne": "<enhed>_gwh",
+      "etiket": "Varmeproduktion pr. enhed",
+      "enhed": "GWh",
+      "aggregering": "sum",
+      "kilde": "src/reporting.py:232"
+    },
+    {
+      "kolonne": "heat_load_gwh",
+      "etiket": "Varmebehov",
+      "enhed": "GWh",
+      "aggregering": "sum",
+      "kilde": "src/reporting.py:234"
+    },
+    {
+      "kolonne": "<lager>_value_kdkk",
+      "etiket": "Tankens værdi (skyggepris)",
+      "enhed": "1.000 kr.",
+      "aggregering": "sum",
+      "forklaring": "Kun ved LP; findes ikke ved MILP.",
+      "kilde": "src/reporting.py:240"
+    },
+    {
+      "kolonne": "spot_mean_dkk_mwh",
+      "etiket": "Gennemsnitlig spotpris",
+      "enhed": "kr./MWh",
+      "aggregering": "intervalvægtet middel",
+      "kilde": "src/reporting.py:242"
+    },
+    {
+      "kolonne": "shadow_mean_dkk_mwh",
+      "etiket": "Gennemsnitlig varmepris (skyggepris)",
+      "enhed": "kr./MWh",
+      "aggregering": "intervalvægtet middel",
+      "forklaring": "Kun ved LP.",
+      "kilde": "src/reporting.py:244"
+    },
+    {
+      "kolonne": "t_out_c",
+      "etiket": "Gennemsnitlig udetemperatur",
+      "enhed": "°C",
+      "aggregering": "intervalvægtet middel",
+      "kilde": "src/reporting.py:246"
+    }
+  ],
+  "interval": [
+    {
+      "kolonne": "heat_load_mw",
+      "etiket": "Varmebehov",
+      "enhed": "MW"
+    },
+    {
+      "kolonne": "heat_gaf_mw",
+      "etiket": "Heraf rumvarme",
+      "enhed": "MW",
+      "forklaring": "Kun ved syntetisk varmelast."
+    },
+    {
+      "kolonne": "heat_guf_mw",
+      "etiket": "Heraf grundlast (brugsvand og konstant nettab)",
+      "enhed": "MW",
+      "forklaring": "Kun ved syntetisk varmelast."
+    },
+    {
+      "kolonne": "heat_nettab_mw",
+      "etiket": "Heraf temperaturafhængigt nettab",
+      "enhed": "MW",
+      "forklaring": "Kun ved syntetisk varmelast."
+    },
+    {
+      "kolonne": "heat_nettab_pct",
+      "etiket": "Nettab i procent af varmebehov",
+      "enhed": "%",
+      "forklaring": "Tom (NaN) ved nul last."
+    },
+    {
+      "kolonne": "spot_price_dkk_mwh",
+      "etiket": "Spotpris",
+      "enhed": "kr./MWh"
+    },
+    {
+      "kolonne": "shadow_price_heat_dkk_mwh",
+      "etiket": "Varmepris (skyggepris)",
+      "enhed": "kr./MWh",
+      "forklaring": "Kun ved LP."
+    },
+    {
+      "kolonne": "t_out_c",
+      "etiket": "Udetemperatur",
+      "enhed": "°C"
+    },
+    {
+      "kolonne": "afrr_cap_up_dkk_mw_h",
+      "etiket": "aFRR-kapacitetspris, op",
+      "enhed": "kr./MW/t"
+    },
+    {
+      "kolonne": "afrr_act_up_dkk_mwh",
+      "etiket": "aFRR-aktiveringspris, op",
+      "enhed": "kr./MWh"
+    },
+    {
+      "kolonne": "afrr_activation_fraction_up",
+      "etiket": "aFRR: systemets aktiverede andel",
+      "enhed": "andel"
+    },
+    {
+      "kolonne": "mfrr_cap_up_dkk_mw_h",
+      "etiket": "mFRR-kapacitetspris, op",
+      "enhed": "kr./MW/t"
+    },
+    {
+      "kolonne": "mfrr_act_up_dkk_mwh",
+      "etiket": "mFRR-aktiveringspris (marginal), op",
+      "enhed": "kr./MWh"
+    },
+    {
+      "kolonne": "mfrr_activation_fraction_up",
+      "etiket": "mFRR: systemets aktiverede andel",
+      "enhed": "andel"
+    },
+    {
+      "kolonne": "p_<enhed>_mw",
+      "etiket": "Varmeproduktion",
+      "enhed": "MW"
+    },
+    {
+      "kolonne": "<enhed>_commit_01",
+      "etiket": "Tændt (1) / slukket (0)",
+      "enhed": null,
+      "forklaring": "Kun enheder med start/stop-logik."
+    },
+    {
+      "kolonne": "<enhed>_startup_01",
+      "etiket": "Start i intervallet",
+      "enhed": null
+    },
+    {
+      "kolonne": "<enhed>_shutdown_01",
+      "etiket": "Stop i intervallet",
+      "enhed": null
+    },
+    {
+      "kolonne": "r_<marked>_<enhed>_mw",
+      "etiket": "Reserveret effekt",
+      "enhed": "MW el",
+      "forklaring": "Buddet i marked aFRR eller mFRR."
+    },
+    {
+      "kolonne": "r_<marked>_<enhed>_activated_mwh",
+      "etiket": "Forventet aktiveret energi",
+      "enhed": "MWh el"
+    },
+    {
+      "kolonne": "r_<marked>_<enhed>_heat_reduction_mw",
+      "etiket": "Forventet varme, der ikke produceres",
+      "enhed": "MW varme"
+    },
+    {
+      "kolonne": "r_<marked>_<enhed>_cap_revenue_dkk",
+      "etiket": "Kapacitetsindtægt",
+      "enhed": "kr."
+    },
+    {
+      "kolonne": "r_<marked>_<enhed>_act_revenue_dkk",
+      "etiket": "Aktiveringsindtægt, netto",
+      "enhed": "kr.",
+      "forklaring": "Kun aktiveringsprisen."
+    },
+    {
+      "kolonne": "r_<marked>_<enhed>_act_gross_dkk",
+      "etiket": "Aktiveringsindtægt, brutto",
+      "enhed": "kr.",
+      "forklaring": "Inkl. sparet forbrug; kun ved activation_value."
+    },
+    {
+      "kolonne": "<lager>_level_mwh",
+      "etiket": "Tankens indhold",
+      "enhed": "MWh"
+    },
+    {
+      "kolonne": "<lager>_level_pct",
+      "etiket": "Tankens fyldning",
+      "enhed": "%"
+    },
+    {
+      "kolonne": "<lager>_charge_mw",
+      "etiket": "Ladning",
+      "enhed": "MW"
+    },
+    {
+      "kolonne": "<lager>_discharge_mw",
+      "etiket": "Afladning",
+      "enhed": "MW"
+    },
+    {
+      "kolonne": "<lager>_net_mw",
+      "etiket": "Netto ladning",
+      "enhed": "MW"
+    },
+    {
+      "kolonne": "<lager>_shadow_dkk_mwh",
+      "etiket": "Tankens skyggepris",
+      "enhed": "kr./MWh",
+      "forklaring": "Kun ved LP."
+    },
+    {
+      "kolonne": "<lager>_value_dkk",
+      "etiket": "Tankens værdi i intervallet",
+      "enhed": "kr.",
+      "forklaring": "Kun ved LP."
+    }
+  ],
+  "interval_kilde": "src/reporting.py:289-500. Reservekolonner: variabelnavnet er r_afrr_<enhed> eller r_mfrr_<enhed>, og suffikserne _mw, _activated_mwh, _heat_reduction_mw, _cap_revenue_dkk, _act_revenue_dkk og _act_gross_dkk hænges direkte på (src/reporting.py:401-460), fx r_afrr_vp_luft_vand_cap_revenue_dkk. Filen har én række færre end perioden (første interval udeladt, src/reporting.py:314-338).",
+  "faste_forbehold_ved_visning": [
+    {
+      "hvornaar": "altid ved balancetal",
+      "tekst": "Balancetal vises pr. marked (aFRR/mFRR) og pr. produkt (kapacitet/aktivering). Spor A er en øvre grænse.",
+      "kilde": "README.md:112-122"
+    },
+    {
+      "hvornaar": "ved sammenligning med og uden tank",
+      "tekst": "I første interval er tankens balance ubundet, så kørslen med tank får gratis varme dér. På et kort vindue kan det være en stor del af forskellen (Andeby 5.–16. jan 2026: ca. 22.300 kr. af 44.220 kr.); over et år er det småt.",
+      "kilde": "src/reporting.py:314-338; udviklingsrapport"
+    },
+    {
+      "hvornaar": "ved MILP og skyggepriser",
+      "tekst": "Skyggepriser og tankens arbitrageværdi findes ikke ved MILP; de vises som 'ikke tilgængelig', ikke som 0.",
+      "kilde": "src/manifest.py:116-127"
+    },
+    {
+      "hvornaar": "ved Andeby med balancering",
+      "tekst": "Andebys balancetal er et potentiale ved fuld tilgængelighed, ikke hvad et værk vil tjene.",
+      "kilde": "README.md:157-159"
+    }
+  ],
+  "maaleregister_noegler": {
+    "_om": "Etiketter, enheder og forklaringer til de nøgler i fabric/maaleregister.json, som fv-fabric havde givet en foreslået etiket (version 2, læst 2026-10-16 08:15). Nøglen er '<sektion>:<gruppe>.<noegle>' for noegletal og 'maaned:<noegle>' for måned — til brug som etiket_ref.",
+    "noegletal:enhed.driftstimer": {
+      "etiket": "Driftstimer",
+      "enhed": "timer",
+      "forklaring": "Timer, hvor enheden producerer noget. Driftsintervaller × intervallets længde. Ikke det samme som fuldlasttimer."
+    },
+    "noegletal:el.forbrug_mwh": {
+      "etiket": "Elforbrug",
+      "enhed": "MWh el",
+      "forklaring": "El, som varmepumper og elkedler bruger til den planlagte varmeproduktion — før forventet aktivering. Varme / COP time for time.",
+      "kilde": "src/model.py:65-85"
+    },
+    "noegletal:el.spot_dkk": {
+      "etiket": "Elomkostning: spot",
+      "enhed": "kr.",
+      "forklaring": "Elforbruget × spotprisen time for time."
+    },
+    "noegletal:el.tarif_dkk": {
+      "etiket": "Elomkostning: nettarif",
+      "enhed": "kr.",
+      "forklaring": "Elforbruget × forbrugstariffen (båndprofilen, hvis værket har en, ellers den faste sats), uden elafgift.",
+      "kilde": "src/tariff.py:252-307"
+    },
+    "noegletal:el.afgift_dkk": {
+      "etiket": "Elomkostning: elafgift",
+      "enhed": "kr.",
+      "forklaring": "Elforbruget × elafgiften."
+    },
+    "noegletal:el.omkostning_dkk": {
+      "etiket": "Elomkostning i alt",
+      "enhed": "kr.",
+      "forklaring": "Spot + nettarif + elafgift for enhedens elforbrug. Det sparede elkøb ved aktivering er ikke trukket fra her; det ligger i balanceindtægten (brutto)."
+    },
+    "noegletal:el.produktion_mwh": {
+      "etiket": "Elproduktion (kraftvarme)",
+      "enhed": "MWh el",
+      "forklaring": "El fra gasmotoren, regnet som α × varmeproduktion (α = el/varme).",
+      "kilde": "src/model.py:103-108"
+    },
+    "noegletal:el.salg_dkk": {
+      "etiket": "Elsalg (spot)",
+      "enhed": "kr.",
+      "forklaring": "Elproduktionen × spotprisen. Indtægt; trækkes fra i objektivet."
+    },
+    "noegletal:el.produktionstarif_dkk": {
+      "etiket": "Produktionstarif",
+      "enhed": "kr.",
+      "forklaring": "Tarif for at levere el til nettet: elproduktionen × produktionstariffen. Trækkes fra elsalget.",
+      "kilde": "src/model.py:103-108"
+    },
+    "noegletal:balancering.reserveret_mwh": {
+      "etiket": "Reserveret kapacitet (MW-timer)",
+      "enhed": "MW·h",
+      "forklaring": "Summen over perioden af den budte effekt pr. time. Et mål for, hvor meget der er stillet til rådighed — ikke energi. Den forventet aktiverede energi står for sig."
+    },
+    "noegletal:balancering.reserveret_middel_mw": {
+      "etiket": "Gennemsnitligt bud",
+      "enhed": "MW el",
+      "forklaring": "Gennemsnitlig budt effekt over hele perioden, også timer uden bud."
+    },
+    "noegletal:balancering.reserveret_max_mw": {
+      "etiket": "Største bud",
+      "enhed": "MW el",
+      "forklaring": "Den største budte effekt i ét interval."
+    },
+    "noegletal:balancering.budtimer": {
+      "etiket": "Timer med bud",
+      "enhed": "timer",
+      "forklaring": "Timer, hvor enheden har budt i markedet (over 0,01 MW)."
+    },
+    "noegletal:balancering.kapacitetsindtaegt_dkk": {
+      "etiket": "Kapacitetsindtægt",
+      "enhed": "kr.",
+      "forklaring": "Betaling for at stå til rådighed: budt effekt × kapacitetsprisen, time for time."
+    },
+    "noegletal:balancering.aktivering_netto_dkk": {
+      "etiket": "Aktiveringsindtægt, netto",
+      "enhed": "kr.",
+      "forklaring": "Kun aktiveringsprisen for den forventet aktiverede energi."
+    },
+    "noegletal:balancering.aktivering_brutto_dkk": {
+      "etiket": "Aktiveringsindtægt, brutto",
+      "enhed": "kr.",
+      "forklaring": "Netto + det sparede elkøb ved aktivering. Det er brutto, objektivet regner med. Findes kun ved metoden activation_value."
+    },
+    "noegletal:balancering.forbrugsmodregning_dkk": {
+      "etiket": "Sparet elkøb ved aktivering",
+      "enhed": "kr.",
+      "forklaring": "Det el, enheden ikke køber, når den aktiveres (spot + tarif + elafgift) = brutto − netto. Regnet med den FASTE tarif (tariff_consumption_flat), også når værket har en båndprofil — derfor ikke direkte sammenlignelig med 'Elomkostning: nettarif'.",
+      "kilde": "src/data_loader_github.py:690-698"
+    },
+    "noegletal:balancering.aktiveret_mwh": {
+      "etiket": "Forventet aktiveret energi",
+      "enhed": "MWh el",
+      "forklaring": "El, som modellen forventer aktiveret (ikke købt). En forventning efter den valgte aktiveringsmodel, ikke en realiseret mængde."
+    },
+    "noegletal:lager.opladet_mwh": {
+      "etiket": "Opladet varme",
+      "enhed": "MWh",
+      "forklaring": "Varme lagt i tanken over perioden."
+    },
+    "noegletal:lager.afladet_mwh": {
+      "etiket": "Afladet varme",
+      "enhed": "MWh",
+      "forklaring": "Varme hentet fra tanken over perioden. Forskellen til opladet varme er tankens varmetab (og første intervals ubundne afladning)."
+    },
+    "noegletal:lager.niveau_start_mwh": {
+      "etiket": "Tankens indhold ved start",
+      "enhed": "MWh",
+      "forklaring": "Indholdet i periodens første interval; lig værkets startindhold (e_initial_mwh). Forbehold: i første interval er tankens balance ubundet, så kørslen med tank kan få lidt gratis varme dér.",
+      "kilde": "src/model.py:262-270"
+    },
+    "noegletal:lager.niveau_slut_mwh": {
+      "etiket": "Tankens indhold ved slut",
+      "enhed": "MWh",
+      "forklaring": "Indholdet i periodens sidste interval. Med 'slut som start' (cycle_binding) er det lig startindholdet.",
+      "kilde": "src/model.py:277-283"
+    },
+    "noegletal:lager.niveau_max_mwh": {
+      "etiket": "Tankens højeste indhold",
+      "enhed": "MWh",
+      "forklaring": "Det største indhold i ét interval. Sammenlign med kapaciteten for at se, om tanken bliver fyldt."
+    },
+    "noegletal:uc.starter": {
+      "etiket": "Antal starter",
+      "enhed": "antal",
+      "forklaring": "Hvor mange gange en enhed med start/stop-logik (unit commitment) starter i perioden."
+    },
+    "noegletal:uc.timer_i_drift": {
+      "etiket": "Timer tændt",
+      "enhed": "timer",
+      "forklaring": "Timer, hvor enheden med start/stop-logik er tændt, uanset hvor meget den producerer."
+    },
+    "maaned:nettab_gwh": {
+      "etiket": "Nettab",
+      "enhed": "GWh",
+      "forklaring": "Syntesens nettabsled. Tom ved målt varmelast, hvor nettabet allerede er i målingen."
+    },
+    "maaned:opladet_mwh": {
+      "etiket": "Opladet varme",
+      "enhed": "MWh",
+      "forklaring": "Varme lagt i tanken i måneden."
+    },
+    "maaned:afladet_mwh": {
+      "etiket": "Afladet varme",
+      "enhed": "MWh",
+      "forklaring": "Varme hentet fra tanken i måneden."
+    },
+    "maaned:el_forbrug_mwh": {
+      "etiket": "Elforbrug",
+      "enhed": "MWh el",
+      "forklaring": "El til varmeproduktion i måneden, før forventet aktivering."
+    },
+    "maaned:el_spot_dkk": {
+      "etiket": "Elomkostning: spot",
+      "enhed": "kr.",
+      "forklaring": "Elforbrug × spotpris i måneden."
+    },
+    "maaned:el_tarif_dkk": {
+      "etiket": "Elomkostning: nettarif",
+      "enhed": "kr.",
+      "forklaring": "Elforbrug × forbrugstarif i måneden, uden elafgift."
+    },
+    "maaned:el_afgift_dkk": {
+      "etiket": "Elomkostning: elafgift",
+      "enhed": "kr.",
+      "forklaring": "Elforbrug × elafgift i måneden."
+    },
+    "maaned:el_produktion_mwh": {
+      "etiket": "Elproduktion (kraftvarme)",
+      "enhed": "MWh el",
+      "forklaring": "El fra gasmotoren i måneden."
+    },
+    "maaned:el_salg_dkk": {
+      "etiket": "Elsalg (spot)",
+      "enhed": "kr.",
+      "forklaring": "Elproduktion × spotpris i måneden."
+    },
+    "maaned:<marked>_reserveret_mwh": {
+      "etiket": "Reserveret kapacitet (MW-timer)",
+      "enhed": "MW·h",
+      "forklaring": "Budt effekt summeret over månedens timer. Ikke energi."
+    },
+    "maaned:<marked>_kapacitetsindtaegt_dkk": {
+      "etiket": "Kapacitetsindtægt",
+      "enhed": "kr.",
+      "forklaring": "Budt effekt × kapacitetspris i måneden."
+    },
+    "maaned:<marked>_aktivering_netto_dkk": {
+      "etiket": "Aktiveringsindtægt, netto",
+      "enhed": "kr.",
+      "forklaring": "Kun aktiveringsprisen, i måneden."
+    },
+    "maaned:<marked>_aktivering_brutto_dkk": {
+      "etiket": "Aktiveringsindtægt, brutto",
+      "enhed": "kr.",
+      "forklaring": "Netto + sparet elkøb (fast tarif) ved aktivering, i måneden. Lægges aldrig sammen med netto."
+    },
+    "maaned:<marked>_aktiveret_mwh": {
+      "etiket": "Forventet aktiveret energi",
+      "enhed": "MWh el",
+      "forklaring": "Forventet aktiveret el i måneden."
+    },
+    "maaned:antal_interval": {
+      "etiket": "Intervaller i måneden",
+      "enhed": "antal",
+      "forklaring": "Antal tidsintervaller i måneden i kørslen. Gør delmåneder synlige: 96 timeintervaller er 4 døgn, ikke en hel måned."
+    }
+  }
+}

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Pre-commit-gate: stopper et commit, der indeholder noget organisationsspecifikt (installationens id'er, servernavne, lokale
+# stier, private temaer ...). Installér én gang pr. kopi:   python scripts/tjek.py --installer-hook
+# Omgå ikke med --no-verify: gaten er det eneste, der forhindrer, at en installations værdier havner i det delte repo.
+rod="$(git rev-parse --show-toplevel)" || exit 1
+cd "$rod" || exit 1
+for py in "${FJV_PYTHON:-}" python3 python py; do
+    [ -n "$py" ] && command -v "$py" >/dev/null 2>&1 && exec "$py" scripts/tjek.py --staged
+done
+echo "pre-commit: ingen Python fundet (saet FJV_PYTHON eller laeg python paa PATH)" >&2
+exit 1

@@ -1,0 +1,1214 @@
+{
+ "arbejder_laas_fri": [
+  {
+   "advarsler": [],
+   "tilstand": {
+    "arbejder_id": "nb:spor",
+    "koe_stop": "køen er tom",
+    "koersler": [
+     {
+      "besked": null,
+      "fejlbesked": null,
+      "koeretid_s": null,
+      "koersel_id": "aaaaaaaa-0000-4000-8000-000000000001",
+      "objektiv_dkk": 1.5,
+      "opnaaet_gap": null,
+      "status": "faerdig"
+     },
+     {
+      "besked": null,
+      "fejlbesked": "Modellen er uløselig",
+      "koeretid_s": null,
+      "koersel_id": "bbbbbbbb-0000-4000-8000-000000000002",
+      "objektiv_dkk": null,
+      "opnaaet_gap": null,
+      "status": "fejl"
+     }
+    ],
+    "laas": "taget",
+    "ok": true,
+    "ryddet_doede": [
+     "eeeeeeee-0000-4000-8000-00000000000e"
+    ]
+   },
+   "trin": [
+    [
+     "arbejder",
+     {
+      "arbejder_id": "nb:spor"
+     }
+    ],
+    [
+     "laas",
+     "fjv_solver taget"
+    ],
+    [
+     "motor_pins",
+     {
+      "data_commit": "392992c7fe35992e79fba8d1ba7b91967e8d1481",
+      "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836"
+     }
+    ],
+    [
+     "ryddet_doede",
+     [
+      "eeeeeeee-0000-4000-8000-00000000000e"
+     ]
+    ],
+    [
+     "koersel",
+     {
+      "besked": null,
+      "fejlbesked": null,
+      "koeretid_s": null,
+      "koersel_id": "aaaaaaaa-0000-4000-8000-000000000001",
+      "objektiv_dkk": 1.5,
+      "opnaaet_gap": null,
+      "status": "faerdig"
+     }
+    ],
+    [
+     "koersel",
+     {
+      "besked": null,
+      "fejlbesked": "Modellen er uløselig",
+      "koeretid_s": null,
+      "koersel_id": "bbbbbbbb-0000-4000-8000-000000000002",
+      "objektiv_dkk": null,
+      "opnaaet_gap": null,
+      "status": "fejl"
+     }
+    ],
+    [
+     "koe_stop",
+     "køen er tom"
+    ]
+   ]
+  },
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SET NOCOUNT ON; DECLARE @r int; EXEC @r = sp_getapplock @Resource=?, @LockMode='Exclusive', @LockOwner='Session', @LockTimeout=0; SELECT @r",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT COL_LENGTH(?, ?)",
+   [
+    "dbo.Motors",
+    "data_commit"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "IF NOT EXISTS (SELECT 1 FROM dbo.Motors WHERE id=?) INSERT INTO dbo.Motors (id, aendret) VALUES (?, SYSUTCDATETIME()); UPDATE dbo.Motors SET model_commit=?, data_commit=?, aendret=SYSUTCDATETIME() WHERE id=?",
+   [
+    "00000000-0000-4000-8000-00000000f001",
+    "00000000-0000-4000-8000-00000000f001",
+    "b49aeb0af097be42938b80a0fea6acdd77162836",
+    "392992c7fe35992e79fba8d1ba7b91967e8d1481",
+    "00000000-0000-4000-8000-00000000f001"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT APPLOCK_MODE('public', ?, 'Session')",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT CAST(id AS nvarchar(36)) id, arbejder_id, DATEDIFF(second, COALESCE(hjerteslag, startet), SYSUTCDATETIME()) alder_s FROM dbo.Koersels WHERE status IN ('koerer','indlaeser') AND ISNULL(arbejder_id, '') <> ? AND COALESCE(hjerteslag, startet) >= DATEADD(second, -?, SYSUTCDATETIME())",
+   [
+    "nb:spor",
+    "300"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT APPLOCK_MODE('public', ?, 'Session')",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET status='fejl', afsluttet=SYSUTCDATETIME(), fase=N'Fejl', fejlbesked=N'Arbejderen stoppede uden at afslutte kørslen (fx fordi jobbet blev stoppet eller kapaciteten sat på pause). Bestil kørslen igen.' OUTPUT CAST(inserted.id AS nvarchar(36)) id WHERE status IN ('koerer','indlaeser') AND ISNULL(arbejder_id, '') <> ? AND COALESCE(hjerteslag, startet) < DATEADD(second, -?, SYSUTCDATETIME())",
+   [
+    "nb:spor",
+    "300"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT APPLOCK_MODE('public', ?, 'Session')",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET status='koerer', arbejder_id=?, hjerteslag=SYSUTCDATETIME(), startet=SYSUTCDATETIME(), forsoeg=forsoeg+1 WHERE id=? AND status IN ('koe','startet') AND annuller_anmodet IS NULL",
+   [
+    "nb:spor",
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT CAST(id AS nvarchar(36)) id, input_hash, status, vaerk_revision, CAST(vaerk_id AS nvarchar(36)) vaerk_id FROM dbo.Koersels WHERE id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT kilde, sti, vaerdi_json FROM dbo.KoerselInputs WHERE koersel_id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT status, annuller_anmodet, arbejder_id FROM dbo.Koersels WHERE id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT APPLOCK_MODE('public', ?, 'Session')",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET fase=? WHERE id=? AND arbejder_id=? AND status IN ('koerer','indlaeser')",
+   [
+    "Kontrollerer input",
+    "aaaaaaaa-0000-4000-8000-000000000001",
+    "nb:spor"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET hjerteslag=SYSUTCDATETIME() WHERE id=? AND arbejder_id=? AND status IN ('koerer','indlaeser')",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001",
+    "nb:spor"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT status, annuller_anmodet, arbejder_id FROM dbo.Koersels WHERE id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT APPLOCK_MODE('public', ?, 'Session')",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT COL_LENGTH(?, ?)",
+   [
+    "dbo.Tidsseries",
+    "sti"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT sti FROM dbo.Tidsseries WHERE id=?",
+   [
+    "11111111-0000-4000-8000-000000000011"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET model_commit=?, data_commit=?, startet=SYSUTCDATETIME() WHERE id=? AND arbejder_id=? AND status IN ('koerer','indlaeser')",
+   [
+    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "dddddddddddddddddddddddddddddddddddddddd",
+    "aaaaaaaa-0000-4000-8000-000000000001",
+    "nb:spor"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET status=? WHERE id=? AND status=? AND arbejder_id=? AND annuller_anmodet IS NULL",
+   [
+    "indlaeser",
+    "aaaaaaaa-0000-4000-8000-000000000001",
+    "koerer",
+    "nb:spor"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "False"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "False"
+   ]
+  ],
+  [
+   "SELECT status, arbejder_id, annuller_anmodet FROM dbo.Koersels WITH (UPDLOCK, HOLDLOCK) WHERE id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "DELETE FROM dbo.KoerselNoegletals WHERE koersel_id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "DELETE FROM dbo.KoerselMaaneds WHERE koersel_id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "DELETE FROM dbo.KoerselTimes WHERE koersel_id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "INSERT INTO dbo.KoerselNoegletals (id, koersel_id, gruppe, objekt, marked, noegle, vaerdi, enhed) SELECT NEWID(), ?, j.gruppe, j.objekt, j.marked, j.noegle, j.vaerdi, j.enhed FROM OPENJSON(?) WITH (gruppe nvarchar(60) '$.g', objekt nvarchar(120) '$.o', marked nvarchar(20) '$.m', noegle nvarchar(120) '$.n', vaerdi decimal(28,10) '$.v', enhed nvarchar(40) '$.e') j",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001",
+    "[{\"g\":\"g\",\"o\":null,\"m\":null,\"n\":\"n\",\"v\":\"1.5000000000\",\"e\":\"DKK\"}]"
+   ]
+  ],
+  [
+   "SELECT COUNT(*) FROM dbo.KoerselNoegletals WHERE koersel_id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "SELECT COUNT(*) FROM (SELECT 1 x FROM dbo.KoerselNoegletals WHERE koersel_id=? GROUP BY gruppe, objekt, marked, noegle HAVING COUNT(*) > 1) d",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "SELECT COUNT(*) FROM dbo.KoerselMaaneds WHERE koersel_id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "SELECT COUNT(*) FROM (SELECT 1 x FROM dbo.KoerselMaaneds WHERE koersel_id=? GROUP BY maaned, objekt, noegle HAVING COUNT(*) > 1) d",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "SELECT COUNT(*) FROM dbo.KoerselTimes WHERE koersel_id=?",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "SELECT COUNT(*) FROM (SELECT 1 x FROM dbo.KoerselTimes WHERE koersel_id=? GROUP BY tid HAVING COUNT(*) > 1) d",
+   [
+    "aaaaaaaa-0000-4000-8000-000000000001"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET status='faerdig', afsluttet=SYSUTCDATETIME(), fase=N'Færdig', objektiv_dkk=?, fase=? WHERE id=? AND status='indlaeser' AND arbejder_id=? AND annuller_anmodet IS NULL",
+   [
+    "1.5",
+    "x",
+    "aaaaaaaa-0000-4000-8000-000000000001",
+    "nb:spor"
+   ]
+  ],
+  [
+   "COMMIT",
+   []
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT APPLOCK_MODE('public', ?, 'Session')",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT COL_LENGTH(?, ?)",
+   [
+    "dbo.Koersels",
+    "modtaget"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   ";WITH n AS (SELECT TOP 1 * FROM dbo.Koersels WITH (UPDLOCK, READPAST, ROWLOCK) WHERE status IN ('koe','startet') AND annuller_anmodet IS NULL ORDER BY modtaget, id) UPDATE n SET status='koerer', arbejder_id=?, hjerteslag=SYSUTCDATETIME(), startet=SYSUTCDATETIME(), forsoeg=forsoeg+1 OUTPUT CAST(inserted.id AS nvarchar(36)) id",
+   [
+    "nb:spor"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT CAST(id AS nvarchar(36)) id, input_hash, status, vaerk_revision, CAST(vaerk_id AS nvarchar(36)) vaerk_id FROM dbo.Koersels WHERE id=?",
+   [
+    "bbbbbbbb-0000-4000-8000-000000000002"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT kilde, sti, vaerdi_json FROM dbo.KoerselInputs WHERE koersel_id=?",
+   [
+    "bbbbbbbb-0000-4000-8000-000000000002"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT status, annuller_anmodet, arbejder_id FROM dbo.Koersels WHERE id=?",
+   [
+    "bbbbbbbb-0000-4000-8000-000000000002"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT APPLOCK_MODE('public', ?, 'Session')",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET fase=? WHERE id=? AND arbejder_id=? AND status IN ('koerer','indlaeser')",
+   [
+    "Kontrollerer input",
+    "bbbbbbbb-0000-4000-8000-000000000002",
+    "nb:spor"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET hjerteslag=SYSUTCDATETIME() WHERE id=? AND arbejder_id=? AND status IN ('koerer','indlaeser')",
+   [
+    "bbbbbbbb-0000-4000-8000-000000000002",
+    "nb:spor"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT status, annuller_anmodet, arbejder_id FROM dbo.Koersels WHERE id=?",
+   [
+    "bbbbbbbb-0000-4000-8000-000000000002"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT APPLOCK_MODE('public', ?, 'Session')",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT sti FROM dbo.Tidsseries WHERE id=?",
+   [
+    "11111111-0000-4000-8000-000000000011"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET model_commit=?, data_commit=?, startet=SYSUTCDATETIME() WHERE id=? AND arbejder_id=? AND status IN ('koerer','indlaeser')",
+   [
+    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "dddddddddddddddddddddddddddddddddddddddd",
+    "bbbbbbbb-0000-4000-8000-000000000002",
+    "nb:spor"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Koersels SET status=?, fejlbesked=?, afsluttet=SYSUTCDATETIME() WHERE id=? AND status=? AND arbejder_id=?",
+   [
+    "fejl",
+    "Modellen er uløselig",
+    "bbbbbbbb-0000-4000-8000-000000000002",
+    "koerer",
+    "nb:spor"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT APPLOCK_MODE('public', ?, 'Session')",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   ";WITH n AS (SELECT TOP 1 * FROM dbo.Koersels WITH (UPDLOCK, READPAST, ROWLOCK) WHERE status IN ('koe','startet') AND annuller_anmodet IS NULL ORDER BY modtaget, id) UPDATE n SET status='koerer', arbejder_id=?, hjerteslag=SYSUTCDATETIME(), startet=SYSUTCDATETIME(), forsoeg=forsoeg+1 OUTPUT CAST(inserted.id AS nvarchar(36)) id",
+   [
+    "nb:spor"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "EXEC sp_releaseapplock @Resource=?, @LockOwner='Session'",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ]
+ ],
+ "arbejder_laas_optaget": [
+  {
+   "advarsler": [],
+   "tilstand": {
+    "arbejder_id": "nb:spor",
+    "koersler": [],
+    "laas": "optaget",
+    "ok": true
+   },
+   "trin": [
+    [
+     "arbejder",
+     {
+      "arbejder_id": "nb:spor"
+     }
+    ],
+    [
+     "laas",
+     "optaget - en anden arbejder kører; afslutter uden at røre rækker"
+    ]
+   ]
+  },
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SET NOCOUNT ON; DECLARE @r int; EXEC @r = sp_getapplock @Resource=?, @LockMode='Exclusive', @LockOwner='Session', @LockTimeout=0; SELECT @r",
+   [
+    "fjv_solver"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ]
+ ],
+ "import": [
+  {
+   "advarsler": [],
+   "tilstand": {
+    "importer": [
+     {
+      "besked": "den uploadede fil findes ikke i lakehouset (Files/fjv/uploads/findes_ikke.xlsx) - upload arket igen",
+      "id": "cccccccc-0000-4000-8000-000000000003",
+      "kode": null,
+      "sekunder": "<s>",
+      "status": "fejl",
+      "vaerk_id": null
+     },
+     {
+      "besked": "den uploadede fil findes ikke i lakehouset (Files/fjv/uploads/dddddddd-0000-4000-8000-000000000004.xlsx) - upload arket igen",
+      "id": "dddddddd-0000-4000-8000-000000000004",
+      "kode": null,
+      "sekunder": "<s>",
+      "status": "fejl",
+      "vaerk_id": null
+     }
+    ],
+    "model_commit": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "ok": true
+   },
+   "trin": [
+    [
+     "hukommelsesloft",
+     {
+      "platform": "spor"
+     }
+    ],
+    [
+     "ryddet_doede",
+     1
+    ],
+    [
+     "import",
+     {
+      "filnavn": "a.xlsx",
+      "id": "cccccccc-0000-4000-8000-000000000003"
+     }
+    ],
+    [
+     "fejl",
+     "den uploadede fil findes ikke i lakehouset (Files/fjv/uploads/findes_ikke.xlsx) - upload arket igen"
+    ],
+    [
+     "import",
+     {
+      "filnavn": "b.xlsx",
+      "id": "dddddddd-0000-4000-8000-000000000004"
+     }
+    ],
+    [
+     "fejl",
+     "den uploadede fil findes ikke i lakehouset (Files/fjv/uploads/dddddddd-0000-4000-8000-000000000004.xlsx) - upload arket igen"
+    ]
+   ]
+  },
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Vaerksarkimports SET status='fejl', log=LEFT(CONCAT(N'Importen stoppede uden at afslutte (jobbet blev afbrudt). Upload arket igen.', CHAR(10), ISNULL(log, N'')), 4000) WHERE status='koerer' AND uploadet < DATEADD(minute, -?, SYSUTCDATETIME())",
+   [
+    "120"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT COL_LENGTH(?, ?)",
+   [
+    "dbo.Motors",
+    "data_commit"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT model_commit, data_commit FROM dbo.Motors WHERE id=?",
+   [
+    "00000000-0000-4000-8000-00000000f001"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT COL_LENGTH(?, ?)",
+   [
+    "dbo.Vaerksarkimports",
+    "timeslut"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   ";WITH n AS (SELECT TOP 1 * FROM dbo.Vaerksarkimports WITH (UPDLOCK, READPAST, ROWLOCK) WHERE id=? AND status='koe' ORDER BY uploadet, id) UPDATE n SET status='koerer', log=N'Importerer arket ...' OUTPUT CAST(inserted.id AS nvarchar(36)) id, inserted.filnavn, inserted.sti, inserted.uploadet_af, CAST(inserted.timeslut AS int) timeslut",
+   [
+    "cccccccc-0000-4000-8000-000000000003"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Vaerksarkimports SET status='fejl', log=? WHERE id=? AND status='koerer'",
+   [
+    "den uploadede fil findes ikke i lakehouset (Files/fjv/uploads/findes_ikke.xlsx) - upload arket igen\n---\n",
+    "cccccccc-0000-4000-8000-000000000003"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   ";WITH n AS (SELECT TOP 1 * FROM dbo.Vaerksarkimports WITH (UPDLOCK, READPAST, ROWLOCK) WHERE status='koe' ORDER BY uploadet, id) UPDATE n SET status='koerer', log=N'Importerer arket ...' OUTPUT CAST(inserted.id AS nvarchar(36)) id, inserted.filnavn, inserted.sti, inserted.uploadet_af, CAST(inserted.timeslut AS int) timeslut",
+   []
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "UPDATE dbo.Vaerksarkimports SET status='fejl', log=? WHERE id=? AND status='koerer'",
+   [
+    "den uploadede fil findes ikke i lakehouset (Files/fjv/uploads/dddddddd-0000-4000-8000-000000000004.xlsx) - upload arket igen\n---\n",
+    "dddddddd-0000-4000-8000-000000000004"
+   ]
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   ";WITH n AS (SELECT TOP 1 * FROM dbo.Vaerksarkimports WITH (UPDLOCK, READPAST, ROWLOCK) WHERE status='koe' ORDER BY uploadet, id) UPDATE n SET status='koerer', log=N'Importerer arket ...' OUTPUT CAST(inserted.id AS nvarchar(36)) id, inserted.filnavn, inserted.sti, inserted.uploadet_af, CAST(inserted.timeslut AS int) timeslut",
+   []
+  ],
+  [
+   "CLOSE",
+   []
+  ]
+ ]
+}

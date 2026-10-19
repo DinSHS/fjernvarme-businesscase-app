@@ -1,0 +1,136 @@
+/* Konfiguration — kun det området selv har brug for. KUN tokens fra layout.css/global.css:
+   ingen egne skriftstørrelser, farver eller skygger. */
+
+/* ---- faner (værkets afsnit) ---- */
+.kf-faner { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--dash-hairline); }
+.kf-faner a { font-size: var(--t-brod); font-weight: 600; color: var(--dash-ink-2); padding: 6px 10px; white-space: nowrap;
+  text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.kf-faner a:hover { color: var(--dash-ink); }
+.kf-faner a[aria-current="page"] { color: var(--dash-ink); border-bottom-color: var(--dash-navy); }
+.kf-faner .kf-antal { font-weight: 400; color: var(--dash-ink-3); margin-left: 4px; }
+
+/* ---- feltliste ---- */
+.kf-feltnavn { font-weight: 650; color: var(--dash-ink); }
+.kf-sti { font-family: var(--font-monospace); font-size: var(--t-fodnote); color: var(--dash-ink-3); word-break: break-all; }
+.kf-forklaring { font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink-2); margin-top: 2px; max-width: 70ch; }
+.kf-kommentar { font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink-2); margin-top: 2px; white-space: pre-wrap;
+  border-left: 2px solid var(--dash-hairline); padding-left: 6px; max-width: 70ch; }
+.kf-kilde { font-size: var(--t-fodnote); color: var(--dash-ink-3); }
+.kf-maerker { display: inline-flex; gap: 4px; flex-wrap: wrap; margin-left: 6px; vertical-align: middle; }
+.kf-gruppe td { font-size: var(--t-tabelhoved); font-weight: 650; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dash-ink-3);
+  padding-top: 14px; }
+.kf-vaerdi { font-family: var(--font-numeric); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kf-vaerdi[data-lang="true"] { white-space: normal; word-break: break-word; font-family: var(--font-monospace); font-size: var(--t-fodnote); }
+.kf-aendret { background: var(--color-accent); }
+.kf-felt-fejl { font-size: var(--t-fodnote); color: var(--dash-neg); margin-top: 2px; white-space: normal; }
+.kf-tal-input { text-align: right; font-family: var(--font-numeric); font-variant-numeric: tabular-nums; min-width: 90px; }
+
+/* ---- kontakt (bool) ---- */
+.kf-kontakt { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-brod); cursor: pointer; }
+.kf-kontakt input { width: 16px; height: 16px; accent-color: var(--dash-navy); }
+
+/* ---- formular ---- */
+.kf-formular { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 900px) { .kf-formular[data-spalter="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kf-formular label { display: flex; flex-direction: column; gap: 3px; font-size: var(--t-brod); color: var(--dash-ink); font-weight: 600; }
+.kf-formular label small { font-weight: 400; color: var(--dash-ink-3); font-size: var(--t-fodnote); }
+.kf-handlinger { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.kf-svar { font-size: var(--t-brod); white-space: pre-wrap; }
+.kf-svar[data-tone="ok"] { color: var(--dash-pos); }
+.kf-svar[data-tone="fejl"] { color: var(--dash-neg); }
+
+/* ---- fund (validering) ---- */
+.kf-fund { display: flex; flex-direction: column; gap: 6px; font-size: var(--t-brod); }
+.kf-fund li { display: flex; gap: 8px; align-items: baseline; }
+.kf-fund li > span:last-child { min-width: 0; }
+
+/* ---- lister (redigering) ---- */
+.kf-liste-gitter { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; }
+.kf-liste-gitter label { display: flex; flex-direction: column; gap: 2px; font-size: var(--t-fodnote); color: var(--dash-ink-3); }
+
+/* ---- tarifskema ---- */
+.kf-uge { display: grid; grid-template-columns: 120px repeat(24, minmax(0, 1fr)); gap: 1px; font-size: var(--t-akse); }
+.kf-uge > div { min-width: 0; }
+.kf-uge-etiket { color: var(--dash-ink-2); padding-right: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; align-self: center; }
+.kf-uge-time { color: var(--dash-ink-3); text-align: center; }
+.kf-uge-celle { height: 22px; border-radius: 2px; }
+.kf-uge-celle[data-trin="0"] { background: color-mix(in srgb, var(--dash-series) 22%, transparent); }
+.kf-uge-celle[data-trin="1"] { background: color-mix(in srgb, var(--dash-series) 55%, transparent); }
+.kf-uge-celle[data-trin="2"] { background: var(--dash-series); }
+.kf-uge-celle[data-trin="3"] { background: var(--dash-navy); }
+.kf-uge-celle[data-trin="x"] { background: transparent; outline: 1px dashed var(--dash-neg); outline-offset: -1px; }
+.kf-forklaring-raekke { display: flex; gap: 12px; flex-wrap: wrap; font-size: var(--t-fodnote); color: var(--dash-ink-2); }
+.kf-forklaring-raekke span { display: inline-flex; align-items: center; gap: 4px; }
+.kf-forklaring-raekke i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; }
+
+/* ---- grafer (SVG) ---- */
+.kf-graf { width: 100%; height: auto; display: block; overflow: visible; }
+.kf-graf text { font-size: var(--t-akse); fill: var(--dash-ink-2); font-family: var(--font-numeric); }
+.kf-graf .kf-etiket { font-size: var(--t-datalabel); fill: var(--dash-ink); }
+.kf-graf .kf-akse { stroke: var(--dash-ink-3); stroke-width: 1; }
+.kf-graf .kf-gitterlinje { stroke: var(--dash-grid); stroke-width: 1; }
+.kf-graf .kf-serie { stroke: var(--dash-series); stroke-width: 2; fill: none; }
+.kf-graf .kf-punkt { fill: var(--dash-series); }
+.kf-graf .kf-soejle { fill: var(--dash-series); }
+.kf-graf .kf-soejle[data-top="true"] { fill: var(--dash-navy); }
+
+/* ---- kildefil ---- */
+.kf-pre { font-family: var(--font-monospace); font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink);
+  background: var(--dash-elevated); border-radius: var(--r-felt); padding: 12px; overflow: auto; max-height: 640px; white-space: pre; }
+
+/* ---- diff ---- */
+.kf-foer { color: var(--dash-neg); text-decoration: line-through; }
+.kf-nu { color: var(--dash-pos); }
+
+/* ---- nøgletal i kort ---- */
+.kf-tal-raekke { display: flex; gap: 24px; flex-wrap: wrap; }
+.kf-tal-raekke div { display: flex; flex-direction: column; }
+.kf-tal-raekke strong { font-size: var(--t-sidetitel); line-height: var(--t-sidetitel-lh); font-family: var(--font-numeric); font-variant-numeric: tabular-nums; color: var(--dash-ink); }
+.kf-tal-raekke span { font-size: var(--t-fodnote); color: var(--dash-ink-3); }
+.kf-liste .kf-handlinger { margin-top: 6px; }
+.kf-uge-ramme { display: flex; flex-direction: column; gap: 8px; }
+.kf-uden-virkning { color: var(--dash-ink-3); }
+.kf-trin { display: flex; flex-direction: column; gap: 4px; list-style: none; padding: 0; margin: 0; }
+.kf-trinknap { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; font-size: var(--t-brod); color: var(--dash-ink-2);
+  background: none; border: 0; border-radius: var(--r-felt); padding: 6px 8px; cursor: pointer; }
+.kf-trinknap:hover:not(:disabled) { background: var(--dash-elevated); color: var(--dash-ink); }
+.kf-trinknap:disabled { opacity: 0.45; cursor: not-allowed; }
+.kf-trin li[aria-current="step"] .kf-trinknap { color: var(--dash-ink); font-weight: 650; background: var(--color-accent); }
+.kf-trinnr { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 999px;
+  font-size: var(--t-mærke); font-weight: 650; border: 1px solid var(--dash-hairline); color: var(--dash-ink-2); flex: none; }
+.kf-trinnr[data-ok="true"] { background: var(--dash-navy); border-color: var(--dash-navy); color: var(--color-primary-foreground); }
+.kf-gruppefelt { border: 1px solid var(--dash-hairline); border-radius: var(--r-felt); padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.kf-gruppefelt legend { font-size: var(--t-kort-titel); font-weight: 650; color: var(--dash-ink); padding: 0 4px; }
+.kf-smal { width: auto; }
+
+/* ---- tidsserier ---- */
+.kf-graf .kf-maalt { stroke: var(--dash-navy); stroke-width: 1.5; fill: none; }
+.kf-graf .kf-model { stroke: var(--dash-ink-3); stroke-width: 1.5; stroke-dasharray: 4 3; fill: none; }
+.kf-graf .kf-baand { fill: color-mix(in srgb, var(--dash-series) 28%, transparent); stroke: none; }
+.kf-graf .kf-soejle[data-delvis="true"] { fill: color-mix(in srgb, var(--dash-series) 40%, transparent); }
+.kf-graf .kf-soejle-model { fill: none; stroke: var(--dash-ink-3); stroke-width: 1; }
+.kf-signatur { display: flex; gap: 14px; flex-wrap: wrap; font-size: var(--t-fodnote); color: var(--dash-ink-2); }
+.kf-signatur span { display: inline-flex; align-items: center; gap: 5px; }
+.kf-signatur i { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--dash-navy); }
+.kf-signatur i[data-type="model"] { border-top: 2px dashed var(--dash-ink-3); }
+.kf-signatur i[data-type="baand"] { height: 10px; border: 0; background: color-mix(in srgb, var(--dash-series) 28%, transparent); }
+.kf-zoom { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.kf-zoom button[aria-pressed="true"] { background: var(--color-accent); }
+.kf-slip { border: 2px dashed var(--dash-hairline); border-radius: var(--r-felt); padding: 18px; text-align: center; color: var(--dash-ink-2);
+  font-size: var(--t-brod); display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.kf-slip[data-over="true"] { border-color: var(--dash-navy); background: var(--color-accent); }
+.kf-tabelramme { overflow-x: auto; max-width: 100%; }
+.kf-tabelramme table { border-collapse: collapse; font-size: var(--t-fodnote); font-family: var(--font-monospace); }
+.kf-tabelramme th, .kf-tabelramme td { padding: 3px 8px; border-bottom: 1px solid var(--dash-hairline); text-align: left; white-space: nowrap; }
+.kf-tabelramme th { color: var(--dash-ink-3); font-weight: 600; }
+.kf-tabelramme td[data-tal="true"] { text-align: right; }
+.kf-tabelramme tr[data-valgt="true"] td { background: var(--color-accent); }
+.kf-noegletal { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.kf-noegletal div { display: flex; flex-direction: column; min-width: 0; }
+.kf-noegletal strong { font-size: var(--t-kort-titel); font-family: var(--font-numeric); font-variant-numeric: tabular-nums; color: var(--dash-ink); }
+.kf-noegletal span { font-size: var(--t-fodnote); color: var(--dash-ink-3); }
+.kf-hash { font-family: var(--font-monospace); font-size: var(--t-fodnote); word-break: break-all; color: var(--dash-ink-2); }
+.kf-skjult { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.kf-slip { position: relative; cursor: pointer; }
+.kf-noegletal strong { overflow-wrap: anywhere; }
+.kf-formular label.kf-kontakt { flex-direction: row; font-weight: 400; }

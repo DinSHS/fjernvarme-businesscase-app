@@ -1,0 +1,46 @@
+/* Scenarier — kun form og afstand; typografi og farver via fundamentets tokens (layout.css, global.css). */
+
+.fs-felter { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 10px 12px; }
+.fs-felt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.fs-felt > span { font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); font-weight: 650; color: var(--dash-ink-2); }
+.fs-felt > small { font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink-3); }
+.fs-felt-bred { grid-column: 1 / -1; }
+[data-omraade="scenarier"] textarea.fjv-felt { resize: vertical; min-height: 56px; font-family: inherit; }
+[data-omraade="scenarier"] select.fjv-felt { padding-right: 4px; } /* afgrænset: al CSS er én fil (fv-web 2026-10-19) */
+
+.fs-raekke { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.fs-afkryds { display: inline-flex; gap: 6px; align-items: center; font-size: var(--t-brod); color: var(--dash-ink); cursor: pointer; }
+
+.fs-fund { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.fs-fund li { font-size: var(--t-kort-budskab); line-height: var(--t-kort-budskab-lh); color: var(--dash-ink-2); padding-left: 14px; position: relative; }
+.fs-fund li::before { content: ""; position: absolute; left: 2px; top: 7px; width: 6px; height: 6px; border-radius: 999px; background: var(--dash-ink-3); }
+.fs-fund li[data-niveau="fejl"] { color: var(--dash-neg); }
+.fs-fund li[data-niveau="fejl"]::before { background: var(--dash-neg); }
+.fs-fund li[data-niveau="advarsel"]::before { background: var(--dash-amber); }
+
+/* Spørgsmålsvalg: et gitter af knapper, hver med spørgsmål, gruppe og hvor den findes. */
+.fs-valg { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 8px; }
+.fs-valg button { display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 10px 12px; min-width: 0;
+  border: 1px solid var(--dash-hairline); border-radius: var(--r-felt); background: var(--color-card); color: var(--dash-ink); cursor: pointer; }
+.fs-valg button:hover:not(:disabled) { background: var(--color-hover); }
+.fs-valg button[aria-pressed="true"] { border-color: var(--dash-navy); background: var(--color-accent); box-shadow: inset 0 0 0 1px var(--dash-navy); }
+.fs-valg button:disabled { opacity: 0.5; cursor: not-allowed; }
+.fs-valg strong { font-size: var(--t-brod); line-height: var(--t-brod-lh); font-weight: 650; }
+.fs-valg small { font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink-2); }
+
+/* Nøgle/værdi-liste (kø, kørselskort). */
+.fs-dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 0;
+  font-size: var(--t-tabel); line-height: var(--t-tabel-lh); }
+.fs-dl dt { color: var(--dash-ink-2); }
+.fs-dl dd { margin: 0; color: var(--dash-ink); min-width: 0; overflow-wrap: anywhere; }
+
+.fs-overskrift { font-size: var(--t-tabelhoved); font-weight: 650; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dash-ink-3); }
+.fs-tekst { font-size: var(--t-brod); line-height: var(--t-brod-lh); color: var(--dash-ink); white-space: pre-line; }
+.fs-lille { font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink-3); }
+.fs-link { color: var(--dash-series); font-weight: 600; text-decoration: none; font-size: var(--t-brod); }
+.fs-link:hover { text-decoration: underline; }
+.fs-ny { color: var(--dash-series); font-weight: 650; }
+.fs-gammel { color: var(--dash-ink-3); }
+.fs-blok { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.fs-skillelinje { border: 0; border-top: 1px solid var(--dash-grid); margin: 2px 0; }
+.fs-fast { flex: 0 0 auto; white-space: nowrap; }

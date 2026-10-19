@@ -1,0 +1,101 @@
+{
+ "_om": "Udtrukket af TS-testene (taet_raekke) med skema/vektorer/udtraek.mjs: input og TS' faktiske udfald for hvert kald, testene selv laver. Ret aldrig i hånden — udtræk igen.",
+ "kilder": {
+  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
+  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
+  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
+  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
+  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427",
+  "app/rayfin/functions/test/k4.spec.ts": "7a7b32738c6d7012fc5875b55784f002b147174247db4679b37ff39884887fde",
+  "app/rayfin/functions/test/k5.spec.ts": "315e3cc11b497ae105ab1c2a4552371beb00b554fd17fcb5d26aeec5edbaf5ae",
+  "app/rayfin/functions/test/logik.spec.ts": "f9507699c7679fd342ed5630a6151d048aaa0050eba3859eafa2d6338514cfc0",
+  "app/rayfin/functions/test/motor.spec.ts": "645d24741b0636fca77fc9dcca430184431f9f7b389dac982123d3dcc74ae11e",
+  "app/rayfin/functions/test/opret_vaerk.spec.ts": "99d2f3c44429535f4ae9741aef571bad67c0a1eef07161765f9c389bf8a1bf68",
+  "app/rayfin/functions/test/registrering.spec.ts": "05a8a0edaa4d02c8d48d6a1d921b867bcd3d31d82a03dd9d7f577be61f73e414",
+  "app/rayfin/functions/test/tidsserie.spec.ts": "49048b3d1da5c28742f15232852a301454a0e60486d5521f76432f165bbfa9d4",
+  "app/rayfin/functions/test/tidsserie_backend.spec.ts": "7c166c36baf80a999d547e0b5535b0276390d6b996a75256f07f2b9baa45aabe"
+ },
+ "tilfaelde": [
+  {
+   "navn": "k5.spec.ts › K5-F2: en tæt række allokeres aldrig ubegrænset > en serie over 120.000 timer giver ForLangRække FØR allokering, med antallet",
+   "input": {
+    "normaliseret": "time,mw\n2026-01-05T00:00:00Z,1\n2026-01-05T01:00:00Z,1\n2026-01-05T02:00:00Z,1\n2026-01-05T03:00:00Z,1\n2026-01-05T04:00:00Z,1\n2026-01-05T05:00:00Z,1\n2026-01-05T06:00:00Z,1\n2026-01-05T07:00:00Z,1\n2026-01-05T08:00:00Z,1\n2026-01-05T09:00:00Z,1\n2026-01-05T10:00:00Z,1\n2026-01-05T11:00:00Z,1\n2026-01-05T12:00:00Z,1\n2026-01-05T13:00:00Z,1\n2026-01-05T14:00:00Z,1\n2026-01-05T15:00:00Z,1\n2026-01-05T16:00:00Z,1\n2026-01-05T17:00:00Z,1\n2026-01-05T18:00:00Z,1\n2026-01-05T19:00:00Z,1\n2026-01-05T20:00:00Z,1\n2026-01-05T21:00:00Z,1\n2026-01-05T22:00:00Z,1\n2026-01-05T23:00:00Z,1\n2100-01-05T00:00:00Z,1\n2100-01-05T01:00:00Z,1\n2100-01-05T02:00:00Z,1\n2100-01-05T03:00:00Z,1\n2100-01-05T04:00:00Z,1\n2100-01-05T05:00:00Z,1\n2100-01-05T06:00:00Z,1\n2100-01-05T07:00:00Z,1\n2100-01-05T08:00:00Z,1\n2100-01-05T09:00:00Z,1\n2100-01-05T10:00:00Z,1\n2100-01-05T11:00:00Z,1\n2100-01-05T12:00:00Z,1\n2100-01-05T13:00:00Z,1\n2100-01-05T14:00:00Z,1\n2100-01-05T15:00:00Z,1\n2100-01-05T16:00:00Z,1\n2100-01-05T17:00:00Z,1\n2100-01-05T18:00:00Z,1\n2100-01-05T19:00:00Z,1\n2100-01-05T20:00:00Z,1\n2100-01-05T21:00:00Z,1\n2100-01-05T22:00:00Z,1\n2100-01-05T23:00:00Z,1\n",
+    "vindue": null
+   },
+   "fejl": "Serien spænder over 648696 timer — for mange til én visning (højst 120000). Hent et vindue (fra/til).",
+   "fejltype": "ForLangRække",
+   "positioner": 648696
+  },
+  {
+   "navn": "k5.spec.ts › K5-F2: en tæt række allokeres aldrig ubegrænset > et vindue henter den samme serie i bidder",
+   "input": {
+    "normaliseret": "time,mw\n2026-01-05T00:00:00Z,1\n2026-01-05T01:00:00Z,1\n2026-01-05T02:00:00Z,1\n2026-01-05T03:00:00Z,1\n2026-01-05T04:00:00Z,1\n2026-01-05T05:00:00Z,1\n2026-01-05T06:00:00Z,1\n2026-01-05T07:00:00Z,1\n2026-01-05T08:00:00Z,1\n2026-01-05T09:00:00Z,1\n2026-01-05T10:00:00Z,1\n2026-01-05T11:00:00Z,1\n2026-01-05T12:00:00Z,1\n2026-01-05T13:00:00Z,1\n2026-01-05T14:00:00Z,1\n2026-01-05T15:00:00Z,1\n2026-01-05T16:00:00Z,1\n2026-01-05T17:00:00Z,1\n2026-01-05T18:00:00Z,1\n2026-01-05T19:00:00Z,1\n2026-01-05T20:00:00Z,1\n2026-01-05T21:00:00Z,1\n2026-01-05T22:00:00Z,1\n2026-01-05T23:00:00Z,1\n2100-01-05T00:00:00Z,1\n2100-01-05T01:00:00Z,1\n2100-01-05T02:00:00Z,1\n2100-01-05T03:00:00Z,1\n2100-01-05T04:00:00Z,1\n2100-01-05T05:00:00Z,1\n2100-01-05T06:00:00Z,1\n2100-01-05T07:00:00Z,1\n2100-01-05T08:00:00Z,1\n2100-01-05T09:00:00Z,1\n2100-01-05T10:00:00Z,1\n2100-01-05T11:00:00Z,1\n2100-01-05T12:00:00Z,1\n2100-01-05T13:00:00Z,1\n2100-01-05T14:00:00Z,1\n2100-01-05T15:00:00Z,1\n2100-01-05T16:00:00Z,1\n2100-01-05T17:00:00Z,1\n2100-01-05T18:00:00Z,1\n2100-01-05T19:00:00Z,1\n2100-01-05T20:00:00Z,1\n2100-01-05T21:00:00Z,1\n2100-01-05T22:00:00Z,1\n2100-01-05T23:00:00Z,1\n",
+    "vindue": {
+     "fra": 1767225600000,
+     "til": 1798675200000
+    }
+   },
+   "ud": {
+    "start": "2026-01-05T00:00:00Z",
+    "oploesning": "1h",
+    "enhed": "MW",
+    "vaerdier": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "navn": "tidsserie.spec.ts › tætRække (hentTidsserie) > afviser en fil i en anden form (fx den gamle time,value_mw)",
+   "input": {
+    "normaliseret": "time,value_mw\n2026-01-05T00:00:00Z,1\n",
+    "vindue": null
+   },
+   "fejl": "Uventet overskrift i den normaliserede fil: \"time,value_mw\"",
+   "fejltype": "Error"
+  },
+  {
+   "navn": "tidsserie.spec.ts › tætRække (hentTidsserie) > start + 1h + værdier, null i huller",
+   "input": {
+    "normaliseret": "time,mw\n2026-01-05T00:00:00Z,1\n2026-01-05T01:00:00Z,2\n2026-01-05T03:00:00Z,4\n",
+    "vindue": null
+   },
+   "ud": {
+    "start": "2026-01-05T00:00:00Z",
+    "oploesning": "1h",
+    "enhed": "MW",
+    "vaerdier": [
+     1,
+     2,
+     null,
+     4
+    ]
+   }
+  }
+ ]
+}

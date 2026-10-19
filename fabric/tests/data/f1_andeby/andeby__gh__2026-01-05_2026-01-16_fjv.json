@@ -1,0 +1,139 @@
+{
+ "wrapper_version": "1",
+ "stem": "andeby__gh__2026-01-05_2026-01-16",
+ "objektiv_dkk": 3424407.9575291085,
+ "status": "('ok', 'optimal')",
+ "er_milp": true,
+ "antal_interval_model": 288,
+ "dt_timer": 1.0,
+ "oploesning": "1h",
+ "start_utc": "2026-01-05T00:00:00Z",
+ "slut_utc": "2026-01-16T23:00:00Z",
+ "enheder": {
+  "vp_luft_vand": {
+   "enabled": true,
+   "p_max_heat": 4.462,
+   "type": "heat_pump"
+  },
+  "elkedel_ny": {
+   "enabled": true,
+   "p_max_heat": 4.0,
+   "type": "electric_boiler"
+  },
+  "elkedel_gl": {
+   "enabled": false,
+   "p_max_heat": 12.0,
+   "type": "electric_boiler"
+  },
+  "fliskedel": {
+   "enabled": false,
+   "p_max_heat": 7.0,
+   "type": "biomass_boiler"
+  },
+  "halmkedel": {
+   "enabled": true,
+   "p_max_heat": 12.0,
+   "type": "biomass_boiler"
+  },
+  "gasmotor": {
+   "enabled": true,
+   "p_max_heat": 10.5,
+   "type": "gas_engine_chp"
+  },
+  "gaskedel_agg": {
+   "enabled": true,
+   "p_max_heat": 20.0,
+   "type": "gas_boiler"
+  },
+  "solvarme": {
+   "enabled": true,
+   "p_max_heat": 22.0,
+   "type": "solar_thermal"
+  }
+ },
+ "lagre": {
+  "tank_lav": {
+   "enabled": true,
+   "e_max_mwh": 244.18333333333334
+  },
+  "tank_hoej": {
+   "enabled": true,
+   "e_max_mwh": 191.85833333333335
+  }
+ },
+ "solver": {
+  "mip_rel_gap": 0.001,
+  "mip_abs_gap": 1000.0,
+  "time_limit": 3600.0,
+  "presolve": "on",
+  "parallel": "on"
+ },
+ "python": "3.13.14",
+ "pakker": {
+  "linopy": "0.10.0",
+  "highspy": "1.15.1",
+  "xarray": "2026.9.0",
+  "pandas": "3.0.6",
+  "numpy": "2.5.4",
+  "scipy": "1.18.1",
+  "netCDF4": "1.7.5",
+  "PyYAML": "6.0.3"
+ },
+ "balancing_method": "activation_value",
+ "kontrol": {
+  "el": {
+   "vp_luft_vand": {
+    "objektivled": 327549.9476054178,
+    "dele": 327549.94760541787,
+    "afvigelse": 5.820766091346741e-11
+   },
+   "elkedel_ny": {
+    "objektivled": 357631.417184,
+    "dele": 357631.41718399996,
+    "afvigelse": 5.820766091346741e-11
+   }
+  },
+  "balancering": {}
+ },
+ "reserver": null,
+ "kolonner": [
+  "in.heat_demand",
+  "in.heat_gaf",
+  "in.heat_guf",
+  "in.heat_nettab",
+  "in.spot_price",
+  "in.t_ambient",
+  "in.profile_solvarme",
+  "in.tariff_consumption_dkk_mwh",
+  "res.heat_prod.vp_luft_vand",
+  "res.heat_prod.elkedel_ny",
+  "res.heat_prod.halmkedel",
+  "res.heat_prod.gasmotor",
+  "res.heat_prod.gaskedel_agg",
+  "res.heat_prod.solvarme",
+  "res.storage_energy.tank_lav",
+  "res.storage_energy.tank_hoej",
+  "res.charge.tank_lav",
+  "res.charge.tank_hoej",
+  "res.discharge.tank_lav",
+  "res.discharge.tank_hoej",
+  "res.storage_net.tank_lav",
+  "res.storage_net.tank_hoej",
+  "res.commit.halmkedel",
+  "res.startup.halmkedel",
+  "res.shutdown.halmkedel",
+  "afl.el_mw.vp_luft_vand",
+  "afl.el_spot_dkk.vp_luft_vand",
+  "afl.el_tarif_dkk.vp_luft_vand",
+  "afl.el_afgift_dkk.vp_luft_vand",
+  "afl.el_omk_dkk.vp_luft_vand",
+  "afl.el_mw.elkedel_ny",
+  "afl.el_spot_dkk.elkedel_ny",
+  "afl.el_tarif_dkk.elkedel_ny",
+  "afl.el_afgift_dkk.elkedel_ny",
+  "afl.el_omk_dkk.elkedel_ny",
+  "afl.el_prod_mw.gasmotor",
+  "afl.el_salg_dkk.gasmotor",
+  "afl.el_prodtarif_dkk.gasmotor"
+ ]
+}

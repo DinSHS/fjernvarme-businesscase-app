@@ -1,0 +1,1637 @@
+{
+  "skema": "fjernvarme-businesscase",
+  "version": 1,
+  "kontrakt": "Projektets KONTRAKT v2.3 (§3, §6c, §6d)",
+  "beskrivelse": "Den neutrale definition af appens database — eneste sandhed for begge udgaver. Fabric-udgaven deklarerer den samme struktur som Rayfin-entiteter (app/rayfin/data/*.ts); skema/test/rayfin.test.mjs fejler, hvis de to ikke er enige. Community-udgaven bygger sine tabeller herfra, og ddl/*.sql er genereret herfra (skema/byg.py). Læs SKEMA.md.",
+  "konstanter": {
+    "MOTOR_ID": "00000000-0000-4000-8000-00000000f001",
+    "NIL_UUID": "00000000-0000-0000-0000-000000000000"
+  },
+  "typer": {
+    "uuid": {
+      "beskrivelse": "36 tegn, små bogstaver med bindestreger (mssql returnerer STORE — normalisér ved læsning).",
+      "rayfin": {
+        "mssql": "UNIQUEIDENTIFIER",
+        "postgresql": "UUID"
+      },
+      "ddl": {
+        "sqlite": "CHAR(36)",
+        "postgresql": "UUID",
+        "mssql": "UNIQUEIDENTIFIER"
+      }
+    },
+    "text": {
+      "beskrivelse": "Længde i UTF-16-kodeenheder (som nvarchar og JS' .length), højst 4000. min = LEN(x) >= min, hvor afsluttende mellemrum ikke tæller (mssql LEN).",
+      "rayfin": {
+        "mssql": "NVARCHAR({max})",
+        "postgresql": "VARCHAR({max})"
+      },
+      "ddl": {
+        "sqlite": "VARCHAR({max})",
+        "postgresql": "VARCHAR({max})",
+        "mssql": "NVARCHAR({max})"
+      }
+    },
+    "set": {
+      "beskrivelse": "Tekst fra en fast liste; kolonnebredden er den længste værdi. Versalfølsom.",
+      "rayfin": {
+        "mssql": "NVARCHAR({laengste})",
+        "postgresql": "VARCHAR({laengste})"
+      },
+      "ddl": {
+        "sqlite": "VARCHAR({laengste})",
+        "postgresql": "VARCHAR({laengste})",
+        "mssql": "NVARCHAR({laengste})"
+      }
+    },
+    "int": {
+      "beskrivelse": "32-bit heltal.",
+      "rayfin": {
+        "mssql": "INT",
+        "postgresql": "INTEGER"
+      },
+      "ddl": {
+        "sqlite": "INTEGER",
+        "postgresql": "INTEGER",
+        "mssql": "INT"
+      }
+    },
+    "decimal": {
+      "beskrivelse": "Fast decimal. sqlite gemmer NUMERIC som double (ca. 15-17 betydende cifre).",
+      "rayfin": {
+        "mssql": "DECIMAL({precision},{scale})",
+        "postgresql": "NUMERIC({precision},{scale})"
+      },
+      "ddl": {
+        "sqlite": "NUMERIC({precision},{scale})",
+        "postgresql": "NUMERIC({precision},{scale})",
+        "mssql": "DECIMAL({precision},{scale})"
+      }
+    },
+    "boolean": {
+      "beskrivelse": "Sand/falsk. sqlite: 0/1.",
+      "rayfin": {
+        "mssql": "BIT",
+        "postgresql": "BOOLEAN"
+      },
+      "ddl": {
+        "sqlite": "INTEGER",
+        "postgresql": "BOOLEAN",
+        "mssql": "BIT"
+      }
+    },
+    "datetime": {
+      "beskrivelse": "UTC uden tidszone, millisekunder. sqlite: tekst 'YYYY-MM-DDTHH:MM:SS.fffZ' (fast bredde, så tekstsortering = tidssortering).",
+      "rayfin": {
+        "mssql": "DATETIME2",
+        "postgresql": "TIMESTAMP WITH TIME ZONE"
+      },
+      "ddl": {
+        "sqlite": "CHAR(24)",
+        "postgresql": "TIMESTAMP(3)",
+        "mssql": "DATETIME2(3)"
+      }
+    }
+  },
+  "rayfin_interne_tabeller": {
+    "Users": "Rayfins brugertabel (Id, Email). Ikke en del af kontrakten; community-udgaven har ingen.",
+    "objects": "Rayfins storage-katalog. Ikke en del af kontrakten."
+  },
+  "tabeller": [
+    {
+      "entitet": "Vaerk",
+      "tabel": "Vaerks",
+      "beskrivelse": "Vaerk — et konfigureret fjernvarmeværk (KONTRAKT §3.1). Værkets faktiske konfiguration ligger IKKE her, men som blade i VaerkParameter (hele case-YAML'en fladet). Denne række er hovedet: navn, oprindelse og sporbarhed. `kode` er unik (DB-constraint) og følger [a-z0-9_] — mønsteret håndhæves i appen og i notebooken, ikke i databasen. `revision` øges ved hver gemt ændring og bruges til optimistisk kontrol i `udfoerAendring` (KONTRAKT §3.3b).",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "kode",
+          "type": "text",
+          "max": 60,
+          "min": 1,
+          "nullable": false,
+          "unik": true,
+          "moenster": "^[a-z0-9_]+$"
+        },
+        {
+          "navn": "navn",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "beskrivelse",
+          "type": "text",
+          "max": 4000,
+          "nullable": true
+        },
+        {
+          "navn": "kilde",
+          "type": "set",
+          "vaerdier": [
+            "repo",
+            "app"
+          ],
+          "nullable": false
+        },
+        {
+          "navn": "kilde_fil",
+          "type": "text",
+          "max": 300,
+          "nullable": true,
+          "beskrivelse": "Oprindeligt filnavn, fx `cases/billund_sporA.yaml` (koden er normaliseret til lowercase)."
+        },
+        {
+          "navn": "repo_commit",
+          "type": "text",
+          "max": 40,
+          "nullable": true,
+          "beskrivelse": "Modelrepoets commit ved import."
+        },
+        {
+          "navn": "kopieret_fra_id",
+          "type": "uuid",
+          "nullable": true,
+          "beskrivelse": "Ved kopi af et andet værk.",
+          "ref": "Vaerk"
+        },
+        {
+          "navn": "revision",
+          "type": "int",
+          "nullable": false,
+          "beskrivelse": "Øges ved hver gemt ændring (optimistisk kontrol). Import = 1."
+        },
+        {
+          "navn": "arkiveret",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "navn": "oprettet_af",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "aendret_af",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "oprettet",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC."
+        },
+        {
+          "navn": "aendret",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC."
+        }
+      ],
+      "invarianter": []
+    },
+    {
+      "entitet": "VaerkParameter",
+      "tabel": "VaerkParameters",
+      "beskrivelse": "VaerkParameter — én blad-værdi i værkets case-YAML (KONTRAKT §3.2). Stien er punktum-separerede nøgler (`units.halmkedel.p_max_heat`); dicts rekurseres, skalarer OG lister er blade. Værdien er JSON-kodet, så typen overlever rundturen (12 vs 12.0, \"true\" vs true, null). Unikhed (vaerk_id, sti) håndhæves i kode — Rayfin kan ikke udtrykke en sammensat constraint. Læsevejen skal derfor TÅLE en dublet og vise den.",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "vaerk_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Vaerk"
+        },
+        {
+          "navn": "sti",
+          "type": "text",
+          "max": 400,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "vaerdi_json",
+          "type": "text",
+          "max": 4000,
+          "min": 1,
+          "nullable": false,
+          "beskrivelse": "JSON: `12.0`, `\"straw\"`, `true`, `[4.4, 4.5]`, `null`."
+        },
+        {
+          "navn": "sektion",
+          "type": "text",
+          "max": 60,
+          "min": 1,
+          "nullable": false,
+          "beskrivelse": "Første nøgle: `units`, `prices`, `electricity`, …"
+        },
+        {
+          "navn": "objekt",
+          "type": "text",
+          "max": 120,
+          "nullable": true,
+          "beskrivelse": "Anden nøgle for `units`/`storage`/`prices` (enhedens/lagerets/brændslets navn)."
+        },
+        {
+          "navn": "kommentar",
+          "type": "text",
+          "max": 2000,
+          "nullable": true,
+          "beskrivelse": "YAML-kommentaren på/over linjen."
+        },
+        {
+          "navn": "bekraeft",
+          "type": "boolean",
+          "nullable": false,
+          "beskrivelse": "Linjen bærer `[BEKRÆFT]` eller `[TBC]`."
+        },
+        {
+          "navn": "raekkefoelge",
+          "type": "int",
+          "nullable": false,
+          "beskrivelse": "Linjens position i kildefilen."
+        },
+        {
+          "navn": "aendret_af",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "aendret",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC."
+        }
+      ],
+      "invarianter": [
+        {
+          "navn": "en_vaerdi_pr_sti",
+          "type": "unik",
+          "kolonner": [
+            "vaerk_id",
+            "sti"
+          ],
+          "ddl": true,
+          "kilde": "KONTRAKT §3.2; VaerkParameter.ts (unikhed håndhæves i kode)"
+        }
+      ]
+    },
+    {
+      "entitet": "Aendringslog",
+      "tabel": "Aendringslogs",
+      "beskrivelse": "Aendringslog — revisionsspor for værkskonfiguration (KONTRAKT §3.3). Append-only: én række pr. opret/ret/slet af en VaerkParameter. Skrives af Function `udfoerAendring` i SAMME SQL-transaktion som selve ændringen, så en ændring aldrig kan lykkes uden log. Notebookens importer bruger loggen til at afgøre, om et værk er ændret i appen (og så ikke må overskrives).",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "vaerk_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Vaerk"
+        },
+        {
+          "navn": "revision",
+          "type": "int",
+          "nullable": false,
+          "beskrivelse": "Værkets revision EFTER ændringen."
+        },
+        {
+          "navn": "sti",
+          "type": "text",
+          "max": 400,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "handling",
+          "type": "set",
+          "vaerdier": [
+            "opret",
+            "ret",
+            "slet"
+          ],
+          "nullable": false
+        },
+        {
+          "navn": "gammel_json",
+          "type": "text",
+          "max": 4000,
+          "nullable": true
+        },
+        {
+          "navn": "ny_json",
+          "type": "text",
+          "max": 4000,
+          "nullable": true
+        },
+        {
+          "navn": "aendret_af",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "tidspunkt",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC."
+        },
+        {
+          "navn": "anmodning_id",
+          "type": "uuid",
+          "nullable": true,
+          "beskrivelse": "Den Aendringsanmodning, ændringen kom fra.",
+          "ref": "Aendringsanmodning"
+        }
+      ],
+      "invarianter": []
+    },
+    {
+      "entitet": "Aendringsanmodning",
+      "tabel": "Aendringsanmodnings",
+      "beskrivelse": "Aendringsanmodning — brugerens ønske om at ændre et værk (KONTRAKT §3.3b). Klienten må KUN oprette (og læse), og kun med sin egen e-mail i `anmodet_af` (DAB-policy). Function `udfoerAendring` udfører den i ÉN SQL-transaktion: tjek `forventet_revision`, ret VaerkParameter, skriv Aendringslog, øg Vaerk.revision, sæt status. Konflikt -> `afvist` + `svar`. `aendringer_json` er en liste. Former (læses af rayfin/functions/src/logik.ts læsAnmodning): parameterændringer : [{\"sti\": \"...\", \"handling\": \"opret|ret|slet\", \"ny_json\": \"...\"}] værksniveau : [{\"handling\": \"kopier_vaerk\", \"ny_kode\": \"...\", \"navn\": \"...\"}] (vaerk_id = kildeværket; forventet_revision = dets revision) nyt værk, N dele : [{\"handling\": \"opret_vaerk_del\", \"udkast\": \"<uuid>\", \"nr\": k, \"af\": N, \"blade\": [{sti, ny_json, bekraeft?, kommentar?}]}] nyt værk, afslut : [{\"handling\": \"opret_vaerk\", \"udkast\": \"<uuid>\", \"dele\": N, \"ny_kode\": \"...\", \"navn\": \"...\"}] (vaerk_id = nil-uuid, forventet_revision = 0; se app/AGENTS.md › Nyt værk fra bunden) Status skrives af funktionen; DAB afviser create med en anden status end `ny` (K2-F10).",
+      "klient": {
+        "read": true,
+        "create": {
+          "policy": [
+            {
+              "felt": "anmodet_af",
+              "lig": "$bruger"
+            },
+            {
+              "felt": "status",
+              "lig": "ny"
+            }
+          ]
+        },
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "vaerk_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Vaerk",
+          "ref_undtagelser": [
+            "NIL_UUID"
+          ]
+        },
+        {
+          "navn": "forventet_revision",
+          "type": "int",
+          "nullable": false,
+          "beskrivelse": "Værkets revision da brugeren begyndte at redigere."
+        },
+        {
+          "navn": "aendringer_json",
+          "type": "text",
+          "max": 4000,
+          "min": 2,
+          "nullable": false,
+          "beskrivelse": "Kompakt JSON-liste — se filhovedet."
+        },
+        {
+          "navn": "anmodet_af",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "anmodet",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC."
+        },
+        {
+          "navn": "status",
+          "type": "set",
+          "vaerdier": [
+            "ny",
+            "udfoert",
+            "afvist"
+          ],
+          "nullable": false
+        },
+        {
+          "navn": "svar",
+          "type": "text",
+          "max": 2000,
+          "nullable": true,
+          "beskrivelse": "Funktionens svar: hvad blev gjort, eller hvorfor afvist."
+        }
+      ],
+      "invarianter": []
+    },
+    {
+      "entitet": "Scenarie",
+      "tabel": "Scenaries",
+      "beskrivelse": "Scenarie — et værk plus ændringer, der kan bestilles kørt (KONTRAKT §3.4). Klient-CRUD (KONTRAKT §3.0): oprettelse kræver at `oprettet_af` er kalderens egen e-mail (DAB-policy), så revisionssporet er verificeret. Ved opdatering kan `oprettet_af`, `oprettet` og `vaerk_id` ikke ændres. Sletning er bevidst IKKE tilladt: et scenarie med kørsler ville efterlade hængende referencer — arkivér i stedet. Scenariet er levende; det der faktisk køres, fryses i KoerselInput ved bestilling. Ændringer efter en bestilling påvirker derfor ikke kørslen.",
+      "klient": {
+        "read": true,
+        "create": {
+          "policy": [
+            {
+              "felt": "oprettet_af",
+              "lig": "$bruger"
+            }
+          ]
+        },
+        "update": {
+          "undtaget": [
+            "oprettet",
+            "oprettet_af",
+            "vaerk_id"
+          ]
+        },
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "vaerk_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Vaerk"
+        },
+        {
+          "navn": "navn",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "beskrivelse",
+          "type": "text",
+          "max": 4000,
+          "nullable": true
+        },
+        {
+          "navn": "reference_scenarie_id",
+          "type": "uuid",
+          "nullable": true,
+          "beskrivelse": "Det scenarie, differensen regnes mod (reference/scenarie-par oprettet i appen).",
+          "ref": "Scenarie"
+        },
+        {
+          "navn": "periode_start",
+          "type": "text",
+          "max": 20,
+          "nullable": true,
+          "beskrivelse": "ISO-dato `2026-01-05`; tom = værkets `time`-blok.",
+          "moenster": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "navn": "periode_slut",
+          "type": "text",
+          "max": 20,
+          "nullable": true,
+          "moenster": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "navn": "med_balancering",
+          "type": "boolean",
+          "nullable": false,
+          "beskrivelse": "`--with-balancing`."
+        },
+        {
+          "navn": "balancing_method",
+          "type": "set",
+          "vaerdier": [
+            "legacy",
+            "activation_value"
+          ],
+          "nullable": true
+        },
+        {
+          "navn": "mip_rel_gap",
+          "type": "decimal",
+          "precision": 18,
+          "scale": 10,
+          "nullable": true,
+          "beskrivelse": "Ønsket relativ tolerance (`solver.mip_rel_gap`); anbefal 0.0002 ved differenser."
+        },
+        {
+          "navn": "mip_abs_gap",
+          "type": "decimal",
+          "precision": 28,
+          "scale": 4,
+          "nullable": true,
+          "beskrivelse": "Ønsket absolut tolerance i DKK (`solver.mip_abs_gap`; modellens standard er 5.000)."
+        },
+        {
+          "navn": "tidsgraense_s",
+          "type": "int",
+          "nullable": true,
+          "beskrivelse": "`solver.time_limit` i sekunder (højst 3600, håndhæves i startBestilling)."
+        },
+        {
+          "navn": "ekstra_flag",
+          "type": "text",
+          "max": 300,
+          "nullable": true,
+          "beskrivelse": "Hvidlistede flag (`--legacy-nettab`). Functions/notebook afviser alt andet."
+        },
+        {
+          "navn": "heat_csv",
+          "type": "text",
+          "max": 300,
+          "nullable": true,
+          "beskrivelse": "Varmelast-CSV (`--heat-csv`); kun filer i modelrepoets `data/`."
+        },
+        {
+          "navn": "arkiveret",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "navn": "oprettet_af",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "oprettet",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC."
+        }
+      ],
+      "invarianter": []
+    },
+    {
+      "entitet": "ScenarieAendring",
+      "tabel": "ScenarieAendrings",
+      "beskrivelse": "ScenarieAendring — én knap i et scenarie (KONTRAKT §3.5). `set` : `sti` er et EKSISTERENDE blad i værket (`prices.straw.value`); `vaerdi_json` erstatter det (en liste erstattes som helt blad). `enable` : `sti` er et enheds- eller lagernavn; `<units|storage>.<navn>.enabled = true`. `disable` : som enable, men false. To ændringer på samme sti i ét scenarie afvises (ikke \"sidste vinder\") — det tjekkes i appen ved gem og igen i startBestilling. Klient-CRUD uden policy: rækken har ingen brugerkolonne, og identiteten sidder på scenariet. Det der køres, fryses i KoerselInput ved bestilling.",
+      "klient": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "scenarie_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Scenarie"
+        },
+        {
+          "navn": "type",
+          "type": "set",
+          "vaerdier": [
+            "set",
+            "enable",
+            "disable"
+          ],
+          "nullable": false
+        },
+        {
+          "navn": "sti",
+          "type": "text",
+          "max": 400,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "vaerdi_json",
+          "type": "text",
+          "max": 4000,
+          "nullable": true,
+          "beskrivelse": "Kun ved `set`. JSON-kodet, kompakt."
+        },
+        {
+          "navn": "raekkefoelge",
+          "type": "int",
+          "nullable": false
+        }
+      ],
+      "invarianter": [
+        {
+          "navn": "en_aendring_pr_sti",
+          "type": "unik",
+          "kolonner": [
+            "scenarie_id",
+            "sti"
+          ],
+          "ddl": false,
+          "kilde": "KONTRAKT §3.5 (afvises ved gem og i startBestilling, ikke i databasen; klienten kan skrive dubletter)"
+        }
+      ]
+    },
+    {
+      "entitet": "Bestilling",
+      "tabel": "Bestillings",
+      "beskrivelse": "Bestilling — brugerens ønske om at køre et scenarie (KONTRAKT §3.6). Klienten må KUN oprette (og læse), og kun med sin egen e-mail i `bestilt_af` (DAB-policy). Function `startBestilling` behandler den: håndhæver grænserne, fryser input og opretter Koersel. Det er derfor bestillingen og ikke kørslen, klienten skriver — status, job-id og resultater er betroede. `klient_noegle` er unik: et dobbeltklik eller et gentaget kald med samme nøgle kan ikke give to bestillinger (idempotens i databasen, ikke kun i UI).",
+      "klient": {
+        "read": true,
+        "create": {
+          "policy": [
+            {
+              "felt": "bestilt_af",
+              "lig": "$bruger"
+            }
+          ]
+        },
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "scenarie_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Scenarie"
+        },
+        {
+          "navn": "klient_noegle",
+          "type": "text",
+          "max": 60,
+          "min": 1,
+          "nullable": false,
+          "unik": true,
+          "beskrivelse": "Klientgenereret (uuid). Samme nøgle = samme bestilling."
+        },
+        {
+          "navn": "bestilt_af",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "bestilt",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC."
+        }
+      ],
+      "invarianter": []
+    },
+    {
+      "entitet": "Koersel",
+      "tabel": "Koersels",
+      "beskrivelse": "Koersel — én kørsel af et scenarie (KONTRAKT §3.6, §6). Klienten må KUN læse. Rækken oprettes af `startBestilling` (status `koe`) sammen med KoerselInput; notebook-arbejderen overtager den atomisk (betinget UPDATE på status + arbejder_id), sætter `hjerteslag` hvert minut, og publicerer til sidst. Alle statusskift er kun fremadrettede. `bestilling_id` er unik: én bestilling giver højst én kørsel, uanset hvor mange gange startBestilling kaldes (idempotens).",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "bestilling_id",
+          "type": "uuid",
+          "nullable": false,
+          "unik": true,
+          "ref": "Bestilling"
+        },
+        {
+          "navn": "scenarie_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Scenarie"
+        },
+        {
+          "navn": "vaerk_id",
+          "type": "uuid",
+          "nullable": false,
+          "beskrivelse": "Denormaliseret for hurtig liste.",
+          "ref": "Vaerk"
+        },
+        {
+          "navn": "vaerk_revision",
+          "type": "int",
+          "nullable": false,
+          "beskrivelse": "Værkets revision der blev frosset i KoerselInput."
+        },
+        {
+          "navn": "input_hash",
+          "type": "text",
+          "max": 64,
+          "min": 64,
+          "nullable": false,
+          "beskrivelse": "sha256 (hex) over KoerselInput, sorteret, kompakt JSON.",
+          "moenster": "^[0-9a-f]{64}$"
+        },
+        {
+          "navn": "status",
+          "type": "set",
+          "vaerdier": [
+            "koe",
+            "startet",
+            "koerer",
+            "indlaeser",
+            "faerdig",
+            "fejl",
+            "annulleret"
+          ],
+          "nullable": false
+        },
+        {
+          "navn": "fase",
+          "type": "text",
+          "max": 200,
+          "nullable": true,
+          "beskrivelse": "Fremdrift i ord: \"Henter df-data\", \"Løser MILP\", \"Skriver resultater\"."
+        },
+        {
+          "navn": "bestilt_af",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "bestilt",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "Klientens tidspunkt fra Bestilling — KUN diagnostik (K2-F9)."
+        },
+        {
+          "navn": "modtaget",
+          "type": "datetime",
+          "nullable": true,
+          "beskrivelse": "Serverens modtagelsestid (SYSUTCDATETIME() i startBestilling) = køens sorteringsnøgle (KONTRAKT §6c). Optional, fordi rækker fra før v2.2 og notebookens manuelle vej kan mangle den; sortér på COALESCE(modtaget, bestilt), id."
+        },
+        {
+          "navn": "startet",
+          "type": "datetime",
+          "nullable": true
+        },
+        {
+          "navn": "afsluttet",
+          "type": "datetime",
+          "nullable": true
+        },
+        {
+          "navn": "hjerteslag",
+          "type": "datetime",
+          "nullable": true,
+          "beskrivelse": "Sættes af arbejderen hvert minut, også mens HiGHS løser."
+        },
+        {
+          "navn": "annuller_anmodet",
+          "type": "datetime",
+          "nullable": true,
+          "beskrivelse": "Sat af `annullerKoersel` for en aktiv kørsel: jobstop er bedt om, men `annulleret` sættes først når jobs-API'et bekræfter det (KONTRAKT §6). Arbejderen må ikke overtage en kørsel med dette felt sat."
+        },
+        {
+          "navn": "forsoeg",
+          "type": "int",
+          "nullable": false,
+          "beskrivelse": "Antal startforsøg."
+        },
+        {
+          "navn": "arbejder_id",
+          "type": "text",
+          "max": 100,
+          "nullable": true
+        },
+        {
+          "navn": "fabric_job_id",
+          "type": "text",
+          "max": 100,
+          "nullable": true,
+          "beskrivelse": "UDGÅET med §6c (job-id står på Motor.sidste_job_id). Skrives ikke længere; ældre rækker kan have en værdi."
+        },
+        {
+          "navn": "kilde",
+          "type": "set",
+          "vaerdier": [
+            "app",
+            "notebook"
+          ],
+          "nullable": false
+        },
+        {
+          "navn": "model_commit",
+          "type": "text",
+          "max": 40,
+          "nullable": true,
+          "beskrivelse": "FULDE SHA'er fra download — ikke manifestets korte.",
+          "moenster": "^[0-9a-f]{40}$"
+        },
+        {
+          "navn": "data_commit",
+          "type": "text",
+          "max": 40,
+          "nullable": true,
+          "moenster": "^[0-9a-f]{40}$"
+        },
+        {
+          "navn": "miljoe_json",
+          "type": "text",
+          "max": 4000,
+          "nullable": true,
+          "beskrivelse": "python-version, solverpakker, wrapper-version."
+        },
+        {
+          "navn": "case_sti",
+          "type": "text",
+          "max": 400,
+          "nullable": true
+        },
+        {
+          "navn": "output_sti",
+          "type": "text",
+          "max": 400,
+          "nullable": true
+        },
+        {
+          "navn": "output_stem",
+          "type": "text",
+          "max": 400,
+          "nullable": true
+        },
+        {
+          "navn": "oploesning",
+          "type": "text",
+          "max": 10,
+          "nullable": true,
+          "beskrivelse": "`1h` / `15min`. Kendes først sikkert når arbejderen har bygget casen.",
+          "moenster": "^(1h|15min)$"
+        },
+        {
+          "navn": "interval_min",
+          "type": "int",
+          "nullable": true
+        },
+        {
+          "navn": "antal_interval_model",
+          "type": "int",
+          "nullable": true,
+          "beskrivelse": "N — alle modelintervaller inkl. t=0."
+        },
+        {
+          "navn": "antal_interval_csv",
+          "type": "int",
+          "nullable": true,
+          "beskrivelse": "N-1 — rækker i `_hourly.csv`."
+        },
+        {
+          "navn": "solve_status",
+          "type": "text",
+          "max": 60,
+          "nullable": true
+        },
+        {
+          "navn": "er_milp",
+          "type": "boolean",
+          "nullable": true
+        },
+        {
+          "navn": "objektiv_dkk",
+          "type": "decimal",
+          "precision": 28,
+          "scale": 4,
+          "nullable": true,
+          "beskrivelse": "Præcist fra `.nc`, ikke manifestets afrundede tal."
+        },
+        {
+          "navn": "oensket_rel_gap",
+          "type": "decimal",
+          "precision": 18,
+          "scale": 10,
+          "nullable": true
+        },
+        {
+          "navn": "oensket_abs_gap",
+          "type": "decimal",
+          "precision": 28,
+          "scale": 4,
+          "nullable": true
+        },
+        {
+          "navn": "opnaaet_gap",
+          "type": "decimal",
+          "precision": 18,
+          "scale": 10,
+          "nullable": true,
+          "beskrivelse": "Parset fra HiGHS-loggen; tom ved tvivl (forklaring i fase/fejlbesked)."
+        },
+        {
+          "navn": "best_bound",
+          "type": "decimal",
+          "precision": 28,
+          "scale": 4,
+          "nullable": true
+        },
+        {
+          "navn": "loesetid_s",
+          "type": "decimal",
+          "precision": 18,
+          "scale": 3,
+          "nullable": true
+        },
+        {
+          "navn": "fejlbesked",
+          "type": "text",
+          "max": 4000,
+          "nullable": true,
+          "beskrivelse": "Læsbar fejl (CoverageError, infeasible-forklaring …)."
+        },
+        {
+          "navn": "manifest_json",
+          "type": "text",
+          "max": 4000,
+          "nullable": true,
+          "beskrivelse": "Fast udvalg: schema_version, periode, kilde, metode, aktive enheder."
+        }
+      ],
+      "invarianter": []
+    },
+    {
+      "entitet": "KoerselInput",
+      "tabel": "KoerselInputs",
+      "beskrivelse": "KoerselInput — det frosne input for én kørsel (KONTRAKT §3.7). Skrives af `startBestilling` i SAMME transaktion som Koersel: alle VaerkParameter-blade ved `vaerk_revision` (kilde=vaerk), derefter scenariets ændringer (kilde=aendring) og særlige felter som stier (kilde=scenarie: `_scenarie.periode_start`, `solver.mip_rel_gap` …). Notebooken læser KUN dette (+ Koersel) og verificerer `input_hash`.",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "koersel_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Koersel"
+        },
+        {
+          "navn": "sti",
+          "type": "text",
+          "max": 400,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "vaerdi_json",
+          "type": "text",
+          "max": 4000,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "kilde",
+          "type": "set",
+          "vaerdier": [
+            "vaerk",
+            "aendring",
+            "scenarie"
+          ],
+          "nullable": false
+        }
+      ],
+      "invarianter": [
+        {
+          "navn": "en_vaerdi_pr_kilde_og_sti",
+          "type": "unik",
+          "kolonner": [
+            "koersel_id",
+            "kilde",
+            "sti"
+          ],
+          "ddl": true,
+          "kilde": "logik.ts bygFrossetInput: samme sti kan stå som kilde=vaerk OG kilde=aendring/scenarie, men aldrig to gange med samme kilde"
+        }
+      ]
+    },
+    {
+      "entitet": "KoerselNoegletal",
+      "tabel": "KoerselNoegletals",
+      "beskrivelse": "KoerselNoegletal — en kørsels nøgletal i langt format (KONTRAKT §3.8). Mapping pr. nøgle står i fabric/maaleregister.json. Naturlig nøgle (koersel_id, gruppe, objekt, marked, noegle). Skrives kun af notebooken.",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "koersel_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Koersel"
+        },
+        {
+          "navn": "gruppe",
+          "type": "text",
+          "max": 60,
+          "min": 1,
+          "nullable": false,
+          "beskrivelse": "`objektiv`, `enhed`, `balancering`, `lager`, `el`, …"
+        },
+        {
+          "navn": "objekt",
+          "type": "text",
+          "max": 120,
+          "nullable": true,
+          "beskrivelse": "Enhed/lager."
+        },
+        {
+          "navn": "marked",
+          "type": "text",
+          "max": 20,
+          "nullable": true,
+          "beskrivelse": "`afrr`/`mfrr`/tom."
+        },
+        {
+          "navn": "noegle",
+          "type": "text",
+          "max": 120,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "vaerdi",
+          "type": "decimal",
+          "precision": 28,
+          "scale": 10,
+          "nullable": true,
+          "beskrivelse": "Tom = ikke tilgængelig (fx LP-duals i MILP) — ikke 0."
+        },
+        {
+          "navn": "enhed",
+          "type": "text",
+          "max": 40,
+          "nullable": true,
+          "beskrivelse": "Måleenhed: `DKK`, `MWh`, `kr/MWh` …"
+        }
+      ],
+      "invarianter": [
+        {
+          "navn": "naturlig_noegle",
+          "type": "unik",
+          "kolonner": [
+            "koersel_id",
+            "gruppe",
+            "objekt",
+            "marked",
+            "noegle"
+          ],
+          "ddl": false,
+          "null_er_vaerdi": true,
+          "kilde": "KONTRAKT §3.8. Ikke i DDL: kolonner kan være NULL, og dialekterne er uenige om NULL i et unikt indeks"
+        }
+      ]
+    },
+    {
+      "entitet": "KoerselMaaned",
+      "tabel": "KoerselMaaneds",
+      "beskrivelse": "KoerselMaaned — en kørsels månedsværdier i langt format (KONTRAKT §3.9). Beregnes i notebooken fra den fulde tidsserie (alle N intervaller), IKKE fra `_monthly.csv` (UTC-måned 1-12 uden år, K1-F5). `maaned` er `YYYY-MM` i Europe/Copenhagen eller `periode` (hele kørslen, på uafrundede data). Appen summerer ALDRIG viste celler — brug `periode`-rækken.",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "koersel_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Koersel"
+        },
+        {
+          "navn": "maaned",
+          "type": "text",
+          "max": 7,
+          "min": 1,
+          "nullable": false,
+          "beskrivelse": "`2026-01` (Europe/Copenhagen) eller `periode`.",
+          "moenster": "^([0-9]{4}-(0[1-9]|1[0-2])|periode)$"
+        },
+        {
+          "navn": "objekt",
+          "type": "text",
+          "max": 120,
+          "nullable": true
+        },
+        {
+          "navn": "noegle",
+          "type": "text",
+          "max": 120,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "vaerdi",
+          "type": "decimal",
+          "precision": 28,
+          "scale": 10,
+          "nullable": true
+        }
+      ],
+      "invarianter": [
+        {
+          "navn": "naturlig_noegle",
+          "type": "unik",
+          "kolonner": [
+            "koersel_id",
+            "maaned",
+            "objekt",
+            "noegle"
+          ],
+          "ddl": false,
+          "null_er_vaerdi": true,
+          "kilde": "KONTRAKT §3.9 (som KoerselNoegletal)"
+        }
+      ]
+    },
+    {
+      "entitet": "KoerselTime",
+      "tabel": "KoerselTimes",
+      "beskrivelse": "KoerselTime — intervaldispatch, bredt med JSON (KONTRAKT §3.10). `_hourly.csv` har N-1 rækker (første interval droppes bevidst; t=0's lagerbalance er en kendt modeldefekt). 1h og 15min (`Koersel.oploesning`). Appen læser ALTID filtreret på koersel_id + tidsvindue, sorteret, pagineret. `vaerdier_json` = de øvrige kolonner i `_hourly.csv` som objekt, kompakt, NaN -> null (`{\"p_halmkedel_mw\":3.0,…}`). Skrives kun af notebooken.",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "koersel_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Koersel"
+        },
+        {
+          "navn": "tid",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC, intervallets start."
+        },
+        {
+          "navn": "varmelast_mw",
+          "type": "decimal",
+          "precision": 18,
+          "scale": 6,
+          "nullable": false
+        },
+        {
+          "navn": "spotpris",
+          "type": "decimal",
+          "precision": 18,
+          "scale": 6,
+          "nullable": true
+        },
+        {
+          "navn": "t_ude",
+          "type": "decimal",
+          "precision": 18,
+          "scale": 6,
+          "nullable": true
+        },
+        {
+          "navn": "vaerdier_json",
+          "type": "text",
+          "max": 4000,
+          "min": 1,
+          "nullable": false
+        }
+      ],
+      "invarianter": [
+        {
+          "navn": "et_interval_pr_tid",
+          "type": "unik",
+          "kolonner": [
+            "koersel_id",
+            "tid"
+          ],
+          "ddl": true,
+          "kilde": "KONTRAKT §3.10 (tid = intervallets start i UTC; ingen dubletter, heller ikke ved sommertid)"
+        }
+      ]
+    },
+    {
+      "entitet": "Motor",
+      "tabel": "Motors",
+      "beskrivelse": "Motor — regnemotorens tilstand, ÉN række (KONTRAKT v2.2 §6c). model_commit, data_commit de pins arbejderen aktuelt bruger (skrives af fv-fabric's importer/arbejder); startBestilling fryser dem i det hashbeskyttede input (K2-F8). sidste_jobstart hvornår en Function sidst POST'ede et arbejderjob; betinget UPDATE (ældre end 2 min) sikrer, at kun ét kald starter et job (K2-F3). sidste_job_id arbejderjobbets id (job-id hører til jobbet, ikke til en kørsel). Rækken har det faste id MOTOR_ID (fjv.constants.ts) og oprettes af Functions, hvis den mangler. Global eksklusion af solveren er IKKE et felt her, men SQL-applocken 'fjv_solver' (§6c).",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "model_commit",
+          "type": "text",
+          "max": 40,
+          "nullable": true,
+          "moenster": "^[0-9a-f]{40}$"
+        },
+        {
+          "navn": "data_commit",
+          "type": "text",
+          "max": 40,
+          "nullable": true,
+          "moenster": "^[0-9a-f]{40}$"
+        },
+        {
+          "navn": "sidste_jobstart",
+          "type": "datetime",
+          "nullable": true
+        },
+        {
+          "navn": "sidste_job_id",
+          "type": "text",
+          "max": 100,
+          "nullable": true
+        },
+        {
+          "navn": "aendret",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC."
+        }
+      ],
+      "invarianter": [
+        {
+          "navn": "en_raekke",
+          "type": "fast_id",
+          "kolonner": [
+            "id"
+          ],
+          "vaerdi": "MOTOR_ID",
+          "ddl": false,
+          "kilde": "KONTRAKT §6c; Motor.ts (én række med det faste id)"
+        }
+      ]
+    },
+    {
+      "entitet": "Tidsserie",
+      "tabel": "Tidsseries",
+      "beskrivelse": "Tidsserie — en af værkets EGNE tidsserier (målt varmelast, målt solvarme), KONTRAKT §6d. Markeds- og vejrdata (spot, aFRR, mFRR, ubalance, DMI) bliver i df-data og uploades aldrig. Klienten må KUN læse; rækken skrives af Function `uploadTidsserie` (eller af importen af repo-casene / værksark-notebooken). Filen er UFORANDERLIG: `Files/fjv/tidsserier/<vaerk_kode>/<sha256>.csv` i normaliseret form (UTC, timens start, MW, én værdikolonne). Samme hash = samme fil; en ny upload er en ny række. `sti`/`sha256`/perioden er tomme på en afvist upload (der findes ingen normaliseret fil). Højst én `aktiv` pr. værk + rolle — håndhæves i Function (Rayfin kan ikke udtrykke et filtreret unikt indeks), så læsevejen skal TÅLE to og vise det.",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "vaerk_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Vaerk"
+        },
+        {
+          "navn": "rolle",
+          "type": "set",
+          "vaerdier": [
+            "varmelast",
+            "solprofil"
+          ],
+          "nullable": false
+        },
+        {
+          "navn": "navn",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "filnavn",
+          "type": "text",
+          "max": 300,
+          "min": 1,
+          "nullable": false,
+          "beskrivelse": "Brugerens filnavn (kun til visning)."
+        },
+        {
+          "navn": "sti",
+          "type": "text",
+          "max": 400,
+          "nullable": true,
+          "beskrivelse": "Lakehouse-sti til den normaliserede fil; tom ved `afvist`."
+        },
+        {
+          "navn": "sha256",
+          "type": "text",
+          "max": 64,
+          "nullable": true,
+          "beskrivelse": "sha256 af den normaliserede fil (hex); tom ved `afvist`.",
+          "moenster": "^[0-9a-f]{64}$"
+        },
+        {
+          "navn": "oploesning",
+          "type": "text",
+          "max": 10,
+          "nullable": true,
+          "beskrivelse": "`1h` eller `15min`.",
+          "moenster": "^(1h|15min)$"
+        },
+        {
+          "navn": "start",
+          "type": "datetime",
+          "nullable": true,
+          "beskrivelse": "Første og sidste interval (timens START, UTC)."
+        },
+        {
+          "navn": "slut",
+          "type": "datetime",
+          "nullable": true
+        },
+        {
+          "navn": "antal_raekker",
+          "type": "int",
+          "nullable": true
+        },
+        {
+          "navn": "antal_huller",
+          "type": "int",
+          "nullable": true
+        },
+        {
+          "navn": "enhed",
+          "type": "text",
+          "max": 20,
+          "nullable": true,
+          "beskrivelse": "Altid `MW` i den gemte fil."
+        },
+        {
+          "navn": "tidsstempel",
+          "type": "set",
+          "vaerdier": [
+            "start",
+            "slut"
+          ],
+          "nullable": false,
+          "beskrivelse": "Hvad tidsstemplet betød i KILDEN (`start`/`slut` på timen)."
+        },
+        {
+          "navn": "tidszone",
+          "type": "text",
+          "max": 40,
+          "min": 1,
+          "nullable": false,
+          "beskrivelse": "Kildens tidszone (fx `Europe/Copenhagen` eller `UTC`); den gemte fil er UTC."
+        },
+        {
+          "navn": "kilde",
+          "type": "set",
+          "vaerdier": [
+            "csv",
+            "vaerksark",
+            "repo"
+          ],
+          "nullable": false
+        },
+        {
+          "navn": "status",
+          "type": "set",
+          "vaerdier": [
+            "validerer",
+            "gyldig",
+            "afvist"
+          ],
+          "nullable": false
+        },
+        {
+          "navn": "validering_json",
+          "type": "text",
+          "max": 4000,
+          "nullable": true,
+          "beskrivelse": "Kompakt JSON: dækning, huller, min/max, årssum, fejl og advarsler (se app/AGENTS.md)."
+        },
+        {
+          "navn": "aktiv",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "navn": "uploadet_af",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "uploadet",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC."
+        }
+      ],
+      "invarianter": [
+        {
+          "navn": "hoejst_en_aktiv",
+          "type": "unik",
+          "kolonner": [
+            "vaerk_id",
+            "rolle"
+          ],
+          "hvor": {
+            "aktiv": true
+          },
+          "ddl": true,
+          "kilde": "KONTRAKT §6d. Functions slår de andre fra FØR den nye sættes til (function_app.ts), så et filtreret unikt indeks holder"
+        }
+      ]
+    },
+    {
+      "entitet": "Vaerksarkimport",
+      "tabel": "Vaerksarkimports",
+      "beskrivelse": "Vaerksarkimport — én upload af `vaerksdata_skabelon.xlsx` (KONTRAKT §6d). Function `uploadVaerksark` gemmer filen i `Files/fjv/uploads/<id>.xlsx`, opretter rækken (`koe`) og starter notebooken `fjv_importer_vaerksark`, der kører modelrepoets `scripts/vaerksark_til_yaml.py` uændret og opretter værk (som opret_vaerk, kilde `app`) + tidsserie (kilde `vaerksark`). Importen bruger IKKE solver-låsen. Klienten må KUN læse; status/log skrives af backend.",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "filnavn",
+          "type": "text",
+          "max": 300,
+          "min": 1,
+          "nullable": false,
+          "beskrivelse": "Brugerens filnavn (kun til visning)."
+        },
+        {
+          "navn": "sti",
+          "type": "text",
+          "max": 400,
+          "nullable": true,
+          "beskrivelse": "Lakehouse-sti til den uploadede fil."
+        },
+        {
+          "navn": "status",
+          "type": "set",
+          "vaerdier": [
+            "koe",
+            "koerer",
+            "faerdig",
+            "fejl"
+          ],
+          "nullable": false
+        },
+        {
+          "navn": "vaerk_id",
+          "type": "uuid",
+          "nullable": true,
+          "beskrivelse": "Værket, importen oprettede (når `faerdig`).",
+          "ref": "Vaerk"
+        },
+        {
+          "navn": "tidsserie_id",
+          "type": "uuid",
+          "nullable": true,
+          "beskrivelse": "Tidsserien, importen oprettede (hvis arket havde en).",
+          "ref": "Tidsserie"
+        },
+        {
+          "navn": "log",
+          "type": "text",
+          "max": 4000,
+          "nullable": true,
+          "beskrivelse": "Notebookens log (seneste 4000 tegn) og en læsbar fejl ved `fejl`."
+        },
+        {
+          "navn": "fabric_job_id",
+          "type": "text",
+          "max": 100,
+          "nullable": true
+        },
+        {
+          "navn": "timeslut",
+          "type": "boolean",
+          "nullable": true,
+          "beskrivelse": "Står arkets tidsstempler for timens SLUT? (`--timeslut` til vaerksark_til_yaml.py; tom = nej, scriptet stopper selv højlydt ved tvivl.)"
+        },
+        {
+          "navn": "uploadet_af",
+          "type": "text",
+          "max": 200,
+          "min": 1,
+          "nullable": false
+        },
+        {
+          "navn": "uploadet",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC."
+        }
+      ],
+      "invarianter": []
+    }
+  ]
+}

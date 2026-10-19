@@ -1,0 +1,1236 @@
+{
+ "maalt": "2026-10-16T06:25Z",
+ "kilde": "Fabric-udgavens app-database, målt med en læse-Function (INFORMATION_SCHEMA + sys.indexes + sys.check_constraints) som app-ejer",
+ "kollation": "SQL_Latin1_General_CP1_CI_AS",
+ "kolonner": {
+  "Aendringsanmodnings": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "aendringer_json": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "anmodet": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "anmodet_af": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "forventet_revision": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "status": {
+    "type": "nvarchar",
+    "laengde": 7,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "svar": {
+    "type": "nvarchar",
+    "laengde": 2000,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "vaerk_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   }
+  },
+  "Aendringslogs": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "aendret_af": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "gammel_json": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "handling": {
+    "type": "nvarchar",
+    "laengde": 5,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "ny_json": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "sti": {
+    "type": "nvarchar",
+    "laengde": 400,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "tidspunkt": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "vaerk_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "anmodning_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "revision": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   }
+  },
+  "Bestillings": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "bestilt": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "bestilt_af": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "klient_noegle": {
+    "type": "nvarchar",
+    "laengde": 60,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "scenarie_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   }
+  },
+  "KoerselInputs": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "kilde": {
+    "type": "nvarchar",
+    "laengde": 8,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "koersel_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "sti": {
+    "type": "nvarchar",
+    "laengde": 400,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "vaerdi_json": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   }
+  },
+  "KoerselMaaneds": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "koersel_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "maaned": {
+    "type": "nvarchar",
+    "laengde": 7,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "noegle": {
+    "type": "nvarchar",
+    "laengde": 120,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "objekt": {
+    "type": "nvarchar",
+    "laengde": 120,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "vaerdi": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 28,
+    "skala": 10,
+    "nullable": true
+   }
+  },
+  "KoerselNoegletals": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "enhed": {
+    "type": "nvarchar",
+    "laengde": 40,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "gruppe": {
+    "type": "nvarchar",
+    "laengde": 60,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "koersel_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "noegle": {
+    "type": "nvarchar",
+    "laengde": 120,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "objekt": {
+    "type": "nvarchar",
+    "laengde": 120,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "vaerdi": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 28,
+    "skala": 10,
+    "nullable": true
+   },
+   "marked": {
+    "type": "nvarchar",
+    "laengde": 20,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   }
+  },
+  "KoerselTimes": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "koersel_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "spotpris": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 18,
+    "skala": 6,
+    "nullable": true
+   },
+   "t_ude": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 18,
+    "skala": 6,
+    "nullable": true
+   },
+   "tid": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "vaerdier_json": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "varmelast_mw": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 18,
+    "skala": 6,
+    "nullable": false
+   }
+  },
+  "Koersels": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "afsluttet": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "interval_min": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "bestilt": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "bestilt_af": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "case_sti": {
+    "type": "nvarchar",
+    "laengde": 400,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "data_commit": {
+    "type": "nvarchar",
+    "laengde": 40,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "er_milp": {
+    "type": "bit",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "fabric_job_id": {
+    "type": "nvarchar",
+    "laengde": 100,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "fase": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "fejlbesked": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "kilde": {
+    "type": "nvarchar",
+    "laengde": 8,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "loesetid_s": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 18,
+    "skala": 3,
+    "nullable": true
+   },
+   "manifest_json": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "opnaaet_gap": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 18,
+    "skala": 10,
+    "nullable": true
+   },
+   "model_commit": {
+    "type": "nvarchar",
+    "laengde": 40,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "objektiv_dkk": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 28,
+    "skala": 4,
+    "nullable": true
+   },
+   "output_stem": {
+    "type": "nvarchar",
+    "laengde": 400,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "output_sti": {
+    "type": "nvarchar",
+    "laengde": 400,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "scenarie_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "solve_status": {
+    "type": "nvarchar",
+    "laengde": 60,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "startet": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "status": {
+    "type": "nvarchar",
+    "laengde": 10,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "vaerk_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "antal_interval_csv": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "antal_interval_model": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "arbejder_id": {
+    "type": "nvarchar",
+    "laengde": 100,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "best_bound": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 28,
+    "skala": 4,
+    "nullable": true
+   },
+   "bestilling_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "forsoeg": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "hjerteslag": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "input_hash": {
+    "type": "nvarchar",
+    "laengde": 64,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "miljoe_json": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "oensket_abs_gap": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 28,
+    "skala": 4,
+    "nullable": true
+   },
+   "oensket_rel_gap": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 18,
+    "skala": 10,
+    "nullable": true
+   },
+   "oploesning": {
+    "type": "nvarchar",
+    "laengde": 10,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "vaerk_revision": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "annuller_anmodet": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   }
+  },
+  "ScenarieAendrings": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "raekkefoelge": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "scenarie_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "sti": {
+    "type": "nvarchar",
+    "laengde": 400,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "type": {
+    "type": "nvarchar",
+    "laengde": 7,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "vaerdi_json": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   }
+  },
+  "Scenaries": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "arkiveret": {
+    "type": "bit",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "balancing_method": {
+    "type": "nvarchar",
+    "laengde": 16,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "beskrivelse": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "ekstra_flag": {
+    "type": "nvarchar",
+    "laengde": 300,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "med_balancering": {
+    "type": "bit",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "mip_rel_gap": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 18,
+    "skala": 10,
+    "nullable": true
+   },
+   "navn": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "oprettet": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "oprettet_af": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "periode_slut": {
+    "type": "nvarchar",
+    "laengde": 20,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "periode_start": {
+    "type": "nvarchar",
+    "laengde": 20,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "tidsgraense_s": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "vaerk_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "heat_csv": {
+    "type": "nvarchar",
+    "laengde": 300,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "mip_abs_gap": {
+    "type": "decimal",
+    "laengde": null,
+    "praecision": 28,
+    "skala": 4,
+    "nullable": true
+   }
+  },
+  "VaerkParameters": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "aendret": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "aendret_af": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "bekraeft": {
+    "type": "bit",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "kommentar": {
+    "type": "nvarchar",
+    "laengde": 2000,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "objekt": {
+    "type": "nvarchar",
+    "laengde": 120,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "raekkefoelge": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "sektion": {
+    "type": "nvarchar",
+    "laengde": 60,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "sti": {
+    "type": "nvarchar",
+    "laengde": 400,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "vaerdi_json": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "vaerk_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   }
+  },
+  "Vaerks": {
+   "id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "aendret": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "aendret_af": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "arkiveret": {
+    "type": "bit",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "beskrivelse": {
+    "type": "nvarchar",
+    "laengde": 4000,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "kilde": {
+    "type": "nvarchar",
+    "laengde": 4,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "kilde_fil": {
+    "type": "nvarchar",
+    "laengde": 300,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "kode": {
+    "type": "nvarchar",
+    "laengde": 60,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "kopieret_fra_id": {
+    "type": "uniqueidentifier",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "navn": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "oprettet": {
+    "type": "datetime2",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "oprettet_af": {
+    "type": "nvarchar",
+    "laengde": 200,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   },
+   "repo_commit": {
+    "type": "nvarchar",
+    "laengde": 40,
+    "praecision": null,
+    "skala": null,
+    "nullable": true
+   },
+   "revision": {
+    "type": "int",
+    "laengde": null,
+    "praecision": null,
+    "skala": null,
+    "nullable": false
+   }
+  }
+ },
+ "unikke": [
+  {
+   "tabel": "Aendringsanmodnings",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "Aendringslogs",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "Bestillings",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "Bestillings",
+   "kolonner": [
+    "klient_noegle"
+   ],
+   "art": "UNIQUE"
+  },
+  {
+   "tabel": "KoerselInputs",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "KoerselMaaneds",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "KoerselNoegletals",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "KoerselTimes",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "Koersels",
+   "kolonner": [
+    "bestilling_id"
+   ],
+   "art": "UNIQUE"
+  },
+  {
+   "tabel": "Koersels",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "ScenarieAendrings",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "Scenaries",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "Users",
+   "kolonner": [
+    "Id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "VaerkParameters",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "Vaerks",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  },
+  {
+   "tabel": "Vaerks",
+   "kolonner": [
+    "kode"
+   ],
+   "art": "UNIQUE"
+  },
+  {
+   "tabel": "objects",
+   "kolonner": [
+    "folder",
+    "path"
+   ],
+   "art": "UNIQUE"
+  },
+  {
+   "tabel": "objects",
+   "kolonner": [
+    "id"
+   ],
+   "art": "PK"
+  }
+ ],
+ "checks": [
+  {
+   "tabel": "Aendringsanmodnings",
+   "udtryk": "([status]='afvist' OR [status]='udfoert' OR [status]='ny')"
+  },
+  {
+   "tabel": "Aendringsanmodnings",
+   "udtryk": "(len([aendringer_json])>=(2))"
+  },
+  {
+   "tabel": "Aendringsanmodnings",
+   "udtryk": "(len([anmodet_af])>=(1))"
+  },
+  {
+   "tabel": "Aendringslogs",
+   "udtryk": "([handling]='slet' OR [handling]='ret' OR [handling]='opret')"
+  },
+  {
+   "tabel": "Aendringslogs",
+   "udtryk": "(len([aendret_af])>=(1))"
+  },
+  {
+   "tabel": "Aendringslogs",
+   "udtryk": "(len([sti])>=(1))"
+  },
+  {
+   "tabel": "Bestillings",
+   "udtryk": "(len([bestilt_af])>=(1))"
+  },
+  {
+   "tabel": "Bestillings",
+   "udtryk": "(len([klient_noegle])>=(1))"
+  },
+  {
+   "tabel": "KoerselInputs",
+   "udtryk": "([kilde]='scenarie' OR [kilde]='aendring' OR [kilde]='vaerk')"
+  },
+  {
+   "tabel": "KoerselInputs",
+   "udtryk": "(len([sti])>=(1))"
+  },
+  {
+   "tabel": "KoerselInputs",
+   "udtryk": "(len([vaerdi_json])>=(1))"
+  },
+  {
+   "tabel": "KoerselMaaneds",
+   "udtryk": "(len([maaned])>=(1))"
+  },
+  {
+   "tabel": "KoerselMaaneds",
+   "udtryk": "(len([noegle])>=(1))"
+  },
+  {
+   "tabel": "KoerselNoegletals",
+   "udtryk": "(len([gruppe])>=(1))"
+  },
+  {
+   "tabel": "KoerselNoegletals",
+   "udtryk": "(len([noegle])>=(1))"
+  },
+  {
+   "tabel": "KoerselTimes",
+   "udtryk": "(len([vaerdier_json])>=(1))"
+  },
+  {
+   "tabel": "Koersels",
+   "udtryk": "([kilde]='notebook' OR [kilde]='app')"
+  },
+  {
+   "tabel": "Koersels",
+   "udtryk": "([status]='annulleret' OR [status]='fejl' OR [status]='faerdig' OR [status]='indlaeser' OR [status]='koerer' OR [status]='startet' OR [status]='koe')"
+  },
+  {
+   "tabel": "Koersels",
+   "udtryk": "(len([bestilt_af])>=(1))"
+  },
+  {
+   "tabel": "Koersels",
+   "udtryk": "(len([input_hash])>=(64))"
+  },
+  {
+   "tabel": "ScenarieAendrings",
+   "udtryk": "([type]='disable' OR [type]='enable' OR [type]='set')"
+  },
+  {
+   "tabel": "ScenarieAendrings",
+   "udtryk": "(len([sti])>=(1))"
+  },
+  {
+   "tabel": "Scenaries",
+   "udtryk": "([balancing_method]='activation_value' OR [balancing_method]='legacy')"
+  },
+  {
+   "tabel": "Scenaries",
+   "udtryk": "(len([navn])>=(1))"
+  },
+  {
+   "tabel": "Scenaries",
+   "udtryk": "(len([oprettet_af])>=(1))"
+  },
+  {
+   "tabel": "VaerkParameters",
+   "udtryk": "(len([aendret_af])>=(1))"
+  },
+  {
+   "tabel": "VaerkParameters",
+   "udtryk": "(len([sektion])>=(1))"
+  },
+  {
+   "tabel": "VaerkParameters",
+   "udtryk": "(len([sti])>=(1))"
+  },
+  {
+   "tabel": "VaerkParameters",
+   "udtryk": "(len([vaerdi_json])>=(1))"
+  },
+  {
+   "tabel": "Vaerks",
+   "udtryk": "([kilde]='app' OR [kilde]='repo')"
+  },
+  {
+   "tabel": "Vaerks",
+   "udtryk": "(len([aendret_af])>=(1))"
+  },
+  {
+   "tabel": "Vaerks",
+   "udtryk": "(len([kode])>=(1))"
+  },
+  {
+   "tabel": "Vaerks",
+   "udtryk": "(len([navn])>=(1))"
+  },
+  {
+   "tabel": "Vaerks",
+   "udtryk": "(len([oprettet_af])>=(1))"
+  }
+ ]
+}

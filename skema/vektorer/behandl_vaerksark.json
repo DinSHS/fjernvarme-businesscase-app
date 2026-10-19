@@ -1,0 +1,1114 @@
+{
+ "_om": "Genereret af skema/vektorer/generer.mts fra TS-implementeringen (behandl_vaerksark). Ret aldrig i hånden — generér igen.",
+ "kilder": {
+  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
+  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
+  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
+  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
+  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427"
+ },
+ "tilfaelde": [
+  {
+   "navn": "anmodning findes ikke",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": null,
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": "Anmodningen findes ikke."
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "anmodning afvist",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "afvist",
+     "svar": "nej",
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": "nej"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "anmodning afvist uden svar",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "afvist",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": ""
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "forkert type",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"sti\":\"a\",\"handling\":\"slet\"}]"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": "Anmodningen er ikke en værksark-upload."
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "ugyldig anmodning",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[]"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": "Ændringsanmodningen skal være en ikke-tom liste."
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "sha256 passer ikke",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"58dc04ff7ab820a7b9ea2862508cb35b0fa3afbcbc715207d86866b4ca211349\"}]"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": "Filens indhold passer ikke med anmodningens sha256 — upload filen igen."
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "ikke base64",
+   "input": {
+    "indhold": "ikke base64!",
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"dcbcbbd915675886cd2bf11b91d9472e4f1c20a3de754e892e1b14af990ea621\"}]"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": "Filen er ikke base64-kodet."
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "afvis_anmodning",
+     "44444444-4444-4444-8444-444444444444",
+     "Filen er ikke base64-kodet."
+    ]
+   ]
+  },
+  {
+   "navn": "for stort",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$nul": 2500001
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"53fb2d3750bfab0595854af40c3210b8300157cd2bafc27fcb73eb8b1670f1d7\"}]"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": "Værksarket er for stort (2500 kB; højst 2500 kB)."
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "afvis_anmodning",
+     "44444444-4444-4444-8444-444444444444",
+     "Værksarket er for stort (2500 kB; højst 2500 kB)."
+    ]
+   ]
+  },
+  {
+   "navn": "for stort, 2500,5 kB (Math.round)",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$nul": 2500500
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"0b6f293a51ba4573df7c087fcd4bc21439c1752d6d609403e7d7bad3d112c5c8\"}]"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": "Værksarket er for stort (2501 kB; højst 2500 kB)."
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "afvis_anmodning",
+     "44444444-4444-4444-8444-444444444444",
+     "Værksarket er for stort (2501 kB; højst 2500 kB)."
+    ]
+   ]
+  },
+  {
+   "navn": "ikke en xlsx",
+   "input": {
+    "indhold": "AQIDBAU=",
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"489f34080c63cb0ba15a0f2745288642fae72de135e832bcb0eb30fa462ddf5a\"}]"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": "Filen er ikke et Excel-ark (.xlsx)."
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "afvis_anmodning",
+     "44444444-4444-4444-8444-444444444444",
+     "Filen er ikke et Excel-ark (.xlsx)."
+    ]
+   ]
+  },
+  {
+   "navn": "zip-bombe",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/k5_komprimeret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"6224cccfc8af3d88837de6624afb3b1cdf055124e1e2bf9770b4b4f48e716229\"}]"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "afvist",
+    "svar": "Delen \"[Content_Types].xml\" pakker ud til 8390764 bytes fra 8617 (forhold over 100:1) — arket afvises af sikkerhedshensyn."
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "afvis_anmodning",
+     "44444444-4444-4444-8444-444444444444",
+     "Delen \"[Content_Types].xml\" pakker ud til 8390764 bytes fra 8617 (forhold over 100:1) — arket afvises af sikkerhedshensyn."
+    ]
+   ]
+  },
+  {
+   "navn": "ny, job startes",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\",\"timeslut\":true}]"
+    },
+    "opret": "oprettet",
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "koe",
+     "fabric_job_id": null,
+     "log": null
+    },
+    "reserver": true,
+    "job": {
+     "ok": true,
+     "jobId": "job-1",
+     "status": 202
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": true,
+    "status": "koe",
+    "svar": "Værksarket importeres nu.",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "skriv_fil",
+     "fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     21239,
+     "7cdc98e682cd2b7e898d435899fff55a86723c2eb4ea130cbfe05dfb9036952e"
+    ],
+    [
+     "opret_import",
+     "44444444-4444-4444-8444-444444444444",
+     {
+      "handling": "upload_vaerksark",
+      "filnavn": "ark.xlsx",
+      "sha256": "c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3",
+      "timeslut": true
+     },
+     "Files/fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     null
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "reserver_jobstart",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "start_job",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "bind_job",
+     "44444444-4444-4444-8444-444444444444",
+     "job-1",
+     null
+    ]
+   ]
+  },
+  {
+   "navn": "ny, job uden id",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "opret": "oprettet",
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "koe",
+     "fabric_job_id": null,
+     "log": null
+    },
+    "reserver": true,
+    "job": {
+     "ok": true,
+     "status": 202
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": true,
+    "status": "koe",
+    "svar": "Værksarket importeres nu.",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "skriv_fil",
+     "fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     21239,
+     "7cdc98e682cd2b7e898d435899fff55a86723c2eb4ea130cbfe05dfb9036952e"
+    ],
+    [
+     "opret_import",
+     "44444444-4444-4444-8444-444444444444",
+     {
+      "handling": "upload_vaerksark",
+      "filnavn": "ark.xlsx",
+      "sha256": "c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3",
+      "timeslut": null
+     },
+     "Files/fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     null
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "reserver_jobstart",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "start_job",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "bind_job",
+     "44444444-4444-4444-8444-444444444444",
+     "ukendt",
+     null
+    ]
+   ]
+  },
+  {
+   "navn": "ny, jobstart fejler",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "opret": "oprettet",
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "koe",
+     "fabric_job_id": null,
+     "log": null
+    },
+    "reserver": true,
+    "job": {
+     "ok": false,
+     "status": 429,
+     "fejl": "langsomt"
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "koe",
+    "svar": "Værksarket er gemt, men importen kunne ikke startes (HTTP 429). Prøv igen — samme fil genoptager importen.",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "skriv_fil",
+     "fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     21239,
+     "7cdc98e682cd2b7e898d435899fff55a86723c2eb4ea130cbfe05dfb9036952e"
+    ],
+    [
+     "opret_import",
+     "44444444-4444-4444-8444-444444444444",
+     {
+      "handling": "upload_vaerksark",
+      "filnavn": "ark.xlsx",
+      "sha256": "c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3",
+      "timeslut": null
+     },
+     "Files/fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     null
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "reserver_jobstart",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "start_job",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "bind_job",
+     "44444444-4444-4444-8444-444444444444",
+     null,
+     "Importen kunne ikke startes (HTTP 429); prøv at uploade igen for at genoptage. langsomt"
+    ]
+   ]
+  },
+  {
+   "navn": "ny, ingen importnotebook",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "opret": "oprettet",
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "koe",
+     "fabric_job_id": null,
+     "log": "x"
+    },
+    "job": null,
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": true,
+    "status": "koe",
+    "svar": "Værksarket venter i kø.",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "skriv_fil",
+     "fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     21239,
+     "7cdc98e682cd2b7e898d435899fff55a86723c2eb4ea130cbfe05dfb9036952e"
+    ],
+    [
+     "opret_import",
+     "44444444-4444-4444-8444-444444444444",
+     {
+      "handling": "upload_vaerksark",
+      "filnavn": "ark.xlsx",
+      "sha256": "c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3",
+      "timeslut": null
+     },
+     "Files/fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     "Importnotebooken fjv_importer_vaerksark er ikke deployet endnu; importen venter i kø."
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "ny, reservation tabt",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "opret": "oprettet",
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "koe",
+     "fabric_job_id": "reserveret:x",
+     "log": null
+    },
+    "reserver": false,
+    "job": {
+     "ok": true,
+     "jobId": "j",
+     "status": 202
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": true,
+    "status": "koe",
+    "svar": "Værksarket importeres.",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "skriv_fil",
+     "fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     21239,
+     "7cdc98e682cd2b7e898d435899fff55a86723c2eb4ea130cbfe05dfb9036952e"
+    ],
+    [
+     "opret_import",
+     "44444444-4444-4444-8444-444444444444",
+     {
+      "handling": "upload_vaerksark",
+      "filnavn": "ark.xlsx",
+      "sha256": "c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3",
+      "timeslut": null
+     },
+     "Files/fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     null
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "reserver_jobstart",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "ny, en anden nåede det",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "opret": "allerede_behandlet",
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "koerer",
+     "fabric_job_id": "j",
+     "log": null
+    },
+    "job": {
+     "ok": true,
+     "jobId": "j",
+     "status": 202
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": true,
+    "status": "koerer",
+    "svar": "Værksarket importeres.",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "skriv_fil",
+     "fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     21239,
+     "7cdc98e682cd2b7e898d435899fff55a86723c2eb4ea130cbfe05dfb9036952e"
+    ],
+    [
+     "opret_import",
+     "44444444-4444-4444-8444-444444444444",
+     {
+      "handling": "upload_vaerksark",
+      "filnavn": "ark.xlsx",
+      "sha256": "c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3",
+      "timeslut": null
+     },
+     "Files/fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     null
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "udført, import i kø med job",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "udfoert",
+     "svar": "s",
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "koe",
+     "fabric_job_id": "j",
+     "log": null
+    },
+    "reserver": false,
+    "job": {
+     "ok": true,
+     "jobId": "j2",
+     "status": 202
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": true,
+    "status": "koe",
+    "svar": "Værksarket importeres.",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "reserver_jobstart",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "udført, import i kø genoptages",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "udfoert",
+     "svar": "s",
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "koe",
+     "fabric_job_id": null,
+     "log": null
+    },
+    "reserver": true,
+    "job": {
+     "ok": true,
+     "jobId": "j3",
+     "status": 202
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": true,
+    "status": "koe",
+    "svar": "Værksarket importeres nu.",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "reserver_jobstart",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "start_job",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "bind_job",
+     "44444444-4444-4444-8444-444444444444",
+     "j3",
+     null
+    ]
+   ]
+  },
+  {
+   "navn": "udført, import færdig",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "udfoert",
+     "svar": "s",
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "faerdig",
+     "fabric_job_id": "j",
+     "log": null
+    },
+    "job": {
+     "ok": true,
+     "status": 202
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": true,
+    "status": "faerdig",
+    "svar": "Værksarket er importeret.",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "udført, import fejl",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "udfoert",
+     "svar": "s",
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "fejl",
+     "fabric_job_id": "j",
+     "log": "x"
+    },
+    "job": {
+     "ok": true,
+     "status": 202
+    },
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "fejl",
+    "svar": "Importen fejlede — se loggen.",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "udført, import ukendt status",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "udfoert",
+     "svar": "s",
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "importEfter": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "mærkelig",
+     "fabric_job_id": "j",
+     "log": null
+    },
+    "job": null,
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": true,
+    "status": "mærkelig",
+    "svar": "mærkelig",
+    "import_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "udført, ingen import",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "udfoert",
+     "svar": "s",
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "importEfter": null,
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": true,
+    "status": "udfoert",
+    "svar": "s"
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "ny status men ukendt (ingen import)",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "mærkelig",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "importEfter": null,
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "ud": {
+    "ok": false,
+    "status": "mærkelig",
+    "svar": ""
+   },
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "laes_import",
+     "44444444-4444-4444-8444-444444444444"
+    ]
+   ]
+  },
+  {
+   "navn": "skrivning fejler (programfejl)",
+   "input": {
+    "indhold": {
+     "$b64af": {
+      "$fil": "app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx"
+     }
+    },
+    "anmodning": {
+     "id": "44444444-4444-4444-8444-444444444444",
+     "status": "ny",
+     "svar": null,
+     "anmodet_af": "x@y.dk",
+     "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+    },
+    "skrivKaster": true,
+    "anmodning_id": "44444444-4444-4444-8444-444444444444"
+   },
+   "fejl": "disk fuld",
+   "fejltype": "Error",
+   "spor": [
+    [
+     "laes_anmodning",
+     "44444444-4444-4444-8444-444444444444"
+    ],
+    [
+     "skriv_fil",
+     "fjv/uploads/44444444-4444-4444-8444-444444444444.xlsx",
+     21239,
+     "7cdc98e682cd2b7e898d435899fff55a86723c2eb4ea130cbfe05dfb9036952e"
+    ]
+   ]
+  }
+ ]
+}

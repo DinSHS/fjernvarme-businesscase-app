@@ -1,0 +1,89 @@
+{
+  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "emner": [
+    {
+      "nr": 1,
+      "id": "hvad-er-modellen",
+      "fil": "information/01_hvad_er_modellen.md",
+      "titel": "Hvad er modellen?"
+    },
+    {
+      "nr": 2,
+      "id": "differensmetoden",
+      "fil": "information/02_differensmetoden.md",
+      "titel": "Differensmetoden"
+    },
+    {
+      "nr": 3,
+      "id": "solvergab",
+      "fil": "information/03_solvergab.md",
+      "titel": "Solvergab"
+    },
+    {
+      "nr": 4,
+      "id": "balancemarkedet",
+      "fil": "information/04_balancemarkedet.md",
+      "titel": "Balancemarkedet: aFRR og mFRR"
+    },
+    {
+      "nr": 5,
+      "id": "spor-a-og-b",
+      "fil": "information/05_spor_a_og_b.md",
+      "titel": "Spor A og Spor B"
+    },
+    {
+      "nr": 6,
+      "id": "budstrategi",
+      "fil": "information/06_budstrategi.md",
+      "titel": "Budstrategi — det vigtigste valg bag et balancetal"
+    },
+    {
+      "nr": 7,
+      "id": "varmelast-og-nettab",
+      "fil": "information/07_varmelast_og_nettab.md",
+      "titel": "Varmelast og nettab"
+    },
+    {
+      "nr": 8,
+      "id": "referencetal",
+      "fil": "information/08_referencetal.md",
+      "titel": "Referencetal"
+    },
+    {
+      "nr": 9,
+      "id": "datadaekning",
+      "fil": "information/09_datadaekning.md",
+      "titel": "Data og datadækning"
+    },
+    {
+      "nr": 10,
+      "id": "tanken",
+      "fil": "information/10_tanken.md",
+      "titel": "Akkumuleringstanken"
+    },
+    {
+      "nr": 11,
+      "id": "fabric-og-kapacitet",
+      "fil": "information/11_fabric_og_kapacitet.md",
+      "titel": "Hvor regnes der, og hvad koster det?"
+    },
+    {
+      "nr": 12,
+      "id": "varmebalance-og-unit-commitment",
+      "fil": "information/12_varmebalance_og_unit_commitment.md",
+      "titel": "Varmebalancen og start/stop (unit commitment)"
+    },
+    {
+      "nr": 13,
+      "id": "el-spot-tarif-afgift",
+      "fil": "information/13_el_spot_tarif_afgift.md",
+      "titel": "El: spotpris, tarif og afgift"
+    },
+    {
+      "nr": 1013,
+      "id": "data",
+      "fil": "information/data.md",
+      "titel": "Hvilke data skal med?"
+    }
+  ]
+}

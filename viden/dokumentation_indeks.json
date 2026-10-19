@@ -1,0 +1,187 @@
+{
+  "_om": "Hvilke dokumenter appens Dokumentation-side viser, i hvilken rækkefølge, og hvorfra. Repo-dokumenter hentes ved build fra modelrepoet ved model_commit (git show <commit>:<sti>), aldrig fra arbejdsmappen: den indeholder utrackede filer (CLAUDE.md, .claude/, doc/AUTOMATISERING.*, doc/*.html), som ikke er en del af den pinnede udgivelse.",
+  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "licens": {
+    "navn": "MIT",
+    "indehaver": "Copyright (c) 2026 Dansk Fjernvarme",
+    "kilde": "LICENSE:1-3",
+    "krav": "MIT tillader brug, ændring og videredistribution, også kommercielt, når copyright- og tilladelsesteksten følger med alle kopier. Bundt derfor LICENSE uændret sammen med de bundtede dokumenter, og vis den i appen (punkt 'licens' nedenfor).",
+    "bundtes_ved_build": true,
+    "note": "Dokumenterne er offentlige. Værksdata, der oprettes i appen, er ikke; de må aldrig skrives tilbage til det offentlige repo (KONTRAKT §2; README.md:100-104)."
+  },
+  "links_i_dokumenterne": "Repo-dokumenterne linker relativt til hinanden (fx '](BALANCEMARKED.md)', '](EGET_VAERK.md#helår-og-løsetid)', README: '](doc/...)'). Appen skal omskrive links til bundtede dokumenter til interne visninger og links til filer, der ikke bundtes, til https://github.com/skj-1964/fjernvarme-businesscase/blob/<model_commit>/<sti>.",
+  "dokumenter": [
+    {
+      "id": "appens_metode",
+      "titel": "Metoden bag modellen",
+      "kilde": "viden",
+      "sti": "METODE.md",
+      "format": "md",
+      "gruppe": "Kom i gang",
+      "beskrivelse": "Dansk ekspertsyntese til fagfolk: MILP'en, el og tarif, balancemarkedet, Spor A/B, differenser og solvergab, referencetal og begrænsninger — med kilder."
+    },
+    {
+      "id": "saadan_bruger_du_appen",
+      "titel": "Sådan bruger du appen",
+      "kilde": "viden",
+      "sti": "app_tekster/saadan_bruger_du_appen.md",
+      "format": "md",
+      "gruppe": "Kom i gang",
+      "beskrivelse": "Værker, scenarier, bestilling, kø og sammenligning af to kørsler."
+    },
+    {
+      "id": "readme",
+      "titel": "README — overblik og referencetal",
+      "kilde": "modelrepo",
+      "sti": "README.md",
+      "format": "md",
+      "gruppe": "Modellen",
+      "beskrivelse": "Hvad modellen kan og ikke kan, de tre regler for tallene, referencetabellen og datakilderne."
+    },
+    {
+      "id": "rapport_v4",
+      "titel": "Rapport v4 — metode, validering og Billund",
+      "kilde": "modelrepo",
+      "sti": "doc/rapport_billund_v4.pdf",
+      "format": "pdf",
+      "gruppe": "Modellen",
+      "beskrivelse": "Hovedrapporten (22. oktober 2026): metode, Billund som case, tank og balancemarked, validering mod Billunds afregning og matematik i bilag B.",
+      "note": "Regnet ved commit 405b428; hvor README har nyere tal, har README forrang."
+    },
+    {
+      "id": "koersel",
+      "titel": "Kørsel, scenarier og output",
+      "kilde": "modelrepo",
+      "sti": "doc/KOERSEL.md",
+      "format": "md",
+      "gruppe": "Brug",
+      "beskrivelse": "Alle flag til run_case.py, scenarier som differens, solvergab og outputfilerne.",
+      "note": "Beskriver kommandolinjen; i appen svarer flagene til scenariets felter og ændringer (se knapper.json)."
+    },
+    {
+      "id": "budstrategi",
+      "titel": "Budstrategi i balancemarkedet",
+      "kilde": "modelrepo",
+      "sti": "doc/BUDSTRATEGI.md",
+      "format": "md",
+      "gruppe": "Balancemarked",
+      "beskrivelse": "Budpris, budstørrelse, prognose og afregning; seks budprofiler med færdige YAML-blokke og kontroltal på Andeby."
+    },
+    {
+      "id": "balancemarked",
+      "titel": "Balancemarked — aFRR og mFRR",
+      "kilde": "modelrepo",
+      "sti": "doc/BALANCEMARKED.md",
+      "format": "md",
+      "gruppe": "Balancemarked",
+      "beskrivelse": "Bud, lofter, aktiveringsværdi, Spor A og B, det fiktive 2026-marked og valideringen mod afregning."
+    },
+    {
+      "id": "varmelast_og_nettab",
+      "titel": "Varmepumpe, varmelast og nettab",
+      "kilde": "modelrepo",
+      "sti": "doc/VARMELAST_OG_NETTAB.md",
+      "format": "md",
+      "gruppe": "Værket",
+      "beskrivelse": "Varmepumpens ydelsestabel, målt mod syntetisk varmelast, rekalibrering og de to nettabsmodeller."
+    },
+    {
+      "id": "eget_vaerk",
+      "titel": "Dit eget værk — fra regneark til model",
+      "kilde": "modelrepo",
+      "sti": "doc/EGET_VAERK.md",
+      "format": "md",
+      "gruppe": "Værket",
+      "beskrivelse": "Excel-skabelonen, konverteringen, korte vinduer, helår og løsetid, og casen skrevet i hånden.",
+      "note": "Konverteringen kører lokalt (scripts/vaerksark_til_yaml.py); appen har sin egen vej til et nyt værk (kopiér og ret)."
+    },
+    {
+      "id": "vaerksdata_skabelon",
+      "titel": "Skabelon til værksdata (Excel)",
+      "kilde": "modelrepo",
+      "sti": "doc/vaerksdata_skabelon.xlsx",
+      "format": "xlsx",
+      "gruppe": "Værket",
+      "beskrivelse": "Regnearket, som et værk udfylder med timedata, anlæg, varmepumpe og priser. Til download.",
+      "visning": "download"
+    },
+    {
+      "id": "workflow_claude",
+      "titel": "Arbejdsform med Claude i browseren (Vej B)",
+      "kilde": "modelrepo",
+      "sti": "doc/WORKFLOW_CLAUDE.md",
+      "format": "md",
+      "gruppe": "Baggrund",
+      "beskrivelse": "Den arbejdsform, modellen blev udviklet i. Ikke nødvendig for at bruge appen.",
+      "valgfri": true
+    },
+    {
+      "id": "workflow_lokal",
+      "titel": "Lokal installation (Vej A)",
+      "kilde": "modelrepo",
+      "sti": "doc/WORKFLOW_LOKAL.md",
+      "format": "md",
+      "gruppe": "Baggrund",
+      "beskrivelse": "Kør modellen på egen maskine. Ikke nødvendig for at bruge appen.",
+      "valgfri": true
+    },
+    {
+      "id": "contributing",
+      "titel": "Bidrag tilbage",
+      "kilde": "modelrepo",
+      "sti": "CONTRIBUTING.md",
+      "format": "md",
+      "gruppe": "Baggrund",
+      "beskrivelse": "Sådan deles modelforbedringer med fællesskabet — uden værksdata."
+    },
+    {
+      "id": "licens",
+      "titel": "Licens (MIT)",
+      "kilde": "modelrepo",
+      "sti": "LICENSE",
+      "format": "tekst",
+      "gruppe": "Baggrund",
+      "beskrivelse": "Licensteksten, som skal følge med de bundtede dokumenter."
+    }
+  ],
+  "information_sider": [
+    "app_tekster/forside.md",
+    "app_tekster/information/01_hvad_er_modellen.md",
+    "app_tekster/information/02_differensmetoden.md",
+    "app_tekster/information/03_solvergab.md",
+    "app_tekster/information/04_balancemarkedet.md",
+    "app_tekster/information/05_spor_a_og_b.md",
+    "app_tekster/information/06_budstrategi.md",
+    "app_tekster/information/07_varmelast_og_nettab.md",
+    "app_tekster/information/08_referencetal.md",
+    "app_tekster/information/09_datadaekning.md",
+    "app_tekster/information/10_tanken.md",
+    "app_tekster/information/11_fabric_og_kapacitet.md",
+    "app_tekster/information/12_varmebalance_og_unit_commitment.md",
+    "app_tekster/information/13_el_spot_tarif_afgift.md",
+    "app_tekster/ordliste.md",
+    "app_tekster/begraensninger.md"
+  ],
+  "ikke_med": [
+    {
+      "sti": "doc/arkiv/",
+      "grund": "Rapport v3 og figurer; tal og kommandoer gælder ikke længere (README.md:16-18)."
+    },
+    {
+      "sti": "doc/notat_bestyrelse_datasikkerhed.docx",
+      "grund": "Udkast fra maj 2026 om brug af Claude (GDPR/fortrolighed); ikke relevant for appen og markeret som udkast (README.md:175)."
+    },
+    {
+      "sti": "doc/rapport_billund_v4.docx",
+      "grund": "Samme indhold som PDF'en."
+    },
+    {
+      "sti": "noter/",
+      "grund": "Udviklernes interne gate-notater; ikke brugerdokumentation."
+    },
+    {
+      "sti": "CLAUDE.md, .claude/, doc/AUTOMATISERING.*, doc/*.html",
+      "grund": "Utrackede filer i arbejdsmappen; ikke en del af commit b49aeb0."
+    }
+  ]
+}

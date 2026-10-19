@@ -1,0 +1,151 @@
+/* =====================================================================
+   Analyser — kun grafernes form og serie-farver. Typografi og fladefarver
+   kommer fra fundamentets tokens (--t-*, --dash-*, --color-*).
+
+   Seriefarverne er temaets (fv-design2, brief 22): de 8 kategoriske pladser
+   er --fjv-serie-1..8 og "øvrige" --fjv-serie-0, målt pr. tema og modus af
+   scripts/kontrast.ts (hver ≥ 3:1 mod kortet; naboer adskillelige ved
+   farveblindhed). --a-s* er bevaret som alias, så graf-hjaelp.ts er uændret.
+   ===================================================================== */
+
+.fjv-analyse {
+  --a-s1: var(--fjv-serie-1); --a-s2: var(--fjv-serie-2); --a-s3: var(--fjv-serie-3); --a-s4: var(--fjv-serie-4);
+  --a-s5: var(--fjv-serie-5); --a-s6: var(--fjv-serie-6); --a-s7: var(--fjv-serie-7); --a-s8: var(--fjv-serie-8);
+  --a-s0: var(--fjv-serie-0);           /* "øvrige" — neutral, aldrig en cyklet farve */
+}
+
+.fjv-a-graf { position: relative; width: 100%; min-width: 0; }
+.fjv-a-graf svg { display: block; overflow: visible; }
+.fjv-a-akse { font-size: var(--t-akse); fill: var(--dash-ink-3); font-family: var(--font-numeric); font-variant-numeric: tabular-nums; }
+.fjv-a-akse-navn { font-size: var(--t-akse); fill: var(--dash-ink-2); }
+.fjv-a-etiket { font-size: var(--t-datalabel); fill: var(--dash-ink); font-family: var(--font-numeric); }
+.fjv-a-etiket-svag { font-size: var(--t-datalabel); fill: var(--dash-ink-2); font-family: var(--font-numeric); }
+.fjv-a-gitter { stroke: var(--dash-grid); stroke-width: 1; shape-rendering: crispEdges; }
+.fjv-a-nul { stroke: var(--dash-ink-2); stroke-width: 1; shape-rendering: crispEdges; }
+.fjv-a-linje { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.fjv-a-last { fill: none; stroke: var(--dash-ink); stroke-width: 2; stroke-linejoin: round; }
+.fjv-a-kors { stroke: var(--dash-ink-2); stroke-width: 1; shape-rendering: crispEdges; pointer-events: none; }
+.fjv-a-flade { fill: transparent; cursor: crosshair; touch-action: pan-y; }
+
+/* Tooltip: popover-flade, tekst i tekst-tokens (aldrig seriefarven). */
+.fjv-a-tip { position: absolute; z-index: 5; pointer-events: none; min-width: 160px; max-width: 280px;
+  background: var(--color-popover); color: var(--color-popover-foreground); border: 1px solid var(--dash-hairline);
+  border-radius: var(--r-felt); padding: 6px 8px; font-size: var(--t-tabel); line-height: var(--t-tabel-lh); }
+.fjv-a-tip-titel { font-weight: 650; margin-bottom: 2px; }
+.fjv-a-tip-rk { display: flex; align-items: baseline; gap: 6px; }
+.fjv-a-tip-rk > :nth-child(2) { flex: 1; color: var(--dash-ink-2); }
+.fjv-a-tip-rk > :last-child { font-family: var(--font-numeric); font-variant-numeric: tabular-nums; }
+
+/* Forklaring (legend): farvet prik ved siden af tekst i tekst-tokens. */
+.fjv-a-forklaring { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--t-fodnote); color: var(--dash-ink-2); }
+.fjv-a-forklaring span { display: inline-flex; align-items: center; gap: 5px; }
+.fjv-a-prik { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.fjv-a-streg { display: inline-block; width: 14px; height: 2px; border-radius: 1px; flex: none; background: var(--dash-ink); }
+.fjv-a-hul { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex: none; border: 1.5px solid var(--dash-ink-2); }
+
+/* Nøgletal-blokke (helt tal + forklaring) */
+.fjv-a-helt { font-family: var(--font-numeric); font-size: var(--t-sidetitel); line-height: var(--t-sidetitel-lh); font-weight: 700; color: var(--dash-ink); }
+.fjv-a-helt small { font-size: var(--t-budskab); font-weight: 400; color: var(--dash-ink-2); margin-left: 4px; }
+.fjv-a-fakta { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; font-size: var(--t-brod); line-height: var(--t-brod-lh); }
+.fjv-a-fakta dt { color: var(--dash-ink-2); }
+.fjv-a-fakta dd { color: var(--dash-ink); min-width: 0; overflow-wrap: anywhere; }
+.fjv-a-liste { margin: 0; padding-left: 18px; font-size: var(--t-brod); line-height: var(--t-brod-lh); color: var(--dash-ink); }
+.fjv-a-liste li + li { margin-top: 2px; }
+
+/* Filtre og valg — én række over indholdet. */
+.fjv-a-filtre { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: end; }
+.fjv-a-filtre label { display: flex; flex-direction: column; gap: 2px; font-size: var(--t-fodnote); color: var(--dash-ink-2); min-width: 0; }
+.fjv-a-filtre select { min-width: 140px; max-width: 100%; }
+.fjv-a-vaelg { width: 16px; height: 16px; accent-color: var(--dash-navy); cursor: pointer; }
+.fjv-a-link { color: var(--color-brand-foreground); text-decoration: none; font-weight: 600; }
+.fjv-a-link:hover { text-decoration: underline; }
+.fjv-a-tag { font-family: var(--font-monospace); font-size: var(--t-fodnote); color: var(--dash-ink-2); }
+.fjv-a-tal { font-family: var(--font-numeric); font-variant-numeric: tabular-nums; }
+.fjv-a-pos { color: var(--dash-pos); }
+.fjv-a-neg { color: var(--dash-neg); }
+.fjv-a-svag { color: var(--dash-ink-2); }
+.fjv-a-raekke { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.fjv-a-panel-titel { font-size: var(--t-fodnote); font-weight: 650; color: var(--dash-ink-2); margin-top: 4px; }
+.fjv-a-to { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--l-gap); }
+@media (max-width: 899px) { .fjv-a-to { grid-template-columns: minmax(0, 1fr); } }
+
+/* Kandidatlisten "hvad kan den sammenlignes med?" (brief 14): én række pr. kørsel, hele rækken er linket. */
+.fjv-a-kand { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.fjv-a-kand > li + li { border-top: 1px solid var(--dash-grid); }
+.fjv-a-kand-rk { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 6px 24px;
+  padding: 10px 8px; border-radius: var(--r-felt); color: var(--dash-ink); text-decoration: none; }
+a.fjv-a-kand-rk:hover { background: var(--color-hover); }
+a.fjv-a-kand-rk:focus-visible { outline: 2px solid var(--dash-series); outline-offset: -2px; }
+.fjv-a-kand-rk[data-deaktiveret="true"] { opacity: 0.75; }
+.fjv-a-kand-tekst { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fjv-a-kand-navn { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: var(--t-brod); line-height: var(--t-brod-lh); font-weight: 650; }
+.fjv-a-kand-meta { font-size: var(--t-tabel); line-height: var(--t-tabel-lh); color: var(--dash-ink); overflow-wrap: anywhere; }
+.fjv-a-kand-tal { flex: 0 1 260px; text-align: right; font-size: var(--t-tabel); line-height: var(--t-tabel-lh); }
+@media (max-width: 899px) { .fjv-a-kand-tal { text-align: left; flex-basis: 100%; } }
+.fjv-analyse details > summary { font-size: var(--t-brod); padding: 6px 0; }
+
+/* Knapper i kortenes hoved (Kopiér) brydes ikke over flere linjer. */
+.fjv-analyse .fjv-knap { white-space: nowrap; }
+
+/* Kørselslisten (brief 17): grupperet/kronologisk, sorterbare overskrifter, kort pr. kørsel på smal skærm. */
+.fjv-a-kl th { white-space: normal; vertical-align: bottom; }
+.fjv-a-kl-th { display: inline-flex; align-items: flex-start; gap: 4px; }
+.fjv-a-kl th.fjv-h .fjv-a-kl-th { justify-content: flex-end; }
+.fjv-a-kl-sort { all: unset; cursor: pointer; text-transform: inherit; letter-spacing: inherit; font: inherit; color: inherit; }
+.fjv-a-kl-sort:hover { color: var(--dash-ink); }
+.fjv-a-kl-sort:focus-visible { outline: 2px solid var(--dash-series); outline-offset: 2px; border-radius: 2px; }
+.fjv-a-kl th[aria-sort="ascending"], .fjv-a-kl th[aria-sort="descending"] { color: var(--dash-ink); }
+.fjv-a-kl-pil { color: var(--dash-ink-3); }
+.fjv-a-kl-info { color: var(--dash-ink-3); text-decoration: none; text-transform: none; letter-spacing: 0; cursor: help; }
+a.fjv-a-kl-info:hover { color: var(--color-brand-foreground); }
+.fjv-a-kl td { vertical-align: top; }
+.fjv-a-kl th, .fjv-a-kl td { padding-left: 6px; padding-right: 6px; }
+.fjv-a-kl td[data-kolonne="spoergsmaal"] { min-width: 200px; }
+.fjv-a-kl td[data-kolonne="aendringer"] { min-width: 120px; overflow-wrap: anywhere; }
+.fjv-a-kl td[data-kolonne="objektiv"] { white-space: nowrap; }
+.fjv-a-kl-delta { display: inline-flex; flex-direction: column; align-items: flex-end; white-space: nowrap; }
+.fjv-a-kl-navn[data-dybde] { border-left: 2px solid var(--dash-grid); padding-left: 8px; }
+.fjv-a-kl-navn { display: flex; flex-direction: column; gap: 1px; }
+.fjv-a-kl-titel { font-weight: 650; }
+.fjv-a-kl-spm { color: var(--dash-ink); font-style: italic; margin: 0; }
+.fjv-a-kl-lille { font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); }
+.fjv-a-kl-fil { overflow-wrap: anywhere; max-width: 160px; }
+.fjv-a-kl-stak { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.fjv-a-kl-gruppe th { background: var(--color-muted); color: var(--dash-ink); text-transform: none; letter-spacing: 0;
+  font-size: var(--t-tabel); font-weight: 400; padding: 8px 10px; border-bottom: 1px solid var(--dash-grid); }
+.fjv-a-kl-gruppe-titel { font-weight: 650; }
+.fjv-a-kl tr[data-oprindelse="roegtest"] td { color: var(--dash-ink-2); }
+.fjv-a-kl tbody[data-gruppe="roegtest"] .fjv-a-kl-titel { font-weight: 400; }
+.fjv-a-visuelt-skjult { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.fjv-a-kl-visning { display: inline-flex; gap: 4px; }
+.fjv-a-kl-afkryds { flex-direction: row !important; align-items: center; gap: 6px !important; color: var(--dash-ink) !important; font-size: var(--t-brod) !important; }
+
+.fjv-a-kl-kortliste { display: none; list-style: none; margin: 0; padding: 0; flex-direction: column; gap: 8px; }
+.fjv-a-kl-kort { border: 1px solid var(--dash-grid); border-radius: var(--r-felt); padding: 10px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* Røgtest: stiplet kant og hævet flade — ikke opacity, som tog teksten under 4,5:1 (fv-design2, Codex K6 F10). */
+.fjv-a-kl-kort[data-oprindelse="roegtest"] { border-style: dashed; border-color: var(--fjv-streg-felt); background: var(--dash-elevated); }
+.fjv-a-kl-kort[aria-selected="true"] { background: var(--color-accent); }
+.fjv-a-kl-kort-top { display: flex; align-items: flex-start; gap: 8px; }
+.fjv-a-kl-kort-navn { font-weight: 650; color: var(--dash-ink); text-decoration: none; overflow-wrap: anywhere; font-size: var(--t-brod); }
+.fjv-a-kl-kort-navn:hover { text-decoration: underline; }
+.fjv-a-kl-kort-fakta { font-size: var(--t-tabel); }
+.fjv-a-kl-kort-gruppe { font-size: var(--t-tabel); padding: 8px 2px 0; border-top: 1px solid var(--dash-ink); }
+@media (max-width: 699px) {
+  .fjv-a-kl-tabelrul { display: none; }
+  .fjv-a-kl-kortliste { display: flex; }
+}
+
+/* "Sådan er en analyse sammensat": syv trin i én række (to rækker på mellembredde, én kolonne på mobil). */
+.fjv-a-trin { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; counter-reset: trin; }
+@media (max-width: 1199px) { .fjv-a-trin { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 699px) { .fjv-a-trin { grid-template-columns: minmax(0, 1fr); } }
+.fjv-a-trin-rk { position: relative; border: 1px solid var(--dash-grid); border-radius: var(--r-felt); padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.fjv-a-trin-hoved { display: flex; align-items: center; gap: 6px; font-weight: 650; font-size: var(--t-brod); }
+.fjv-a-trin-nr { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 999px; flex: none;
+  background: var(--dash-navy); color: var(--color-primary-foreground); font-size: var(--t-fodnote); font-weight: 650; }
+.fjv-a-trin-titel { color: var(--dash-ink); }
+.fjv-a-trin-tekst { margin: 0; font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink-2); }
+.fjv-a-trin-eks { margin: auto 0 0; padding-top: 6px; border-top: 1px dashed var(--dash-grid); font-size: var(--t-tabel); line-height: var(--t-tabel-lh); color: var(--dash-ink); overflow-wrap: anywhere; }
+.fjv-a-kl-kort .fjv-a-kl-spm { font-size: var(--t-tabel); line-height: var(--t-tabel-lh); }
+.fjv-a-kl-kort .fjv-a-kl-delta { display: inline; }
+.fjv-a-kl-kort .fjv-a-kl-delta > span + span::before { content: " "; }

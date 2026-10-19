@@ -1,0 +1,353 @@
+{
+ "_om": "Udtrukket af TS-testene (laes_anmodning) med skema/vektorer/udtraek.mjs: input og TS' faktiske udfald for hvert kald, testene selv laver. Ret aldrig i hånden — udtræk igen.",
+ "kilder": {
+  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
+  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
+  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
+  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
+  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427",
+  "app/rayfin/functions/test/k4.spec.ts": "7a7b32738c6d7012fc5875b55784f002b147174247db4679b37ff39884887fde",
+  "app/rayfin/functions/test/k5.spec.ts": "315e3cc11b497ae105ab1c2a4552371beb00b554fd17fcb5d26aeec5edbaf5ae",
+  "app/rayfin/functions/test/logik.spec.ts": "f9507699c7679fd342ed5630a6151d048aaa0050eba3859eafa2d6338514cfc0",
+  "app/rayfin/functions/test/motor.spec.ts": "645d24741b0636fca77fc9dcca430184431f9f7b389dac982123d3dcc74ae11e",
+  "app/rayfin/functions/test/opret_vaerk.spec.ts": "99d2f3c44429535f4ae9741aef571bad67c0a1eef07161765f9c389bf8a1bf68",
+  "app/rayfin/functions/test/registrering.spec.ts": "05a8a0edaa4d02c8d48d6a1d921b867bcd3d31d82a03dd9d7f577be61f73e414",
+  "app/rayfin/functions/test/tidsserie.spec.ts": "49048b3d1da5c28742f15232852a301454a0e60486d5521f76432f165bbfa9d4",
+  "app/rayfin/functions/test/tidsserie_backend.spec.ts": "7c166c36baf80a999d547e0b5535b0276390d6b996a75256f07f2b9baa45aabe"
+ },
+ "tilfaelde": [
+  {
+   "navn": "k4.spec.ts › K4-F1: modelkrav ved betroet oprettelse > en almindelig værksændring til 1e400 afvises også",
+   "input": {
+    "aendringer_json": "[{\"sti\":\"prices.natural_gas.value\",\"handling\":\"ret\",\"ny_json\":\"1e400\"}]"
+   },
+   "afvisning": "Ændring af prices.natural_gas.value: Infinity er ikke et endeligt tal."
+  },
+  {
+   "navn": "k4.spec.ts › K4-F9: reserverede værkskoder > backend afviser koden nyt ved kopier_vaerk",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"kopier_vaerk\",\"ny_kode\":\"nyt\",\"navn\":\"Nyt\"}]"
+   },
+   "afvisning": "Koden \"nyt\" er reserveret af appen — vælg en anden."
+  },
+  {
+   "navn": "k4.spec.ts › K4-F9: reserverede værkskoder > backend afviser koden nyt ved opret_vaerk",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"opret_vaerk\",\"udkast\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\",\"dele\":1,\"ny_kode\":\"nyt\",\"navn\":\"Nyt\"}]"
+   },
+   "afvisning": "Koden \"nyt\" er reserveret af appen — vælg en anden."
+  },
+  {
+   "navn": "k5.spec.ts › K5-F1: ingen prototypeforurening fra brugerskrevne stier > parameterændringen constructor.prototype.x afvises",
+   "input": {
+    "aendringer_json": "[{\"sti\":\"constructor.prototype.x\",\"handling\":\"opret\",\"ny_json\":\"true\"}]"
+   },
+   "afvisning": "Ændring 1: ugyldig sti \"constructor.prototype.x\"."
+  },
+  {
+   "navn": "k5.spec.ts › K5-F1: ingen prototypeforurening fra brugerskrevne stier > parameterændringen storage.tank.prototype afvises",
+   "input": {
+    "aendringer_json": "[{\"sti\":\"storage.tank.prototype\",\"handling\":\"opret\",\"ny_json\":\"true\"}]"
+   },
+   "afvisning": "Ændring 1: ugyldig sti \"storage.tank.prototype\"."
+  },
+  {
+   "navn": "k5.spec.ts › K5-F1: ingen prototypeforurening fra brugerskrevne stier > parameterændringen units.__proto__.pr_interval afvises",
+   "input": {
+    "aendringer_json": "[{\"sti\":\"units.__proto__.pr_interval\",\"handling\":\"opret\",\"ny_json\":\"true\"}]"
+   },
+   "afvisning": "Ændring 1: ugyldig sti \"units.__proto__.pr_interval\"."
+  },
+  {
+   "navn": "k5.spec.ts › K5-F4: én anmodning -> højst én import og én jobstart; en fejlet start genoptages > et ark, der ikke består ZIP-tjekket, afviser anmodningen uden at gemme eller oprette noget",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"6224cccfc8af3d88837de6624afb3b1cdf055124e1e2bf9770b4b4f48e716229\"}]"
+   },
+   "ud": {
+    "type": "upload_vaerksark",
+    "upload": {
+     "handling": "upload_vaerksark",
+     "filnavn": "ark.xlsx",
+     "sha256": "6224cccfc8af3d88837de6624afb3b1cdf055124e1e2bf9770b4b4f48e716229",
+     "timeslut": null
+    }
+   }
+  },
+  {
+   "navn": "k5.spec.ts › K5-F4: én anmodning -> højst én import og én jobstart; en fejlet start genoptages > to samtidige kald, der begge har læst 'ny' -> én import, én række, én jobstart (Codex: to af hver)",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3\"}]"
+   },
+   "ud": {
+    "type": "upload_vaerksark",
+    "upload": {
+     "handling": "upload_vaerksark",
+     "filnavn": "ark.xlsx",
+     "sha256": "c750c3d966e4bb610e7a45858bb17c636076ddc71c177c67bd4c5b72cd23bbc3",
+     "timeslut": null
+    }
+   }
+  },
+  {
+   "navn": "logik.spec.ts › læsAnmodning og planlægParametre > afviser dublet",
+   "input": {
+    "aendringer_json": "[{\"sti\":\"a\",\"handling\":\"slet\"},{\"sti\":\"a\",\"handling\":\"slet\"}]"
+   },
+   "afvisning": "Stien \"a\" ændres to gange i samme anmodning."
+  },
+  {
+   "navn": "logik.spec.ts › læsAnmodning og planlægParametre > afviser kode med versaler",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"kopier_vaerk\",\"ny_kode\":\"Ny\",\"navn\":\"x\"}]"
+   },
+   "afvisning": "Koden \"Ny\" skal bestå af små bogstaver, cifre og _ (højst 60 tegn)."
+  },
+  {
+   "navn": "logik.spec.ts › læsAnmodning og planlægParametre > afviser tom liste",
+   "input": {
+    "aendringer_json": "[]"
+   },
+   "afvisning": "Ændringsanmodningen skal være en ikke-tom liste."
+  },
+  {
+   "navn": "logik.spec.ts › læsAnmodning og planlægParametre > afviser tom sti-del",
+   "input": {
+    "aendringer_json": "[{\"sti\":\"a..b\",\"handling\":\"slet\"}]"
+   },
+   "afvisning": "Ændring 1: ugyldig sti \"a..b\"."
+  },
+  {
+   "navn": "logik.spec.ts › læsAnmodning og planlægParametre > afviser ukendt handling",
+   "input": {
+    "aendringer_json": "[{\"sti\":\"a\",\"handling\":\"flyt\"}]"
+   },
+   "afvisning": "Ændring 1: ukendt handling \"flyt\"."
+  },
+  {
+   "navn": "logik.spec.ts › læsAnmodning og planlægParametre > afviser værdi der ikke er JSON",
+   "input": {
+    "aendringer_json": "[{\"sti\":\"a\",\"handling\":\"ret\",\"ny_json\":\"12,5\"}]"
+   },
+   "afvisning": "Ændring af a: værdien er ikke gyldig JSON (12,5)."
+  },
+  {
+   "navn": "logik.spec.ts › læsAnmodning og planlægParametre > læser en kopi",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"kopier_vaerk\",\"ny_kode\":\"ny_1\",\"navn\":\"Ny\"}]"
+   },
+   "ud": {
+    "type": "kopi",
+    "kopi": {
+     "handling": "kopier_vaerk",
+     "ny_kode": "ny_1",
+     "navn": "Ny",
+     "beskrivelse": null
+    }
+   }
+  },
+  {
+   "navn": "logik.spec.ts › læsAnmodning og planlægParametre > læser en parameterliste",
+   "input": {
+    "aendringer_json": "[{\"sti\":\"prices.straw.value\",\"handling\":\"ret\",\"ny_json\":\"47.5\"}]"
+   },
+   "ud": {
+    "type": "parametre",
+    "aendringer": [
+     {
+      "sti": "prices.straw.value",
+      "handling": "ret",
+      "ny_json": "47.5"
+     }
+    ]
+   }
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › læsAnmodning — opret_vaerk og dele > afviser 0 dele",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"opret_vaerk\",\"udkast\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\",\"dele\":0,\"ny_kode\":\"a\",\"navn\":\"A\"}]"
+   },
+   "afvisning": "Antal dele skal være et helt tal mellem 1 og 50."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › læsAnmodning — opret_vaerk og dele > afviser 51 dele",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"opret_vaerk\",\"udkast\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\",\"dele\":51,\"ny_kode\":\"a\",\"navn\":\"A\"}]"
+   },
+   "afvisning": "Antal dele skal være et helt tal mellem 1 og 50."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › læsAnmodning — opret_vaerk og dele > afviser del nr. over antal",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"opret_vaerk_del\",\"udkast\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\",\"nr\":3,\"af\":2,\"blade\":[{\"sti\":\"units.gaskedel.type\",\"ny_json\":\"\\\"gas_boiler\\\"\"}]}]"
+   },
+   "afvisning": "Delens nummer skal være et helt tal mellem 1 og 2."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › læsAnmodning — opret_vaerk og dele > afviser del uden blade",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"opret_vaerk_del\",\"udkast\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\",\"nr\":1,\"af\":1,\"blade\":[]}]"
+   },
+   "afvisning": "Del 1 af 1 har ingen blade."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › læsAnmodning — opret_vaerk og dele > afviser kode med bindestreg",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"opret_vaerk\",\"udkast\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\",\"dele\":1,\"ny_kode\":\"a-b\",\"navn\":\"A\"}]"
+   },
+   "afvisning": "Koden \"a-b\" skal bestå af små bogstaver, cifre og _ (højst 60 tegn)."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › læsAnmodning — opret_vaerk og dele > afviser oprettelse sammen med andet",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"opret_vaerk\",\"udkast\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\",\"dele\":1,\"ny_kode\":\"a\",\"navn\":\"A\"},{\"sti\":\"x\",\"handling\":\"slet\"}]"
+   },
+   "afvisning": "Oprettelse af et værk skal være den eneste handling i anmodningen."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › læsAnmodning — opret_vaerk og dele > afviser udkast der ikke er et uuid",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"opret_vaerk\",\"udkast\":\"%\",\"dele\":1,\"ny_kode\":\"a\",\"navn\":\"A\"}]"
+   },
+   "afvisning": "Udkastets id er ikke et gyldigt uuid."
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › læsAnmodning — opret_vaerk og dele > læser den afsluttende oprettelse og en del",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"opret_vaerk\",\"udkast\":\"AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE\",\"dele\":3,\"ny_kode\":\"nyt_1\",\"navn\":\" Nyt \"}]"
+   },
+   "ud": {
+    "type": "opret",
+    "opret": {
+     "handling": "opret_vaerk",
+     "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+     "dele": 3,
+     "ny_kode": "nyt_1",
+     "navn": "Nyt",
+     "beskrivelse": null
+    }
+   }
+  },
+  {
+   "navn": "opret_vaerk.spec.ts › læsAnmodning — opret_vaerk og dele > læser den afsluttende oprettelse og en del",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"opret_vaerk_del\",\"udkast\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\",\"nr\":2,\"af\":3,\"blade\":[{\"sti\":\"units.gaskedel.type\",\"ny_json\":\"\\\"gas_boiler\\\"\"}]}]"
+   },
+   "ud": {
+    "type": "opret_del",
+    "del": {
+     "handling": "opret_vaerk_del",
+     "udkast": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+     "nr": 2,
+     "af": 3,
+     "blade": [
+      {
+       "sti": "units.gaskedel.type",
+       "ny_json": "\"gas_boiler\""
+      }
+     ]
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › læsAnmodning — upload og aktivering > afviser aktiv der ikke er boolean",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"aktiver_tidsserie\",\"tidsserie_id\":\"11111111-1111-4111-8111-111111111111\",\"aktiv\":\"ja\"}]"
+   },
+   "afvisning": "\"aktiv\" skal være true eller false."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › læsAnmodning — upload og aktivering > afviser en upload uden enhed (vælges aktivt, data_krav)",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"upload_tidsserie\",\"rolle\":\"varmelast\",\"filnavn\":\"a.csv\",\"tidsstempel\":\"start\",\"tidszone\":\"UTC\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}]"
+   },
+   "afvisning": "Enheden mangler — vælg MW, kW, MWh eller kWh pr. interval."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › læsAnmodning — upload og aktivering > afviser en upload uden tidszone",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"upload_tidsserie\",\"rolle\":\"varmelast\",\"filnavn\":\"a.csv\",\"tidsstempel\":\"start\",\"enhed\":\"MW\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}]"
+   },
+   "afvisning": "Tidszonen mangler — vælg UTC eller dansk lokaltid."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › læsAnmodning — upload og aktivering > afviser forkert tidsstempel",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"upload_tidsserie\",\"rolle\":\"varmelast\",\"filnavn\":\"a.csv\",\"tidsstempel\":\"midt\",\"tidszone\":\"UTC\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}]"
+   },
+   "afvisning": "Tidsstemplet skal være \"start\" eller \"slut\" på timen."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › læsAnmodning — upload og aktivering > afviser manglende sha256",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"upload_tidsserie\",\"rolle\":\"varmelast\",\"filnavn\":\"a.csv\",\"tidsstempel\":\"start\",\"tidszone\":\"UTC\"}]"
+   },
+   "afvisning": "Filens sha256 mangler eller er ugyldig."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › læsAnmodning — upload og aktivering > afviser timeslut der ikke er boolean",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"a.xlsx\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"timeslut\":\"ja\"}]"
+   },
+   "afvisning": "\"timeslut\" skal være true, false eller udeladt."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › læsAnmodning — upload og aktivering > afviser ukendt rolle",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"upload_tidsserie\",\"rolle\":\"spotpris\",\"filnavn\":\"a.csv\",\"tidsstempel\":\"start\",\"tidszone\":\"UTC\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}]"
+   },
+   "afvisning": "Ukendt rolle \"spotpris\" (varmelast eller solprofil)."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › læsAnmodning — upload og aktivering > læser en tidsserie-upload, et værksark og en aktivering",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"upload_tidsserie\",\"rolle\":\"varmelast\",\"navn\":\"\",\"filnavn\":\"maalt.csv\",\"tidsstempel\":\"slut\",\"tidszone\":\"Europe/Copenhagen\",\"enhed\":\"kW\",\"kolonne\":\"varme\",\"sha256\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}]"
+   },
+   "ud": {
+    "type": "upload_tidsserie",
+    "upload": {
+     "handling": "upload_tidsserie",
+     "rolle": "varmelast",
+     "navn": "maalt.csv",
+     "filnavn": "maalt.csv",
+     "tidsstempel": "slut",
+     "tidszone": "Europe/Copenhagen",
+     "enhed": "kW",
+     "kolonne": "varme",
+     "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › læsAnmodning — upload og aktivering > læser en tidsserie-upload, et værksark og en aktivering",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"upload_vaerksark\",\"filnavn\":\"ark.xlsx\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}]"
+   },
+   "ud": {
+    "type": "upload_vaerksark",
+    "upload": {
+     "handling": "upload_vaerksark",
+     "filnavn": "ark.xlsx",
+     "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "timeslut": null
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › læsAnmodning — upload og aktivering > læser en tidsserie-upload, et værksark og en aktivering",
+   "input": {
+    "aendringer_json": "[{\"handling\":\"aktiver_tidsserie\",\"tidsserie_id\":\"11111111-1111-4111-8111-111111111111\",\"aktiv\":true}]"
+   },
+   "ud": {
+    "type": "aktiver_tidsserie",
+    "aktiver": {
+     "handling": "aktiver_tidsserie",
+     "tidsserie_id": "11111111-1111-4111-8111-111111111111",
+     "aktiv": true
+    }
+   }
+  }
+ ]
+}

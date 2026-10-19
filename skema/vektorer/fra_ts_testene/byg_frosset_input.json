@@ -1,0 +1,4117 @@
+{
+ "_om": "Udtrukket af TS-testene (byg_frosset_input) med skema/vektorer/udtraek.mjs: input og TS' faktiske udfald for hvert kald, testene selv laver. Ret aldrig i hånden — udtræk igen.",
+ "kilder": {
+  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
+  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
+  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
+  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
+  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427",
+  "app/rayfin/functions/test/k4.spec.ts": "7a7b32738c6d7012fc5875b55784f002b147174247db4679b37ff39884887fde",
+  "app/rayfin/functions/test/k5.spec.ts": "315e3cc11b497ae105ab1c2a4552371beb00b554fd17fcb5d26aeec5edbaf5ae",
+  "app/rayfin/functions/test/logik.spec.ts": "f9507699c7679fd342ed5630a6151d048aaa0050eba3859eafa2d6338514cfc0",
+  "app/rayfin/functions/test/motor.spec.ts": "645d24741b0636fca77fc9dcca430184431f9f7b389dac982123d3dcc74ae11e",
+  "app/rayfin/functions/test/opret_vaerk.spec.ts": "99d2f3c44429535f4ae9741aef571bad67c0a1eef07161765f9c389bf8a1bf68",
+  "app/rayfin/functions/test/registrering.spec.ts": "05a8a0edaa4d02c8d48d6a1d921b867bcd3d31d82a03dd9d7f577be61f73e414",
+  "app/rayfin/functions/test/tidsserie.spec.ts": "49048b3d1da5c28742f15232852a301454a0e60486d5521f76432f165bbfa9d4",
+  "app/rayfin/functions/test/tidsserie_backend.spec.ts": "7c166c36baf80a999d547e0b5535b0276390d6b996a75256f07f2b9baa45aabe"
+ },
+ "tilfaelde": [
+  {
+   "navn": "k5.spec.ts › K5-F1: ingen prototypeforurening fra brugerskrevne stier > en scenarieændring med et prototype-segment afvises",
+   "input": {
+    "params": [
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-06T23:00:00Z\""
+     },
+     {
+      "sti": "units.k.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "units.__proto__.pr_interval",
+      "vaerdi_json": "true",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Ændringen peger på en ugyldig sti \"units.__proto__.pr_interval\"."
+  },
+  {
+   "navn": "k5.spec.ts › K5-F5: dækningen regnes på modellens faktiske akse > Codex' tilfælde: værk og serie dækker begge 5. jan. 12 UTC – 7. jan. 11 UTC (48 timer) -> accepteres",
+   "input": {
+    "params": [
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T12:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-07T11:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.k.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "Files/x.csv",
+      "oploesning": "1h",
+      "start": "2026-01-05T12:00:00Z",
+      "slut": "2026-01-07T11:00:00Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T12:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-07T11:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.k.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+     }
+    ],
+    "hash": "21942a49e6fd516db82fbd7af7f80a5dc68bf393bce3e0ef4bb96c055a1e115e",
+    "effektiv": {
+     "start": "2026-01-05T12:00:00Z",
+     "slut": "2026-01-07T11:00:00Z",
+     "doegn": 2,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "k5.spec.ts › K5-F5: dækningen regnes på modellens faktiske akse > en bar dato i værket er midnat (ikke hele døgnet), som modellens make_time_index",
+   "input": {
+    "params": [
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-07\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.k.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "Files/x.csv",
+      "oploesning": "1h",
+      "start": "2026-01-05T00:00:00Z",
+      "slut": "2026-01-07T00:00:00Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-07\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.k.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+     }
+    ],
+    "hash": "6622bcae8fe05431894885fa1dd130861d55fa7ddc44ec0e831b2a7d7e0293f3",
+    "effektiv": {
+     "start": "2026-01-05",
+     "slut": "2026-01-07",
+     "doegn": 2.0416666666666665,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "k5.spec.ts › K5-F5: dækningen regnes på modellens faktiske akse > med scenariets rene datoer gælder hele døgn (00–23 UTC), så den samme serie dækker for lidt",
+   "input": {
+    "params": [
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T12:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-07T11:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.k.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-01-05",
+     "periode_slut": "2026-01-07"
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "Files/x.csv",
+      "oploesning": "1h",
+      "start": "2026-01-05T12:00:00Z",
+      "slut": "2026-01-07T11:00:00Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "afvisning": "Varmelasten \"Målt\" dækker kun 66 % af perioden (2026-01-05–2026-01-07); modellen kræver mindst 95 %."
+  },
+  {
+   "navn": "k5.spec.ts › K5-F7: den frosne tidsserie har én definition — begge roller, præcis {id, sha256} > bygFrossetInput fryser begge roller med netop den fælles form (id med små bogstaver, ingen sti/opløsning)",
+   "input": {
+    "params": [
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-06T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.sol.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "varmelast",
+      "sha256": "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv",
+      "sti": "Files/fjv/tidsserier/x/vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv.csv",
+      "oploesning": "1h",
+      "start": "2026-01-01T00:00:00Z",
+      "slut": "2026-12-31T23:00:00Z",
+      "aktiv": true
+     },
+     {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "rolle": "solprofil",
+      "navn": "solprofil",
+      "sha256": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+      "sti": "Files/fjv/tidsserier/x/ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss.csv",
+      "oploesning": "1h",
+      "start": "2026-01-01T00:00:00Z",
+      "slut": "2026-12-31T23:00:00Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-06T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.sol.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"sha256\":\"vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\"}"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.solprofil",
+      "vaerdi_json": "{\"id\":\"22222222-2222-4222-8222-222222222222\",\"sha256\":\"ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\"}"
+     }
+    ],
+    "hash": "438c86cfd80f38c37275a50d35733f21f7707b3a6bd3b7a09a0bad00b636bcd3",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-06T23:00:00Z",
+     "doegn": 2,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > K2-F13: afviser et værk med 15min-opløsning (kun 1h i version 1)",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"15min\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Værket regner med opløsningen \"15min\". Appen kører i denne version kun 1h, fordi modellens økonomi ved 15 minutter endnu ikke er valideret (kendt begrænsning)."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > K2-F8: fryser model- og data-revision i inputtet, så de indgår i hashen",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     }
+    ],
+    "hash": "675f64c951c871c67420eb17d5b2ee45daa232a120bbe5382fc4673a15c803bb",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > K2-F8: fryser model- og data-revision i inputtet, så de indgår i hashen",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {
+     "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+     "data_commit": "392992c7fe35992e79fba8d1ba7b91967e8d1481"
+    },
+    "tidsserier": []
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.model_commit",
+      "vaerdi_json": "\"b49aeb0af097be42938b80a0fea6acdd77162836\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.data_commit",
+      "vaerdi_json": "\"392992c7fe35992e79fba8d1ba7b91967e8d1481\""
+     }
+    ],
+    "hash": "b2e59bfa8b5ade395787c33c2f9b6e6623f697776c4446813ea476fa0970551c",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > K2-F8: fryser model- og data-revision i inputtet, så de indgår i hashen",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {
+     "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+     "data_commit": "1111111111111111111111111111111111111111"
+    },
+    "tidsserier": []
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.model_commit",
+      "vaerdi_json": "\"b49aeb0af097be42938b80a0fea6acdd77162836\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.data_commit",
+      "vaerdi_json": "\"1111111111111111111111111111111111111111\""
+     }
+    ],
+    "hash": "e7b3e59b53ed259c55b3fcafad09a3b9ee72f9f8ced02494115625fbca025e7e",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > K2-F8: fryser model- og data-revision i inputtet, så de indgår i hashen",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {
+     "model_commit": "b49aeb0"
+    },
+    "tidsserier": []
+   },
+   "fejl": "Ugyldig model_commit i pins: b49aeb0",
+   "fejltype": "Error"
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser en sti der ikke findes",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "prices.olie.value",
+      "vaerdi_json": "1.0",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Ændringen peger på \"prices.olie.value\", som ikke findes i værket. Et scenarie kan kun ændre eksisterende værdier — nye enheder eller blokke er en værksændring."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser en sti i stedet for et enhedsnavn",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "disable",
+      "sti": "units.halmkedel",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Til/fra skal pege på et enheds- eller lagernavn, ikke en sti (\"units.halmkedel\")."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser en ugyldig dato",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-02-30",
+     "periode_slut": "2026-03-01"
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Periodens start: \"2026-02-30\" er ikke en gyldig dato."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser en ukendt enhed",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "disable",
+      "sti": "kulkedel",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Værket har ingen enhed eller lager ved navn \"kulkedel\"."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser en varmelastfil med sti",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false,
+     "heat_csv": "../../etc/passwd.csv"
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Varmelastfilen skal være et filnavn i modelrepoets data/-mappe (fik \"../../etc/passwd.csv\")."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser enable og set på samme enabled-sti",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "true",
+      "raekkefoelge": 1
+     },
+     {
+      "type": "enable",
+      "sti": "elkedel",
+      "raekkefoelge": 2
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "To ændringer rammer samme sti \"units.elkedel.enabled\" (slå elkedel til). Fjern den ene."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser et flag uden for hvidlisten",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false,
+     "ekstra_flag": "--legacy-nettab --rm-rf"
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Flaget \"--rm-rf\" er ikke tilladt. Tilladt: --legacy-nettab."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser et relativt gab ≥ 1",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false,
+     "mip_rel_gap": 1
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Relativt MIP-gab skal ligge i [0; 1)."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser et værk med en dobbelt parameter",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Værket har parameteren \"heat_load_params.baseline_profile_mw\" to gange — ret værket før det køres."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser kun startdato",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2025-01-01"
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Periode: både start- og slutdato skal udfyldes (eller ingen af dem)."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser periode over 366 døgn",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2025-01-01",
+     "periode_slut": "2026-02-04"
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Perioden er 400 døgn; højst 366 døgn pr. kørsel."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser set på solver.time_limit (ville omgå tidsgrænsen)",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "7200.0",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "\"solver.time_limit\" kan ikke ændres som en værdi i et scenarie — brug scenariets felter for periode, gab og tidsgrænse."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser set på time.end (ville omgå periodegrænsen)",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "time.end",
+      "vaerdi_json": "\"2028-01-01T23:00:00Z\"",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "\"time.end\" kan ikke ændres som en værdi i et scenarie — brug scenariets felter for periode, gab og tidsgrænse."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser set på time.resolution",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"15min\"",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "\"time.resolution\" kan ikke ændres som en værdi i et scenarie — brug scenariets felter for periode, gab og tidsgrænse."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser slut før start",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-02-01",
+     "periode_slut": "2026-01-01"
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Periodens slut (2026-01-01) ligger før start (2026-02-01)."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser tidsgrænse over 3600 s",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false,
+     "tidsgraense_s": 7200
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Solverens tidsgrænse er 7200 s; højst 3600 s pr. kørsel. Sæt en lavere tidsgrænse i scenariet."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser to ændringer på samme sti",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "1.0",
+      "raekkefoelge": 1
+     },
+     {
+      "type": "set",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "2.0",
+      "raekkefoelge": 2
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "To ændringer rammer samme sti \"prices.straw.value\" (scenariets ændringer). Fjern den ene."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser ugyldig JSON i en ændring",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "12,5",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Ændringen af prices.straw.value: værdien er ikke gyldig JSON (12,5)."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > afviser værkets egen tidsgrænse over 3600 s, når scenariet ikke sætter en",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "7200.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Solverens tidsgrænse er 7200 s; højst 3600 s pr. kørsel. Sæt en lavere tidsgrænse i scenariet."
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > bruger modellens standard (600 s), når hverken værk eller scenarie har en tidsgrænse",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     }
+    ],
+    "hash": "bd7fe6d21d8c9a52d51f7736b1d83524796cda0b3c8befe30b9ef9e3ffb09c51",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > genskaber de målte 17 rækker og deres hash fra værk + scenarie",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "50.0",
+      "raekkefoelge": 1
+     },
+     {
+      "type": "enable",
+      "sti": "elkedel",
+      "raekkefoelge": 2
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false,
+     "periode_start": "2026-01-05",
+     "periode_slut": "2026-01-07",
+     "tidsgraense_s": 300,
+     "mip_rel_gap": 0.0002
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "50.0"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.start",
+      "vaerdi_json": "\"2026-01-05\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.slut",
+      "vaerdi_json": "\"2026-01-07\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "solver.mip_rel_gap",
+      "vaerdi_json": "0.0002"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "300.0"
+     }
+    ],
+    "hash": "169838dd844ee523800416924a0752dc230fbca2c9646e95a8732211adb899cd",
+    "effektiv": {
+     "start": "2026-01-05",
+     "slut": "2026-01-07",
+     "doegn": 3,
+     "tidsgraense_s": 300,
+     "mip_rel_gap": 0.0002,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "logik.spec.ts › bygFrossetInput > koder solverfelter som float og flag som liste",
+   "input": {
+    "params": [
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": true,
+     "tidsgraense_s": 300,
+     "mip_abs_gap": 1000,
+     "ekstra_flag": "--legacy-nettab",
+     "balancing_method": "legacy"
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[4.4,4.5]"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "45.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.elkedel.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max_heat",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.balancing_method",
+      "vaerdi_json": "\"legacy\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.ekstra_flag",
+      "vaerdi_json": "[\"--legacy-nettab\"]"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "solver.mip_abs_gap",
+      "vaerdi_json": "1000.0"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "solver.time_limit",
+      "vaerdi_json": "300.0"
+     }
+    ],
+    "hash": "324352bb36abc54044ab38a8eb8e94f8a857674f0c29b66e4679339874b7c06b",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 300,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 1000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > \"syntetisk\" fravælger værkets aktive varmelast",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "_tidsserie.varmelast",
+      "vaerdi_json": "\"syntetisk\"",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     }
+    ],
+    "hash": "584f4e4be28610f928ac1760be04c12e34864df66b7ad94dab445352852003f9",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > afviser \"syntetisk\" som solprofil",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "_tidsserie.solprofil",
+      "vaerdi_json": "\"syntetisk\"",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "\"syntetisk\" findes kun for varmelast."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > afviser en serie med forkert rolle",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "_tidsserie.varmelast",
+      "vaerdi_json": "\"11111111-1111-4111-8111-111111111111\"",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "solprofil",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "afvisning": "\"Målt 2025\" er en solprofil, ikke en varmelast."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > afviser en solprofil, der ikke dækker perioden",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "solprofil",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-01-08T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "afvisning": "Solprofilen \"Målt 2025\" mangler 72 af periodens 168 timer (2025-01-01–2026-01-08); modellen nulfylder ikke en solprofil."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > afviser en ukendt rolle",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "_tidsserie.spotpris",
+      "vaerdi_json": "\"x\"",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Ukendt tidsserie-rolle \"spotpris\" (varmelast eller solprofil)."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > afviser en varmelast, der dækker under 95 %",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-01-09T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "afvisning": "Varmelasten \"Målt 2025\" dækker kun 71 % af perioden (2025-01-01–2026-01-09); modellen kræver mindst 95 %."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > afviser et ukendt id",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "_tidsserie.varmelast",
+      "vaerdi_json": "\"99999999-9999-4999-8999-999999999999\"",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "afvisning": "Den valgte varmelast findes ikke blandt værkets gyldige tidsserier (afvist, slettet eller fra et andet værk?)."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > afviser to aktive i samme rolle",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     },
+     {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "afvisning": "Værket har 2 aktive varmelast-tidsserier — gør én af dem aktiv igen, før der køres."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > afviser valg af både tidsserie og heat_csv",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "_tidsserie.varmelast",
+      "vaerdi_json": "\"11111111-1111-4111-8111-111111111111\"",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false,
+     "heat_csv": "billund_abvaerk_hourly.csv"
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "afvisning": "Scenariet vælger både en af værkets tidsserier og en af repoets varmelastfiler — vælg én."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > den frosne tidsserie indgår i hashen (en anden fil = et andet input)",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}"
+     }
+    ],
+    "hash": "ef03ee837b6f7b2325dbaa0efbf33aac96d4cf17a2abb8afd1acb8928bc2fb05",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > en aktiv solprofil fryses uafhængigt af varmelasten",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "rolle": "solprofil",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.solprofil",
+      "vaerdi_json": "{\"id\":\"33333333-3333-4333-8333-333333333333\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+     }
+    ],
+    "hash": "25660fc3febf0070ce3de6358821a29f3206c4275883edfba9a6c478448770d8",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > en inaktiv serie fryses ikke; uden tidsserier ændres inputtet ikke (eksisterende hashes holder)",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": false
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     }
+    ],
+    "hash": "584f4e4be28610f928ac1760be04c12e34864df66b7ad94dab445352852003f9",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > en inaktiv serie fryses ikke; uden tidsserier ændres inputtet ikke (eksisterende hashes holder)",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     }
+    ],
+    "hash": "584f4e4be28610f928ac1760be04c12e34864df66b7ad94dab445352852003f9",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > en solprofil med ét hul i perioden afvises (modellen nulfylder ikke)",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "solprofil",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true,
+      "validering_json": "{\"huller\":[[\"2026-01-07T12:00:00Z\",\"2026-01-07T12:00:00Z\",1]],\"huller_fuld\":true}"
+     }
+    ]
+   },
+   "afvisning": "Solprofilen \"Målt 2025\" mangler 1 af periodens 168 timer (2025-01-01–2026-12-31); modellen nulfylder ikke en solprofil."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > en solprofil-tidsserie sammen med en ændring af production_profile_path afvises (dublet hos arbejderen)",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.sol.production_profile_path",
+      "vaerdi_json": "\"data/sol.csv\""
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "_tidsserie.solprofil",
+      "vaerdi_json": "\"11111111-1111-4111-8111-111111111111\"",
+      "raekkefoelge": 1
+     },
+     {
+      "type": "set",
+      "sti": "units.sol.production_profile_path",
+      "vaerdi_json": "\"data/anden.csv\"",
+      "raekkefoelge": 0
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "solprofil",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "afvisning": "Scenariet vælger både en solprofil-tidsserie og ændrer en enheds production_profile_path — vælg én."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > en varmelast med lige knap 95 % dækning accepteres",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2026-01-05T08:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+     }
+    ],
+    "hash": "9f4d5522ca4473dc442502d4d1b2cbc90cacff4d8ac45c7f39b56ce3603a1720",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > markøren \"tidsserie:solprofil\" kræver en aktiv eller valgt solprofil",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.sol.production_profile_path",
+      "vaerdi_json": "\"tidsserie:solprofil\""
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": []
+   },
+   "afvisning": "Værket bruger en solprofil-tidsserie, men ingen er aktiv eller valgt — gør en af værkets solprofiler aktiv."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > markøren \"tidsserie:solprofil\" kræver en aktiv eller valgt solprofil",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.sol.production_profile_path",
+      "vaerdi_json": "\"tidsserie:solprofil\""
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "solprofil",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.sol.production_profile_path",
+      "vaerdi_json": "\"tidsserie:solprofil\""
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.solprofil",
+      "vaerdi_json": "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+     }
+    ],
+    "hash": "f8c841923a8b0f26bfb6da78314f58e3487add259c475cb18c58818ab90b847f",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > repoets heat_csv bevares og slår den aktive tidsserie fra",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false,
+     "heat_csv": "billund_abvaerk_hourly.csv"
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.heat_csv",
+      "vaerdi_json": "\"billund_abvaerk_hourly.csv\""
+     }
+    ],
+    "hash": "7e4f01f0c098a9eaa160cb846b42123718d226fe51d17bb385d93945e8d91ad6",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > scenariets valg vinder over den aktive, og et valg er ikke en YAML-værdi",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [
+     {
+      "type": "set",
+      "sti": "_tidsserie.varmelast",
+      "vaerdi_json": "\"22222222-2222-4222-8222-222222222222\"",
+      "raekkefoelge": 1
+     }
+    ],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     },
+     {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": false
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"22222222-2222-4222-8222-222222222222\",\"sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}"
+     }
+    ],
+    "hash": "7a9ea0112361e61a17456ad025cc7846a93dd3b54063c24b810c39bc8d407dc6",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > seriens egne huller (validering_json.huller) tæller med i dækningen",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true,
+      "validering_json": "{\"huller\":[[\"2026-01-06T00:00:00Z\",\"2026-01-06T09:00:00Z\",10]],\"huller_fuld\":true}"
+     }
+    ]
+   },
+   "afvisning": "Varmelasten \"Målt 2025\" dækker kun 94 % af perioden (2025-01-01–2026-12-31); modellen kræver mindst 95 %."
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > seriens egne huller (validering_json.huller) tæller med i dækningen",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true,
+      "validering_json": "{\"huller\":[[\"2026-01-06T00:00:00Z\",\"2026-01-06T04:00:00Z\",5]],\"huller_fuld\":true}"
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+     }
+    ],
+    "hash": "9f4d5522ca4473dc442502d4d1b2cbc90cacff4d8ac45c7f39b56ce3603a1720",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > seriens egne huller (validering_json.huller) tæller med i dækningen",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true,
+      "validering_json": "{\"huller\":[[\"2025-03-01T00:00:00Z\",\"2025-03-05T00:00:00Z\",97]],\"huller_fuld\":true}"
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+     }
+    ],
+    "hash": "9f4d5522ca4473dc442502d4d1b2cbc90cacff4d8ac45c7f39b56ce3603a1720",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  },
+  {
+   "navn": "tidsserie_backend.spec.ts › bygFrossetInput — tidsserier (KONTRAKT §6d) > værkets aktive varmelast fryses som præcis {id, sha256} (arbejderens form, fv-fabric2 14:00)",
+   "input": {
+    "params": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "aendringer": [],
+    "scenarie": {
+     "med_balancering": false
+    },
+    "pins": {},
+    "tidsserier": [
+     {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "rolle": "varmelast",
+      "navn": "Målt 2025",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sti": "fjv/tidsserier/probe/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.csv",
+      "oploesning": "1h",
+      "start": "2025-01-01T00:00:00.000Z",
+      "slut": "2026-12-31T23:00:00.000Z",
+      "aktiv": true
+     }
+    ]
+   },
+   "ud": {
+    "rækker": [
+     {
+      "kilde": "vaerk",
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"probe\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.start",
+      "vaerdi_json": "\"2026-01-05T00:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-01-11T23:00:00Z\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.med_balancering",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"11111111-1111-4111-8111-111111111111\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+     }
+    ],
+    "hash": "9f4d5522ca4473dc442502d4d1b2cbc90cacff4d8ac45c7f39b56ce3603a1720",
+    "effektiv": {
+     "start": "2026-01-05T00:00:00Z",
+     "slut": "2026-01-11T23:00:00Z",
+     "doegn": 7,
+     "tidsgraense_s": 600,
+     "mip_rel_gap": 0.005,
+     "mip_abs_gap": 5000
+    }
+   }
+  }
+ ]
+}
