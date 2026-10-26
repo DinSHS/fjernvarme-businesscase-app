@@ -22,7 +22,7 @@ export interface ScenarieRække {
  * - `ingen`: scenariet er kørt, men intet kan sammenlignes direkte med det.
  */
 export type Reference =
-    | { art: "par"; navn: string; direkte: boolean; afviger: string[] }
+    | { art: "par"; navn: string; direkte: boolean; afviger: string[]; /** ΔRef = scenarie − reference (kr.), kun når begge objektiver kendes. */ delta?: number }
     | { art: "par_ikke_koert"; navn: string }
     | { art: "er_reference"; antal: number }
     | { art: "sammenlignelig"; navn: string }
@@ -48,7 +48,8 @@ export function findReference(s: Scenarie, scenarier: readonly Scenarie[], koers
         if (!ref) return { art: "par_ikke_koert", navn: navn(refId) };
         if (!egen) return undefined;
         const afv = sammenlignelighed(ref, egen);
-        return { art: "par", navn: navn(refId), direkte: afv.length === 0, afviger: afv };
+        const delta = egen.objektiv_dkk != null && ref.objektiv_dkk != null ? egen.objektiv_dkk - ref.objektiv_dkk : null;
+        return { art: "par", navn: navn(refId), direkte: afv.length === 0, afviger: afv, ...(delta !== null ? { delta } : {}) };
     }
 
     const antal = scenarier.filter((x) => x.id !== s.id && parretsReference(x, scenarier) === s.id).length;

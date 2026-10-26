@@ -14,9 +14,15 @@ import type { KoerselStatus } from "../../../rayfin/data/fjv.constants";
 export { TemaVaelger } from "./TemaVaelger";
 export { Sidefod } from "./Sidefod";
 
-/** Sidens ramme: område-mærke, titel, budskab (én sætning), handlinger, indhold. */
-export function Side({ omraade, titel, budskab, handlinger, children }: {
-    omraade: string; titel: string; budskab?: ReactNode; handlinger?: ReactNode; children: ReactNode;
+/**
+ * IBCS-titlen i tre linjer (UN 2.2, app/IBCS.md §4): hvem (værk + alle afgrænsninger), **hvad** (mål i fed + enhed),
+ * hvornår (periode + scenarier). Rent beskrivende — vurderingen står i budskabet.
+ */
+export interface Titelblok { hvem: ReactNode; hvad: ReactNode; hvornaar: ReactNode }
+
+/** Sidens ramme: område-mærke, titel, budskab (én sætning), IBCS-titelblok, handlinger, indhold. */
+export function Side({ omraade, titel, budskab, titelblok, handlinger, children }: {
+    omraade: string; titel: string; budskab?: ReactNode; titelblok?: Titelblok; handlinger?: ReactNode; children: ReactNode;
 }) {
     return (
         <section className="fjv-side" data-layout="side">
@@ -24,6 +30,13 @@ export function Side({ omraade, titel, budskab, handlinger, children }: {
                 <span className="fjv-side-omraade">{omraade}</span>
                 <h1 className="fjv-side-titel">{titel}</h1>
                 {budskab && <p className="fjv-side-budskab">{budskab}</p>}
+                {titelblok && (
+                    <div className="fjv-titelblok" data-layout="titelblok">
+                        <span data-linje="hvem">{titelblok.hvem}</span>
+                        <span data-linje="hvad">{titelblok.hvad}</span>
+                        <span data-linje="hvornaar">{titelblok.hvornaar}</span>
+                    </div>
+                )}
                 {handlinger && <div className="fjv-side-handlinger">{handlinger}</div>}
             </header>
             {children}

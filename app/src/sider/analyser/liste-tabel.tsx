@@ -9,6 +9,7 @@
 //-----------------------------------------------------------------------
 
 import type { ReactNode } from "react";
+import { roundsToZero } from "@/ibcs";
 import { Maerke, StatusMaerke } from "@/components/layout";
 import { tal, tidspunkt } from "@/lib/format";
 import { absolutGab, koerselsVarighed, modtaget, type Koersel } from "./beregn";
@@ -16,6 +17,7 @@ import { gabPct, varighed } from "./fmt";
 import { ANKRE, KOLONNE_FORKLARING, ordHref } from "./liste-tekster";
 import { KOLONNER, type Kol } from "./liste-visning";
 import { deltaOrd, type Gruppe, type ListeRaekke, type Sortering } from "./sammensaetning";
+import { DeltaTal, TKR, tkr } from "./ibcs-grafer";
 
 
 const stop = (e: React.MouseEvent) => e.stopPropagation();
@@ -54,14 +56,13 @@ function Markeder({ r }: { r: ListeRaekke }) {
     );
 }
 
+/** ΔRef i t.kr. med virkningsfarve (omkostning: op = dårligt) og ordet under, så kolonnen forbliver smal (IBCS.md §2–3). */
 function Delta({ r }: { r: ListeRaekke }) {
-    const t = deltaOrd(r.delta);
-    if (t === null) return <span className="fjv-a-svag">–</span>;
-    // "44.220 kr." over "dyrere": to linjer holder kolonnen smal.
-    const m = /^(.* kr\.) (dyrere|billigere)$/.exec(t);
+    if (r.delta === null) return <span className="fjv-a-svag">–</span>;
+    const ord = roundsToZero(r.delta, TKR) ? "samme" : r.delta > 0 ? "dyrere" : "billigere";
     return (
-        <span className={`fjv-a-kl-delta ${r.delta! < 0 ? "fjv-a-pos" : r.delta! > 0 ? "fjv-a-neg" : ""}`}>
-            {m ? <><span>{m[1]}</span><span>{m[2]}</span></> : t}
+        <span className="fjv-a-kl-delta" title={deltaOrd(r.delta) ?? undefined}>
+            <span><DeltaTal v={r.delta} polaritet={-1} /></span><span className="fjv-a-kl-lille fjv-a-svag">{ord}</span>
         </span>
     );
 }
@@ -80,7 +81,7 @@ const VIS: Record<string, (r: ListeRaekke, k: Koersel, indryk: boolean) => React
             {r.varmelast.navn && <span className="fjv-a-kl-lille fjv-a-svag fjv-a-kl-fil">{r.varmelast.navn}</span>}
         </div>
     ),
-    objektiv: (_r, k) => (k.objektiv_dkk == null ? "–" : tal(k.objektiv_dkk)),
+    objektiv: (_r, k) => <span title={k.objektiv_dkk == null ? undefined : `${tal(k.objektiv_dkk)} kr.`}>{tkr(k.objektiv_dkk)}</span>,
     delta: (r) => <Delta r={r} />,
     anbefaling: (r) => (r.vurdering ? <Maerke tone={r.vurdering.tone}>{r.vurdering.maerke}</Maerke> : <span className="fjv-a-svag">–</span>),
     status: (_r, k) => <StatusMaerke status={k.status} />,
@@ -156,7 +157,7 @@ export function KoerselTabel({ grupper, raekker, flere, sortering, onSorter, val
                     <dt>Ændringer</dt><dd>{r.aendringer}</dd>
                     <dt>Rolle</dt><dd>{r.rolle.tekst}</dd>
                     <dt>Indstillinger</dt><dd>{[r.periode.laengde ? `${r.periode.laengde} (${r.periode.datoer})` : r.periode.datoer, `${r.markeder.tekst}${r.markeder.spor ? ` · Spor ${r.markeder.spor}` : ""}`, `${r.varmelast.tekst.toLowerCase()} varmelast${r.varmelast.navn ? ` (${r.varmelast.navn})` : ""}`].join(" · ")}</dd>
-                    <dt>Driftsomkostning</dt><dd className="fjv-a-tal">{k.objektiv_dkk == null ? "–" : `${tal(k.objektiv_dkk)} kr.`}{r.delta !== null && <> · <Delta r={r} /></>}</dd>
+                    <dt>Driftsomkostning</dt><dd className="fjv-a-tal">{k.objektiv_dkk == null ? "–" : `${tkr(k.objektiv_dkk)} t.kr.`}{r.delta !== null && <> · <DeltaTal v={r.delta} polaritet={-1} /> t.kr. ΔRef</>}</dd>
                 </dl>
             </li>
         );

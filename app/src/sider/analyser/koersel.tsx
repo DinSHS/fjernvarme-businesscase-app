@@ -22,7 +22,8 @@ import Kandidatliste from "./kandidatliste";
 import { kandidater } from "./kandidater";
 import { NOEGLETAL_TEKST } from "./etiketter.data";
 import { dec, ellers, energi, gabPct, maanedKort, pctVaerdi, periodeTekst, varighed } from "./fmt";
-import { Bjaelker, Forklaring, PunktRaekke, StablededeSoejler } from "./grafer";
+import { Forklaring, PunktRaekke, StablededeSoejler } from "./grafer";
+import { ProduktionPrEnhed, tkr } from "./ibcs-grafer";
 import { forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
 
 /**
@@ -42,7 +43,7 @@ export default function KoerselSide({ id, gåTil, sammenlign = false }: { id: st
     const titel = p.data?.scenarie?.navn ?? "Kørsel";
     const budskab = p.data && k?.status === "faerdig" ? sideBudskab(p.data) : k ? statusBudskab(k.status, k.fase, k.fejlbesked) : p.data === null ? "Kørslen findes ikke." : undefined;
     return (
-        <Side omraade="Analyser · Kørsel" titel={titel} budskab={budskab}
+        <Side omraade="Analyser · Kørsel" titel={titel} budskab={budskab} titelblok={færdig ? titelblok(færdig) : undefined}
             handlinger={<>
                 <Knap sekundaer onClick={() => gåTil("analyser")}>Alle kørsler</Knap>
                 {færdig && top?.naturlig && (
@@ -65,6 +66,16 @@ export default function KoerselSide({ id, gåTil, sammenlign = false }: { id: st
     );
 }
 
+/** IBCS-titlen (UN 2.2, spec analyser-koersel): værk + balancemarked / mål + enhed / periode. */
+function titelblok(d: Pakke) {
+    const bal = d.profil.med_balancering == null ? "balancemarked ukendt" : d.profil.med_balancering ? "med balancemarked" : "uden balancemarked";
+    return {
+        hvem: `${d.vaerkNavn}, ${bal}`,
+        hvad: <><strong>Driftsomkostning</strong> i t.kr. · <strong>varmeproduktion</strong> pr. enhed og måned</>,
+        hvornaar: periodeTekst(d.profil.periode_start, d.profil.periode_slut),
+    };
+}
+
 function statusBudskab(status: string, fase?: string | null, fejl?: string | null): string {
     if (status === "fejl") return `Kørslen fejlede${fejl ? `: ${fejl.split("\n")[0]}` : "."}`;
     if (status === "annulleret") return "Kørslen blev annulleret — der er ingen resultater.";
@@ -76,7 +87,7 @@ function sideBudskab(d: Pakke): string {
     const s = d.samlet;
     const st = stoersteEnhed(s.enheder);
     const g = absolutGab(d.k);
-    const dele = [`${d.vaerkNavn}, ${periodeTekst(d.profil.periode_start, d.profil.periode_slut)}: driften koster ${ellers(s.objektiv_dkk ?? d.k.objektiv_dkk, tal)} kr.`];
+    const dele = [`${d.vaerkNavn}, ${periodeTekst(d.profil.periode_start, d.profil.periode_slut)}: driften koster ${tkr(d.k.objektiv_dkk ?? s.objektiv_dkk)} t.kr.`];
     if (g.kr !== null) dele[0] += ` (${gabTekst(g)})`;
     if (st?.andel_pct != null) dele.push(`${st.navn} leverer ${pctVaerdi(st.andel_pct, 0)} af varmen`);
     return `${dele.join("; ")}.`;
@@ -136,7 +147,7 @@ function Resultater({ d }: { d: Pakke }) {
                 <DataIKoersel d={d} />
             </Gitter>
             <Gitter form="8-4">
-                <Enheder d={d} pladser={pladser} />
+                <Enheder d={d} />
                 <VarmeOgMiljoe d={d} />
             </Gitter>
             <Gitter>
@@ -161,15 +172,16 @@ function Resultater({ d }: { d: Pakke }) {
 
 function Objektiv({ d }: { d: Pakke }) {
     const g = absolutGab(d.k);
-    const obj = d.samlet.objektiv_dkk ?? d.k.objektiv_dkk ?? null;
+    const obj = d.k.objektiv_dkk ?? d.samlet.objektiv_dkk ?? null;
     const ok = (d.k.solve_status ?? "").toLowerCase() === "optimal";
     return (
-        <Kort titel="Driftsomkostning" afgraensning="objektiv, hele perioden"
+        <Kort titel="Driftsomkostning" afgraensning="objektiv, hele perioden, t.kr."
             budskab={g.kr === null ? "Usikkerheden kendes ikke — brug tallet varsomt i differenser." : `Tallet er ${gabTekst(g)} — ${loesningTekst(d.k.solve_status)}.`}
             fod={NOEGLETAL_TEKST.objektiv_dkk?.forklaring}>
-            <div className="fjv-a-helt">{ellers(obj, tal)}<small>kr.</small></div>
+            <div className="fjv-a-helt">{tkr(obj)}<small>t.kr.</small></div>
             <div className="fjv-a-raekke"><Maerke tone={ok ? "ok" : "advarsel"}>{ok ? "Optimal" : d.k.solve_status ?? "ukendt status"}</Maerke></div>
             <Fakta par={[
+                ["Præcist", ellers(obj, (v) => `${tal(v)} kr.`)],
                 ["Opnået gab", d.k.opnaaet_gap != null ? gabPct(d.k.opnaaet_gap) : g.kilde === "oensket_loft" ? `≤ ${gabPct(g.rel ?? 0)} (loft)` : "ukendt"],
                 ["Usikkerhed", g.kr === null ? "ukendt" : `højst ${tal(g.kr)} kr. for højt`],
                 ["Ønsket gab", `${ellers(d.k.oensket_rel_gap, gabPct)} eller ${ellers(d.k.oensket_abs_gap, (x) => `${tal(x)} kr.`)}`],
@@ -180,7 +192,7 @@ function Objektiv({ d }: { d: Pakke }) {
     );
 }
 
-function Enheder({ d, pladser }: { d: Pakke; pladser: Map<string, number> }) {
+function Enheder({ d }: { d: Pakke }) {
     const e = d.samlet.enheder;
     const producerer = e.filter((x) => (x.produktion_mwh ?? 0) > 0);
     const st = stoersteEnhed(e);
@@ -189,12 +201,9 @@ function Enheder({ d, pladser }: { d: Pakke; pladser: Map<string, number> }) {
         ? `${st.navn} leverer ${pctVaerdi(st.andel_pct, 0)} af varmen; ${producerer.length} af ${e.length} aktive enheder producerer.`
         : "Ingen enheder producerede i perioden.";
     return (
-        <Kort titel="Varmeproduktion pr. enhed" afgraensning="hele perioden" budskab={budskab}
-            fod="Fuldlasttimer = produktion ÷ nominel varmeeffekt (beregnet her; modellens 'fuldlasttimer' er antal driftsintervaller). Driftstimer = intervaller med produktion × intervallets længde. For profilbundne enheder (markeret *, fx solvarme) regnes fuldlasttimer mod nominel effekt, ikke mod profilen.">
-            <Bjaelker enhed="MWh" rækker={e.map((x) => ({
-                navn: x.navn, plads: pladser.get(x.navn) ?? 0, værdi: x.produktion_mwh ?? 0,
-                etiket: `${tal(x.produktion_mwh ?? 0)} MWh · ${ellers(x.andel_pct, (v) => pctVaerdi(v, 0))}`,
-            }))} />
+        <Kort titel="Varmeproduktion pr. enhed" afgraensning="hele perioden, sorteret efter produktion" budskab={budskab}
+            fod="Grafen viser produktionen i én farve (én kørsel); enhedskulører bruges kun i sammensætningen over tid (måneder, dispatch). Fuldlasttimer = produktion ÷ nominel varmeeffekt (beregnet her; modellens 'fuldlasttimer' er antal driftsintervaller). Driftstimer = intervaller med produktion × intervallets længde. For profilbundne enheder (markeret *, fx solvarme) regnes fuldlasttimer mod nominel effekt, ikke mod profilen.">
+            <ProduktionPrEnhed enheder={e} />
             <Tabel rækker={e} nøgle={(x) => x.navn} kolonner={[
                 { navn: "Enhed", vis: (x) => x.navn },
                 { navn: "Type", vis: (x) => `${enhedstype(d.input, x.navn) ?? "–"}${profil.has(x.navn) ? " *" : ""}` },
@@ -246,7 +255,7 @@ function Maaneder({ d, pladser }: { d: Pakke; pladser: Map<string, number> }) {
     const rækker = [...t.maaneder, "periode"];
     return (
         <Kort titel="Måned for måned" afgraensning="lokale måneder (dansk tid), GWh" budskab={budskab}
-            fod="Rækken 'Hele perioden' er regnet på kørslens fulde, uafrundede tidsserie — ikke som summen af de viste måneder. En måned med færre intervaller end døgn × 24 er en delmåned. Spotprisen er tidsvægtet, ikke produktionsvægtet.">
+            fod="Månederne har deres egen skala (værdiaksen): en månedssum kan være hele periodens produktion. Enhedskulørerne er enhedens identitet, ikke en vurdering. Rækken 'Hele perioden' er regnet på kørslens fulde, uafrundede tidsserie — ikke som summen af de viste måneder. En måned med færre intervaller end døgn × 24 er en delmåned. Spotprisen er tidsvægtet, ikke produktionsvægtet.">
             <Forklaring serier={ordnet.map((e) => ({ navn: e, plads: pladser.get(e) ?? 0 }))} ekstra={<span><i className="fjv-a-streg" />Varmebehov</span>} />
             <StablededeSoejler søjler={søjler} enhed="GWh" markørNavn="Varmebehov" formatér={(v) => `${dec(v, 3)} GWh`} />
             <div className="fjv-a-panel-titel">Spotpris, tidsvægtet middel (kr./MWh)</div>

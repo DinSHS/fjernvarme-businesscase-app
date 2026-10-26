@@ -89,7 +89,7 @@ Et tema behøver kun det, der adskiller det: **mangler en nøgle, arves den fra 
 | `fokus` | fokusring | ≥ 3:1 mod flader |
 | `pos`, `neg`, `advarsel` | statustekst og -mærker | ≥ 4,5:1; pos/neg skal kunne skelnes ved farveblindhed |
 | `ac`, `py`, `pl` | IBCS faktisk / forrige år / plan | ≥ 3:1; AC og PY tydeligt forskellige |
-| `delta_pos`, `delta_neg` | IBCS afvigelser | ≥ 3:1; kan skelnes ved farveblindhed |
+| `delta_pos`, `delta_neg`, `delta_neutral` | IBCS-virkning af en afvigelse: **god**, **dårlig**, **neutral** (ikke fortegn — se `IBCS.md` §2). Blågrøn / rød / blå i de neutrale temaer | ≥ 4,5:1 på `flade` (mærker *og* farvede tal); alle tre par kan skelnes ved farveblindhed |
 | `serie` (8) | kategoriske serier, fast rækkefølge (aldrig cyklet) | hver ≥ 3:1 — også ved 85 % opacitet (analysernes lagdelte flader); **alle par** (ikke kun naboer) ΔE ≥ 6 (mål 8) under protan/deutan og ≥ 15 normalt: hver enhed i et værk har sin plads, og alle står i samme graf |
 | `serie_oevrige` | 9.+ kategori ("øvrige") | ≥ 3:1 (også ved 85 %); mod hver serie samme afstandskrav som serierne |
 | `sekventiel` (5) | størrelse, svag → stærk | stigende kontrast mod fladen; trin 5 ≥ 3:1 |

@@ -25,7 +25,7 @@ const RÅD: readonly { mønster: RegExp; råd: Råd }[] = [
         mønster: /hjerteslag|stoppede uden at afslutte/i,
         råd: {
             tekst: "Beregningen stoppede uden at melde tilbage — fx fordi kapaciteten blev sat på pause, eller jobbet blev stoppet i Fabric. Bestil kørslen igen.",
-            kilde: "KONTRAKT §6",
+            kilde: "Sådan bruger du appen (køen og kørslens status)",
         },
     },
     {

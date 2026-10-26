@@ -59,8 +59,8 @@
   /* Afledte flader (tema-kerne.ts, afledte()): tonede mærker, fejlboks, knap under mus/tryk — målt som tekstbaggrund. */
   --fjv-maerke-ok-bg: #ebf4f5; --fjv-maerke-advarsel-bg: #f6f2eb; --fjv-maerke-fejl-bg: #faf0ec;
   --fjv-fejl-bg: #fbf2ee; --fjv-fejl-kant: #e7b39e; --fjv-knap-hover: #19446b; --fjv-knap-aktiv: #163c5e;
-  /* IBCS: faktisk, forrige år, plan (omrids), afvigelser. Sekventiel 1→5 = svag→stærk; divergerende 1 og 5 er polerne. */
-  --fjv-ac: #26303c; --fjv-py: #7f8a97; --fjv-pl: #26303c; --fjv-delta-pos: #007a80; --fjv-delta-neg: #c2410c;
+  /* IBCS: faktisk/scenarie, forrige år, plan/reference (omrids), virkning god/dårlig/neutral (app/IBCS.md). Sekventiel 1→5 = svag→stærk; divergerende 1 og 5 er polerne. */
+  --fjv-ac: #26303c; --fjv-py: #7f8a97; --fjv-pl: #26303c; --fjv-delta-pos: #007a80; --fjv-delta-neg: #c62828; --fjv-delta-neutral: #3b5bdb;
   --fjv-sek-1: #d6e4f2; --fjv-sek-2: #a9c6e4; --fjv-sek-3: #6f9fd0; --fjv-sek-4: #3a76b4; --fjv-sek-5: #1d4f7c;
   --fjv-div-1: #c2410c; --fjv-div-2: #eba184; --fjv-div-3: #e7e9ec; --fjv-div-4: #8fb4dc; --fjv-div-5: #1f62a8;
   --fjv-streg-felt: #8592a2;

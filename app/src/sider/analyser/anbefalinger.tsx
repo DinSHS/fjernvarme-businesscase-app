@@ -12,6 +12,7 @@ import { findPar, historie, krRund, sorterAnbefalinger, vurder } from "./anbefal
 import { useAnbefalingsData } from "./anbefaling-data";
 import { KopierKnap } from "./anbefaling-kort";
 import { parbare } from "./sammensaetning";
+import { ParVarians } from "./ibcs-grafer";
 
 export default function Anbefalinger({ gåTil }: Pick<OmraadeProps, "gåTil">) {
     const h = useAnbefalingsData();
@@ -37,11 +38,25 @@ export default function Anbefalinger({ gåTil }: Pick<OmraadeProps, "gåTil">) {
                 <Knap sekundaer onClick={() => gåTil("analyser")}>Alle kørsler</Knap>
                 {rækker && rækker.length > 0 && <KopierKnap tekst={alt} etiket="Kopiér alle som tekst" />}
             </>}>
+            {rækker && rækker.some((x) => x.v.delta !== null) && (
+                <Gitter>
+                    <Kort titel="Δ driftsomkostning pr. par" afgraensning="ΔRef = scenarie − reference, t.kr."
+                        budskab={(() => {
+                            const m = [...rækker].filter((x) => x.v.delta !== null).sort((x, y) => Math.abs(y.v.delta!) - Math.abs(x.v.delta!))[0];
+                            return `Størst: "${m.p.scen.navn}" ${m.v.delta! < 0 ? "sparer" : "koster"} ${krRund(m.v.delta!)} ${m.v.delta! < 0 ? "" : "mere "}i perioden.`.replace("  ", " ");
+                        })()}
+                        fod="Rød = dyrere, grøn = billigere end referencen. Blå: forskellen er inden for summen af de to kørslers solvergab og kan ikke skelnes fra nul. Hvert par har sin egen periode — se rækken nedenfor.">
+                        <ParVarians par={rækker.filter((x) => x.v.delta !== null).map((x) => ({
+                            navn: x.p.scen.navn, delta: x.v.delta!, indenForTolerance: x.v.tolerance !== null && Math.abs(x.v.delta!) <= x.v.tolerance,
+                        }))} />
+                    </Kort>
+                </Gitter>
+            )}
             <Gitter>
                 <Kort titel="Reference/scenarie-par" afgraensning="seneste kørsel pr. scenarie, sorteret efter kategori og værdi"
                     budskab={rækker?.[0] ? `Øverst: "${rækker[0].p.scen.navn}" — ${rækker[0].v.maerke.toLowerCase()}.` : undefined}
-                    fod={<>Et par er to direkte sammenlignelige kørsler (KONTRAKT §6b), hvor scenariet bærer præcis én knaps ændring ift. referencen.
-                        Kategorierne og forbeholdene følger fv-eksperts regler (anbefalingsregler.json). Følsomheder og metodevalg får mærket
+                    fod={<>Et par er to direkte sammenlignelige kørsler (differensmetoden), hvor scenariet bærer præcis én knaps ændring ift. referencen.
+                        Kategorierne og forbeholdene følger appens anbefalingsregler. Følsomheder og metodevalg får mærket
                         "Følsomhed": de beskriver noget, værket ikke selv vælger.</>}>
                     <DataTilstand h={h} højde={260}>
                         {() => (

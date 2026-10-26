@@ -24,7 +24,7 @@ export const FARVER = [
     "streg", "streg_felt", "gitter",
     "primaer", "primaer_tekst", "accent", "accent_2", "fokus",
     "pos", "neg", "advarsel",
-    "serie_oevrige", "ac", "py", "pl", "delta_pos", "delta_neg",
+    "serie_oevrige", "ac", "py", "pl", "delta_pos", "delta_neg", "delta_neutral",
 ] as const;
 export type Farve = (typeof FARVER)[number];
 
@@ -183,6 +183,7 @@ export const CSS_VARIABLER: Record<Farve, readonly string[]> = {
     pl: ["--fjv-pl"],
     delta_pos: ["--fjv-delta-pos"],
     delta_neg: ["--fjv-delta-neg"],
+    delta_neutral: ["--fjv-delta-neutral"],
 };
 
 /** Signaturstriben øverst: farverne i forholdet 4-1-1 (to farver: 4-2, én farve: hel). */
@@ -286,8 +287,11 @@ export const KONTRASTKRAV: readonly (readonly [Farve | `serie.${number}` | `dive
     ["ac", ["flade"], GRAFIK, "IBCS faktisk (AC)"],
     ["py", ["flade"], GRAFIK, "IBCS forrige år (PY)"],
     ["pl", ["flade"], GRAFIK, "IBCS plan (PL), omrids"],
-    ["delta_pos", ["flade"], GRAFIK, "IBCS positiv afvigelse"],
-    ["delta_neg", ["flade"], GRAFIK, "IBCS negativ afvigelse"],
+    // IBCS-virkning (app/IBCS.md §2): delta_pos = god, delta_neg = dårlig, delta_neutral = neutral. Som mærker ≥ 3:1;
+    // som farvede tal i tabeller og kort ≥ 4,5:1 (ibcs-notation §3 "tinted variance numbers").
+    ["delta_pos", ["flade"], TEKST, "IBCS god virkning (mærke og tal)"],
+    ["delta_neg", ["flade"], TEKST, "IBCS dårlig virkning (mærke og tal)"],
+    ["delta_neutral", ["flade"], TEKST, "IBCS neutral virkning (mærke og tal)"],
     ...Array.from({ length: 8 }, (_, i) => [`serie.${i}`, ["flade"], GRAFIK, `kategorisk serie ${i + 1}`] as const),
     ["divergerende.0", ["flade"], GRAFIK, "divergerende yderpunkt"],
     ["divergerende.4", ["flade"], GRAFIK, "divergerende yderpunkt"],
@@ -359,7 +363,8 @@ export function maal(t: Tema): Fund[] {
             }
         }
         // Par der bærer modsat betydning skal kunne skelnes af farveblinde (fortegn/ikon er sekundær kodning → gulvet).
-        for (const [a, b, hvad] of [["delta_pos", "delta_neg", "IBCS +/−"], ["pos", "neg", "status ok/fejl"]] as const) {
+        for (const [a, b, hvad] of [["delta_pos", "delta_neg", "IBCS god/dårlig"], ["delta_pos", "delta_neutral", "IBCS god/neutral"],
+            ["delta_neg", "delta_neutral", "IBCS dårlig/neutral"], ["pos", "neg", "status ok/fejl"]] as const) {
             const cvd = Math.min(afstand(v[a], v[b], "protan"), afstand(v[a], v[b], "deutan"));
             if (cvd < CVD_GULV) fund("farveblind", `${hvad} under protan/deutan`, cvd, CVD_GULV);
         }

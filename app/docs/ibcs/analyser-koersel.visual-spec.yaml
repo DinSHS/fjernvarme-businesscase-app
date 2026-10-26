@@ -1,0 +1,157 @@
+# Analyser · Kørsel (#/analyser/<id>) — én kørsel. Notation: app/IBCS.md (én kørsel = Scen-notation, fyldt mørk, uden kode).
+# Eksempeltal: Andeby, reference e1658162 (vintervindue 5.–16. jan. 2026), målt 2026-10-26.
+ibcsVisualSpec: "1.0"
+page:
+  id: analyser-koersel
+  name: Kørsel
+  kind: message
+  media: [web-app, fabric-app]
+  canvas: {width: 1280, height: 2600, scroll: vertical}
+  objective:
+    goal: inform
+    audience: "Planlægger; vil se, hvad én kørsel regnede, og om tallet er til at stole på"
+    question: "Hvad koster driften i perioden, og hvilke enheder leverer varmen?"
+  storyline: {report: analyser, parent: analyser-liste, position: 2}
+  model:
+    semanticModel: "appens SQL-database (Koersel, KoerselNoegletal, KoerselMaaned, KoerselTime)"
+    dateTable: "KoerselMaaned.maaned"
+    scenarioSource: "én kørsel"
+    varianceSource: "ingen (sammenligning er en anden side)"
+  context:
+    reportingUnit: "{vaerk}"
+    fixedFilters:
+      - {field: "Koersel.med_balancering", value: "{balancemarked}"}
+    slicers: []
+    period: {type: day, default: "kørslens periode", asOf: "Koersel.afsluttet"}
+  message:
+    type: detection
+    source: template
+    text: "Andeby — fiktivt referenceværk, 5.–16. jan. 2026: driften koster 3.424,4 t.kr. (højst 0,0 t.kr. over det bedst mulige); halmkedel leverer 49 % af varmen."
+    template: "{vaerk}, {periode}: driften koster {obj} t.kr. ({gab}); {storste} leverer {andel} af varmen."
+    bindings:
+      obj: {ref: k1.obj, format: "t.kr. 1 decimal"}
+      gab: {ref: k1.gab}
+      storste: {ref: v1, rule: "enheden med største produktion"}
+      andel: {ref: v1, rule: "dens andel af samlet produktion, 0 decimaler"}
+    scope: "Denne kørsel"
+    highlights:
+      - {kind: ellipse, target: {visual: v1, category: "{storste}", value: prod.Scen}}
+  title:
+    who: "{vaerk}, {balancemarked}"
+    what:
+      - {measure: Driftsomkostning, unit: t.kr.}
+      - {measure: Varmeproduktion, unit: MWh, by: enhed}
+    when: "{periode}"
+  footer:
+    sources:
+      - "Den åbne driftsmodel fjernvarme-businesscase @ {model_commit}"
+      - "Markeds- og vejrdata df-data @ {data_commit}"
+    asOf: "Koersel.afsluttet"
+    footnotes:
+      - {marker: "*", text: "Profilbundne enheder (fx solvarme) regnes mod deres profil, ikke mod nominel effekt."}
+  layout:
+    grid: {columns: 12, rows: 22, margin: 24, gutter: 16}
+    header: {messagePosition: above-title}
+    responsive: "Under 640 px: titelblok på én linje; bjælkernes navne afkortes fra enden"
+
+scaleGroups:
+  - id: mwh
+    unit: MWh
+    kind: absolute
+    members: [v1]
+    domain: shared
+    sizing: identical
+    note: "v1 alene. v2 (MWh pr. måned) kan ikke dele px pr. MWh med v1: i et kort vindue er månedssummen hele produktionen (7.008 MWh mod største enhed 3.448), og med v1's skala ville søjlen blive > 1.000 px høj"
+  - id: mwh-maaned
+    unit: MWh
+    kind: absolute
+    members: [v2]
+    domain: shared
+    sizing: scale-band
+    scaleBand: {value: 1000, label: "1.000 MWh"}
+    note: "Egen skala med værdiakse som skalamarkør (CH 4.1 'extreme cases') og fodnote 'Månederne har deres egen skala'"
+
+visuals:
+  - id: k1
+    type: kpi-cards
+    card: B-T-KPI
+    question: "Hvad koster driften, og hvor sikkert er tallet?"
+    subtitle: "**Driftsomkostning** i t.kr. · opnået gab"
+    grid: {col: 1, row: 3, colSpan: 4, rowSpan: 2}
+    cards: {perRow: 1, phonePerRow: 1, sparkline: none}
+    data:
+      grain: [kørsel]
+      rows:
+        - {line: Driftsomkostning, type: measure, measure: obj, unit: t.kr., variances: []}
+      columns: [{type: scenario, code: Scen}]
+      measures:
+        - {id: obj, name: Driftsomkostning, field: "Koersel.objektiv_dkk", kind: absolute, unit: kr., display: {prefix: t, decimals: 1}, polarity: -1}
+      scenarios: [{code: Scen}]
+      shape: [objektiv_dkk, opnaaet_gap, best_bound]
+    labels: {data: all, legend: none}
+    notes: "Hele kr. i tooltip og i faktalisten. Opnået gab som '≤ 0,0 t.kr. over det bedst mulige'."
+
+  - id: v1
+    type: bar
+    card: A-19
+    question: "Hvilke enheder leverer varmen?"
+    subtitle: "**Varmeproduktion** i MWh, pr. enhed, sorteret ↓"
+    grid: {col: 1, row: 7, colSpan: 8, rowSpan: 3}
+    scaleGroup: mwh
+    data:
+      grain: [enhed]
+      category: {field: enhed, kind: structure, sort: {by: prod.Scen, order: desc}}
+      measures:
+        - {id: prod, name: Varmeproduktion, field: "noegletal produktion_mwh pr. enhed", kind: absolute, unit: MWh, display: {decimals: 0}, polarity: 0}
+      scenarios: [{code: Scen}]
+      shape: [enhed, produktion_mwh]
+    labels: {data: all, legend: none}
+    notes: "Fyldt mørk (Scen), ingen enhedskulører (før-fund #5). Etiket = MWh; andel og driftstimer står i tabellen (komplementære tal, CO 5.3)."
+
+  - id: v2
+    type: stacked-column
+    card: A-2
+    question: "Hvordan fordeler produktionen sig over månederne, og dækker den varmebehovet?"
+    subtitle: "**Varmeproduktion** i MWh, pr. måned og enhed · varmebehov som streg"
+    grid: {col: 1, row: 10, colSpan: 12, rowSpan: 3}
+    scaleGroup: mwh-maaned
+    data:
+      grain: [måned, enhed]
+      category: {field: maaned, kind: time, periodType: month, sort: {by: maaned, order: asc}}
+      series: {field: enhed, order: "som v1", keySeriesAtAxis: true}
+      measures:
+        - {id: prod, name: Varmeproduktion, field: "KoerselMaaned produktion_gwh × 1000", kind: absolute, unit: MWh, display: {decimals: 0}, polarity: 0}
+      scenarios: [{code: Scen}]
+      shape: [maaned, enhed, produktion_mwh, varmebehov_mwh]
+    labels: {data: selective, selective: [first, last, max], legend: integrated}
+    notes: "Afvigelse AF1: enhedskulør pr. segment. Søjlebredde ⅔ af kategorien. Ingen værdiakse; sum over søjlen som etiket."
+
+  - id: v3
+    type: stacked-area
+    card: A-17
+    question: "Hvordan kører værket time for time?"
+    subtitle: "**Varmeproduktion** og varmelast i MW · tankindhold i MWh · spotpris i kr./MWh"
+    grid: {col: 1, row: 16, colSpan: 12, rowSpan: 4}
+    data:
+      grain: [interval]
+      category: {field: tid, kind: time, periodType: hour, sort: {by: tid, order: asc}}
+      measures:
+        - {id: mw, name: Varmeproduktion, field: "KoerselTime", kind: absolute, unit: MW, display: {decimals: 0}, polarity: 0}
+      scenarios: [{code: Scen}]
+      shape: [tid, enhed, mw]
+    labels: {data: none, legend: integrated}
+    notes: "Uændret (AF1, AF3)."
+
+interactions:
+  crossFilter: none
+  slicerPlacement: "vinduesvælgeren i v3's kort"
+  scaleRecompute: per-filter-context
+  tooltips:
+    - {visual: v1, content: "MWh, andel, driftstimer"}
+  messageOnFilter: keep
+  emptyState: "Kørslen er ikke færdig → statuskort, ingen grafer"
+
+deviations:
+  - {rule: "SI 2.2, UN 3.2", visual: [v2, v3], what: "Enhedskulører i stablede søjler/areal", reason: "Sammensætning over tid med 6–8 enheder", mitigation: "app/IBCS.md AF1", acceptedBy: "orkestratoren (brief 31)"}
+  - {rule: "CH 4.1", visual: v2, what: "Egen MWh-skala for månederne (værdiakse som skalamarkør)", reason: "Månedssummer er op til hele periodens produktion; v1's skala giver ulæselige højder", mitigation: "Værdiakse + fodnote 'Månederne har deres egen skala'", acceptedBy: "orkestratoren (brief 31)"}
+  - {rule: "SI 3.1", visual: v3, what: "Værdiakse og gitterlinjer", reason: "Tæt tidsserie", mitigation: "AF3", acceptedBy: "orkestratoren (brief 31)"}

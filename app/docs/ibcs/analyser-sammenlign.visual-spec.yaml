@@ -1,0 +1,271 @@
+# Analyser · Sammenligning (#/analyser/sammenlign/<ref>/<scen>) — differensen er produktet.
+# Notation: app/IBCS.md (Ref = omrids, Scen = fyldt mørk, ΔRef = Scen − Ref). Eksempeltal: Andeby, tank-parret
+# i vintervinduet 5.–16. jan. 2026 (reference e1658162, scenarie uden tank 71b02a65), målt 2026-10-26.
+ibcsVisualSpec: "1.0"
+page:
+  id: analyser-sammenlign
+  name: Sammenligning
+  kind: message
+  media: [web-app, fabric-app]
+  canvas: {width: 1280, height: 2400, scroll: vertical}
+  objective:
+    goal: understand
+    audience: "Planlægger eller driftsleder på et fjernvarmeværk; kender værket, ikke nødvendigvis MILP-modellen"
+    question: "Hvad koster eller sparer scenariet i forhold til referencen — og hvor i driften kommer forskellen fra?"
+    objections:
+      - "Fagpersonen kan mene, at forskellen er solverstøj → tolerancen (summen af de to gab) står ved Δ"
+      - "Et kort vindue kan overdrive tankens værdi → anbefalingskortets forbehold"
+  storyline: {report: analyser, parent: analyser-liste, position: 3}
+  model:
+    semanticModel: "appens SQL-database (Koersel, KoerselNoegletal, KoerselMaaned, KoerselTime)"
+    dateTable: "KoerselMaaned.maaned (lokale måneder)"
+    scenarioSource: "to kørsler: a = Ref, b = Scen (ruten)"
+    varianceSource: "regnes i browseren af beregn.ts på de præcise objektiver (objektiv_dkk), aldrig på afrundede tal"
+  context:
+    reportingUnit: "{vaerk}"
+    fixedFilters:
+      - {field: "Koersel.med_balancering", value: "{balancemarked}"}
+    # Dispatchvinduet er en vælger i v6's eget kort og står i v6's undertitel — det filtrerer ikke siden.
+    slicers: []
+    period: {type: day, default: "kørslernes fælles periode", asOf: "Koersel.afsluttet"}
+  message:
+    type: detection
+    source: template
+    text: "I scenariet overtager gaskedel_agg 106 MWh (mest fra elkedel_ny), og driften bliver 44,2 t.kr. dyrere (+1,3 %) end referencen."
+    template: "I scenariet {produktionsflyt}, og driften bliver {dRef} t.kr. {retning} ({dRefPct}) end referencen."
+    bindings:
+      dRef: {ref: k1.dref, measure: obj, format: "t.kr. 1 decimal, uden fortegn"}
+      dRefPct: {ref: k1.drefp, measure: obj, format: number.format.relativeVariance1}
+      retning: {rule: "dref > 0", then: "dyrere", else: "billigere"}
+      produktionsflyt: {ref: v2.dref, rule: "største |ΔRef| op og ned blandt enhederne, kun |Δ| > 0,5 MWh"}
+    scope: "Det valgte par (samme værk, periode og datagrundlag); budskabet regnes om, når parret skifter"
+    highlights:
+      - {kind: ellipse, target: {visual: k1, row: Driftsomkostning, variance: dref}}
+      - {kind: ellipse, target: {visual: v2, tier: dref, category: "{storsteFlyt}", value: dref}}
+  title:
+    who: "{vaerk}, {balancemarked}"
+    what:
+      - {measure: Driftsomkostning, unit: t.kr.}
+      - {measure: Varmeproduktion, unit: MWh, by: enhed}
+    when: "{periode} · Ref og Scen, ΔRef"
+  footer:
+    sources:
+      - "Den åbne driftsmodel fjernvarme-businesscase @ {model_commit}"
+      - "Markeds- og vejrdata df-data @ {data_commit}"
+    asOf: "Koersel.afsluttet (begge kørsler)"
+    footnotes:
+      - {marker: "Δ", text: "ΔRef = scenarie − reference. Det sande Δ ligger i [Δ − scenariets gab; Δ + referencens gab]."}
+      - {marker: "*", text: "Varmeproduktion er neutral: at en enhed producerer mere, er hverken godt eller skidt; virkningen står i driftsomkostningen."}
+  layout:
+    grid: {columns: 12, rows: 20, margin: 24, gutter: 16}
+    header: {messagePosition: above-title}
+    responsive: "Under 640 px: titelblokken på én linje med ' | '; k1 to kort pr. række; v2's tiers under hinanden (stack: auto), samme rækkefølge"
+
+scaleGroups:
+  - id: tkr
+    unit: t.kr.
+    kind: absolute
+    members: [v1]
+    domain: shared
+    sizing: identical
+    note: "Waterfallet har sin egen enhed; KPI-kortene har ingen grafisk skala"
+  - id: mwh
+    unit: MWh
+    kind: absolute
+    members: [v2.base, v2.dref]
+    domain: shared
+    sizing: identical
+    note: "ΔRef-bjælkerne på præcis samme px pr. MWh som produktionsbjælkerne (E5). Rettelse af før-fund #1"
+  - id: pct-ref
+    unit: "%"
+    kind: relative
+    members: [v2.drefp]
+    domain: shared
+    sizing: identical
+    note: "Pins dimensioneret til tieren: største |ΔRef%| fylder ≈ 90 % af 90 px"
+
+visuals:
+  - id: k1
+    type: kpi-cards
+    card: B-T-KPI
+    question: "Hvor stor er forskellen på de størrelser, beslutningen hviler på?"
+    subtitle: "**Nøgletal** | Scen og ΔRef"
+    grid: {col: 1, row: 3, colSpan: 12, rowSpan: 1}
+    cards: {perRow: 4, phonePerRow: 2, sparkline: none, deltaOrder: absolute-first}
+    data:
+      grain: [nøgletal]
+      rows:
+        - {line: Driftsomkostning, type: measure, measure: obj, unit: t.kr., variances: [dref, drefp]}
+        - {line: "CO₂-udledning", type: measure, measure: co2, unit: t, variances: [dref, drefp]}
+        - {line: Elforbrug, type: measure, measure: el, unit: MWh, variances: [dref, drefp]}
+        - {line: "Balanceindtægt netto", type: measure, measure: bal, unit: t.kr., variances: [dref]}
+      columns:
+        - {type: scenario, code: Scen}
+      measures:
+        - {id: obj, name: Driftsomkostning, field: "Koersel.objektiv_dkk", kind: absolute, unit: kr., display: {prefix: t, decimals: 1}, polarity: -1}
+        - {id: co2, name: "CO₂-udledning", field: "noegletal co2_ton", kind: absolute, unit: t, display: {decimals: 0}, polarity: -1}
+        - {id: el, name: Elforbrug, field: "noegletal el.forbrug_mwh (sum)", kind: absolute, unit: MWh, display: {decimals: 0}, polarity: 0}
+        - {id: bal, name: "Balanceindtægt netto", field: "noegletal balancering netto_dkk (I alt)", kind: absolute, unit: kr., display: {prefix: t, decimals: 1}, polarity: 1}
+      scenarios: [{code: Ref}, {code: Scen}]
+      variances:
+        - {id: dref, code: ΔRef, measure: [obj, co2, el, bal], minuend: Scen, subtrahend: Ref, kind: absolute}
+        - {id: drefp, code: ΔRef%, measure: [obj, co2, el], minuend: Scen, subtrahend: Ref, kind: relative, display: {format: number.format.relativeVariance1}}
+      shape: [noegle, Ref, Scen, ΔRef, ΔRef%]
+    labels: {data: all, legend: none}
+    notes: >
+      Driftsomkostning: kortet viser også tolerancen ("±0,0 t.kr. solvergab") og mærket "Større end tolerancen" som
+      i dag. Balanceindtægt kun når mindst én kørsel har balancemarked; ellers 3 kort. N/A når Ref ≤ 0.
+      Eksempel: 3.468,6 t.kr. · +44,2 · +1,3 % ΔRef (rød); CO₂ 496 t · +21 · +4,4 % (rød); elforbrug −67 MWh (blå).
+
+  - id: v1
+    type: variance-waterfall-structure
+    card: A-29 + EX 1.1
+    question: "Hvilke omkostningsposter forklarer ΔRef på driftsomkostningen?"
+    subtitle: "**Driftsomkostning** i t.kr., Ref → Scen"
+    grid: {col: 1, row: 4, colSpan: 6, rowSpan: 3}
+    scaleGroup: tkr
+    data:
+      grain: [omkostningspost]
+      category: {field: post, kind: structure, sort: {by: fast, order: asc}}
+      measures:
+        - {id: obj, name: Driftsomkostning, field: "Koersel.objektiv_dkk", kind: absolute, unit: kr., display: {prefix: t, decimals: 1}, polarity: -1}
+      scenarios: [{code: Ref}, {code: Scen}]
+      variances:
+        - {id: dref-post, code: ΔRef, measure: obj, minuend: Scen, subtrahend: Ref, kind: absolute}
+      shape: [post, delta_kr, impact]
+    labels: {data: all, legend: integrated}
+    notes: >
+      Trin (fast rækkefølge, alle i omkostningsfortegn): Elkøb (Σ el.omkostning_dkk, spot+tarif+afgift),
+      Elsalg netto (−Δ(el.salg_dkk − el.produktionstarif_dkk)), Balanceindtægt (−Δ brutto, kun med balancemarked),
+      og "Brændsel, D&V, start m.m." = ΔRef − Σ de andre (navngivet rest, ikke en tavs udligning; fodnote siger,
+      hvad den indeholder). Base = Ref i omrids, total = Scen fyldt mørk, trin i virkningsfarve (polaritet −1).
+      Afstemning: Ref + Σ trin = Scen; advarsel hvis rest > 50 % af |ΔRef| er OK at vise — det er forklaringen.
+
+  - id: v2
+    type: grouped-bar
+    card: A-23 + A-25 + A-26 + CO 4.2
+    question: "Hvilke enheder producerer mere eller mindre i scenariet?"
+    subtitle: "**Varmeproduktion** i MWh, pr. enhed · Ref og Scen | ΔRef | ΔRef%"
+    grid: {col: 1, row: 7, colSpan: 12, rowSpan: 4}
+    data:
+      grain: [enhed]
+      category: {field: enhed, kind: structure, sort: {by: v2.Scen, order: desc}}
+      measures:
+        - {id: prod, name: Varmeproduktion, field: "noegletal produktion_mwh pr. enhed", kind: absolute, unit: MWh, display: {prefix: G, decimals: 2, note: "GWh med 2 decimaler når største værdi ≥ 1.000 MWh (≤ 3 cifre, SI 5.2), ellers MWh uden decimaler"}, polarity: 0}
+      scenarios: [{code: Ref}, {code: Scen}]
+      variances:
+        - {id: dref, code: ΔRef, measure: prod, minuend: Scen, subtrahend: Ref, kind: absolute}
+        - {id: drefp, code: ΔRef%, measure: prod, minuend: Scen, subtrahend: Ref, kind: relative, display: {format: number.format.relativeVariance1}}
+      shape: [enhed, Ref, Scen, ΔRef, ΔRef%]
+    tiers:
+      - {id: base, type: grouped-bar, values: [prod.Ref, prod.Scen], draw: {prod.Ref: overlap, prod.Scen: primary}, scaleGroup: mwh, position: base}
+      - {id: dref, type: variance-bar, values: [dref], scaleGroup: mwh, position: right}
+      - {id: drefp, type: pin-structure, values: [drefp], scaleGroup: pct-ref, position: right}
+    labels: {data: all, legend: integrated}
+    notes: >
+      Ingen enhedskulører (før-fund #5): Ref omrids, Scen fyldt mørk, ΔRef og ΔRef% neutral blå (polaritet 0).
+      ΔRef-aksen i Ref-notation (dobbelt tynd linje). Enheder med Ref = 0 → ΔRef% N/A. Tabellen under grafen
+      viser i stedet det, grafen ikke viser: andel af varmen i Ref og Scen og driftstimer (CO 5.3).
+
+  - id: v3
+    type: table-cross
+    card: B-T-CROSS
+    question: "I hvilke måneder flytter produktionen mellem enhederne?"
+    subtitle: "**Varmeproduktion** ΔRef i MWh, pr. enhed og måned"
+    grid: {col: 1, row: 11, colSpan: 12, rowSpan: 2}
+    data:
+      grain: [enhed, måned]
+      rows:
+        - {field: enhed, sort: "v2-rækkefølge", type: detail}
+        - {line: "Varmebehov", type: ofwhich, polarity: 0}
+      columns:
+        - {type: time, field: maaned}
+        - {type: total, label: "Hele perioden"}
+      measures:
+        - {id: prod, name: Varmeproduktion, field: "KoerselMaaned produktion_gwh × 1000", kind: absolute, unit: MWh, display: {decimals: 0}, polarity: 0}
+      scenarios: [{code: Ref}, {code: Scen}]
+      variances:
+        - {id: dref, code: ΔRef, measure: prod, minuend: Scen, subtrahend: Ref, kind: absolute}
+      shape: [enhed, maaned, ΔRef]
+    labels: {data: all, legend: none}
+    notes: >
+      Erstatter de stablede Δ-søjler i enhedskulører (før-fund #5, #7): tid i kolonner, struktur i rækker. MWh som
+      v2 (ikke GWh). "Hele perioden" er differensen af periode-rækkerne, ikke summen af månederne (fodnote som i dag).
+
+  - id: v4
+    type: table-variance
+    card: B-T-VAR
+    question: "Hvad betyder scenariet for balancemarkedet, pr. marked og produkt?"
+    subtitle: "**Balanceindtægt** i t.kr., pr. marked og produkt"
+    grid: {col: 1, row: 13, colSpan: 6, rowSpan: 2}
+    data:
+      grain: [marked, produkt]
+      rows:
+        - {field: marked, type: detail}
+        - {line: "I alt", type: total, polarity: 1}
+      columns:
+        - {type: scenario, code: Ref}
+        - {type: scenario, code: Scen}
+        - {type: variance, ref: dref}
+      measures:
+        - {id: bal, name: Balanceindtægt, field: "noegletal balancering netto/brutto", kind: absolute, unit: kr., display: {prefix: t, decimals: 1}, polarity: 1}
+      scenarios: [{code: Ref}, {code: Scen}]
+      variances:
+        - {id: dref, code: ΔRef, measure: bal, minuend: Scen, subtrahend: Ref, kind: absolute}
+      shape: [marked, produkt, Ref, Scen, ΔRef]
+    labels: {data: all, legend: none}
+    notes: "Netto og brutto aldrig lagt sammen (eksisterende regel). ΔRef-tal i virkningsfarve (op = godt)."
+
+  - id: v5
+    type: table-variance
+    card: B-T-VAR
+    question: "Hvor meget energi går gennem lagrene i de to kørsler?"
+    subtitle: "**Afladet energi** i MWh, pr. lager"
+    grid: {col: 7, row: 13, colSpan: 6, rowSpan: 2}
+    data:
+      grain: [lager]
+      rows: [{field: lager, type: detail}]
+      columns:
+        - {type: scenario, code: Ref}
+        - {type: scenario, code: Scen}
+        - {type: variance, ref: dref}
+      measures:
+        - {id: lag, name: "Afladet energi", field: "noegletal afladet_mwh", kind: absolute, unit: MWh, display: {decimals: 0}, polarity: 0}
+      scenarios: [{code: Ref}, {code: Scen}]
+      variances:
+        - {id: dref, code: ΔRef, measure: lag, minuend: Scen, subtrahend: Ref, kind: absolute}
+      shape: [lager, Ref, Scen, ΔRef]
+    labels: {data: all, legend: none}
+
+  - id: v6
+    type: stacked-area
+    card: A-17
+    question: "Hvordan kører værket time for time i de to kørsler?"
+    subtitle: "**Varmeproduktion** og varmelast i MW, tankindhold i MWh, spotpris i kr./MWh · {vindue}"
+    grid: {col: 1, row: 15, colSpan: 12, rowSpan: 4}
+    data:
+      grain: [interval]
+      category: {field: tid, kind: time, periodType: hour, sort: {by: tid, order: asc}}
+      measures:
+        - {id: mw, name: Varmeproduktion, field: "KoerselTime", kind: absolute, unit: MW, display: {decimals: 0}, polarity: 0}
+      scenarios: [{code: Ref}, {code: Scen}]
+      shape: [tid, enhed, mw]
+    labels: {data: none, legend: integrated}
+    notes: "Small multiples Ref | Scen på samme skala (eksisterende DispatchKort). Afvigelse AF1 og AF3."
+
+interactions:
+  crossFilter: none
+  slicerPlacement: "vinduesvælgeren i dispatch-kortets hoved, aldrig over titelblokken"
+  scaleRecompute: per-filter-context
+  tooltips:
+    - {visual: v2, content: "Ref, Scen, ΔRef i hele MWh og ΔRef% med 1 decimal"}
+    - {visual: v6, content: "alle tal for intervallet"}
+  messageOnFilter: re-scope
+  emptyState: "En af kørslerne er ikke færdig → kort med status for begge, ingen grafer"
+
+deviations:
+  - {rule: "SI 2.2, UN 3.2", visual: v6, what: "Enhedskulører (kategorisk serie) i stablet areal", reason: "6–8 lag over op til 8.760 intervaller kan ikke skelnes i gråtrin", mitigation: "Kun sammensætning over tid; alle sammenligninger i scenarienotation (app/IBCS.md AF1)", acceptedBy: "orkestratoren (brief 31)"}
+  - {rule: "SI 3.1", visual: v6, what: "Værdiakse og hårfine gitterlinjer", reason: "Tæt tidsserie kan ikke etiketteres", mitigation: "Tilladt undtagelse (AF3)", acceptedBy: "orkestratoren (brief 31)"}
+
+openQuestions:
+  - "v1: Er objektivets poster (brændsel, D&V, start) tilgængelige pr. kørsel fra motoren? Hvis fv-fabric lægger dem i KoerselNoegletal, bliver resten i v1 opdelt — indtil da en navngiven rest."

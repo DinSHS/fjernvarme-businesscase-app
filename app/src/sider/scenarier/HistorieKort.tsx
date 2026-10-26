@@ -107,7 +107,7 @@ export function ScenarieHistorie({ s, ændringer, felter, blade, vaerkNavn, bekr
             <HistorieKort fase="efter" saetninger={[h.tekst]}
                 kategori={{ tekst: h.vurdering.maerke, tone: h.vurdering.tone }}
                 sammenlignHref={sammenlignHref(reference!.id, seneste!.id)}
-                fod="Regnet af de to kørslers frosne input og nøgletal med Analysers generator; vurderingen følger fv-eksperts anbefalingsregler." />
+                fod="Regnet af de to kørslers frosne input og nøgletal med Analysers generator; vurderingen følger appens anbefalingsregler." />
         );
     }
     return (

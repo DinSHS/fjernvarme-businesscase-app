@@ -69,10 +69,11 @@
 .kf-graf .kf-etiket { font-size: var(--t-datalabel); fill: var(--dash-ink); }
 .kf-graf .kf-akse { stroke: var(--dash-ink-3); stroke-width: 1; }
 .kf-graf .kf-gitterlinje { stroke: var(--dash-grid); stroke-width: 1; }
-.kf-graf .kf-serie { stroke: var(--dash-series); stroke-width: 2; fill: none; }
-.kf-graf .kf-punkt { fill: var(--dash-series); }
-.kf-graf .kf-soejle { fill: var(--dash-series); }
-.kf-graf .kf-soejle[data-top="true"] { fill: var(--dash-navy); }
+/* IBCS (app/IBCS.md): én målt/indtastet serie i scenarietone (fyldt mørk), ikke i accentblå; fremhævning = markørblå (UN 5.1). */
+.kf-graf .kf-serie { stroke: var(--fjv-ac); stroke-width: 2; fill: none; }
+.kf-graf .kf-punkt { fill: var(--fjv-ac); }
+.kf-graf .kf-soejle { fill: var(--fjv-ac); }
+.kf-graf .kf-soejle[data-top="true"] { fill: var(--fjv-fokus); }
 
 /* ---- kildefil ---- */
 .kf-pre { font-family: var(--font-monospace); font-size: var(--t-fodnote); line-height: var(--t-fodnote-lh); color: var(--dash-ink);

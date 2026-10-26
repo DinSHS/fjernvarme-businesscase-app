@@ -210,7 +210,7 @@ export function Varmelast({ g, rt, visAlle }: Fælles) {
                 </Kort>
                 <Kort titel="Temperaturafhængighed" afgraensning="graddøgnsmodellen"
                     budskab={`Under ${dkFri(tal(rt.nu.get("heat_load_params.t_ref")) ?? 15)} °C stiger lasten ${dkFri(tal(rt.nu.get("heat_load_params.gaf_mw_per_k")), 3)} MW pr. grad.`}
-                    fod="Kilde: viden/felt_katalog.json; felterne kan rettes nedenfor.">
+                    fod="Kilde: appens feltkatalog (modellens felter med forklaring); felterne kan rettes nedenfor.">
                     <div className="kf-tal-raekke">
                         <div><strong>{dkFri(tal(rt.nu.get("heat_load_params.gaf_mw_per_k")), 3)}</strong><span>GAF · MW/K</span></div>
                         <div><strong>{dkFri(tal(rt.nu.get("heat_load_params.t_ref")), 1)}</strong><span>t_ref · °C</span></div>
