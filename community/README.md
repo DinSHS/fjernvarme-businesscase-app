@@ -26,7 +26,8 @@ python -m venv .venv
 
 Browseren åbner `http://localhost:8000`. `--demo` indlæser modelrepoets egne cases (Andeby, Billund …) som værker
 første gang; næste gang springes de over. Bestil så en kørsel af Andeby på 2 døgn: den skal give
-**844.727,28 kr.** — samme tal som Fabric-udgaven (målt 2026-10-16).
+**867.031,23 kr.** ved modelversion eef950a (målt 2026-10-26 fra et rent venv med wheel'en; samme tal som
+den ægte arbejder i `fabric/koer_minne.py`). Før rettelserne 19/10-2026 (b49aeb0) var tallet 844.727,28 kr.
 
 * Python 3.11–3.13. `[model]` installerer modellens pins (`linopy 0.10.0`, `highspy 1.15.1` …) i samme venv.
   Uden `[model]` bygger motoren selv et venv med modelrepoets `requirements.txt` ved første kørsel (kræver net).

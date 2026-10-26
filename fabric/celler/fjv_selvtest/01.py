@@ -52,7 +52,7 @@ if probe not in ("db", "db-slut"):
 
         # --- røgtest: --dummy (ingen netværk, sekunder) -----------------------
         # billund_sporA, som repoets doc/WORKFLOW_LOKAL.md bruger. andeby --dummy
-        # kan ikke køre ved b49aeb0: dummy-data hæfter ikke solvarmens
+        # kan ikke køre ved b49aeb0 eller eef950a: dummy-data hæfter ikke solvarmens
         # production_profile på (ValueError i build_model) - målt lokalt.
         ud = arbejde / "roeg"
         ud.mkdir(parents=True, exist_ok=True)
