@@ -849,6 +849,16 @@ export const FORBEHOLD: readonly { hvornaar: string; tekst: string }[] = [
  }
 ];
 
+/** Forbrugsmodregningens definition pr. modelversion (spotprisen regnet som sparet før 19/10-2026; Codex K7-F2). */
+export const FORBRUGSMODREGNING_VERSIONER: Readonly<{ spot_regnet_som_sparet: readonly string[]; neutral_etiket: string; forklaring_med_spot: string; forklaring_blandet: string }> = {
+ "spot_regnet_som_sparet": [
+  "b49aeb0af097be42938b80a0fea6acdd77162836"
+ ],
+ "neutral_etiket": "Forbrugsmodregning ved aktivering",
+ "forklaring_med_spot": "Kørsel ved en modelversion før rettelsen 19/10-2026 ({commit}): den spotpris, tarif og elafgift, enheden ikke betaler, når den aktiveres = brutto − netto. Modellen regnede dengang spotprisen som sparet, hvilket overvurderede aktiveringen; beløbet kan ikke sammenlignes med nyere kørsler.",
+ "forklaring_blandet": "Forbrugsmodregningen afhænger af modelversionen: før rettelsen 19/10-2026 (b49aeb0) indgår spotprisen, ved eef950a kun tarif og elafgift. Kørslen eller kørslerne her er ikke alle regnet ved en kendt, nyere version, så posten kan ikke sammenlignes på tværs."
+};
+
 /** fv-eksperts etiketter for måleregistrets nøgler: `noegletal:<gruppe>.<noegle>` / `maaned:<noegle>`. */
 export const REGISTER: Readonly<Record<string, { etiket: string; enhed: string | null; forklaring: string }>> = {
  "noegletal:enhed.driftstimer": {

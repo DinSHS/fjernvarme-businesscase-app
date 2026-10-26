@@ -15,7 +15,7 @@
 import type { FjvSchema } from "../../../rayfin/data/schema";
 import { KOERSEL_PRAEFIKS, effektivtInput, type InputRække } from "@/lib/data/afflad";
 import { tal } from "@/lib/format";
-import { ENHEDSTYPER, FELTER, REGISTER } from "./etiketter.data";
+import { ENHEDSTYPER, FELTER, FORBRUGSMODREGNING_VERSIONER, REGISTER } from "./etiketter.data";
 import { dec, gabPct, periodeTekst } from "./fmt";
 
 export type Koersel = FjvSchema["Koersel"];
@@ -164,8 +164,16 @@ export function samlNoegletal(rækker: readonly Noegletal[]): Samlet {
     };
 }
 
+export interface BalanceKolonne {
+    felt: keyof MarkedBeløb;
+    etiket: string;
+    forklaring: string;
+    /** Kolonnens definition afhænger af modelversionen, og kørslerne har forskellige: intet Δ (Codex K7-F2). */
+    uensDefinition?: boolean;
+}
+
 /** Kolonnerne i balancetabellen, i den rækkefølge brutto opstår: kapacitet + aktivering netto (= netto) + sparet elkøb (= brutto). */
-export const BALANCE_KOLONNER: readonly { felt: keyof MarkedBeløb; etiket: string; forklaring: string }[] = [
+export const BALANCE_KOLONNER: readonly BalanceKolonne[] = [
     { felt: "kapacitet", ...reg("kapacitetsindtaegt_dkk", "Kapacitetsindtægt") },
     { felt: "aktivering_netto", ...reg("aktivering_netto_dkk", "Aktiveringsindtægt, netto") },
     { felt: "sparet_elkoeb", ...reg("forbrugsmodregning_dkk", "Sparet tarif og afgift ved aktivering") },
@@ -173,6 +181,29 @@ export const BALANCE_KOLONNER: readonly { felt: keyof MarkedBeløb; etiket: stri
     { felt: "netto", etiket: "Netto i alt", forklaring: "Kapacitet + aktivering netto." },
     { felt: "brutto", etiket: "Brutto i alt", forklaring: "Netto + sparet elkøb; det beløb, objektivet regner med." },
 ];
+/**
+ * Balancekolonnerne for de viste kørsler (Codex K7-F2). Forbrugsmodregningen (brutto − netto) betød før
+ * modelrettelsen 19/10-2026 sparet spot + tarif + elafgift, fra eef950a kun tarif + elafgift. Etiket og forklaring
+ * vælges derfor efter kørslernes FROSNE model_commit — aldrig den nye definition på en gammel kørsel:
+ *  - alle ved en nyere version: kolonnerne som i dag,
+ *  - alle ved en version med spot: neutral etiket og den gamle definition,
+ *  - blandet eller ukendt version: neutral etiket, begge definitioner, og intet Δ for de poster, der indeholder modregningen.
+ */
+export function balanceKolonner(modelCommits: readonly (string | null | undefined)[]): readonly BalanceKolonne[] {
+    const V = FORBRUGSMODREGNING_VERSIONER;
+    const medSpot = modelCommits.filter((c): c is string => !!c && V.spot_regnet_som_sparet.includes(c));
+    const nye = modelCommits.filter((c) => !!c && !V.spot_regnet_som_sparet.includes(c));
+    if (nye.length === modelCommits.length) return BALANCE_KOLONNER;
+    const alleGamle = medSpot.length === modelCommits.length;
+    const forklaring = alleGamle ? V.forklaring_med_spot.replace("{commit}", medSpot[0].slice(0, 7)) : V.forklaring_blandet;
+    const uens = !alleGamle && modelCommits.length > 1;
+    return BALANCE_KOLONNER.map((k) => {
+        if (k.felt === "sparet_elkoeb") return { ...k, etiket: V.neutral_etiket, forklaring, uensDefinition: uens };
+        if (k.felt === "aktivering_brutto" || k.felt === "brutto") return { ...k, forklaring: `${k.forklaring} Indeholder forbrugsmodregningen.`, uensDefinition: uens };
+        return k;
+    });
+}
+
 function reg(noegle: string, standard: string): { etiket: string; forklaring: string } {
     const r = REGISTER[`noegletal:balancering.${noegle}`];
     return { etiket: r?.etiket ?? standard, forklaring: r?.forklaring ?? "" };
@@ -186,13 +217,13 @@ export interface BalanceDeltaRaekke { marked: "aFRR" | "mFRR" | "I alt"; felt: k
  * — ellers står hele indtægten i Δ-kolonnen og læses som værdien (review A2).
  * Kolonner uden tal i nogen af kørslerne udelades.
  */
-export function balanceDelta(ba: Balance | null, bb: Balance | null): BalanceDeltaRaekke[] {
+export function balanceDelta(ba: Balance | null, bb: Balance | null, kolonner: readonly BalanceKolonne[] = BALANCE_KOLONNER): BalanceDeltaRaekke[] {
     const ud: BalanceDeltaRaekke[] = [];
     for (const [m, navn] of [["afrr", "aFRR"], ["mfrr", "mFRR"], ["i_alt", "I alt"]] as const) {
-        for (const k of BALANCE_KOLONNER) {
+        for (const k of kolonner) {
             const a = ba?.[m][k.felt] ?? null, b = bb?.[m][k.felt] ?? null;
             if (a === null && b === null) continue;
-            ud.push({ marked: navn, felt: k.felt, etiket: k.etiket, a, b, delta: a !== null && b !== null ? b - a : null });
+            ud.push({ marked: navn, felt: k.felt, etiket: k.etiket, a, b, delta: a !== null && b !== null && !k.uensDefinition ? b - a : null });
         }
     }
     return ud;

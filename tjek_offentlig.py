@@ -694,6 +694,21 @@ def tjek_krav(rod, filer, kredit, kilde=None):
         elif k["ophavsret"].encode("utf-8") not in b:
             fejl("krav-licenstekst", rel, f"{rel} mangler ophavsretslinjen: {k['ophavsret']}")
 
+    # --- tredjepartslicenser i distributionen (K7-F1) -----------------------------------------------------------------
+    for t in kredit.get("tredjepart_licenser", []):
+        rel = t["licensfil"]
+        if rel not in filer:
+            fejl("krav-licenstekst", rel, f"{rel} mangler ({t['navn']}: licensteksten skal følge med distributionen)")
+            continue
+        b = (rod / kilde.get(rel, rel)).read_bytes()
+        if _sha_lf(b) != t["licens_sha256_lf"]:
+            fejl("krav-licenstekst", rel, f"{rel} er ikke {t['navn']}s ordrette licenstekst (SHA-256 efter linjeskiftsnormalisering afviger)")
+        elif t["ophavsret"].encode("utf-8") not in b:
+            fejl("krav-licenstekst", rel, f"{rel} mangler ophavsretslinjen: {t['ophavsret']}")
+        spejl = t.get("spejl")
+        if spejl and spejl in filer and _sha_lf((rod / kilde.get(spejl, spejl)).read_bytes()) != _sha_lf(b):
+            fejl("krav-licenstekst", spejl, f"{spejl} og {rel} er ikke ens - kopien i LICENSES/ er den, der distribueres")
+
     # --- appens egen licens ------------------------------------------------------------------------------------------
     if not findes("LICENSE"):
         fejl("krav-licens", "LICENSE", "LICENSE mangler")
@@ -844,6 +859,13 @@ def tjek_wheel(sti, regler, kredit, forbud, rod):
             fejl(f"wheel mangler {basis} (kildens licenstekst skal med i distributionen)")
         elif _sha_lf(z.read(h[0])) != k["licens_sha256_lf"]:
             fejl(f"{h[0]} er ikke kildens ordrette licenstekst (SHA-256 efter linjeskiftsnormalisering afviger)")
+    for t in kredit.get("tredjepart_licenser", []):  # K7-F1: tredjepartskode i frontenden kræver licensen i wheel'en
+        basis = Path(t["licensfil"]).name
+        h = find(basis)
+        if not h:
+            fejl(f"wheel mangler {basis} ({t['navn']}, {t['licens']}: ophavs- og tilladelsesteksten skal følge med distributionen)")
+        elif _sha_lf(z.read(h[0])) != t["licens_sha256_lf"]:
+            fejl(f"{h[0]} er ikke {t['navn']}s ordrette licenstekst (SHA-256 efter linjeskiftsnormalisering afviger)")
     c = find("CREDITS.md")
     if not c:
         fejl("wheel mangler CREDITS.md")

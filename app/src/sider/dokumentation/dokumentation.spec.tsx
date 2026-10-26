@@ -30,6 +30,23 @@ describe("Dokumentation", () => {
         expect(screen.getByRole("navigation", { name: "Indhold" })).toBeInTheDocument();
     });
 
+    it("K7-F3: BALANCEMARKED vises ordret, men med et tydeligt rettelsesforbehold om aktiveringsformlen", async () => {
+        vis(["balancemarked"]);
+        const note = await screen.findByRole("note");
+        expect(note).toHaveTextContent(/Rettelse i forhold til kilden/);
+        expect(note).toHaveTextContent(/p_act \+ el_cost_flat/);
+        expect(note).toHaveTextContent(/spotprisen gør ikke/);
+        expect(note).toHaveTextContent(/src\/activation_value\.py/);
+        // Kildeteksten er stadig modelrepoets egen: den forældede formel står der, under forbeholdet.
+        expect(await screen.findByText(/p_act\(τ\) \+ spot\(τ\) \+ el_cost_flat/)).toBeInTheDocument();
+    });
+
+    it("et repodokument uden rettelse har intet forbehold", async () => {
+        vis(["budstrategi"]);
+        await screen.findByText(/Fra skj-1964/);
+        expect(screen.queryByRole("note")).toBeNull();
+    });
+
     it("et anker ruller til overskriften, når teksten er læst ind", async () => {
         vis(["balancemarked#fiktivt-2026-marked-scenarie"]);
         await screen.findByText(/Fra skj-1964/);

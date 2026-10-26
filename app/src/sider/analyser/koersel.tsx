@@ -10,7 +10,7 @@ import { tal, tidspunkt } from "@/lib/format";
 import { rutehref } from "@/lib/rute";
 import type { OmraadeProps } from "../typer";
 import {
-    absolutGab, aendringTekst, BALANCE_KOLONNER, enhedstype, profilbundne, farvepladser, gabTekst, koerselsAendringer, koerselsVarighed, loesningTekst,
+    absolutGab, aendringTekst, balanceKolonner, enhedstype, profilbundne, farvepladser, gabTekst, koerselsAendringer, koerselsVarighed, loesningTekst,
     spoergsmaal, spor, stoersteEnhed,
 } from "./beregn";
 import { usePakke, type Pakke } from "./data";
@@ -284,13 +284,14 @@ function Balancering({ d }: { d: Pakke }) {
         );
     }
     const rk = [["aFRR", b.afrr], ["mFRR", b.mfrr], ["I alt", b.i_alt]] as const;
-    const kol = b.harProdukter ? BALANCE_KOLONNER : BALANCE_KOLONNER.filter((k) => k.felt === "netto" || k.felt === "brutto");
+    const KOL = balanceKolonner([d.k.model_commit]);   // forbrugsmodregningens definition følger kørslens modelversion (K7-F2)
+    const kol = b.harProdukter ? KOL : KOL.filter((k) => k.felt === "netto" || k.felt === "brutto");
     const budskab = b.harProdukter
         ? `Netto ${ellers(b.i_alt.netto, tal)} kr., heraf kapacitet ${ellers(b.i_alt.kapacitet, tal)} og aktivering ${ellers(b.i_alt.aktivering_netto, tal)} kr.; aFRR ${ellers(b.afrr.netto, tal)} og mFRR ${ellers(b.mfrr.netto, tal)} kr.`
         : `Netto ${ellers(b.i_alt.netto, tal)} kr.: aFRR ${ellers(b.afrr.netto, tal)} og mFRR ${ellers(b.mfrr.netto, tal)} kr. — brutto ${ellers(b.i_alt.brutto, tal)} kr.`;
     return (
         <Kort titel="Balancemarked" afgraensning="hele perioden, pr. marked og produkt, kr." budskab={budskab}
-            fod={<>{forbehold("altid ved balancetal")} {sp === "A" ? SPOR_A_FORBEHOLD : SPOR_B_FORBEHOLD} Brutto = netto + {BALANCE_KOLONNER[2].etiket.toLowerCase()}: {BALANCE_KOLONNER[2].forklaring}
+            fod={<>{forbehold("altid ved balancetal")} {sp === "A" ? SPOR_A_FORBEHOLD : SPOR_B_FORBEHOLD} Brutto = netto + {KOL[2].etiket.toLowerCase()}: {KOL[2].forklaring}
                 {b.harProdukter ? " 'I alt' for produkterne er aFRR + mFRR af de uafrundede tal." : " Fordelingen på kapacitet og aktivering for hele perioden findes ikke for denne kørsel (publiceret før måleregister v3); se et vindue under Intervaldispatch."}</>}>
             <div className="fjv-a-raekke"><SporMaerke spor={sp} /></div>
             <Tabel rækker={rk} nøgle={(r) => r[0]} kolonner={[

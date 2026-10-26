@@ -131,6 +131,9 @@ function Laesevisning({ dok, anker }: { dok: Dok; anker: string | undefined }) {
     );
     const tekst = (
         <Kort titel={dok.titel} afgraensning={dok.gruppe} budskab={budskab} fod={kildeFod(dok)}>
+            {dok.rettelse && (
+                <p className="fjv-dok-rettelse" role="note"><strong>Rettelse i forhold til kilden:</strong> {dok.rettelse}</p>
+            )}
             <DataTilstand h={md as Hentet<{ blokke: Blok[] }>} højde={320}>
                 {(d) => <MarkdownBlokke blokke={d.blokke} link={link} />}
             </DataTilstand>

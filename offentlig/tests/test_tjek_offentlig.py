@@ -67,7 +67,7 @@ def credits_tekst(model_sha=MODEL_SHA, data_sha=DATA_SHA) -> str:
 
 def lav_produkt(rod: Path) -> Path:
     """Et minimalt produkt, der opfylder ALLE krav."""
-    for rel in (KREDIT["model"]["licensfil"], KREDIT["data"]["licensfil"]):
+    for rel in (KREDIT["model"]["licensfil"], KREDIT["data"]["licensfil"], *[t["licensfil"] for t in KREDIT.get("tredjepart_licenser", [])]):
         skriv(rod, rel, (ROD / rel).read_bytes())
     skriv(rod, "offentlig/kredit.json", (ROD / "offentlig" / "kredit.json").read_bytes())
     skriv(rod, "CREDITS.md", credits_tekst())
@@ -267,6 +267,22 @@ class TestKrav(Taeppe):
         p = self.rod / "LICENSES/df-data_LICENSE.txt"
         p.write_bytes(p.read_bytes().replace(b"Steen", b"Stine"))
         self.fejler("krav-licenstekst")
+
+    def test_tredjepartslicens_ibcs_mangler_aendret_eller_uens_spejl(self):
+        # K7-F1: IBCS-grafernes MIT-tekst skal følge med distributionen (LICENSES/), ordret, og være lig app/src/ibcs/LICENSE.
+        t = KREDIT["tredjepart_licenser"][0]
+        self.assertEqual(t["licensfil"], "LICENSES/ibcs-web-charts_LICENSE.txt")
+        p = self.rod / t["licensfil"]
+        p.unlink()
+        self.assertTrue(any(t["licensfil"] in f.fil for f in self.fejler("krav-licenstekst")))
+        lav_produkt(self.rod)
+        p.write_bytes(p.read_bytes().replace(b"Sonni Simmelsgaard", b"En Anden"))
+        self.fejler("krav-licenstekst")
+        lav_produkt(self.rod)
+        skriv(self.rod, t["spejl"], p.read_bytes())                       # identisk spejl: ingen fejl
+        self.assertEqual(krav(self.rod), [], self.raab(krav(self.rod)))
+        skriv(self.rod, t["spejl"], p.read_bytes() + b"\nAdded.\n")   # spejlet er gledet fra kopien
+        self.assertTrue(any(f.fil == t["spejl"] for f in self.fejler("krav-licenstekst")))
 
     def test_linjeskift_i_licenstekst_er_ligegyldigt(self):
         p = self.rod / "LICENSES/fjernvarme-businesscase_LICENSE.txt"

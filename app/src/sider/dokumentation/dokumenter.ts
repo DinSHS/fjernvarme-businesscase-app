@@ -20,6 +20,8 @@ export interface Dok {
     fil?: string;
     note?: string;
     valgfri?: boolean;
+    /** Rettelsesforbehold, vist tydeligt over en ordret gengivet kildetekst, når kilden er forældet på et punkt (Codex K7-F3). */
+    rettelse?: string;
     /** Vis arkitekturdiagrammet over teksten. */
     diagram?: boolean;
 }
@@ -55,6 +57,7 @@ export const DOKUMENTER: readonly Dok[] = [
     { id: "budstrategi", titel: "Budstrategi i balancemarkedet", gruppe: "Balancemarked", kilde: "modelrepo", sti: "doc/BUDSTRATEGI.md", format: "md", fil: "repo/budstrategi.md",
         beskrivelse: "Budpris, budstørrelse, prognose og afregning; seks budprofiler med færdige YAML-blokke og kontroltal på Andeby." },
     { id: "balancemarked", titel: "Balancemarked — aFRR og mFRR", gruppe: "Balancemarked", kilde: "modelrepo", sti: "doc/BALANCEMARKED.md", format: "md", fil: "repo/balancemarked.md",
+        rettelse: "Formlen for aktiveringsværdien i afsnittet »Indtægt — balancing.method« (p_act + spot + el_cost_flat) og sætningen om sparet spot, tarif og elafgift er forældet. Fra modelversion eef950a regner koden p_act + el_cost_flat: tarif og elafgift spares, spotprisen gør ikke, fordi strømmen er købt dagen før (src/activation_value.py:18-28 og :131, rettet 19. oktober 2026). Teksten nedenfor er modelrepoets egen, gengivet uændret; se Metoden bag modellen, afsnit 4, for den gældende forklaring.",
         beskrivelse: "Bud, lofter, aktiveringsværdi, Spor A og B, det fiktive 2026-marked og valideringen mod afregning." },
 
     { id: "varmelast_og_nettab", titel: "Varmepumpe, varmelast og nettab", gruppe: "Værket", kilde: "modelrepo", sti: "doc/VARMELAST_OG_NETTAB.md", format: "md", fil: "repo/varmelast_og_nettab.md",

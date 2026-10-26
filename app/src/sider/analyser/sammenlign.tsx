@@ -11,7 +11,7 @@ import { useVaerkParametre, type Hentet } from "@/lib/data/hooks";
 import { tal } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
 import {
-    absolutGab, aendringTekst, balanceDelta, balanceForskel, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, produktionsvarians,
+    absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceKolonner, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, produktionsvarians,
     sammenlignelighed, sammenligningsBudskab, spor, type Profil,
 } from "./beregn";
 import { tilSide, usePakke, type Pakke } from "./data";
@@ -363,7 +363,7 @@ function BalanceDelta({ a, b }: { a: Pakke; b: Pakke }) {
     if (!ba && !bb) {
         return <Kort titel="Balancemarked" afgraensning="aFRR og mFRR" budskab="Ingen af kørslerne er regnet med balancemarked." />;
     }
-    const rk = balanceDelta(ba, bb);
+    const rk = balanceDelta(ba, bb, balanceKolonner([a.k.model_commit, b.k.model_commit]));   // K7-F2
     const forskel = balanceForskel(a, b);
     const dNetto = ba?.i_alt.netto != null && bb?.i_alt.netto != null ? bb.i_alt.netto - ba.i_alt.netto : null;
     const sporer = [...new Set([...(ba ? [spor(a.input)] : []), ...(bb ? [spor(b.input)] : [])])];

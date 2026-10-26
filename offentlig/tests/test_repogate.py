@@ -242,7 +242,7 @@ class TestWheelMedRepoetsLister(Repo):
         import zipfile
         p = Path(self._t.name) / "fjernvarme_app-1.whl"
         with zipfile.ZipFile(p, "w") as z:
-            for k in (KREDIT["model"]["licensfil"], KREDIT["data"]["licensfil"]):
+            for k in (KREDIT["model"]["licensfil"], KREDIT["data"]["licensfil"], *[t["licensfil"] for t in KREDIT.get("tredjepart_licenser", [])]):
                 z.writestr("fjernvarme_app/_ressourcer/" + k, (ROD / k).read_bytes())
             z.writestr("fjernvarme_app/_ressourcer/CREDITS.md", chr(10).join(KREDIT["credits_skal_indeholde"]))
             for n, tekst in (ekstra or {}).items():

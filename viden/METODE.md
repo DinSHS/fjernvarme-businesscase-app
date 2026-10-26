@@ -288,7 +288,7 @@ driftsomkostning for vinduet (README.md:128-146):
 | Andeby helår, med balancering | jul 2025–jun 2026 | 24.188.471 | ikke regnet | 17 min (24 kerner), ca. 3,5 GB |
 | Andeby helår, uden balancering | jul 2025–jun 2026 | 30.431.535 | 30.431.535 | 1 min (24 kerner) |
 
-¹ Lokalt (8 kerner, delt maskine) ramte løseren kodens tidsgrænse på 600 s med gab 2,03 %: løsning 22.159.684 kr., nedre grænse 21.708.371 kr. README-tallet ligger i det interval, men er ikke genskabt her.
+¹ Lokalt (8 kerner, delt maskine) ramte løseren kodens tidsgrænse på 600 s med gab 2,03 %: løsning 22.159.684 kr., nedre grænse 21.708.371 kr. README-tallet ligger i det interval, men er ikke genskabt her. (Kilde: referencetal.json › readme › billund_rullende › genskabt)
 
 I README's kørsler er alle optimale inden for casens gab (README.md:182-186). "Genskabt lokalt" er
 kørt ved eef950a og df-data 106b9fc: README's egen kommando, og for Andeby uden balancering demo-kørslen
