@@ -67,6 +67,10 @@ def main() -> None:
         "",
         "export const FORBEHOLD: readonly { hvornaar: string; tekst: string }[] = " + ts(forbehold) + ";",
         "",
+        "/** Forbrugsmodregningens definition pr. modelversion (spotprisen regnet som sparet før 19/10-2026; Codex K7-F2). */",
+        "export const FORBRUGSMODREGNING_VERSIONER: Readonly<{ spot_regnet_som_sparet: readonly string[]; neutral_etiket: string; forklaring_med_spot: string; forklaring_blandet: string }> = "
+        + ts({k: v for k, v in resultat["forbrugsmodregning_versioner"].items() if not k.startswith("_") and k != "kilde"}) + ";",
+        "",
         "/** fv-eksperts etiketter for måleregistrets nøgler: `noegletal:<gruppe>.<noegle>` / `maaned:<noegle>`. */",
         "export const REGISTER: Readonly<Record<string, { etiket: string; enhed: string | null; forklaring: string }>> = " + ts(register) + ";",
         "",

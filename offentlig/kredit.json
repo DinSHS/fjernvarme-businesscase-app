@@ -24,6 +24,17 @@
       "navn": "DF_DATA_SHA"
     }
   },
+  "tredjepart_licenser": [
+    {
+      "navn": "IBCS-graferne (ibcs-web-charts)",
+      "licens": "MIT",
+      "ophavsret": "Copyright (c) 2026 Sonni Simmelsgaard",
+      "licensfil": "LICENSES/ibcs-web-charts_LICENSE.txt",
+      "licens_sha256_lf": "b12e5ea7b7d405e1f07b4acacff5816f3cad36c50453a5d07e7fe46ac1bc2a73",
+      "spejl": "app/src/ibcs/LICENSE",
+      "hvorfor": "Bibliotekets kode indgår i den byggede frontend (app/dist*, wheel'ens web/). MIT kræver, at ophavs- og tilladelsesteksten følger med kopier — også distributionen, ikke kun kildearkivet (Codex K7-F1). Filen i LICENSES/ er en ordret kopi af spejlet og følger med i wheel'ens _ressourcer/LICENSES/."
+    }
+  ],
   "forfatter": {
     "navn": "Steen Kramer Jensen",
     "github": "skj-1964",

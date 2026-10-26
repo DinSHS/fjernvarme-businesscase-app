@@ -22,5 +22,6 @@ Fuld kredit, ordrette kildecitater og de pinnede commits: CREDITS.md
 Licenstekster (ordret fra kilderne):                      LICENSES/
   LICENSES/fjernvarme-businesscase_LICENSE.txt
   LICENSES/df-data_LICENSE.txt
+  LICENSES/ibcs-web-charts_LICENSE.txt    (IBCS-graferne, Sonni Simmelsgaard, MIT)
 Appens egen licens:                                       LICENSE
 Rayfin-app-skabelonen (Microsoft, MIT):                   app/LICENSE

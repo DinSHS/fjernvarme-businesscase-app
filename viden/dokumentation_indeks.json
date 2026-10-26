@@ -84,7 +84,8 @@
       "sti": "doc/BALANCEMARKED.md",
       "format": "md",
       "gruppe": "Balancemarked",
-      "beskrivelse": "Bud, lofter, aktiveringsværdi, Spor A og B, det fiktive 2026-marked og valideringen mod afregning."
+      "beskrivelse": "Bud, lofter, aktiveringsværdi, Spor A og B, det fiktive 2026-marked og valideringen mod afregning.",
+      "rettelse": "Formlen for aktiveringsværdien (p_act + spot + el_cost_flat) og sætningen om sparet spot, tarif og elafgift er forældet. Fra eef950a regner koden p_act + el_cost_flat: spotprisen spares ikke (src/activation_value.py:18-28 og :131). Appen viser teksten ordret med et tydeligt rettelsesforbehold over (Codex K7-F3); opstrøms bør dokumentet rettes."
     },
     {
       "id": "varmelast_og_nettab",

@@ -591,5 +591,15 @@
       "enhed": "antal",
       "forklaring": "Antal tidsintervaller i måneden i kørslen. Gør delmåneder synlige: 96 timeintervaller er 4 døgn, ikke en hel måned."
     }
+  },
+  "forbrugsmodregning_versioner": {
+    "_om": "Forbrugsmodregningen (brutto − netto ved aktivering) har to definitioner efter modelversion. Appen vælger etiket og forklaring efter kørslens frosne model_commit, så gamle kørsler ikke vises med den nye definition (Codex K7-F2).",
+    "spot_regnet_som_sparet": [
+      "b49aeb0af097be42938b80a0fea6acdd77162836"
+    ],
+    "neutral_etiket": "Forbrugsmodregning ved aktivering",
+    "forklaring_med_spot": "Kørsel ved en modelversion før rettelsen 19/10-2026 ({commit}): den spotpris, tarif og elafgift, enheden ikke betaler, når den aktiveres = brutto − netto. Modellen regnede dengang spotprisen som sparet, hvilket overvurderede aktiveringen; beløbet kan ikke sammenlignes med nyere kørsler.",
+    "forklaring_blandet": "Forbrugsmodregningen afhænger af modelversionen: før rettelsen 19/10-2026 (b49aeb0) indgår spotprisen, ved eef950a kun tarif og elafgift. Kørslen eller kørslerne her er ikke alle regnet ved en kendt, nyere version, så posten kan ikke sammenlignes på tværs.",
+    "kilde": "modelrepoet 45f3e01 (src/activation_value.py:18-28 @ eef950a). Målt på fabric/tests/data/andeby_bal (b49aeb0): forbrugsmodregning 116.847,06 kr. ved 109,2251 MWh aktiveret, heraf 14.090,04 kr. tarif og afgift (129 kr./MWh) og 102.757,02 kr. spot (Codex K7-F2, efterprøvet 2026-10-26)."
   }
 }

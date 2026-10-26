@@ -16,6 +16,7 @@ Modellens kode er IKKE med: den hentes på den pinnede commit ved første kørse
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import subprocess
 import sys
@@ -43,6 +44,19 @@ VALGFRI = ["CREDITS.md", "NOTICE", "LICENSE"]
 UDELAD_I_MOTOR = {"lager_minne.py"}
 
 
+def tjek_licenser(stage: Path) -> None:
+    """Stop før wheel'en bygges, hvis en licenstekst fra offentlig/kredit.json ikke er med i ressourcerne (K7-F1).
+
+    Model- og dataets licenser og tredjepartslicenserne (fx IBCS-graferne, hvis kode ligger i frontenden) skal følge
+    med distributionen. `tjek_offentlig.py --wheel` kontrollerer det færdige wheel; dette er den tidlige, billige vagt.
+    """
+    kredit = json.loads((ROD / "offentlig" / "kredit.json").read_text(encoding="utf-8"))
+    krav = [kredit[n]["licensfil"] for n in ("model", "data")] + [t["licensfil"] for t in kredit.get("tredjepart_licenser", [])]
+    mangler = [f for f in krav if not (stage / "fjernvarme_app/_ressourcer" / f).is_file()]
+    if mangler:
+        raise SystemExit("licenstekst mangler i pakkens ressourcer: " + ", ".join(mangler))
+
+
 def byg(ud: Path, med_web: bool = True) -> Path:
     stage = HER / "_byg" / "pakke"
     shutil.rmtree(stage, ignore_errors=True)
@@ -60,6 +74,7 @@ def byg(ud: Path, med_web: bool = True) -> Path:
             shutil.copytree(k, m, ignore=IGNORER)
         else:
             shutil.copyfile(k, m)
+    tjek_licenser(stage)
     for navn in UDELAD_I_MOTOR:
         (stage / "fjernvarme_app/_motor/fjv" / navn).unlink(missing_ok=True)
     for f in VALGFRI:

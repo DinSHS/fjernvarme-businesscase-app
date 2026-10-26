@@ -7,3 +7,6 @@
 .fjv-licens > summary { cursor: pointer; font-size: var(--t-brod); font-weight: 650; color: var(--dash-series); padding: 4px 0; }
 .fjv-licens[open] > summary { margin-bottom: 8px; }
 .fjv-md q { quotes: "«" "»"; }
+
+/* Rettelsesforbehold over en ordret kildetekst (Codex K7-F3). */
+.fjv-dok-rettelse { margin: 0 0 1rem; padding: .6rem .8rem; border-left: 3px solid var(--dash-amber); background: var(--fjv-maerke-advarsel-bg); }

@@ -248,7 +248,7 @@ class TestF1Wheel(Taeppe):
 
     def licenser(self):
         return {f"fjernvarme_app/_ressourcer/{k}": (ROD / k).read_bytes() for k in
-                (KREDIT["model"]["licensfil"], KREDIT["data"]["licensfil"])}
+                (KREDIT["model"]["licensfil"], KREDIT["data"]["licensfil"], *[t["licensfil"] for t in KREDIT.get("tredjepart_licenser", [])])}
 
     def koer(self, hjul):
         fp = Path(self._t.name) / "forbud.json"
@@ -287,6 +287,17 @@ class TestF1Wheel(Taeppe):
     def test_hjul_uden_licenstekst_eller_credits_er_en_fejl(self):
         m = {k: v for k, v in self.licenser().items() if "df-data" not in k}
         kode, ud = self.koer(self.hjul(m))
+        self.assertEqual(kode, 1)
+        self.assertIn("krav-wheel", ud)
+
+    def test_hjul_uden_ibcs_licensen_er_en_fejl(self):
+        # K7-F1: frontenden i wheel'en indeholder IBCS-grafernes kode; uden deres MIT-tekst må hjulet ikke gå igennem.
+        m = {k: v for k, v in self.licenser().items() if "ibcs" not in k}
+        self.assertEqual(len(m), len(self.licenser()) - 1)
+        kode, ud = self.koer(self.hjul(m))
+        self.assertEqual(kode, 1)
+        self.assertIn("ibcs-web-charts_LICENSE.txt", ud)
+        kode, ud = self.koer(self.godt_hjul(**{"fjernvarme_app/_ressourcer/LICENSES/ibcs-web-charts_LICENSE.txt": b"MIT"}))
         self.assertEqual(kode, 1)
         self.assertIn("krav-wheel", ud)
 
