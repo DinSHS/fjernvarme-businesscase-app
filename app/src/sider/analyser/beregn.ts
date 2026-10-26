@@ -840,6 +840,15 @@ export function stoersteEnhed(enheder: readonly EnhedTal[]): EnhedTal | null {
 
 // ================================================================= sammenligning af produktion
 
+/**
+ * ΔRef% som brøk: (Scen − Ref) / Ref med den fortegnsbærende reference — aldrig |Ref|. N/A (null), når et tal mangler
+ * eller Ref ≤ 0 (app/IBCS.md §2; IBCS UN 4.1). ÉN regel for kort, detaljer, grafer og tabeller (Codex K7 F4).
+ */
+export function relativAfvigelse(ref: number | null | undefined, scen: number | null | undefined): number | null {
+    if (ref == null || scen == null || !Number.isFinite(ref) || !Number.isFinite(scen) || !(ref > 0)) return null;
+    return (scen - ref) / ref;
+}
+
 export interface EnhedVarians { navn: string; a: number; b: number; delta: number; relativ: number | null }
 
 /** Produktion pr. enhed a vs b (MWh). Enheder der kun findes i én kørsel tæller som 0 i den anden. */
@@ -849,7 +858,7 @@ export function produktionsvarians(a: readonly EnhedTal[], b: readonly EnhedTal[
     const navne = [...new Set([...ma.keys(), ...mb.keys()])];
     return navne.map((navn) => {
         const va = ma.get(navn) ?? 0, vb = mb.get(navn) ?? 0;
-        return { navn, a: va, b: vb, delta: vb - va, relativ: va !== 0 ? (vb - va) / Math.abs(va) : null };
+        return { navn, a: va, b: vb, delta: vb - va, relativ: relativAfvigelse(va, vb) };
     }).sort((x, y) => Math.max(y.a, y.b) - Math.max(x.a, x.b) || x.navn.localeCompare(y.navn));
 }
 

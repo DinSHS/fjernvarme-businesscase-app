@@ -152,7 +152,8 @@ a.fjv-a-kl-info:hover { color: var(--color-brand-foreground); }
 
 /* IBCS (app/IBCS.md): KPI-kort i én række, der brydes; graferne står på kortets flade. */
 .fjv-ibcs-kpi { display: flex; flex-direction: column; gap: 8px; }
-.fjv-ibcs-kpi-raekke { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+/* Mindst to kort pr. række, også på telefon (sidekvalitet: "KPI cards two per row", K7). */
+.fjv-ibcs-kpi-raekke { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, calc(50% - 6px)), 1fr)); gap: 12px; }
 .fjv-ibcs-kpi-raekke > div { border: 1px solid var(--dash-hairline); border-radius: var(--r-felt); }
 .fjv-ibcs svg { overflow: visible; }
 .fjv-ibcs-undertitel { font-size: var(--t-tabel); line-height: var(--t-tabel-lh); color: var(--dash-ink-2); margin-bottom: 6px; }

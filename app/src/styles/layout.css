@@ -168,6 +168,10 @@
 .fjv-knap[data-variant="sekundaer"]:active:not(:disabled) { background: var(--color-accent); }
 .fjv-knap:disabled { opacity: 0.5; cursor: not-allowed; }
 .fjv-knap svg { flex: none; }
+/* En knap er aldrig bredere end sin container: en lang etiket ("Sammenlign med referencen: <navn>") ombrydes i stedet
+   for at give vandret sidescroll ved 390 px (sidekvalitet, K7). */
+.fjv-knap { max-width: 100%; }
+@media (max-width: 640px) { .fjv-knap { white-space: normal; text-align: center; padding-block: 6px; } }
 
 /* Ikonknap (topbjælken): samme højde som knapperne, ikon + kort etiket. */
 .fjv-ikonknap { display: inline-flex; align-items: center; gap: 6px; height: var(--l-kontrol-h); padding: 0 10px; border-radius: var(--r-felt);

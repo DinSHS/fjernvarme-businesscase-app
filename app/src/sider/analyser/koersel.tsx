@@ -4,6 +4,7 @@
 //-----------------------------------------------------------------------
 
 import { useMemo } from "react";
+import { ScaleProvider } from "@/ibcs";
 import { DataTilstand, Gitter, Knap, Kort, Maerke, Side, StatusMaerke, Tabel } from "@/components/layout";
 import { erAktiv } from "@/lib/data/koersel-status";
 import { tal, tidspunkt } from "@/lib/format";
@@ -137,18 +138,20 @@ function Spoergsmaal({ d }: { d: Pakke }) {
 
 function Resultater({ d }: { d: Pakke }) {
     const pladser = useMemo(() => farvepladser([...d.objekter.enheder, ...d.samlet.enheder.map((e) => e.navn)]), [d.objekter.enheder, d.samlet.enheder]);
+    // Én skalaregistrering for siden: produktionen pr. enhed og månedsgrafen deler px pr. MWh (IBCS.md §5; Codex K7 F6).
     return (
-        <>
+        <ScaleProvider>
+            {/* Nøgletal og hovedgrafen først, så de står over folden ved 1280 px (sidekvalitet, K7); konteksten bagefter. */}
             <Gitter form="4-8">
                 <Objektiv d={d} />
+                <Enheder d={d} />
+            </Gitter>
+            <Gitter form="8-4">
                 <Spoergsmaal d={d} />
+                <VarmeOgMiljoe d={d} />
             </Gitter>
             <Gitter>
                 <DataIKoersel d={d} />
-            </Gitter>
-            <Gitter form="8-4">
-                <Enheder d={d} />
-                <VarmeOgMiljoe d={d} />
             </Gitter>
             <Gitter>
                 <Maaneder d={d} pladser={pladser} />
@@ -166,7 +169,7 @@ function Resultater({ d }: { d: Pakke }) {
             <Gitter>
                 <FrosnetInput d={d} />
             </Gitter>
-        </>
+        </ScaleProvider>
     );
 }
 
@@ -255,9 +258,9 @@ function Maaneder({ d, pladser }: { d: Pakke; pladser: Map<string, number> }) {
     const rækker = [...t.maaneder, "periode"];
     return (
         <Kort titel="Måned for måned" afgraensning="lokale måneder (dansk tid), GWh" budskab={budskab}
-            fod="Månederne har deres egen skala (værdiaksen): en månedssum kan være hele periodens produktion. Enhedskulørerne er enhedens identitet, ikke en vurdering. Rækken 'Hele perioden' er regnet på kørslens fulde, uafrundede tidsserie — ikke som summen af de viste måneder. En måned med færre intervaller end døgn × 24 er en delmåned. Spotprisen er tidsvægtet, ikke produktionsvægtet.">
+            fod="Månederne har samme skala (px pr. MWh) som 'Varmeproduktion pr. enhed' ovenfor, så en GWh er lige lang i begge grafer. Enhedskulørerne er enhedens identitet, ikke en vurdering. Rækken 'Hele perioden' er regnet på kørslens fulde, uafrundede tidsserie — ikke som summen af de viste måneder. En måned med færre intervaller end døgn × 24 er en delmåned. Spotprisen er tidsvægtet, ikke produktionsvægtet.">
             <Forklaring serier={ordnet.map((e) => ({ navn: e, plads: pladser.get(e) ?? 0 }))} ekstra={<span><i className="fjv-a-streg" />Varmebehov</span>} />
-            <StablededeSoejler søjler={søjler} enhed="GWh" markørNavn="Varmebehov" formatér={(v) => `${dec(v, 3)} GWh`} />
+            <StablededeSoejler søjler={søjler} enhed="GWh" markørNavn="Varmebehov" formatér={(v) => `${dec(v, 3)} GWh`} skalagruppe={{ enhed: "MWh", faktor: 1000 }} />
             <div className="fjv-a-panel-titel">Spotpris, tidsvægtet middel (kr./MWh)</div>
             <PunktRaekke punkter={t.maaneder.map((m) => ({ etiket: maanedKort(m), værdi: t.vaerdi(m, null, "spot_middel_dkk_mwh") }))} enhed="kr./MWh" formatér={(v) => tal(v)} />
             <Tabel rækker={rækker} nøgle={(m) => m} kolonner={[

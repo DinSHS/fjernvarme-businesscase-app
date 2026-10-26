@@ -12,7 +12,7 @@ import { tal } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
 import {
     absolutGab, aendringTekst, balanceDelta, balanceForskel, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, produktionsvarians,
-    sammenlignelighed, sammenligningsBudskab, spor, type Profil,
+    relativAfvigelse, sammenlignelighed, sammenligningsBudskab, spor, type Profil,
 } from "./beregn";
 import { tilSide, usePakke, type Pakke } from "./data";
 import { historie, ordnPar, vurder } from "./anbefaling";
@@ -20,7 +20,7 @@ import { AnbefalingKort, HistorieKort } from "./anbefaling-kort";
 import { Commit, Fakta, KoerselLink, SporMaerke } from "./dele";
 import DispatchKort from "./dispatch-kort";
 import { dec, ellers, energi, maanedKort, medFortegn, periodeTekst } from "./fmt";
-import { DeltaTal, NoegletalKort, OmkostningsVandfald, ProduktionMod, TKR, omkostningsBro, tkr, type Noegletal } from "./ibcs-grafer";
+import { DeltaTal, NoegletalKort, OmkostningsVandfald, ProduktionMod, TKR, omkostningsBro, tkr, vandfaldSkala, type Noegletal } from "./ibcs-grafer";
 import { forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
 
 function begge(a: Hentet<Pakke | null>, b: Hentet<Pakke | null>): Hentet<[Pakke | null, Pakke | null]> {
@@ -104,16 +104,17 @@ function Indhold({ a, b }: { a: Pakke; b: Pakke }) {
     }, [vp.data, a, b]);
     return (
         <>
-            {/* Brief 15 A2/A: historien øverst, så anbefalingen — begge regnet af data. */}
-            {anbefaling && <>
-                <Gitter><HistorieKort par={anbefaling.par} historie={anbefaling.h} /></Gitter>
-                <Gitter><AnbefalingKort v={anbefaling.v} vaerkKode={(anbefaling.par.scen.k.id === b.k.id ? b : a).vaerkKode} kopiTekst={anbefaling.kopi} /></Gitter>
-            </>}
+            {/* Nøgletal og vandfald over folden ved 1280 px (sidekvalitet, K7; orkestratorens beslutning 2026-10-26), så
+                historien og anbefalingen — begge regnet af data (brief 15 A2/A). */}
             <Gitter><Noegletal a={a} b={b} /></Gitter>
             <Gitter form="4-8">
                 <DeltaObjektiv a={a} b={b} />
                 <Vandfald a={a} b={b} />
             </Gitter>
+            {anbefaling && <>
+                <Gitter><HistorieKort par={anbefaling.par} historie={anbefaling.h} /></Gitter>
+                <Gitter><AnbefalingKort v={anbefaling.v} vaerkKode={(anbefaling.par.scen.k.id === b.k.id ? b : a).vaerkKode} kopiTekst={anbefaling.kopi} /></Gitter>
+            </>}
             <Gitter><Sammenlignelighed a={a} b={b} /></Gitter>
             <Gitter><ToKoersler a={a} b={b} /></Gitter>
             <Gitter><InputForskel a={a} b={b} /></Gitter>
@@ -180,8 +181,10 @@ function Sammenlignelighed({ a, b }: { a: Pakke; b: Pakke }) {
 
 // ---------------------------------------------------------------- Δ objektiv
 
-function DeltaObjektiv({ a, b }: { a: Pakke; b: Pakke }) {
+export function DeltaObjektiv({ a, b }: { a: Pakke; b: Pakke }) {
     const d = difference(a.k, b.k);
+    // Samme regel som KPI-kortet: fortegnsbærende reference, N/A ved Ref ≤ 0 (Codex K7 F4).
+    const rel = relativAfvigelse(a.k.objektiv_dkk, b.k.objektiv_dkk);
     return (
         <Kort titel="Δ driftsomkostning" afgraensning="ΔRef = scenarie − reference, t.kr." budskab={d ? differenceTekst(d) : "Mindst én af kørslerne mangler et objektiv."}
             fod="Differens i omkostning, ikke indtægt. Hvert objektiv kan kun være for højt (højst sit gab over det bedst mulige), så det sande Δ ligger i [Δ − scenariets gab; Δ + referencens gab]. |Δ| under summen af de to gab kan ikke skelnes fra nul.">
@@ -200,7 +203,7 @@ function DeltaObjektiv({ a, b }: { a: Pakke; b: Pakke }) {
                     ["Præcist", `${medFortegn(d.delta)} kr.`],
                     ["Tolerance", d.tolerance === null ? "ukendt" : `${tal(d.tolerance)} kr. (summen af de to gab)`],
                     ["Sandt Δ", intervalTekst(d)?.replace(/^Det sande Δ (ligger |er )/, "") ?? "ukendt"],
-                    ["Relativt", ellers(a.k.objektiv_dkk, (x) => (x === 0 ? "–" : `${medFortegn((d.delta / Math.abs(x)) * 100, (v) => dec(v, 2))} %`))],
+                    ["Relativt", rel == null ? "N/A" : `${medFortegn(rel * 100, (v) => dec(v, 2))} %`],
                 ]} />
             </>}
         </Kort>
@@ -240,14 +243,14 @@ function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
 }
 
 /** Vandfaldet (spec v1): hvad forklarer ΔRef på driftsomkostningen. */
-function Vandfald({ a, b }: { a: Pakke; b: Pakke }) {
+export function Vandfald({ a, b }: { a: Pakke; b: Pakke }) {
     const bro = omkostningsBro(a.samlet, b.samlet, objektiv(a), objektiv(b));
     const største = bro ? [...bro.steps].sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta))[0] : undefined;
     const budskab = !bro || !største ? "Mindst én af kørslerne mangler et objektiv."
         : `Største post: ${største.label.charAt(0).toLowerCase()}${største.label.slice(1)} ${medFortegn(største.delta / 1000, (v) => dec(v, 1))} t.kr.`;
     return (
-        <Kort titel="Hvad forklarer Δ driftsomkostning" afgraensning="t.kr., Ref → Scen" budskab={budskab}
-            fod="Trinene er i omkostningsfortegn (op = dyrere = rød). Elsalg og balanceindtægt er indtægter, så mindre salg tæller som en omkostning. 'Brændsel, D&V, start m.m.' er resten: ΔRef minus de poster, kørslerne gemmer hver for sig — brændsel gemmes ikke pr. kørsel.">
+        <Kort titel="Hvad forklarer Δ driftsomkostning" afgraensning={`${bro ? vandfaldSkala(bro).enhed : "t.kr."}, Ref → Scen`} budskab={budskab}
+            fod="Trinene er i omkostningsfortegn (op = dyrere = rød). Elsalg og balanceindtægt er indtægter, så mindre salg tæller som en omkostning. 'Brændsel, D&V, start m.m.' er resten: ΔRef minus de poster, kørslerne gemmer hver for sig — brændsel gemmes ikke pr. kørsel. Mangler en post i den ene kørsel, fordeles den ikke: den står i resten med navn og '(ukendt)'.">
             {bro && <OmkostningsVandfald bro={bro} />}
         </Kort>
     );

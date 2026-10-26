@@ -68,6 +68,7 @@ visuals:
       category: {field: par, kind: structure, sort: {by: kategori, order: asc}}
       measures:
         - {id: obj, name: Driftsomkostning, field: "Koersel.objektiv_dkk", kind: absolute, unit: kr., display: {prefix: t, decimals: 1}, polarity: -1}
+      # Grafens præfiks: t.kr. med 1 decimal, mio. kr. med 2, når et |ΔRef| er ≥ 1 mio. kr. (pengeSkala, Codex K7 F7).
       scenarios: [{code: Ref}, {code: Scen}]
       variances:
         - {id: dref, code: ΔRef, measure: obj, minuend: Scen, subtrahend: Ref, kind: absolute}

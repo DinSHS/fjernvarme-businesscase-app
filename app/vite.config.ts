@@ -10,6 +10,8 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, type PluginOption } from "vite";
 import { backendAlias, valgtBackend } from "./backend.config";
 import license from "rollup-plugin-license";
+import { readFileSync } from "node:fs";
+import { NOTICE_SKILLE, vendoredeNotices } from "./src/ibcs/notices";
 
 import { resolve } from 'path';
 
@@ -98,9 +100,12 @@ export default defineConfig(({ mode }) => {
                         multipleVersions: true,
                         output: {
                             file: resolve(outDir, 'THIRD_PARTY_NOTICES.txt'),
+                            // npm-afhængighederne fra pluginet + den indkopierede kode under src/ (src/ibcs/notices.ts),
+                            // som pluginet ikke ser. tjek_bundle.mjs fejler, hvis en LICENSE fra src/ mangler her.
                             template(dependencies) {
+                                const vendorede = NOTICE_SKILLE + vendoredeNotices((sti) => readFileSync(resolve(projectRoot, sti), 'utf8'));
                                 if (dependencies.length === 0) {
-                                    return 'No third-party dependencies.';
+                                    return 'No third-party npm dependencies.' + vendorede;
                                 }
                                 return (
                                     'This file was auto-generated at build time.\n\n' +
@@ -121,7 +126,8 @@ export default defineConfig(({ mode }) => {
                                             }
                                             return lines.join('\n');
                                         })
-                                        .join('\n\n' + '='.repeat(60) + '\n\n')
+                                        .join(NOTICE_SKILLE) +
+                                    vendorede
                                 );
                             },
                         },

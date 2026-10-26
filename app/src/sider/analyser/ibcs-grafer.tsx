@@ -8,10 +8,10 @@
 
 import type { ReactNode } from "react";
 import {
-    KpiCard, MarksSvg, formatDelta, formatValue, impactKey, impactText, layoutStructureBars, layoutVarianceWaterfall, roundsToZero, structureExtents,
-    type Bridge, type KpiVariance, type Layout, type NumberScale, type StructureRow,
+    KpiCard, MarksSvg, formatDelta, formatValue, impactKey, impactText, layoutStructureBars, layoutVarianceWaterfall, roundsToZero, structureExtents, useScale,
+    type Bridge, type KpiVariance, type Layout, type NumberScale, type ScaleRequest, type StructureRow,
 } from "@/ibcs";
-import type { EnhedTal, EnhedVarians, Samlet } from "./beregn";
+import { relativAfvigelse, type EnhedTal, type EnhedVarians, type Samlet } from "./beregn";
 import { useBredde } from "./graf-hjaelp";
 
 /** Scenariekoderne i grafernes legender, tooltips og skjulte tabeller (IBCS.md §1). */
@@ -24,9 +24,12 @@ const SMAL = 640;
  * Mål containeren, læg layoutet ud og tegn det. `lav` får bredden i px. `undertitel` er grafens synlige undertitel
  * (UN 2.2: kun det, der adskiller grafen fra kortets titel — typisk målet i fed og enheden); `titel` er det tilgængelige navn.
  */
-export function IbcsFigur({ titel, lav, beskrivelse, undertitel }: { titel: string; lav: (bredde: number) => Layout | null; beskrivelse?: string; undertitel?: ReactNode }) {
+export function IbcsFigur({ titel, lav, beskrivelse, undertitel, skalagruppe }: {
+    titel: string; lav: (bredde: number, ppu?: number) => Layout | null; beskrivelse?: string; undertitel?: ReactNode; skalagruppe?: Skalagruppe;
+}) {
     const [ref, bredde] = useBredde<HTMLDivElement>();
-    const layout = bredde > 0 ? lav(bredde) : null;
+    const ppu = useSkalagruppe(skalagruppe, bredde);
+    const layout = bredde > 0 ? lav(bredde, ppu) : null;
     return (
         <div className="fjv-a-graf fjv-ibcs" ref={ref}>
             {undertitel && <div className="fjv-ibcs-undertitel">{undertitel}</div>}
@@ -37,6 +40,21 @@ export function IbcsFigur({ titel, lav, beskrivelse, undertitel }: { titel: stri
 
 // ---------------------------------------------------------------- skalaer
 
+/**
+ * En grafs plads i sidens skalagruppe (IBCS CH 4.1: samme enhed på en side ⇒ samme px pr. enhed). `enhed` er gruppens
+ * nøgle (fx "MWh"), min/maks grafens udstrækning i den enhed, og `plads(bredde)` de px, grafen højst må bruge.
+ */
+export interface Skalagruppe { enhed: string; min: number; max: number; plads: (bredde: number) => number }
+
+/**
+ * Registrér grafen i sidens ScaleProvider og læs gruppens px pr. enhed (den mindste i gruppen). Uden provider — eller før
+ * første layout — er det grafens egen; uden gruppe undefined. Delt af IBCS-graferne og grafer.tsx (Codex K7 F6).
+ */
+export function useSkalagruppe(g: Skalagruppe | undefined, bredde: number): number | undefined {
+    const req: ScaleRequest[] = g && bredde > 0 ? [{ unit: g.enhed, min: g.min, max: g.max, availablePx: g.plads(bredde) }] : [];
+    return useScale(req).get(g?.enhed ?? "");
+}
+
 /** Energi: GWh med 2 decimaler, når det største tal er ≥ 1.000 MWh (≤ 3 cifre i grafer, SI 5.2); ellers MWh uden decimaler. */
 export function energiSkala(mwh: readonly (number | null | undefined)[]): { skala: NumberScale; enhed: "GWh" | "MWh" } {
     const maks = Math.max(0, ...mwh.map((v) => Math.abs(v ?? 0)));
@@ -45,6 +63,18 @@ export function energiSkala(mwh: readonly (number | null | undefined)[]): { skal
 
 /** Driftsomkostning i t.kr. med én decimal (IBCS.md §3: ≤ 4 cifre i tabeller og kort). */
 export const TKR: NumberScale = { factor: 1000, prefix: "t.", decimals: 1 };
+/** Mio. kr. med to decimaler (IBCS.md §3). */
+export const MIOKR: NumberScale = { factor: 1e6, prefix: "mio. ", decimals: 2 };
+
+/**
+ * Penge i GRAFER (≤ 3 heltalscifre, SI 5.2): mio. kr. med 2 decimaler, når gruppens største |værdi| er ≥ 1 mio. kr.
+ * (t.kr. ville give 4 cifre: 3.424,4); ellers t.kr. med 1 decimal. Ét præfiks for hele grafen — titel og etiketter
+ * følger valget (Codex K7 F7). Tabeller og kort bliver i t.kr. (≤ 4 cifre).
+ */
+export function pengeSkala(kr: readonly (number | null | undefined)[]): { skala: NumberScale; enhed: "t.kr." | "mio. kr." } {
+    const maks = Math.max(0, ...kr.map((v) => (v == null || !Number.isFinite(v) ? 0 : Math.abs(v))));
+    return maks >= 1e6 ? { skala: MIOKR, enhed: "mio. kr." } : { skala: TKR, enhed: "t.kr." };
+}
 
 /**
  * px pr. enhed, så basis-tieren (og Δ-tieren, som deler den) kan stå i bredden: bredden minus navnekolonnen,
@@ -83,9 +113,12 @@ export function ProduktionPrEnhed({ enheder }: { enheder: readonly EnhedTal[] })
         .sort((x, y) => (y.produktion_mwh ?? 0) - (x.produktion_mwh ?? 0) || x.navn.localeCompare(y.navn))
         .map((e) => ({ category: e.navn, AC: e.produktion_mwh ?? 0 }));
     const { skala, enhed } = energiSkala(rækker.map((r) => r.AC));
+    // Samme px pr. MWh som månedsgrafen på kørselssiden (skalagruppe "MWh", IBCS.md §5; Codex K7 F6).
+    const maks = Math.max(0, ...rækker.map((r) => r.AC ?? 0));
     return (
         <IbcsFigur titel={`Varmeproduktion i ${enhed}, pr. enhed`} undertitel={<><strong>Varmeproduktion</strong> i {enhed}, pr. enhed, sorteret ↓</>}
-            lav={(b) => layoutStructureBars(rækker, { width: b, ppu: pxPrEnhed(rækker, b, false, false), scale: skala, codes: { ...KODER, primary: "" } })} />
+            skalagruppe={{ enhed: "MWh", min: 0, max: maks, plads: (b) => maks * pxPrEnhed(rækker, b, false, false) }}
+            lav={(b, ppu) => layoutStructureBars(rækker, { width: b, ppu: ppu ?? pxPrEnhed(rækker, b, false, false), scale: skala, codes: { ...KODER, primary: "" } })} />
     );
 }
 
@@ -95,7 +128,7 @@ export function ProduktionPrEnhed({ enheder }: { enheder: readonly EnhedTal[] })
 export function ProduktionMod({ varians, fremhaev }: { varians: readonly EnhedVarians[]; fremhaev?: string }) {
     const rækker: StructureRow[] = [...varians]
         .sort((x, y) => y.b - x.b || y.a - x.a || x.navn.localeCompare(y.navn))
-        .map((v) => ({ category: v.navn, AC: v.b, PL: v.a, delta: v.delta, deltaPct: v.a > 0 ? v.delta / v.a : null }));
+        .map((v) => ({ category: v.navn, AC: v.b, PL: v.a, delta: v.delta, deltaPct: relativAfvigelse(v.a, v.b) }));
     const { skala, enhed } = energiSkala(rækker.flatMap((r) => [r.AC, r.PL]));
     return (
         <IbcsFigur titel={`Varmeproduktion i ${enhed}, pr. enhed — Ref og Scen, ΔRef og ΔRef%`}
@@ -123,14 +156,15 @@ export interface ParDelta { navn: string; delta: number; indenForTolerance: bool
  */
 export function ParVarians({ par }: { par: readonly ParDelta[] }) {
     const rækker: StructureRow[] = par.map((p) => ({ category: p.navn, delta: p.delta, deltaImpact: p.indenForTolerance ? 0 : undefined, PL: 0 }));
+    const { skala, enhed } = pengeSkala(par.map((p) => p.delta));
     return (
-        <IbcsFigur titel="ΔRef driftsomkostning i t.kr., pr. par" undertitel={<><strong>Driftsomkostning</strong> ΔRef i t.kr., pr. par</>}
+        <IbcsFigur titel={`ΔRef driftsomkostning i ${enhed}, pr. par`} undertitel={<><strong>Driftsomkostning</strong> ΔRef i {enhed}, pr. par</>}
             lav={(b) => {
                 const e = structureExtents(rækker, { primary: "AC", reference: "PL" }).delta;
                 const spænd = Math.max(1e-9, Math.max(0, e.max) - Math.min(0, e.min));
                 const navne = Math.min(b * 0.45, 260);
                 return layoutStructureBars(rækker, {
-                    width: b, reference: "PL", only: "delta", ppu: Math.max(1e-9, (b - navne - 2 * 60) / spænd), scale: TKR,
+                    width: b, reference: "PL", only: "delta", ppu: Math.max(1e-9, (b - navne - 2 * 60) / spænd), scale: skala,
                     polarity: -1, codes: { ...KODER, category: "Par" },
                 });
             }} />
@@ -143,21 +177,30 @@ export function ParVarians({ par }: { par: readonly ParDelta[] }) {
  * Forklaringen af ΔRef på driftsomkostningen (A-29), i omkostningsfortegn: elkøb, elsalg netto (indtægt → −Δ),
  * balanceindtægt brutto (indtægt → −Δ, kun med balancemarked) og en NAVNGIVET rest (brændsel, D&V, start m.m.),
  * så Ref + Σ trin = Scen. Null, når et af objektiverne mangler. Polaritet −1.
+ * En post er kun et trin, når den er KENDT i begge kørsler. Nul bruges kun, hvor posten dokumenteret ikke findes
+ * (kørsel uden balancemarked); mangler et forventet tal, fordeles posten ikke, og resten siger, at den rummer den
+ * (Codex K7 F5) — ellers ville `?? 0` vise hele den anden kørsels beløb som en kendt forklaring.
  */
 export function omkostningsBro(a: Samlet, b: Samlet, objA: number | null, objB: number | null): Bridge | null {
     if (objA == null || objB == null) return null;
-    const d = (x: number | null | undefined, y: number | null | undefined) => (x == null && y == null ? null : (y ?? 0) - (x ?? 0));
-    const netSalg = (s: Samlet) => (s.el_salg_dkk == null ? null : s.el_salg_dkk - (s.el_produktionstarif_dkk ?? 0));
+    const kendt = (x: number | null | undefined) => (x == null || !Number.isFinite(x) ? null : x);
     const trin: Bridge["steps"] = [];
-    const elkoeb = d(a.el_omkostning_dkk, b.el_omkostning_dkk);
-    if (elkoeb != null) trin.push({ label: "Elkøb", delta: elkoeb });
-    const salg = d(netSalg(a), netSalg(b));
-    if (salg != null) trin.push({ label: "Elsalg netto", delta: -salg });
-    const bal = d(a.balance?.i_alt.brutto, b.balance?.i_alt.brutto);
-    if ((a.balance || b.balance) && bal != null) trin.push({ label: "Balanceindtægt", delta: -bal });
+    const ukendte: string[] = [];
+    // fortegn −1: indtægter (mindre indtægt = dyrere)
+    const post = (navn: string, x: number | null, y: number | null, fortegn: 1 | -1) => {
+        if (x == null || y == null) ukendte.push(navn.toLowerCase());
+        else trin.push({ label: navn, delta: fortegn * (y - x) });
+    };
+    post("Elkøb", kendt(a.el_omkostning_dkk), kendt(b.el_omkostning_dkk), 1);
+    const netSalg = (s: Samlet) => { const salg = kendt(s.el_salg_dkk), tarif = kendt(s.el_produktionstarif_dkk); return salg == null || tarif == null ? null : salg - tarif; };
+    post("Elsalg netto", netSalg(a), netSalg(b), -1);
+    // Uden balancemarked er balanceindtægten dokumenteret 0; med balancemarked og intet bruttotal er den ukendt.
+    const brutto = (s: Samlet) => (s.balance ? kendt(s.balance.i_alt.brutto) : 0);
+    if (a.balance || b.balance) post("Balanceindtægt", brutto(a), brutto(b), -1);
     const total = objB - objA;
     const rest = total - trin.reduce((s, x) => s + x.delta, 0);
-    trin.push({ label: "Brændsel, D&V, start m.m.", delta: rest, remainder: true });
+    const restNavn = "Brændsel, D&V, start m.m." + (ukendte.length ? ` inkl. ${ukendte.join(", ")} (ukendt)` : "");
+    trin.push({ label: restNavn, delta: rest, remainder: true });
     return {
         base: { label: "Reference", scenario: "PL", value: objA },
         steps: trin,
@@ -166,12 +209,21 @@ export function omkostningsBro(a: Samlet, b: Samlet, objA: number | null, objB: 
     };
 }
 
+/** Vandfaldets pengeskala: hele grafen (basis, slutværdi og trin) er én skalagruppe (Codex K7 F7). */
+export const vandfaldSkala = (bro: Bridge) => pengeSkala([bro.base.value, bro.total.value, ...bro.steps.map((s) => s.delta)]);
+
 export function OmkostningsVandfald({ bro }: { bro: Bridge }) {
+    const { skala, enhed } = vandfaldSkala(bro);
     return (
-        <IbcsFigur titel="Driftsomkostning i t.kr., Ref → Scen: hvad forklarer ΔRef" undertitel={<><strong>Driftsomkostning</strong> i t.kr., Ref → Scen</>}
+        <IbcsFigur titel={`Driftsomkostning i ${enhed}, Ref → Scen: hvad forklarer ΔRef`} undertitel={<><strong>Driftsomkostning</strong> i {enhed}, Ref → Scen</>}
             lav={(b) => {
                 const maks = Math.max(Math.abs(bro.base.value), Math.abs(bro.total.value));
-                return layoutVarianceWaterfall(bro, { width: b, ppu: Math.max(1e-9, (b * 0.55) / maks), scale: TKR, polarity: -1, magnifier: b < SMAL ? "below" : "auto" });
+                // Oversigten må give plads til forstørrelsen VED SIDEN AF (lavere graf: kortet står over folden ved 1280 px,
+                // sidekvalitet K7). Den laveste af nogle få oversigtsbredder vinder; ved lige højde den bredeste.
+                const andele = b < SMAL ? [0.55] : [0.55, 0.45, 0.38, 0.32];
+                return andele
+                    .map((andel) => layoutVarianceWaterfall(bro, { width: b, ppu: Math.max(1e-9, (b * andel) / maks), scale: skala, polarity: -1, magnifier: b < SMAL ? "below" : "auto" }))
+                    .reduce((x, y) => (y.height < x.height - 1 ? y : x));
             }} />
     );
 }
@@ -188,7 +240,7 @@ export function NoegletalKort({ tal, fremhaev, fod }: { tal: readonly Noegletal[
                 {tal.map((t) => {
                     const v: KpiVariance = {
                         code: "ΔRef", absolute: t.ref != null && t.scen != null ? t.scen - t.ref : null, polarity: t.polaritet, reference: t.ref,
-                        ...(t.relativ === false ? {} : { relative: t.ref != null && t.scen != null && t.ref > 0 ? (t.scen - t.ref) / t.ref : null }),
+                        ...(t.relativ === false ? {} : { relative: relativAfvigelse(t.ref, t.scen) }),
                     };
                     return (
                         <KpiCard key={t.navn} label={t.navn} unit={`i ${t.enhed}`} value={t.scen} scale={t.skala} variances={[v]}
