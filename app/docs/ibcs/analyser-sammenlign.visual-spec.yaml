@@ -63,12 +63,12 @@ page:
 
 scaleGroups:
   - id: tkr
-    unit: t.kr.
+    unit: mio. kr.
     kind: absolute
     members: [v1]
     domain: shared
     sizing: identical
-    note: "Waterfallet har sin egen enhed; KPI-kortene har ingen grafisk skala"
+    note: "Waterfallet har sin egen enhed; KPI-kortene har ingen grafisk skala. Præfikset vælges af grafens største |værdi| (pengeSkala: ≥ 1 mio. kr. → mio. kr. med 2 decimaler, ellers t.kr. med 1) og gælder basis, trin og slutværdi (Codex K7 F7)"
   - id: mwh
     unit: MWh
     kind: absolute
@@ -121,14 +121,14 @@ visuals:
     type: variance-waterfall-structure
     card: A-29 + EX 1.1
     question: "Hvilke omkostningsposter forklarer ΔRef på driftsomkostningen?"
-    subtitle: "**Driftsomkostning** i t.kr., Ref → Scen"
+    subtitle: "**Driftsomkostning** i mio. kr., Ref → Scen (t.kr. når grafens største værdi er under 1 mio. kr.)"
     grid: {col: 1, row: 4, colSpan: 6, rowSpan: 3}
     scaleGroup: tkr
     data:
       grain: [omkostningspost]
       category: {field: post, kind: structure, sort: {by: fast, order: asc}}
       measures:
-        - {id: obj, name: Driftsomkostning, field: "Koersel.objektiv_dkk", kind: absolute, unit: kr., display: {prefix: t, decimals: 1}, polarity: -1}
+        - {id: obj, name: Driftsomkostning, field: "Koersel.objektiv_dkk", kind: absolute, unit: kr., display: {prefix: m, decimals: 2}, polarity: -1}
       scenarios: [{code: Ref}, {code: Scen}]
       variances:
         - {id: dref-post, code: ΔRef, measure: obj, minuend: Scen, subtrahend: Ref, kind: absolute}

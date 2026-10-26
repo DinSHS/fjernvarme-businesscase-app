@@ -17,7 +17,8 @@ Appen har derfor to egne scenariekoder med faste IBCS-virkemidler — samme nota
 | **Ref** | Referencen — sammenligningsgrundlaget (subtrahend) | **omrids**: flade-farvet fyld, mørk kant (`--fjv-pl`) | mørk linje, hule markører | dobbelt tynd streg | **to tynde parallelle linjer** |
 
 - **Δ = Scen − Ref** (`ΔRef`), relativ **ΔRef% = (Scen − Ref) / Ref** med fortegnet reference. Ref ≤ 0 eller
-  tom → **N/A** (ingen pin). Afvigelser af procenter er **pp**.
+  tom → **N/A** (ingen pin) — ÉN funktion, `relativAfvigelse` i `beregn.ts`, for kort, detaljer, grafer og tabeller.
+  Afvigelser af procenter er **pp**.
 - Hvorfor omrids og ikke lys (PY): lys fyldning betyder *målt, tidligere* i IBCS. Referencen er et modelregnet
   sammenligningsgrundlag ligesom en plan — derfor plan-notationen. Appen har brugt hul bjælke = reference siden
   fase 1, så brugerne kender den.
@@ -47,7 +48,7 @@ Appen har derfor to egne scenariekoder med faste IBCS-virkemidler — samme nota
 
 | Størrelse | Tabeller og kort (≤ 4 cifre) | Grafer (≤ 3 cifre) |
 |---|---|---|
-| Driftsomkostning, Δ driftsomkostning | **t.kr.** (3.424 · +44,2) | **mio. kr.** med 2 decimaler (3,42) eller t.kr. for Δ |
+| Driftsomkostning, Δ driftsomkostning | **t.kr.** (3.424 · +44,2) | **mio. kr.** med 2 decimaler (3,42), når grafens største \|værdi\| ≥ 1 mio. kr., ellers t.kr. med 1 decimal — ét præfiks for hele grafen, også dens Δ-trin (`pengeSkala`) |
 | Balanceindtægt | t.kr. | t.kr. |
 | Energi | MWh under 10.000, ellers GWh | MWh eller GWh, ét præfiks pr. skalagruppe |
 | CO₂ | t | t |
@@ -71,6 +72,8 @@ Appen har derfor to egne scenariekoder med faste IBCS-virkemidler — samme nota
 
 - **Samme enhed på en side ⇒ samme px pr. enhed** (skalagruppe): produktion pr. enhed, dens ΔRef og
   månedernes produktion deler MWh-gruppen. Pins (ΔRef%) har deres egen %-skala pr. graf (største |Δ%| ≈ 90 %).
+- Gruppen er en `ScaleProvider` om siden (`src/ibcs/scale.tsx`); hver graf melder udstrækning og plads med
+  `useSkalagruppe` (`ibcs-grafer.tsx`), og den mindste px pr. enhed gælder alle. En graf med mindre tal bliver kortere.
 - En graf, der ikke kan dele skala (fx intervaldispatch i MW, spotpris), er en anden enhed og har sin egen akse.
 
 ## 6. Dokumenterede afvigelser
@@ -85,6 +88,7 @@ Appen har derfor to egne scenariekoder med faste IBCS-virkemidler — samme nota
 ## 7. Komponenter
 
 `src/ibcs/` er IBCS-referencekomponenterne fra `ibcs-web-charts`-skillen (MIT, © 2026 Sonni Simmelsgaard —
-se `src/ibcs/LICENSE`), tilpasset appen: farver er appens tema-variabler (`src/ibcs/tema.ts`), talformat er
+se `src/ibcs/LICENSE`; den fulde licens skrives ind i den byggede frontends `THIRD_PARTY_NOTICES.txt` via
+`src/ibcs/notices.ts`, og `scripts/tjek_bundle.mjs` fejler, hvis den mangler), tilpasset appen: farver er appens tema-variabler (`src/ibcs/tema.ts`), talformat er
 da-DK. Layoutfunktionerne er rene (`layout(rækker, valg) → mærker`), og hvert mærke bærer `data-role` /
 `data-impact`, så `ibcs_lint.py dom` kan efterse en gemt side.

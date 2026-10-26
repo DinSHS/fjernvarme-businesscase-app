@@ -58,18 +58,14 @@ scaleGroups:
   - id: mwh
     unit: MWh
     kind: absolute
-    members: [v1]
+    members: [v1, v2]
     domain: shared
     sizing: identical
-    note: "v1 alene. v2 (MWh pr. måned) kan ikke dele px pr. MWh med v1: i et kort vindue er månedssummen hele produktionen (7.008 MWh mod største enhed 3.448), og med v1's skala ville søjlen blive > 1.000 px høj"
-  - id: mwh-maaned
-    unit: MWh
-    kind: absolute
-    members: [v2]
-    domain: shared
-    sizing: scale-band
-    scaleBand: {value: 1000, label: "1.000 MWh"}
-    note: "Egen skala med værdiakse som skalamarkør (CH 4.1 'extreme cases') og fodnote 'Månederne har deres egen skala'"
+    note: >
+      Én px pr. MWh for v1 og v2 (ScaleProvider på siden; Codex K7 F6). Hver graf melder sin udstrækning og sin plads
+      (v1: bredden minus navne og etiketter; v2: højst 320 px plothøjde), og den mindste px pr. MWh gælder begge. I et kort
+      vindue er månedssummen hele produktionen (7.008 MWh mod største enhed 3.448), så v2 sætter skalaen, og v1's bjælker
+      bliver tilsvarende kortere — ingen af dem får egen skala.
 
 visuals:
   - id: k1
@@ -114,7 +110,7 @@ visuals:
     question: "Hvordan fordeler produktionen sig over månederne, og dækker den varmebehovet?"
     subtitle: "**Varmeproduktion** i MWh, pr. måned og enhed · varmebehov som streg"
     grid: {col: 1, row: 10, colSpan: 12, rowSpan: 3}
-    scaleGroup: mwh-maaned
+    scaleGroup: mwh
     data:
       grain: [måned, enhed]
       category: {field: maaned, kind: time, periodType: month, sort: {by: maaned, order: asc}}
@@ -153,5 +149,4 @@ interactions:
 
 deviations:
   - {rule: "SI 2.2, UN 3.2", visual: [v2, v3], what: "Enhedskulører i stablede søjler/areal", reason: "Sammensætning over tid med 6–8 enheder", mitigation: "app/IBCS.md AF1", acceptedBy: "orkestratoren (brief 31)"}
-  - {rule: "CH 4.1", visual: v2, what: "Egen MWh-skala for månederne (værdiakse som skalamarkør)", reason: "Månedssummer er op til hele periodens produktion; v1's skala giver ulæselige højder", mitigation: "Værdiakse + fodnote 'Månederne har deres egen skala'", acceptedBy: "orkestratoren (brief 31)"}
   - {rule: "SI 3.1", visual: v3, what: "Værdiakse og gitterlinjer", reason: "Tæt tidsserie", mitigation: "AF3", acceptedBy: "orkestratoren (brief 31)"}

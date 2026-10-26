@@ -16,6 +16,7 @@ import { tal } from "@/lib/format";
 import type { DispatchPunkt } from "./beregn";
 import { farve, lagerFarve, paeneTicks, useBredde, type DispatchSkala } from "./graf-hjaelp";
 import { dec, dkDagEtiket, dkTidspunkt } from "./fmt";
+import { useSkalagruppe } from "./ibcs-grafer";
 
 // ---------------------------------------------------------------- fælles
 
@@ -76,8 +77,14 @@ export interface StakSoejle {
     topEtiket?: string;
 }
 
-export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, højde = 220 }: {
+/**
+ * `skalagruppe`: grafen deler px pr. enhed med sidens andre grafer i samme enhed (ScaleProvider; IBCS CH 4.1, Codex K7 F6).
+ * `faktor` omregner søjlernes enhed til gruppens (GWh → MWh = 1000). Plottets højde er da intervallet × px pr. enhed —
+ * højst `maksPlot` px — i stedet for den faste `højde`.
+ */
+export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, højde = 220, skalagruppe, maksPlot = 320 }: {
     søjler: readonly StakSoejle[]; enhed: string; markørNavn?: string; formatér: (v: number) => string; højde?: number;
+    skalagruppe?: { enhed: string; faktor: number }; maksPlot?: number;
 }) {
     const [ref, bredde] = useBredde<HTMLDivElement>();
     const [hover, setHover] = useState<number | null>(null);
@@ -86,7 +93,9 @@ export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, høj
     const ned = søjler.map((s) => s.dele.reduce((a, d) => a + Math.min(0, d.værdi), 0));
     const ticks = paeneTicks(Math.min(0, ...ned), Math.max(0, ...op));
     const lo = ticks[0], hi = ticks[ticks.length - 1];
-    const plotH = højde - top - bund;
+    const ppu = useSkalagruppe(skalagruppe && { enhed: skalagruppe.enhed, min: lo * skalagruppe.faktor, max: hi * skalagruppe.faktor, plads: () => maksPlot }, bredde);
+    const plotH = skalagruppe && ppu ? Math.max(1, (hi - lo) * skalagruppe.faktor * ppu) : højde - top - bund;
+    const svgH = top + plotH + bund;
     const y = (v: number) => top + (hi - v) / (hi - lo || 1) * plotH;
     const plotB = Math.max(10, bredde - venstre - 4);
     const slot = plotB / Math.max(1, søjler.length);
@@ -96,7 +105,7 @@ export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, høj
     return (
         <div className="fjv-a-graf" ref={ref} onPointerLeave={() => setHover(null)}>
             {bredde > 0 && (
-                <svg width={bredde} height={højde} role="img" aria-label={`Stablede søjler, ${enhed}`}>
+                <svg width={bredde} height={svgH} role="img" aria-label={`Stablede søjler, ${enhed}`}>
                     {ticks.map((t) => (
                         <g key={t}>
                             <line className={t === 0 ? "fjv-a-nul" : "fjv-a-gitter"} x1={venstre} x2={bredde} y1={y(t)} y2={y(t)} />
@@ -128,7 +137,7 @@ export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, høj
                                     <text className="fjv-a-etiket-svag" x={x + sb / 2} y={y(Math.max(s.markør ?? 0, opAkk)) - 6} textAnchor="middle">{s.topEtiket}</text>
                                 )}
                                 {(!tynd || i % Math.ceil(søjler.length / 6) === 0) && (
-                                    <text className="fjv-a-akse" x={x + sb / 2} y={højde - 6} textAnchor="middle">{s.etiket}</text>
+                                    <text className="fjv-a-akse" x={x + sb / 2} y={svgH - 6} textAnchor="middle">{s.etiket}</text>
                                 )}
                             </g>
                         );

@@ -12,7 +12,7 @@ import { findPar, historie, krRund, sorterAnbefalinger, vurder } from "./anbefal
 import { useAnbefalingsData } from "./anbefaling-data";
 import { KopierKnap } from "./anbefaling-kort";
 import { parbare } from "./sammensaetning";
-import { ParVarians } from "./ibcs-grafer";
+import { ParVarians, pengeSkala } from "./ibcs-grafer";
 
 export default function Anbefalinger({ gåTil }: Pick<OmraadeProps, "gåTil">) {
     const h = useAnbefalingsData();
@@ -40,7 +40,7 @@ export default function Anbefalinger({ gåTil }: Pick<OmraadeProps, "gåTil">) {
             </>}>
             {rækker && rækker.some((x) => x.v.delta !== null) && (
                 <Gitter>
-                    <Kort titel="Δ driftsomkostning pr. par" afgraensning="ΔRef = scenarie − reference, t.kr."
+                    <Kort titel="Δ driftsomkostning pr. par" afgraensning={`ΔRef = scenarie − reference, ${pengeSkala(rækker.map((x) => x.v.delta)).enhed}`}
                         budskab={(() => {
                             const m = [...rækker].filter((x) => x.v.delta !== null).sort((x, y) => Math.abs(y.v.delta!) - Math.abs(x.v.delta!))[0];
                             return `Størst: "${m.p.scen.navn}" ${m.v.delta! < 0 ? "sparer" : "koster"} ${krRund(m.v.delta!)} ${m.v.delta! < 0 ? "" : "mere "}i perioden.`.replace("  ", " ");
