@@ -12,11 +12,14 @@ import os
 from pathlib import PurePosixPath
 
 MODEL_REPO = "skj-1964/fjernvarme-businesscase"
-MODEL_COMMIT = "b49aeb0af097be42938b80a0fea6acdd77162836"
+MODEL_COMMIT = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
 
 DF_DATA_REPO = "skj-1964/df-data"
-#: HEAD pr. 2026-10-16 (seneste push 2026-10-12). Målt med git ls-remote.
-DF_DATA_SHA = "392992c7fe35992e79fba8d1ba7b91967e8d1481"
+#: HEAD pr. 2026-10-26 (push 2026-10-26 04:10 UTC). Målt med git ls-remote. Modellens README-tal (eef950a)
+#: er regnet 19/10 med "df-data fra 5. oktober eller senere"; den præcise SHA står ikke nogen steder, så
+#: pinnen er seneste (brief 30, punkt 6). Målt 2026-10-26: mellem 10be997 (5/10) og 106b9fc er 2025-filerne
+#: uændrede, og 2026-filernes rækker til og med juni har samme værdier (kun id/created_at/updated_at skifter).
+DF_DATA_SHA = "106b9fce9a2e3610090b1a542559024056449b88"
 
 #: Pakkeversioner der SKAL matche modelrepoets requirements.txt-pins. Resten
 #: (xarray, pandas, numpy …) er ">="-krav, og hvad runtime faktisk fik, står i

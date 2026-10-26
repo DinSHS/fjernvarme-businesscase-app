@@ -33,7 +33,7 @@ nettilslutningen og eventuelt et månedsloft. (Kilde: doc/BUDSTRATEGI.md:60-70; 
 
 At buddet ligger i merit, er ikke det samme som at blive kaldt. `clear` regner hele buddet
 aktiveret og gav 4–5 gange for meget aktiveret energi mod Billunds afregning. `system_share`
-følger systemets faktiske aktivering (aFRR: k = 4). (Kilde: doc/BALANCEMARKED.md:79-89; doc/BUDSTRATEGI.md:125-129)
+følger systemets faktiske aktivering (aFRR: k = 4). (Kilde: doc/BALANCEMARKED.md:80-90; doc/BUDSTRATEGI.md:131-135)
 
 ## Krav til perioden
 

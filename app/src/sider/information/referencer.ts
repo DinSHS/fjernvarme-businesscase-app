@@ -45,6 +45,8 @@ export interface Reference {
     loesetid: string | null;
     noter: string[];
     kilde: string;
+    /** Modelversionen, tallene er regnet ved (referencetal.json → model_commit); kun kørsler ved den er en måling af dem. */
+    modelCommit: string | null;
 }
 
 interface RåReference {
@@ -58,7 +60,7 @@ interface RåReference {
 
 /** README-gruppen af referencetal. Kaster en læsbar fejl, hvis filen ikke har den form. */
 export function laesReferencer(json: string): Reference[] {
-    const rå = JSON.parse(json) as { grupper?: { id: string; referencer?: RåReference[] }[] };
+    const rå = JSON.parse(json) as { model_commit?: string; grupper?: { id: string; referencer?: RåReference[] }[] };
     const gruppe = rå.grupper?.find((g) => g.id === "readme");
     if (!gruppe?.referencer?.length) throw new Error("referencetal.json har ingen gruppe «readme» med referencer.");
     return gruppe.referencer.map((r) => {
@@ -77,6 +79,7 @@ export function laesReferencer(json: string): Reference[] {
             toleranceKr: r.forventet.tolerance_dkk ?? null,
             gabPct: r.forventet.opnaaet_gab_pct ?? null,
             loesetid: r.loesetid ?? null, noter: r.noter ?? [], kilde: r.kilde ?? "",
+            modelCommit: typeof rå.model_commit === "string" ? rå.model_commit : null,
         };
     });
 }
@@ -128,13 +131,18 @@ export interface Kandidat { koersel: Koersel; scenarie: Scenarie; gab: KoerselGa
 
 const tidspunkt = (k: Koersel) => new Date(k.afsluttet ?? k.bestilt ?? 0).getTime();
 
-/** Færdige kørsler af referencens værk med referencens opsætning og samme eller strammere gab, nyeste først. */
+/**
+ * Færdige kørsler af referencens værk ved referencetallenes modelversion, med referencens opsætning og samme eller
+ * strammere gab, nyeste først. En kørsel ved en anden modelversion er ikke en måling af tallet: efter rettelserne
+ * 19/10-2026 (eef950a) ligger fx Spor A-ankeret 371.000 kr. højere end ved b49aeb0, uden at nogen af dem er forkert.
+ */
 export function kandidater(r: Reference, vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[]): Kandidat[] {
     const vaerk = vaerker.find((v) => v.kode === r.kode);
     if (!vaerk) return [];
     const scen = new Map(scenarier.map((s) => [s.id, s]));
     return koersler
-        .filter((k) => k.vaerk_id === vaerk.id && k.status === "faerdig" && typeof k.objektiv_dkk === "number")
+        .filter((k) => k.vaerk_id === vaerk.id && k.status === "faerdig" && typeof k.objektiv_dkk === "number"
+            && (r.modelCommit === null || k.model_commit === r.modelCommit))
         .flatMap((k): Kandidat[] => {
             const s = scen.get(k.scenarie_id);
             if (!s || !harReferencensOpsaetning(s, r)) return [];
@@ -208,10 +216,17 @@ export function kandidatScenarier(refs: readonly Reference[], vaerker: readonly 
 //-- Spor B mod Billunds afregning (rapport v4 tabel 5.1) ----------------------
 
 export interface SporBRække { post: string; realiseret: number; model: number; forhold_pct: number }
-export interface SporB { navn: string; kilde: string; raekker: SporBRække[]; forbehold?: string; note?: string }
+/** Den gældende validering efter modelrettelserne 19/10-2026 (README); kun totaler — opdelingen pr. produkt er rapportens. */
+export interface SporBGaeldende { i_alt_pct: number; afrr_pct: number; mfrr_pct: number; kilde: string }
+export interface SporB { navn: string; kilde: string; raekker: SporBRække[]; forbehold?: string; note?: string; gaeldende?: SporBGaeldende }
 
-/** "Modellen ramte 121 % af Billunds balanceindtægt; størst afvigelse: mFRR, kapacitet (139 %)." — regnet af tabellen. */
+/**
+ * Med `gaeldende`: "Modellen ramte 120 % … (aFRR 109 %, mFRR 129 %)" fra README; tabellen er så historisk.
+ * Uden: "Modellen ramte 121 % af Billunds balanceindtægt; størst afvigelse: mFRR, kapacitet (139 %)." — regnet af tabellen.
+ */
 export function sporBBudskab(s: SporB): string {
+    const g = s.gaeldende;
+    if (g) return `Modellen ramte ${g.i_alt_pct} % af Billunds realiserede balanceindtægt (aFRR ${g.afrr_pct} %, mFRR ${g.mfrr_pct} %) efter rettelserne 19. oktober 2026.`;
     const i_alt = s.raekker.find((r) => r.post === "I alt") ?? s.raekker[s.raekker.length - 1];
     const resten = s.raekker.filter((r) => r !== i_alt);
     const størst = resten.reduce<SporBRække | undefined>((m, r) => (!m || Math.abs(r.forhold_pct - 100) > Math.abs(m.forhold_pct - 100) ? r : m), undefined);

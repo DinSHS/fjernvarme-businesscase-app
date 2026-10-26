@@ -7,7 +7,7 @@ samme tal. Kør:
 
     python viden/vaerktoej/byg_data_krav.py
 
-Kildehenvisninger ``fil:linje`` peger på modelrepoet @ b49aeb0 og kontrolleres af
+Kildehenvisninger ``fil:linje`` peger på modelrepoet @ eef950a og kontrolleres af
 tjek_viden.py [6] og tjek_data_krav.py. Målte tal er målt 2026-10-16 (se
 rapporter/fv-data.md for kommandoerne).
 """
@@ -22,7 +22,7 @@ sys.stdout.reconfigure(errors="replace")
 HER = Path(__file__).resolve().parent
 UD = HER.parent / "data_krav.json"
 
-PIN = "b49aeb0af097be42938b80a0fea6acdd77162836"
+PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
 DF_DATA = "392992c7fe35992e79fba8d1ba7b91967e8d1481"
 
 # ---------------------------------------------------------------- datakilder
@@ -559,7 +559,7 @@ MAALT_MOD_SYNTETISK = {
 # ---------------------------------------------------------------- værksark
 
 VAERKSARK = {
-    "script": "scripts/vaerksark_til_yaml.py (uændret, modelrepoet @ b49aeb0)",
+    "script": "scripts/vaerksark_til_yaml.py (uændret, modelrepoet @ eef950a)",
     "kald": "python scripts/vaerksark_til_yaml.py <ark.xlsx> --cases-dir <ud>/cases --data-dir <ud>/data [--timeslut] [--overskriv]",
     "flag": {
         "--timeslut": "stemplerne i Timedata (og Solvarme) er timens slut; flyttes en time tilbage efter UTC-omregning",
@@ -603,7 +603,7 @@ VAERKSARK = {
         "Slug'en kan være længere end Vaerk.kode (60 tegn) og kan ramme en reserveret værkskode; afvis med besked, ret ikke tavst.",
     ],
     "maalt_2026_10_16": {
-        "skabelon": "doc/vaerksdata_skabelon.xlsx som den er: exit 1 - 'Timedata har kun 8 timer' (eksempelrækkerne). Skabelonen kan ikke importeres uændret.",
+        "skabelon": "vaerksdata_skabelon.xlsx (repoets rod) som den er: exit 1 - 'Timedata har kun 8 timer' (eksempelrækkerne). Skabelonen kan ikke importeres uændret.",
         "varianter": [
             {"variant": "Timedata tømt, B3 = 50 GWh", "exit": 0, "filer": ["case", "syntetisk solprofil 17.520 timer (2025-2026)"], "koersel_2_doegn": "5.-6. januar 2026 uden balance, gab 0,0002/100 kr.: optimal, varmebehov 740 MWh, objektiv 160.190 kr."},
             {"variant": "Timedata = Billund målt 1. juli 2025 - 30. juni 2026 (UTC), B3 = 133,5", "exit": 0, "filer": ["case", "varmelast 8.760 timer", "syntetisk solprofil"], "koersel_2_doegn": "samme vindue med --heat-csv: optimal, varmebehov 1.521 MWh, objektiv 650.779 kr."},

@@ -43,7 +43,10 @@ export const DOKUMENTER: readonly Dok[] = [
         beskrivelse: "Hvad modellen kan og ikke kan, de tre regler for tallene, referencetabellen og datakilderne." },
     { id: "rapport_v4", titel: "Rapport v4 — metode, validering og Billund", gruppe: "Modellen", kilde: "modelrepo", sti: "doc/rapport_billund_v4.pdf", format: "pdf",
         beskrivelse: "Hovedrapporten (22. oktober 2026): metode, Billund som case, tank og balancemarked, validering mod Billunds afregning og matematik i bilag B.",
-        note: "Regnet ved commit 405b428; hvor README har nyere tal, har README forrang." },
+        note: "Balancetallene i rapporten er regnet før rettelserne 19. oktober 2026 (tankens første time, aktivering uden spotpris) og er for høje (README, afsnittet Referencetal). Hvor README har nyere tal, har README forrang." },
+    { id: "matematisk_modelbeskrivelse", titel: "Matematisk modelbeskrivelse (bilag D)", gruppe: "Modellen", kilde: "modelrepo", sti: "doc/matematisk_modelbeskrivelse_v4.pdf", format: "pdf",
+        beskrivelse: "Bilag D til rapport v4: den fulde formelle specifikation af optimeringsproblemet — mængder, variable, alle led og bindinger, og de valg en case kan slå til og fra. Til fagfolk, der vil efterprøve modellen.",
+        note: "Beskriver koden ved commit 33c3832 (15. oktober 2026), altså før rettelserne 19. oktober: i den pinnede version gælder lagerbalancen også i første time, og en aktiveret MWh værdisættes uden spotprisen (src/model.py, src/activation_value.py)." },
 
     { id: "koersel", titel: "Kørsel, scenarier og output", gruppe: "Brug", kilde: "modelrepo", sti: "doc/KOERSEL.md", format: "md", fil: "repo/koersel.md",
         beskrivelse: "Alle flag til run_case.py, scenarier som differens, solvergab og outputfilerne.",
@@ -59,7 +62,7 @@ export const DOKUMENTER: readonly Dok[] = [
     { id: "eget_vaerk", titel: "Dit eget værk — fra regneark til model", gruppe: "Værket", kilde: "modelrepo", sti: "doc/EGET_VAERK.md", format: "md", fil: "repo/eget_vaerk.md",
         beskrivelse: "Excel-skabelonen, konverteringen, korte vinduer, helår og løsetid, og casen skrevet i hånden.",
         note: "Konverteringen kører lokalt (scripts/vaerksark_til_yaml.py); appen har sin egen vej til et nyt værk (kopiér og ret)." },
-    { id: "vaerksdata_skabelon", titel: "Skabelon til værksdata (Excel)", gruppe: "Værket", kilde: "modelrepo", sti: "doc/vaerksdata_skabelon.xlsx", format: "xlsx",
+    { id: "vaerksdata_skabelon", titel: "Skabelon til værksdata (Excel)", gruppe: "Værket", kilde: "modelrepo", sti: "vaerksdata_skabelon.xlsx", format: "xlsx",
         beskrivelse: "Regnearket, som et værk udfylder med timedata, anlæg, varmepumpe og priser. Til download." },
 
     { id: "workflow_claude", titel: "Arbejdsform med Claude i browseren (Vej B)", gruppe: "Baggrund", kilde: "modelrepo", sti: "doc/WORKFLOW_CLAUDE.md", format: "md", fil: "repo/workflow_claude.md", valgfri: true,

@@ -1,6 +1,6 @@
 {
-  "_om": "Danske etiketter og forklaringer til modellens resultatfelter, til fv-fabric's maaleregister.json (KONTRAKT v2 §3, Måleregister) og fv-app's visninger. fv-fabric ejer registeret (kilde, gruppe, aggregering); dette er fv-ekspert's faglige del. <enhed>, <lager> og <marked> er pladsholdere i kolonnenavnet. Kilder er fil:linje i modelrepoet @ b49aeb0.",
-  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "_om": "Danske etiketter og forklaringer til modellens resultatfelter, til fv-fabric's maaleregister.json (KONTRAKT v2 §3, Måleregister) og fv-app's visninger. fv-fabric ejer registeret (kilde, gruppe, aggregering); dette er fv-ekspert's faglige del. <enhed>, <lager> og <marked> er pladsholdere i kolonnenavnet. Kilder er fil:linje i modelrepoet @ eef950a.",
+  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
   "manifest_noegletal": [
     {
       "noegle": "objektiv_dkk",
@@ -62,21 +62,21 @@
       "noegle": "balanceindtaegt_dkk.brutto.i_alt",
       "etiket": "Balanceindtægt, brutto, i alt",
       "enhed": "kr.",
-      "forklaring": "Som netto plus den sparede forbrugsomkostning (spot, tarif, afgift) ved aktivering. Det er dette beløb, der indgår i objektivet. Vis aldrig netto og brutto i samme sum.",
+      "forklaring": "Som netto plus den sparede tarif og elafgift ved aktivering. Spotprisen er ikke med: strømmen er købt dagen før og betales alligevel (rettet i modellen 19/10-2026, modelversion eef950a). Det er dette beløb, der indgår i objektivet. Vis aldrig netto og brutto i samme sum.",
       "kilde": "src/manifest.py:73-77; src/manifest.py:108-112"
     },
     {
       "noegle": "balanceindtaegt_dkk.brutto.afrr",
       "etiket": "Balanceindtægt aFRR, brutto",
       "enhed": "kr.",
-      "forklaring": "aFRR netto + sparet forbrug ved aFRR-aktivering.",
+      "forklaring": "aFRR netto + sparet tarif og elafgift ved aFRR-aktivering.",
       "kilde": "src/manifest.py:108-112"
     },
     {
       "noegle": "balanceindtaegt_dkk.brutto.mfrr",
       "etiket": "Balanceindtægt mFRR, brutto",
       "enhed": "kr.",
-      "forklaring": "mFRR netto + sparet forbrug ved mFRR-aktivering.",
+      "forklaring": "mFRR netto + sparet tarif og elafgift ved mFRR-aktivering.",
       "kilde": "src/manifest.py:108-112"
     },
     {
@@ -319,7 +319,7 @@
       "kolonne": "r_<marked>_<enhed>_act_gross_dkk",
       "etiket": "Aktiveringsindtægt, brutto",
       "enhed": "kr.",
-      "forklaring": "Inkl. sparet forbrug; kun ved activation_value."
+      "forklaring": "Inkl. sparet tarif og elafgift; kun ved activation_value."
     },
     {
       "kolonne": "<lager>_level_mwh",
@@ -364,12 +364,12 @@
     {
       "hvornaar": "altid ved balancetal",
       "tekst": "Balancetal vises pr. marked (aFRR/mFRR) og pr. produkt (kapacitet/aktivering). Spor A er en øvre grænse.",
-      "kilde": "README.md:112-122"
+      "kilde": "README.md:148-158"
     },
     {
       "hvornaar": "ved sammenligning med og uden tank",
-      "tekst": "I første interval er tankens balance ubundet, så kørslen med tank får gratis varme dér. På et kort vindue kan det være en stor del af forskellen (Andeby 5.–16. jan 2026: ca. 22.300 kr. af 44.220 kr.); over et år er det småt.",
-      "kilde": "src/reporting.py:314-338; udviklingsrapport"
+      "tekst": "Kun kørsler regnet før modelversion eef950a (19/10-2026): i første interval var tankens balance ubundet, så kørslen med tank fik gratis varme dér — på et kort vindue en stor del af forskellen (Andeby 5.–16. jan 2026: ca. 22.300 kr. af 44.220 kr.). Fra eef950a gælder lagerbalancen også i første time; sammenlign kun kørsler regnet ved samme modelversion.",
+      "kilde": "modelrepoet 3c2afa6 (src/model.py:267-271 @ eef950a); udviklingsrapport"
     },
     {
       "hvornaar": "ved MILP og skyggepriser",
@@ -379,7 +379,7 @@
     {
       "hvornaar": "ved Andeby med balancering",
       "tekst": "Andebys balancetal er et potentiale ved fuld tilgængelighed, ikke hvad et værk vil tjene.",
-      "kilde": "README.md:157-159"
+      "kilde": "README.md:199-201"
     }
   ],
   "maaleregister_noegler": {
@@ -414,7 +414,7 @@
     "noegletal:el.omkostning_dkk": {
       "etiket": "Elomkostning i alt",
       "enhed": "kr.",
-      "forklaring": "Spot + nettarif + elafgift for enhedens elforbrug. Det sparede elkøb ved aktivering er ikke trukket fra her; det ligger i balanceindtægten (brutto)."
+      "forklaring": "Spot + nettarif + elafgift for enhedens elforbrug. Den sparede tarif og elafgift ved aktivering er ikke trukket fra her; den ligger i balanceindtægten (brutto)."
     },
     "noegletal:el.produktion_mwh": {
       "etiket": "Elproduktion (kraftvarme)",
@@ -466,12 +466,12 @@
     "noegletal:balancering.aktivering_brutto_dkk": {
       "etiket": "Aktiveringsindtægt, brutto",
       "enhed": "kr.",
-      "forklaring": "Netto + det sparede elkøb ved aktivering. Det er brutto, objektivet regner med. Findes kun ved metoden activation_value."
+      "forklaring": "Netto + den sparede tarif og elafgift ved aktivering (ikke spotprisen). Det er brutto, objektivet regner med. Findes kun ved metoden activation_value."
     },
     "noegletal:balancering.forbrugsmodregning_dkk": {
-      "etiket": "Sparet elkøb ved aktivering",
+      "etiket": "Sparet tarif og afgift ved aktivering",
       "enhed": "kr.",
-      "forklaring": "Det el, enheden ikke køber, når den aktiveres (spot + tarif + elafgift) = brutto − netto. Regnet med den FASTE tarif (tariff_consumption_flat), også når værket har en båndprofil — derfor ikke direkte sammenlignelig med 'Elomkostning: nettarif'.",
+      "forklaring": "Den tarif og elafgift, enheden ikke betaler, når den aktiveres = brutto − netto. Spotprisen er ikke med: strømmen er købt dagen før og betales alligevel (rettet i modellen 19/10-2026). Regnet med den FASTE tarif (tariff_consumption_flat), også når værket har en båndprofil — derfor ikke direkte sammenlignelig med 'Elomkostning: nettarif'.",
       "kilde": "src/data_loader_github.py:690-698"
     },
     "noegletal:balancering.aktiveret_mwh": {
@@ -487,19 +487,19 @@
     "noegletal:lager.afladet_mwh": {
       "etiket": "Afladet varme",
       "enhed": "MWh",
-      "forklaring": "Varme hentet fra tanken over perioden. Forskellen til opladet varme er tankens varmetab (og første intervals ubundne afladning)."
+      "forklaring": "Varme hentet fra tanken over perioden. Forskellen til opladet varme er tankens varmetab og forskellen mellem indholdet ved start og slut. (I kørsler regnet før modelversion eef950a også første intervals ubundne afladning.)"
     },
     "noegletal:lager.niveau_start_mwh": {
       "etiket": "Tankens indhold ved start",
       "enhed": "MWh",
-      "forklaring": "Indholdet i periodens første interval; lig værkets startindhold (e_initial_mwh). Forbehold: i første interval er tankens balance ubundet, så kørslen med tank kan få lidt gratis varme dér.",
-      "kilde": "src/model.py:262-270"
+      "forklaring": "Indholdet efter periodens første interval: værkets startindhold (e_initial_mwh) minus varmetab plus første intervals op- og afladning. I kørsler regnet før modelversion eef950a var det låst til startindholdet, og tanken kunne få gratis varme i første interval.",
+      "kilde": "src/model.py:262-271"
     },
     "noegletal:lager.niveau_slut_mwh": {
       "etiket": "Tankens indhold ved slut",
       "enhed": "MWh",
       "forklaring": "Indholdet i periodens sidste interval. Med 'slut som start' (cycle_binding) er det lig startindholdet.",
-      "kilde": "src/model.py:277-283"
+      "kilde": "src/model.py:278-284"
     },
     "noegletal:lager.niveau_max_mwh": {
       "etiket": "Tankens højeste indhold",
@@ -579,7 +579,7 @@
     "maaned:<marked>_aktivering_brutto_dkk": {
       "etiket": "Aktiveringsindtægt, brutto",
       "enhed": "kr.",
-      "forklaring": "Netto + sparet elkøb (fast tarif) ved aktivering, i måneden. Lægges aldrig sammen med netto."
+      "forklaring": "Netto + sparet tarif og elafgift (fast tarif) ved aktivering, i måneden. Lægges aldrig sammen med netto."
     },
     "maaned:<marked>_aktiveret_mwh": {
       "etiket": "Forventet aktiveret energi",

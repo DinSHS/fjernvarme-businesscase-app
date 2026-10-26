@@ -30,9 +30,9 @@ const antalBegraensninger = (begraensningerRå.match(/^\| \*\*/gm) ?? []).length
 
 const vis = (sti: string[]) => render(<Information sti={sti} gåTil={() => {}} bruger="a@b.dk" />);
 const k = (o: Partial<Koersel>) => ({
-    id: "2e345787-3a37-4c5f-a1b4-ecfd321355c1", vaerk_id: "v1", scenarie_id: "s1", status: "faerdig", objektiv_dkk: 4698361.33,
-    afsluttet: new Date("2026-10-16T07:32:12Z"), oensket_rel_gap: 0.005, oensket_abs_gap: 5000, opnaaet_gap: 0.000501, model_commit: "b49aeb0af097be42938b80a0fea6acdd77162836",
-    data_commit: "392992c7fe35992e79fba8d1ba7b91967e8d1481", ...o,
+    id: "2e345787-3a37-4c5f-a1b4-ecfd321355c1", vaerk_id: "v1", scenarie_id: "s1", status: "faerdig", objektiv_dkk: 5069700.33,
+    afsluttet: new Date("2026-10-26T07:32:12Z"), oensket_rel_gap: 0.005, oensket_abs_gap: 5000, opnaaet_gap: 0.000501, model_commit: "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+    data_commit: "106b9fce9a2e3610090b1a542559024056449b88", ...o,
 }) as Koersel;
 
 // Siderne indlæser teksterne som lazy chunks; i en fuld testkørsel med mange parallelle arbejdere tager det mere end ét sekund.
@@ -91,7 +91,7 @@ describe("Information", () => {
     it("referencetal uden kørsler: README-tallene vises, og status siger 'ikke kørt endnu'", async () => {
         vis(["referencetal"]);
         expect(await screen.findAllByText("ikke kørt endnu")).toHaveLength(5);
-        expect(screen.getAllByText("4.698.390").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("5.069.729").length).toBeGreaterThan(0);
     });
 
     it("referencetal med Spor A-kørslen: Fabric-tal, afvigelse og link til kørslen", async () => {
@@ -100,9 +100,9 @@ describe("Information", () => {
         expect(await screen.findByText("inden for tolerancen")).toBeInTheDocument();
         expect(screen.getByText("0,5 % og 5.000 kr.")).toBeInTheDocument(); // kørslens gab vises (I1)
         expect(screen.getByText(/opnået 0,0501 %/)).toBeInTheDocument();
-        expect(screen.getByText("4.698.361")).toBeInTheDocument();
+        expect(screen.getByText("5.069.700")).toBeInTheDocument();
         expect(screen.getByText("−0,0006 %")).toBeInTheDocument();
-        expect(screen.getByText("±23.492")).toBeInTheDocument();
+        expect(screen.getByText("±25.349")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /2e345787/ })).toHaveAttribute("href", "#/analyser/2e345787-3a37-4c5f-a1b4-ecfd321355c1");
         expect((await screen.findAllByText(/1 af 5 er genskabt/)).length).toBeGreaterThan(0);
     });
@@ -119,7 +119,7 @@ describe("Information", () => {
     });
 
     it("I1: Spor B kørt med strammere gab vises som genskabt — ikke som 'ikke kørt endnu' — med kørslens gab", async () => {
-        const tæt = { ...k({ id: "d09aaaaa-0000-0000-0000-000000000000", objektiv_dkk: 3964586.28, oensket_rel_gap: 0.0002, oensket_abs_gap: 1000, opnaaet_gap: 0.000185 }), vaerk_id: "v2", scenarie_id: "s2" } as Koersel;
+        const tæt = { ...k({ id: "d09aaaaa-0000-0000-0000-000000000000", objektiv_dkk: 4204128.43, oensket_rel_gap: 0.0002, oensket_abs_gap: 1000, opnaaet_gap: 0.000185 }), vaerk_id: "v2", scenarie_id: "s2" } as Koersel;
         state.koersler = [tæt];
         state.vaerker = [{ id: "v2", kode: "billund_sporb" }];
         state.scenarier = [{ id: "s2", vaerk_id: "v2", med_balancering: true, heat_csv: "billund_abvaerk_hourly_splejset_jun2026.csv", mip_rel_gap: 0.0002, mip_abs_gap: 1000 }];
@@ -146,7 +146,7 @@ describe("Information", () => {
         state.koersler = [k({}), k({ id: "andet" })];
         vis(["datadaekning"]);
         expect(await screen.findByText(/2 kørsler er regnet på 1 version/)).toBeInTheDocument();
-        expect(screen.getAllByText("392992c").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("106b9fc").length).toBeGreaterThan(0);
     });
 
     it("driftsforhold: kapacitetens udløb og køen", async () => {

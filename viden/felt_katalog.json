@@ -1,6 +1,6 @@
 {
   "_om": "Felt-katalog for case-YAML i fjernvarmemodellen. Én post pr. sti-skabelon; '*' står for et frit navn (enhed, lager, bånd …), se 'stjerne'. 'kilde' er fil:linje ved model_commit. Genereres af viden/vaerktoej/byg_felt_katalog.py — ret dér, ikke her.",
-  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
   "antal": 151,
   "felter": [
     {
@@ -1326,7 +1326,7 @@
       "max": null,
       "paakraevet": true,
       "gaelder_for": null,
-      "forklaring": "Nettarif pr. MWh el, når der ikke er en tidsvarierende profil. Bruges også altid i aktiveringsværdien (sparet forbrug), selv når profilen er sat.",
+      "forklaring": "Nettarif pr. MWh el, når der ikke er en tidsvarierende profil. Bruges også altid i aktiveringsværdien (sparet tarif ved aktivering), selv når profilen er sat.",
       "kilde": "src/config.py:949",
       "avanceret": false,
       "laeses_af_koden": true,

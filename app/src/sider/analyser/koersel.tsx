@@ -298,7 +298,7 @@ function Lager({ d }: { d: Pakke }) {
     return (
         <Kort titel="Lager" afgraensning="hele perioden, MWh"
             budskab={l.length === 0 ? "Ingen aktive lagre i kørslen." : `${l.length === 1 ? "Tanken" : `De ${l.length} lagre`} ladede ${tal(op)} MWh op og afladede ${tal(af)} MWh.`}
-            fod={<>Niveau ved start er modellens første interval, hvor lagerbalancen er ubundet (kendt defekt). {forbehold("ved MILP og skyggepriser")}</>}>
+            fod={<>Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance). {forbehold("ved MILP og skyggepriser")}</>}>
             {l.length > 0 && (
                 <Tabel rækker={l} nøgle={(x) => x.navn} kolonner={[
                     { navn: "Lager", vis: (x) => x.navn },

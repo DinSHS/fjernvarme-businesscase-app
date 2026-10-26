@@ -119,13 +119,18 @@ describe("links", () => {
         expect(omskrivLink("../README.md", { rute: "dokumentation/koersel", mappe: "doc" }).href).toBe("#/dokumentation/readme");
     });
     it("ubundtet fil -> GitHub ved den pinnede commit; mappe -> tree; regneark -> raw", () => {
-        const c = "b49aeb0af097be42938b80a0fea6acdd77162836";
+        const c = "eef950a2ac7b3808a9456dcf48742ce08e52366a";
         expect(omskrivLink("doc/rapport_billund_v4.pdf", { rute: "dokumentation/readme", mappe: "" }))
             .toEqual({ href: `https://github.com/skj-1964/fjernvarme-businesscase/blob/${c}/doc/rapport_billund_v4.pdf`, ekstern: true });
         expect(omskrivLink("doc/arkiv/", { rute: "dokumentation/readme", mappe: "" }).href)
             .toBe(`https://github.com/skj-1964/fjernvarme-businesscase/tree/${c}/doc/arkiv`);
+        // Flyttet til repoets rod ved eef950a; README linker stadig til doc/ (FLYTTEDE_FILER).
         expect(omskrivLink("doc/vaerksdata_skabelon.xlsx", { rute: "dokumentation/readme", mappe: "" }).href)
-            .toBe(`https://github.com/skj-1964/fjernvarme-businesscase/raw/${c}/doc/vaerksdata_skabelon.xlsx`);
+            .toBe(`https://github.com/skj-1964/fjernvarme-businesscase/raw/${c}/vaerksdata_skabelon.xlsx`);
+        expect(omskrivLink("vaerksdata_skabelon.xlsx", { rute: "dokumentation/eget_vaerk", mappe: "doc" }).href)
+            .toBe(`https://github.com/skj-1964/fjernvarme-businesscase/raw/${c}/vaerksdata_skabelon.xlsx`);
+        expect(omskrivLink("doc/rapport_billund_v4.docx", { rute: "dokumentation/readme", mappe: "" }).href)
+            .toBe(`https://github.com/skj-1964/fjernvarme-businesscase/raw/${c}/doc/arkiv/rapport_billund_v4.docx`);
     });
     it("anker i samme dokument, appstier og eksterne adresser", () => {
         expect(omskrivLink("#helår", { rute: "dokumentation/eget_vaerk", mappe: "doc" })).toEqual({ href: "#/dokumentation/eget_vaerk#helår", ekstern: false });

@@ -22,7 +22,7 @@ I vil — balancemarkederne aFRR og mFRR. (Kilde: README.md:1-11)
 - **Balancetal pr. marked og pr. produkt**, aldrig kun som total.
 - **Spor A er en øvre grænse**, ikke en prognose.
 
-(Kilde: README.md:112-124)
+(Kilde: README.md:148-160)
 
 Et modeltal gælder for en periode, under nogle antagelser, med en metode. Skifter en af de tre,
-skifter tallet. (Kilde: README.md:123-124)
+skifter tallet. (Kilde: README.md:159-160)

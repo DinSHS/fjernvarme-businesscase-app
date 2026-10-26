@@ -18,7 +18,7 @@ udgave, og `tjek_offentlig.py` fejler, hvis denne fil, kreditlinjen i appen elle
 | Forfatter | Steen Kramer Jensen (`skj-1964`) |
 | Udviklet sammen med | **Billund Fjernvarme** og **Dansk Fjernvarme** |
 | Licens | MIT — `Copyright (c) 2026 Dansk Fjernvarme` |
-| Pinnet commit | `b49aeb0af097be42938b80a0fea6acdd77162836` |
+| Pinnet commit | `eef950a2ac7b3808a9456dcf48742ce08e52366a` |
 | Licenstekst | [`LICENSES/fjernvarme-businesscase_LICENSE.txt`](LICENSES/fjernvarme-businesscase_LICENSE.txt) — bytes fra den pinnede commit |
 
 Modellens egen indledning, ordret fra dens `README.md` ved den pinnede commit:
@@ -33,7 +33,7 @@ Og dens licensafsnit, ordret:
 > også kommercielt. Modellen er udviklet sammen med Billund Fjernvarme og
 > Dansk Fjernvarme og deles, så andre værker kan bygge videre på den.
 
-Rapporten om metode, antagelser og validering, [`doc/rapport_billund_v4.pdf`](https://github.com/skj-1964/fjernvarme-businesscase/blob/b49aeb0af097be42938b80a0fea6acdd77162836/doc/rapport_billund_v4.pdf),
+Rapporten om metode, antagelser og validering, [`doc/rapport_billund_v4.pdf`](https://github.com/skj-1964/fjernvarme-businesscase/blob/eef950a2ac7b3808a9456dcf48742ce08e52366a/doc/rapport_billund_v4.pdf),
 og vejledningerne i `doc/` er forfatterens. De tekster fra modelrepoet, appen viser på dokumentationssiderne, er
 kopieret **uændret** fra den pinnede commit og bærer deres kildelinje.
 
@@ -52,7 +52,7 @@ og dokumenter bundtes i appen.
 | Repo | https://github.com/skj-1964/df-data |
 | Vedligeholdes af | Steen Kramer Jensen, Dansk Fjernvarme (efter datarepoets egen README) |
 | Licens | scripts MIT; data CC BY 4.0 (se nedenfor) |
-| Pinnet commit | `392992c7fe35992e79fba8d1ba7b91967e8d1481` |
+| Pinnet commit | `106b9fce9a2e3610090b1a542559024056449b88` |
 | Licenstekst | [`LICENSES/df-data_LICENSE.txt`](LICENSES/df-data_LICENSE.txt) — bytes fra den pinnede commit |
 
 Datarepoets egen beskrivelse af indholdet, ordret fra dets `README.md`:

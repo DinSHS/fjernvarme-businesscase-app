@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_katalog.py fra viden/nyt_vaerk_skabelon.json
-// (fv-ekspert). Ret ikke i hånden. 67 blade, model b49aeb0.
+// (fv-ekspert). Ret ikke i hånden. 67 blade, model eef950a.
 //-----------------------------------------------------------------------
 
 import type { NytVaerkSkabelon } from "./nyt-vaerk";
@@ -418,7 +418,7 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
    "heat_load_params.baseline_profile_mw"
   ],
   "tekst": "f = G / 105,52; gaf_mw_per_k = 0,7653 × f, nettab_slope_mw_per_k = 0,4768 × f, baseline_profile_mw = Andebys 24 værdier × f (cases/andeby.yaml:158-162); uændret: t_ref 15, thermal_inertia_hours 24, t_net 12, weekly_dip 0,02",
-  "forbehold": "Faktoren gælder karup-vejret i det rullende år. Et andet DMI-område giver nogle procent andet årsbehov (README.md:193-195); har værket målt varmelast, er den bedre."
+  "forbehold": "Faktoren gælder karup-vejret i det rullende år. Et andet DMI-område giver nogle procent andet årsbehov (README.md:235-237); har værket målt varmelast, er den bedre."
  },
  "dmi": [
   "fyn",
@@ -430,7 +430,7 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
   "DK1",
   "DK2"
  ],
- "kilde": "viden/nyt_vaerk_skabelon.json @ b49aeb0",
+ "kilde": "viden/nyt_vaerk_skabelon.json @ eef950a",
  "trinRegler": {
   "navn": "kode: små bogstaver, tal og _ (KONTRAKT §3.1); unik.",
   "klima": "spot_area sættes lig price_zone automatisk.",

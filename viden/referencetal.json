@@ -1,19 +1,19 @@
 {
   "_om": "Referencetal fra modelrepoet, udtrykt som værk + scenarie i appens datamodel (KONTRAKT v2 §3.1, §3.4, §3.5), så de kan genskabes i Fabric. 'vaerk.kode' er lowercase-normaliseret fra filnavnet (KONTRAKT §3.1). Tom periode = værkets time-blok. 'tolerance_dkk' = max(mip_abs_gap, mip_rel_gap × objektiv) med casens egne gab: HiGHS stopper, når ét af de to gab er nået, så en ny kørsel kan ligge så langt fra tallet uden at være forkert. Tallene afhænger af df-data; README kræver df-data fra 5. oktober 2026 eller senere.",
-  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
   "kontrakt_version": 2,
   "datakrav": {
-    "df_data": "fra 5. oktober 2026 eller senere; nye dataopdateringer ændrer ikke januar–juni 2026",
+    "df_data": "fra 5. oktober 2026 eller senere; nye dataopdateringer ændrer ikke januar–juni 2026 (målt 26/10: 10be997→106b9fc har samme værdier for 2025 og januar–juni 2026)",
     "datakilde": "github (df-data)",
-    "kilde": "README.md:130-134"
+    "kilde": "README.md:166-167"
   },
   "objektiv_betyder": "Modellens samlede driftsomkostning i kr. for vinduet (manifest noegletal.objektiv_dkk). Med settle realized er det trin 2-objektivet, afregnet på det realiserede.",
   "grupper": [
     {
       "id": "readme",
       "navn": "README-referencetal (gældende)",
-      "kilde": "README.md:128-159",
-      "koert": "2026-10-15, robust reservation som standard, rullende Billund-cases med flis- og halmkedel slukket 1. juli",
+      "kilde": "README.md:164-195",
+      "koert": "2026-10-19 ved d813e6b (samme kode som eef950a), efter rettelserne samme dag: tankens første time følger lagerbalancen, og en aktiveret MWh værdisættes uden spotprisen; robust reservation som standard; rullende Billund-cases med flis- og halmkedel slukket 1. juli",
       "referencer": [
         {
           "id": "spora_anker",
@@ -43,16 +43,25 @@
             "kilde": "kodens standard, casen har ingen solver-blok (doc/KOERSEL.md:64-66)"
           },
           "forventet": {
-            "objektiv_dkk": 4698390,
-            "tolerance_dkk": 23492
+            "objektiv_dkk": 5069729,
+            "tolerance_dkk": 25349
           },
-          "loesetid": "ca. 2 minutter (sandkasse, 2 kerner)",
+          "loesetid": "2–3 minutter (sandkasse, 2 kerner); 4,5 min lokalt (8 kerner)",
           "kommando": "python run_case.py cases/billund_sporA.yaml --data-source github --with-balancing",
           "noter": [
             "Syntetisk varmelast (intet heat_csv), DMI-område fyn.",
             "Slutter 23. juni, fordi ankeret er regnet før den sidste uge af juni blev splejset ind."
           ],
-          "kilde": "README.md:138; README.md:144; README.md:148-150"
+          "kilde": "README.md:176; README.md:182; README.md:186-187",
+          "genskabt": [
+            {
+              "af": "fv-model, lokalt: run_case.py uændret ved eef950a med README's kommando, df-data 106b9fc, app-venv (linopy 0.10.0, highspy 1.15.1), 8 kerner",
+              "dato": "2026-10-26",
+              "objektiv_dkk": 5069729,
+              "status": "optimal (gab under casens 0,5 %), 272 s",
+              "kilde": "rapporter/fv-model.md"
+            }
+          ]
         },
         {
           "id": "sporb",
@@ -82,15 +91,24 @@
             "kilde": "kodens standard (doc/KOERSEL.md:64-66)"
           },
           "forventet": {
-            "objektiv_dkk": 3964586,
-            "tolerance_dkk": 19823
+            "objektiv_dkk": 4204128,
+            "tolerance_dkk": 21021
           },
-          "loesetid": "ca. 2 minutter",
+          "loesetid": "2–3 minutter (sandkasse, 2 kerner); 6 min lokalt (8 kerner)",
           "kommando": "python run_case.py cases/billund_sporB.yaml --data-source github --with-balancing --heat-csv data/billund_abvaerk_hourly_splejset_jun2026.csv",
           "noter": [
-            "Mod Billunds afregning marts–juni 2026 (ex post): 121 % (aFRR 108 %, mFRR 132 %)."
+            "Mod Billunds afregning marts–juni 2026 (ex post): 120 % (aFRR 109 %, mFRR 129 %) efter rettelserne 19/10; rapport v4 fik 121 % før dem."
           ],
-          "kilde": "README.md:139; README.md:155-157"
+          "kilde": "README.md:177; README.md:197-198",
+          "genskabt": [
+            {
+              "af": "fv-model, lokalt: run_case.py uændret ved eef950a med README's kommando, df-data 106b9fc, app-venv (linopy 0.10.0, highspy 1.15.1), 8 kerner",
+              "dato": "2026-10-26",
+              "objektiv_dkk": 4204128,
+              "status": "optimal (gab under casens 0,5 %), 363 s",
+              "kilde": "rapporter/fv-model.md"
+            }
+          ]
         },
         {
           "id": "billund_rullende",
@@ -120,15 +138,24 @@
             "kilde": "kodens standard (doc/KOERSEL.md:64-66)"
           },
           "forventet": {
-            "objektiv_dkk": 20341652,
-            "tolerance_dkk": 101708
+            "objektiv_dkk": 21773827,
+            "tolerance_dkk": 108869
           },
-          "loesetid": "ca. 4 minutter",
+          "loesetid": "ca. 8 minutter (sandkasse, 2 kerner)",
           "kommando": "python run_case.py cases/billund_sporA_rullende.yaml --data-source github --with-balancing --heat-csv data/billund_abvaerk_hourly_splejset_jun2026.csv",
           "noter": [
-            "Samme tal som rapport v4 tabel 4.1 (med tank, med balancemarked)."
+            "Rapport v4 tabel 4.1 (20.341.652, med tank og balancemarked) er regnet før rettelserne 19/10 og kan ikke sammenlignes."
           ],
-          "kilde": "README.md:140; README.md:148-151"
+          "kilde": "README.md:178; README.md:186-187",
+          "genskabt": [
+            {
+              "af": "fv-model, lokalt: run_case.py uændret ved eef950a med README's kommando, df-data 106b9fc, app-venv, 8 kerner (delt maskine)",
+              "dato": "2026-10-26",
+              "objektiv_dkk": 22159684,
+              "status": "IKKE genskabt: kodens tidsgrænse 600 s ramt med gab 2,03 % (nedre grænse 21.708.371); README-tallet ligger i intervallet",
+              "kilde": "rapporter/fv-model.md"
+            }
+          ]
         },
         {
           "id": "andeby_helaar_bal",
@@ -158,18 +185,17 @@
             "kilde": "cases/andeby.yaml:142-145"
           },
           "forventet": {
-            "objektiv_dkk": 23067291,
-            "tolerance_dkk": null,
-            "opnaaet_gab_pct": 0.12
+            "objektiv_dkk": 24188471,
+            "tolerance_dkk": 24188
           },
-          "loesetid": "ca. 1 time; ca. 3,5 GB hukommelse (robust reservation fordobler driftsdelen)",
+          "loesetid": "17 minutter på en pc med 24 kerner; ca. 3,5 GB hukommelse (robust reservation fordobler driftsdelen)",
           "kommando": "python run_case.py cases/andeby.yaml --data-source github --with-balancing",
           "noter": [
-            "Stopper ved casens tidsgrænse på 1 time med gab 0,12 % (mål 0,1 %). Tallet er derfor ikke reproducerbart til kronen; en ny kørsel kan lande et andet sted inden for ca. 0,12 % (ca. 28.000 kr.).",
+            "Optimal inden for casens gab (0,1 %) i README's kørsel.",
             "Regn den på forhånd; kør ikke helår live.",
             "Andebys balancetal er et potentiale ved fuld tilgængelighed, ikke hvad et værk vil tjene."
           ],
-          "kilde": "README.md:141; README.md:146; README.md:150-152; README.md:158-159"
+          "kilde": "README.md:179; README.md:184; README.md:188-190; README.md:199-201"
         },
         {
           "id": "andeby_helaar_spot",
@@ -199,23 +225,32 @@
             "kilde": "cases/andeby.yaml:142-145"
           },
           "forventet": {
-            "objektiv_dkk": 30430965,
-            "tolerance_dkk": 30431
+            "objektiv_dkk": 30431535,
+            "tolerance_dkk": 30432
           },
-          "loesetid": "6–10 minutter",
+          "loesetid": "1 minut på en pc med 24 kerner",
           "kommando": "python run_case.py cases/andeby.yaml --data-source github",
           "noter": [
             "Andeby fik 8. oktober 2026 en solprofil fra målt DMI-globalstråling; Andeby-tal fra før den dato kan ikke sammenlignes."
           ],
-          "kilde": "README.md:142; README.md:150-153"
+          "kilde": "README.md:180; README.md:188; README.md:194-195",
+          "genskabt": [
+            {
+              "af": "fv-model, lokalt: demo-kørslen D11 gennem den ægte arbejder (som fabric/koer_minne.py) ved eef950a, df-data 106b9fc, 8 kerner",
+              "dato": "2026-10-26",
+              "objektiv_dkk": 30431535.06,
+              "status": "optimal, gab 0,0142 %, 643 s",
+              "kilde": "viden/demo_scenarier.json › koersel_status"
+            }
+          ]
         }
       ]
     },
     {
       "id": "budstrategi_andeby_vinter",
       "navn": "Kontroltal: budstrategi på Andeby, vintervinduet",
-      "kilde": "doc/BUDSTRATEGI.md:226-254",
-      "koert": "2026-10-15, robust reservation som standard",
+      "kilde": "doc/BUDSTRATEGI.md:309-337",
+      "koert": "2026-10-19 ved d813e6b (samme kode som eef950a), robust reservation som standard, lagerbalancen rettet i første time, aktiveringsværdien uden spotpris",
       "anvendelse": "Hurtig røgtest af motoren i Fabric: 12 døgn, løser på sekunder. Dækker uden/med balancering, set på strenge og bool og to-trins-afregningen.",
       "referencer": [
         {
@@ -244,17 +279,17 @@
             "kilde": "cases/andeby.yaml:142-145"
           },
           "forventet": {
-            "objektiv_dkk": 3424408,
-            "tolerance_dkk": 3424
+            "objektiv_dkk": 3446712,
+            "tolerance_dkk": 3447
           },
           "kommando": "python run_case.py cases/andeby.yaml --data-source github --start 2026-01-05 --end 2026-01-16",
           "genskabt": [
             {
-              "af": "fv-fabric, lokalt (kode fra zip @ b49aeb0, df-data @ 392992c)",
-              "dato": "2026-10-16",
-              "objektiv_dkk": 3424408,
-              "status": "optimal, MILP, 287 timerækker, 16 s",
-              "kilde": "udviklingsrapport (F1)"
+              "af": "fv-model, lokalt: run_case.py uændret ved eef950a, df-data 106b9fc, app-venv (linopy 0.10.0, highspy 1.15.1), 8 kerner",
+              "dato": "2026-10-26",
+              "objektiv_dkk": 3446712,
+              "status": "optimal, MILP, 10 s",
+              "kilde": "rapporter/fv-model.md"
             }
           ]
         },
@@ -290,13 +325,22 @@
             "mip_abs_gap": 1000
           },
           "forventet": {
-            "objektiv_dkk": 2869989,
-            "tolerance_dkk": 2870,
-            "balancens_vaerdi_dkk": 554000
+            "objektiv_dkk": 3025301,
+            "tolerance_dkk": 3025,
+            "balancens_vaerdi_dkk": 421000
           },
           "kommando": "python run_case.py cases/andeby.yaml --data-source github --start 2026-01-05 --end 2026-01-16 --with-balancing --set balancing.activation.foresight=realized",
           "noter": [
             "Et loft, ingen kan nå."
+          ],
+          "genskabt": [
+            {
+              "af": "fv-model, lokalt: run_case.py uændret ved eef950a, df-data 106b9fc, app-venv (linopy 0.10.0, highspy 1.15.1), 8 kerner",
+              "dato": "2026-10-26",
+              "objektiv_dkk": 3025301,
+              "status": "optimal, MILP, 19 s",
+              "kilde": "rapporter/fv-model.md"
+            }
           ]
         },
         {
@@ -337,15 +381,25 @@
             "mip_abs_gap": 1000
           },
           "forventet": {
-            "objektiv_dkk": 3163413,
-            "tolerance_dkk": 3163,
-            "trin1_prognose_dkk": 2720352,
-            "balancens_vaerdi_dkk": 261000
+            "objektiv_dkk": 3231194,
+            "tolerance_dkk": 3231,
+            "trin1_prognose_dkk": 2932972,
+            "balancens_vaerdi_dkk": 216000
           },
           "kommando": "python run_case.py cases/andeby.yaml --data-source github --start 2026-01-05 --end 2026-01-16 --with-balancing --set balancing.activation.foresight=trailing30 --set balancing.activation.settle=realized",
           "noter": [
             "Lover mest, skuffer mest: elkedlen køres for at fange aktiveringer, der ikke kommer.",
             "Trin 1-objektivet står kun i skærmudskriften ('Trin 1-objektiv (på prognose)'), ikke i manifestet."
+          ],
+          "genskabt": [
+            {
+              "af": "fv-model, lokalt: run_case.py uændret ved eef950a, df-data 106b9fc, app-venv (linopy 0.10.0, highspy 1.15.1), 8 kerner",
+              "dato": "2026-10-26",
+              "objektiv_dkk": 3231194,
+              "status": "optimal, MILP, 25 s",
+              "trin1_prognose_dkk": 2932972,
+              "kilde": "rapporter/fv-model.md"
+            }
           ]
         },
         {
@@ -392,23 +446,33 @@
             "mip_abs_gap": 1000
           },
           "forventet": {
-            "objektiv_dkk": 3268332,
-            "tolerance_dkk": 3268,
-            "trin1_prognose_dkk": 3247444,
-            "balancens_vaerdi_dkk": 156000
+            "objektiv_dkk": 3319185,
+            "tolerance_dkk": 3319,
+            "trin1_prognose_dkk": 3303953,
+            "balancens_vaerdi_dkk": 128000
           },
           "kommando": "python run_case.py cases/andeby.yaml --data-source github --start 2026-01-05 --end 2026-01-16 --with-balancing --set balancing.activation.foresight=trailing30 --set balancing.activation.settle=realized --set balancing.reservation_gate.enabled=true",
           "noter": [
             "Lover mindre, men holder."
+          ],
+          "genskabt": [
+            {
+              "af": "fv-model, lokalt: run_case.py uændret ved eef950a, df-data 106b9fc, app-venv (linopy 0.10.0, highspy 1.15.1), 8 kerner",
+              "dato": "2026-10-26",
+              "objektiv_dkk": 3319185,
+              "status": "optimal, MILP, 30 s",
+              "trin1_prognose_dkk": 3303953,
+              "kilde": "rapporter/fv-model.md"
+            }
           ]
         }
       ]
     },
     {
       "id": "rapport_v4",
-      "navn": "Rapport v4 (historisk; regnet ved commit 405b428, 20 commits før b49aeb0)",
+      "navn": "Rapport v4 (historisk; regnet ved commit 405b428, før rettelserne 19. oktober 2026)",
       "kilde": "doc/rapport_billund_v4.pdf",
-      "advarsel": "Rapportens tal er regnet ved en ældre commit og kan afvige ved b49aeb0. Hvor README har et nyere tal for samme kørsel, har README forrang (fx Andeby helår med balancering: README 23.067.291 mod rapportens 23.048.152; begge stopper på tidsgrænsen).",
+      "advarsel": "Rapportens tal er regnet ved en ældre commit og før rettelserne 19. oktober 2026 (tankens første time, aktiveringsværdien uden spotpris); balancetallene er for høje (README.md:192-195). Hvor README har et tal for samme kørsel, har README forrang.",
       "referencer": [
         {
           "id": "firkant_spot_med_tank",
@@ -580,7 +644,7 @@
           },
           "kilde": "rapport v4 §9, tabel 9.1",
           "noter": [
-            "Rapportens 'med tanke'-tal er 23.048.152; README's nyere er 23.067.291. Tankværdien 4.356.786 er regnet mod rapportens tal."
+            "Rapportens 'med tanke'-tal er 23.048.152; README havde 23.067.291 før rettelserne 19/10 og 24.188.471 efter (README.md:179). Tankværdien 4.356.786 er regnet mod rapportens tal."
           ]
         }
       ]
@@ -588,7 +652,7 @@
   ],
   "validering_billund": {
     "navn": "Spor B ex post mod Billunds afregning, forbrugssidens opregulering, marts–juni 2026",
-    "kilde": "rapport v4 §5.2, tabel 5.1",
+    "kilde": "rapport v4 §5.2, tabel 5.1 — regnet før rettelserne 19/10-2026; opdelingen pr. produkt er ikke regnet igen",
     "enhed": "kr.",
     "raekker": [
       {
@@ -635,6 +699,14 @@
       }
     ],
     "note": "Tabellen er rekonstrueret fra PDF'ens tekstlag (kolonnerne er ombrudt); hver række er efterregnet: kapacitet + aktivering = i alt (realiseret mFRR og totalen afviger 1 kr. af afrunding i kilden), og forholdet passer på hele procent.",
-    "forbehold": "Kalibreringen gælder kun marts–juni 2026 og kun med Billunds reservation pr. måned som loft. Gasmotorernes balanceindtægt (1,31 mio. kr., 29 %) og nedregulering er ikke med."
+    "forbehold": "Kalibreringen gælder kun marts–juni 2026 og kun med Billunds reservation pr. måned som loft. Gasmotorernes balanceindtægt (1,31 mio. kr., 29 %) og nedregulering er ikke med.",
+    "gaeldende": {
+      "i_alt_pct": 120,
+      "afrr_pct": 109,
+      "mfrr_pct": 129,
+      "model_mio_kr": 3.8,
+      "afregnet_mio_kr": 3.18,
+      "kilde": "README.md:197-198 og cases/billund_sporB.yaml:373-376 @ eef950a: Spor B ex post efter rettelserne 19/10-2026 (scripts/capture_rate.py --ex-post; afregningen ligger ikke i repoet og er ikke efterregnet her)"
+    }
   }
 }

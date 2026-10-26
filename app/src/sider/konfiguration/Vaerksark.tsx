@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// Upload af et udfyldt værksark (modelrepoets doc/vaerksdata_skabelon.xlsx)
+// Upload af et udfyldt værksark (modelrepoets vaerksdata_skabelon.xlsx, i repoets rod)
 // — KONTRAKT §6d. Filen gemmes, og notebooken fjv_importer_vaerksark kører
 // modelrepoets scripts/vaerksark_til_yaml.py uændret: et nyt værk (kilde
 // "Appen") og, hvis arket har timedata, en tidsserie. Status vises her;
@@ -45,7 +45,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly { id: str
 
     return (
         <Kort titel="Upload værksark" afgraensning="nyt værk fra regneark" budskab={budskab}
-            fod={<>Skabelonen er modelrepoets <span className="fjv-mono">doc/vaerksdata_skabelon.xlsx</span>. Importen kører modelrepoets <span className="fjv-mono">scripts/vaerksark_til_yaml.py</span> uændret og opretter et nyt værk (kilde Appen) — og en tidsserie, hvis arket har timedata.</>}>
+            fod={<>Skabelonen er modelrepoets <span className="fjv-mono">vaerksdata_skabelon.xlsx</span> (i repoets rod). Importen kører modelrepoets <span className="fjv-mono">scripts/vaerksark_til_yaml.py</span> uændret og opretter et nyt værk (kilde Appen) — og en tidsserie, hvis arket har timedata.</>}>
             <div className="kf-formular">
                 <label className="kf-slip">
                     <span>{fil ? <><strong>{fil.name}</strong> · {dkFri(fil.size / 1024, 0)} kB</> : "Udfyldt værksark (.xlsx)"}</span>

@@ -2,7 +2,7 @@
  "_om": "Fagansvar for data (fv-data). Hvilke data modellen bruger, formatkrav og valideringsregler for værkets egne tidsserier, værksarkets kontrakt og hvad en kørsel skal vise om sit datagrundlag. Genereres af viden/vaerktoej/byg_data_krav.py; oraklet er viden/vaerktoej/valider_tidsserie.py; porten er viden/vaerktoej/tjek_data_krav.py. Læs data_krav.md for begrundelserne.",
  "version": 1,
  "dato": "2026-10-16",
- "modelrepo_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+ "modelrepo_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
  "principper": [
   "FEJL, når modellen ville stoppe, regne noget sikkert forkert, eller vi skulle gætte (tidszone, dubletter, enhed). ADVARSEL, når data kan være rigtige, men er usædvanlige - modellen kører, og brugeren bør kigge. INFO er kun orientering.",
   "Intet fyldes eller rettes tavst: hver omregning, udfyldning og afkortning har sit eget fund.",
@@ -1468,7 +1468,7 @@
   }
  },
  "vaerksark": {
-  "script": "scripts/vaerksark_til_yaml.py (uændret, modelrepoet @ b49aeb0)",
+  "script": "scripts/vaerksark_til_yaml.py (uændret, modelrepoet @ eef950a)",
   "kald": "python scripts/vaerksark_til_yaml.py <ark.xlsx> --cases-dir <ud>/cases --data-dir <ud>/data [--timeslut] [--overskriv]",
   "flag": {
    "--timeslut": "stemplerne i Timedata (og Solvarme) er timens slut; flyttes en time tilbage efter UTC-omregning",
@@ -1524,7 +1524,7 @@
    "Slug'en kan være længere end Vaerk.kode (60 tegn) og kan ramme en reserveret værkskode; afvis med besked, ret ikke tavst."
   ],
   "maalt_2026_10_16": {
-   "skabelon": "doc/vaerksdata_skabelon.xlsx som den er: exit 1 - 'Timedata har kun 8 timer' (eksempelrækkerne). Skabelonen kan ikke importeres uændret.",
+   "skabelon": "vaerksdata_skabelon.xlsx (repoets rod) som den er: exit 1 - 'Timedata har kun 8 timer' (eksempelrækkerne). Skabelonen kan ikke importeres uændret.",
    "varianter": [
     {
      "variant": "Timedata tømt, B3 = 50 GWh",

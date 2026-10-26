@@ -2,7 +2,7 @@
 
 Kilde for maskinerne: `data_krav.json` (genereret af `vaerktoej/byg_data_krav.py`). Orakel:
 `vaerktoej/valider_tidsserie.py` (kun standardbibliotek). Port: `vaerktoej/tjek_data_krav.py`. Modelrepoet er
-pinnet på `b49aeb0`; df-data er målt ved `392992c` (2026-10-12). Denne fil er *hvorfor*; JSON'en er *hvad*.
+pinnet på `eef950a`; df-data er målt ved `392992c` (2026-10-12; januar–juni 2026 og 2025 har samme værdier ved den pinnede `106b9fc`). Denne fil er *hvorfor*; JSON'en er *hvad*.
 
 ## 1. Hvilke data modellen bruger — og hvornår
 

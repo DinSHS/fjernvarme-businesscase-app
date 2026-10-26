@@ -1,6 +1,6 @@
 {
   "_om": "Demo-bibliotek: et lille sæt reference/scenarie-par, der viser differensmetoden på rigtige værker. 'koersler' er de unikke kørsler (hver = én Scenarie + ScenarieAendring-rækker i appens form, KONTRAKT v2.1 §3.4–3.5: enable/disable har enhedens NAVN i sti). 'par' parrer dem til spørgsmål med en forventning, der kan efterprøves. Kør i rækkefølgen 'koer_raekkefoelge' (Andeby helår med balancering til sidst). Valideret af viden/vaerktoej/tjek_demo.py mod værkernes stier og motorens egen byg_case + modellens load_case.",
-  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
   "kontrakt_version": "2.1",
   "faelles": {
     "vintervindue": {
@@ -34,9 +34,9 @@
         "heat_csv": null
       },
       "aendringer": [],
-      "forventet_objektiv_dkk": 3424408,
+      "forventet_objektiv_dkk": 3446712,
       "forventet_tolerance_dkk": 100,
-      "forventet_grundlag": "fv-fabric F5 (2b91e6be) gav 3.424.407,96 med gab 0 %; BUDSTRATEGI-kontroltal 3.424.408 (doc/BUDSTRATEGI.md:249).",
+      "forventet_grundlag": "målt 2026-10-26 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved eef950a / df-data 106b9fc: 3.446.711,91 med gab 0 %; BUDSTRATEGI-kontroltal (1) 3.446.712 (doc/BUDSTRATEGI.md:332).",
       "forventet_loesetid": "under 1 minut"
     },
     {
@@ -172,9 +172,9 @@
         "heat_csv": null
       },
       "aendringer": [],
-      "forventet_objektiv_dkk": 3000363,
+      "forventet_objektiv_dkk": 3117644,
       "forventet_tolerance_dkk": 100,
-      "forventet_grundlag": "fv-fabric F5 (44cc8284) gav 3.000.362,97 med gab 0 % (Andebys egen budstrategi: foresight profile, settle forecast, cases/andeby.yaml:480-484).",
+      "forventet_grundlag": "målt 2026-10-26 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved eef950a / df-data 106b9fc: 3.117.644,03 med gab 0 % (Andebys egen budstrategi: foresight profile, settle forecast, cases/andeby.yaml:480-484).",
       "forventet_loesetid": "under 1 minut"
     },
     {
@@ -233,9 +233,9 @@
           "raekkefoelge": 1
         }
       ],
-      "forventet_objektiv_dkk": 2869989,
+      "forventet_objektiv_dkk": 3025301,
       "forventet_tolerance_dkk": 3000,
-      "forventet_grundlag": "BUDSTRATEGI-kontroltal (2) 2.869.989 kr., regnet med Andebys gab 0,1 %/1.000 kr. (doc/BUDSTRATEGI.md:250); tolerancen dækker den gang.",
+      "forventet_grundlag": "BUDSTRATEGI-kontroltal (2) 3.025.301 kr., regnet med Andebys gab 0,1 %/1.000 kr. (doc/BUDSTRATEGI.md:333); målt 2026-10-26 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved eef950a / df-data 106b9fc: 3.025.300,75 med gab 0 %.",
       "forventet_loesetid": "under 1 minut"
     },
     {
@@ -255,10 +255,10 @@
         "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
       },
       "aendringer": [],
-      "forventet_objektiv_dkk": 3964586,
-      "forventet_tolerance_dkk": 19823,
-      "forventet_grundlag": "README-referencetal 3.964.586 kr. med kodens standardgab 0,5 %/5.000 kr. (README.md:139); med det stramme gab her kan objektivet ligge op til ca. 19.800 kr. lavere, ikke højere.",
-      "forventet_loesetid": "2–10 minutter",
+      "forventet_objektiv_dkk": 4204128,
+      "forventet_tolerance_dkk": 21021,
+      "forventet_grundlag": "README-referencetal 4.204.128 kr. med kodens standardgab 0,5 %/5.000 kr. (README.md:177); målt 2026-10-26 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved eef950a / df-data 106b9fc: 4.204.128,43 med gab 0 % på 521 s. Med det stramme gab her kan objektivet ligge op til ca. 21.000 kr. lavere, ikke højere.",
+      "forventet_loesetid": "2–10 minutter (målt 9 min lokalt, 8 kerner)",
       "noter": [
         "Kræver heat_csv. Notebookens manuelle parametre har ikke heat_csv; kør via appens bestillingsvej (eller udvid parametrene)."
       ]
@@ -280,7 +280,7 @@
         "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv"
       },
       "aendringer": [],
-      "forventet_loesetid": "1–5 minutter",
+      "forventet_loesetid": "1–5 minutter (målt 2,3 min lokalt)",
       "noter": [
         "Kræver heat_csv, se D09."
       ]
@@ -302,10 +302,10 @@
         "heat_csv": null
       },
       "aendringer": [],
-      "forventet_objektiv_dkk": 30430965,
-      "forventet_tolerance_dkk": 30431,
-      "forventet_grundlag": "README-referencetal (README.md:142) med Andebys egen solver-blok 0,1 %/1.000 kr./3.600 s (cases/andeby.yaml:142-145) — derfor intet stramt gab her: kørslen skal genskabe README-tallet.",
-      "forventet_loesetid": "6–10 minutter (README.md:150-151)"
+      "forventet_objektiv_dkk": 30431535,
+      "forventet_tolerance_dkk": 30432,
+      "forventet_grundlag": "README-referencetal (README.md:180) med Andebys egen solver-blok 0,1 %/1.000 kr./3.600 s (cases/andeby.yaml:142-145) — derfor intet stramt gab her: kørslen skal genskabe README-tallet. målt 2026-10-26 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved eef950a / df-data 106b9fc: 30.431.535,06 med gab 0,0142 %.",
+      "forventet_loesetid": "1 minut på 24 kerner (README.md:188); 11 minutter lokalt på 8 kerner"
     },
     {
       "id": "D12",
@@ -324,10 +324,10 @@
         "heat_csv": null
       },
       "aendringer": [],
-      "forventet_objektiv_dkk": 23067291,
-      "forventet_tolerance_dkk": 28000,
-      "forventet_grundlag": "README-referencetal 23.067.291 kr., stoppet ved tidsgrænsen 3.600 s med gab 0,12 % (README.md:141; README.md:146). En ny kørsel rammer også tidsgrænsen og kan lande inden for ca. 0,12 % (ca. 28.000 kr.); opnået gab skal læses.",
-      "forventet_loesetid": "ca. 1 time, ca. 3,5 GB (README.md:150-151) — køres SIDST",
+      "forventet_objektiv_dkk": 24188471,
+      "forventet_tolerance_dkk": 24188,
+      "forventet_grundlag": "README-referencetal 24.188.471 kr., optimal inden for casens gab 0,1 % (README.md:179; README.md:184). Tolerancen er casens gab af tallet.",
+      "forventet_loesetid": "17 minutter på 24 kerner, ca. 3,5 GB (README.md:188-190); tidsgrænsen er 3.600 s",
       "noter": [
         "2 vCPU / 16 GB i Fabric (fv-fabric F1) mod sandkassens 2 kerner i README; tidsgrænsen 3.600 s er kontraktens loft (KONTRAKT §3.0)."
       ]
@@ -342,14 +342,20 @@
       "knap": "tankens_vaerdi",
       "forventning": {
         "fortegn": "Δ = D02 − D01 > 0 (uden tank er driften dyrere; mængden af mulige driftsplaner bliver kun mindre).",
-        "stoerrelse": "Positiv og af størrelsesorden 10.000–200.000 kr. for 12 døgn. Andebys tanke er 4.175.596 kr. værd over et helt år på spot (rapport v4 §9, tabel 9.1) ≈ 11.400 kr./døgn i snit; vinteren kan afvige begge veje.",
+        "stoerrelse": "Positiv og af størrelsesorden 10.000–200.000 kr. for 12 døgn. (Rapport v4 §9's helårsværdi 4.175.596 kr. er regnet før rettelserne 19/10 og kan ikke bruges som mål.)",
         "hvem_overtager": "Elkedel og varmepumpe kører mindre i billige timer; halm- og gaskedel kører mere (mønstret fra Billund, rapport v4 §4.1).",
-        "forbehold": "Første time er ubundet for tanken (src/reporting.py:314-338). Målt: ca. 22.300 kr. af Δ = 44.220 kr. skyldes den — anbefalingen er 'Undersøg nærmere' (anbefalingsregler.json → t0_lager)."
+        "forbehold": "Kun kørsler før modelversion eef950a: første time var ubundet for tanken og gav ca. halvdelen af Δ (44.220 kr. ved b49aeb0). Fra eef950a gælder lagerbalancen også i første time (src/model.py:267-271; tests/test_lager_foerste_time.py)."
       },
       "maalt_2026_10_16": {
         "delta_dkk": 44219.87,
         "forventning_ramt": true,
         "vurdering": "Gaskedlen +105,7 MWh, elkedlen −61,6 og varmepumpen −15,6 MWh (D01→D02). Som forventet: el ned, gas op. Første interval: tankene leverede 33,2 MWh gratis (afladning 8,2 + 25 MW, indhold uændret); uden tank kostede samme time ca. 22.300 kr. mere — omkring halvdelen af Δ. Tankens reelle værdi i vinduet er derfor nærmere 22.000 kr."
+      },
+      "maalt_2026_10_26": {
+        "grundlag": "eef950a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": 21915.92,
+        "forventning_ramt": true,
+        "vurdering": "Gaskedlen +87,0 MWh, elkedlen −65,6 og varmepumpen −18,2 MWh (D01→D02); CO₂ 479,3 → 496,7 t. Som forventet: el ned, gas op. Tankens værdi i vinduet er nu 21.916 kr. — omkring halvdelen af de 44.220 kr. ved b49aeb0, præcis det modelrepoets nye test nævner (tests/test_lager_foerste_time.py:5-6). D02 (uden tank) er bit for bit som før; rettelsen rører kun lageret."
       }
     },
     {
@@ -367,6 +373,12 @@
         "delta_dkk": 473383.83,
         "forventning_ramt": false,
         "vurdering": "Varmepumpens 938,7 MWh overtages næsten helt af gaskedlen (+934,8 MWh); halmkedlen kører allerede 99,8 % af sin kapacitet. Det svarer til ca. 506 kr. pr. flyttet MWh: forskellen mellem varmepumpens el (ca. spot/COP) og gas på marginalen. Forventningen om 'lille til moderat' var forkert — se rettet tekst."
+      },
+      "maalt_2026_10_26": {
+        "grundlag": "eef950a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": 474655.2,
+        "forventning_ramt": true,
+        "vurdering": "Varmepumpens 941,3 MWh overtages næsten helt af gaskedlen (+937,3 MWh). Ca. 504 kr. pr. flyttet MWh. Uændret efter rettelserne, som forventet uden balancemarked."
       }
     },
     {
@@ -384,6 +396,12 @@
         "delta_dkk": 265776.04,
         "forventning_ramt": true,
         "vurdering": "Inden for grænsen 0 ≤ Δ ≤ 288.071 kr. (121,2 kr. × 2.376,8 MWh gas i D01) — 92 % af grænsen: gassen er næsten uundgåelig. Elkedlen tager +284 MWh, gaskedlen −242 og gasmotoren −42 MWh."
+      },
+      "maalt_2026_10_26": {
+        "grundlag": "eef950a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": 268151.77,
+        "forventning_ramt": true,
+        "vurdering": "Inden for grænsen 0 ≤ Δ ≤ 290.457 kr. (121,2 kr. × 2.396,5 MWh gas i D01: gaskedel 2.032,4/0,95 + gasmotor 126,0/0,49) — 92 % af grænsen. Elkedlen tager +284 MWh, gaskedlen −242 og gasmotoren −42 MWh."
       }
     },
     {
@@ -401,6 +419,12 @@
         "delta_dkk": -133801.23,
         "forventning_ramt": false,
         "vurdering": "Den gamle elkedel kører 1.283,8 MWh og fortrænger 1.206 MWh fra gaskedlen. Fortegnet holder. Forventningen 'kan være nær 0' var forkert: med gas på marginalen til ca. 850 kr./MWh er en elkedel billigere i alle timer, hvor spot + tarif + afgift er lavere."
+      },
+      "maalt_2026_10_26": {
+        "grundlag": "eef950a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": -134066.05,
+        "forventning_ramt": true,
+        "vurdering": "Den gamle elkedel kører 1.295,8 MWh og fortrænger 1.218,4 MWh fra gaskedlen. Fortegnet holder."
       }
     },
     {
@@ -411,13 +435,19 @@
       "knap": "balancemarkedets_vaerdi",
       "forventning": {
         "fortegn": "Δ = D06 − D01 < 0 (balancemarkedet sænker omkostningen).",
-        "stoerrelse": "Ca. −424.045 kr. (3.000.363 − 3.424.408, fv-fabric F5). Til sammenligning: BUDSTRATEGI's prognose-strategier gav 156.000–261.000 kr. og 'kender aktiveringerne' 554.000 kr. (doc/BUDSTRATEGI.md:247-252).",
+        "stoerrelse": "Ca. −329.068 kr. (3.117.644 − 3.446.712, målt 26/10). Til sammenligning: BUDSTRATEGI's prognose-strategier gav 128.000–216.000 kr. og 'kender aktiveringerne' 421.000 kr. (doc/BUDSTRATEGI.md:330-335).",
         "forbehold": "Andeby har ikke Billunds månedsloft: tallet er et potentiale ved fuld tilgængelighed, ikke en forventning (cases/andeby.yaml:454-458). Vis aFRR og mFRR, kapacitet og aktivering hver for sig."
       },
       "maalt_2026_10_16": {
         "delta_dkk": -424044.98,
         "forventning_ramt": true,
         "vurdering": "Præcis som F5. Balanceindtægt netto 547.201 kr. (aFRR 299.848, mFRR 247.353), brutto 664.048 kr. Værdien (424.045) er mindre end nettoindtægten, som forventet. Elkedlen kører 1.032 MWh mod 472 (footroom)."
+      },
+      "maalt_2026_10_26": {
+        "grundlag": "eef950a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": -329067.88,
+        "forventning_ramt": true,
+        "vurdering": "Balanceindtægt netto 521.823 kr. (aFRR 329.157, mFRR 192.666), brutto 534.410 kr. (forskellen 12.587 kr. er sparet tarif og elafgift — uden spotprisen siden eef950a). Værdien (329.068) er mindre end nettoindtægten, som forventet. Elkedlen kører 1.008 MWh mod 476 (footroom)."
       }
     },
     {
@@ -428,13 +458,19 @@
       "knap": "tankens_vaerdi",
       "forventning": {
         "fortegn": "Δ = D07 − D06 > 0.",
-        "sammenlign_med": "P1. Er tankværdien med balancemarked større end uden, er tanken en forudsætning for at byde (footroom/robust reservation). Er de ens, begrænser budstrategien mængden så meget, at tanken ikke kommer i spil (doc/BUDSTRATEGI.md:270). Hos Billund var de næsten ens ved 17,52 MW (rapport v4 §4.1).",
+        "sammenlign_med": "P1. Er tankværdien med balancemarked større end uden, er tanken en forudsætning for at byde (footroom/robust reservation). Er de ens, begrænser budstrategien mængden så meget, at tanken ikke kommer i spil (doc/BUDSTRATEGI.md:353). Hos Billund var de næsten ens ved 17,52 MW (rapport v4 §4.1).",
         "forbehold": "Robust reservation (standard) kræver, at varmen kan afsættes uden aktivering — uden tank begrænser det buddet (doc/BUDSTRATEGI.md:92)."
       },
       "maalt_2026_10_16": {
         "delta_dkk": 73487.5,
         "forventning_ramt": true,
         "vurdering": "Tanken er 73.488 kr. værd med balancemarked mod 44.220 kr. uden (P1) — 66 % mere. Her hjælper tanken altså med at kunne byde; nettoindtægten falder fra 547.201 til 512.552 kr. uden tanke. Samme forbehold om første interval som P1 gælder; sammenligningen P1/P6 er dog fair, fordi artefakten indgår i begge."
+      },
+      "maalt_2026_10_26": {
+        "grundlag": "eef950a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": 44754.23,
+        "forventning_ramt": true,
+        "vurdering": "Tanken er 44.754 kr. værd med balancemarked mod 21.916 kr. uden (P1) — dobbelt så meget. Her hjælper tanken med at kunne byde; nettoindtægten falder fra 521.823 til 492.247 kr. uden tanke. Ved b49aeb0 var tallene 73.488 og 44.220 kr.; begge indeholdt første times gratis varme."
       }
     },
     {
@@ -445,13 +481,19 @@
       "knap": "budstrategi_viden",
       "forventning": {
         "fortegn": "Forventet D08 < D06 (kender modellen aktiveringerne, vælger den præcis timerne med prisspidser). Ikke garanteret matematisk, fordi de to kørsler afregnes på forskelligt grundlag.",
-        "stoerrelse": "D08 ≈ 2.869.989 kr. (BUDSTRATEGI-kontroltal); forskellen til D06 er et mål for, hvor meget foresight-antagelsen betyder.",
-        "forbehold": "D08 er et loft, ingen kan nå (doc/BUDSTRATEGI.md:254)."
+        "stoerrelse": "D08 ≈ 3.025.301 kr. (BUDSTRATEGI-kontroltal (2)); forskellen til D06 er et mål for, hvor meget foresight-antagelsen betyder.",
+        "forbehold": "D08 er et loft, ingen kan nå (doc/BUDSTRATEGI.md:337)."
       },
       "maalt_2026_10_16": {
         "delta_dkk": -130374.1,
         "forventning_ramt": true,
         "vurdering": "D08 = 2.869.988,87 kr. mod BUDSTRATEGI-kontroltallet 2.869.989 (0,13 kr. fra). Nettoindtægten stiger til 681.108 kr., når modellen kender aktiveringerne — et loft, ingen kan nå."
+      },
+      "maalt_2026_10_26": {
+        "grundlag": "eef950a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": -92343.28,
+        "forventning_ramt": true,
+        "vurdering": "D08 = 3.025.300,75 kr. mod BUDSTRATEGI-kontroltallet 3.025.301. Nettoindtægten stiger til 633.271 kr., når modellen kender aktiveringerne — et loft, ingen kan nå."
       }
     },
     {
@@ -462,13 +504,19 @@
       "knap": "balancemarkedets_vaerdi",
       "forventning": {
         "fortegn": "Δ = D09 − D10 < 0.",
-        "stoerrelse": "Mindre end modellens balanceindtægt (netto 3.853.867 kr. i valideringen, rapport v4 §5.2, tabel 5.1), fordi den ikke-producerede varme skal laves et andet sted. Den realiserede forbrugsside-indtægt var 3.178.412 kr.",
+        "stoerrelse": "Mindre end modellens balanceindtægt (netto 3.751.755 kr. i D09), fordi den ikke-producerede varme skal laves et andet sted. Den realiserede forbrugsside-indtægt var 3.178.412 kr. (rapport v4 §5.2).",
         "forbehold": "Spor B er beskrivende og forudsiger ikke; motorernes balanceindtægt og nedregulering er ikke med (rapport v4 §5.4)."
       },
       "maalt_2026_10_16": {
         "delta_dkk": -2467024.48,
         "forventning_ramt": true,
         "vurdering": "D09 = 3.964.585,72 kr. mod README 3.964.586 (0,28 kr. fra) ved 0,0133 % gab. Balancemarkedets værdi 2,47 mio. kr. er under modellens nettoindtægt i valideringen (3,85 mio.), som forventet."
+      },
+      "maalt_2026_10_26": {
+        "grundlag": "eef950a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": -2229789.54,
+        "forventning_ramt": true,
+        "vurdering": "D09 = 4.204.128,43 kr. mod README 4.204.128 ved gab 0 %. Balancemarkedets værdi 2,23 mio. kr. er under modellens nettoindtægt (3,75 mio. kr.: aFRR 1.644.915, mFRR 2.106.840), som forventet."
       }
     },
     {
@@ -479,18 +527,66 @@
       "knap": "balancemarkedets_vaerdi",
       "forventning": {
         "fortegn": "Δ = D12 − D11 < 0.",
-        "stoerrelse": "Ca. −7.363.674 kr. (23.067.291 − 30.430.965, README.md:141-142).",
-        "forbehold": "Kørslerne har ikke samme opnåede gab (D12 stopper ved tidsgrænsen), så de er ikke direkte sammenlignelige efter KONTRAKT §6b; appen skal vise advarslen. Andebys balancetal er et potentiale, ikke en forventning (README.md:157-159). Året blander aFRR-markedet før og efter faldet i vinteren 2025/26 (doc/BALANCEMARKED.md:162-165)."
+        "stoerrelse": "Ca. −6.243.064 kr. (24.188.471 − 30.431.535, README.md:179-180).",
+        "forbehold": "Andebys balancetal er et potentiale, ikke en forventning (README.md:199-201). Året blander aFRR-markedet før og efter faldet i vinteren 2025/26."
       },
       "maalt_2026_10_16": {
         "delta_dkk": -7378128.7,
         "forventning_ramt": true,
         "vurdering": "D12 = 23.052.841,18 kr., løst optimalt til 0,087 % gab på 36 min (README's kørsel ramte tidsgrænsen ved 0,12 %); 14.450 kr. (0,063 %) under README's 23.067.291, inden for begge kørslers gab. Balancemarkedets værdi over året 7,38 mio. kr. mod README-forskellen 7,36 mio. Nettoindtægt 10.648.236 kr. (aFRR 6.773.853, mFRR 3.874.383), brutto 12.096.247 — værdien er under nettoindtægten, som forventet. aFRR dominerer over året, fordi andet halvår 2025 havde høje aFRR-kapacitetspriser (rapport v4 §5.3). Sammenlignelige efter §6b (samme ønskede gab); summen af de opnåede gab (ca. 25.400 kr.) er langt under Δ."
+      },
+      "maalt_2026_10_26": {
+        "grundlag": "eef950a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": null,
+        "forventning_ramt": null,
+        "vurdering": "D12 ikke regnet endnu ved eef950a (se rapporter/fv-model.md); D11 = 30.431.535,06 kr. = README."
       }
     }
   ],
   "notebook_bemaerkning": "Kørslerne kan bestilles via appens Scenarie + Bestilling (foretrukket, så de ligner app-kørsler) eller via fjv_koer_scenarie's manuelle parametre: vaerk_kode, scenarie_navn, aendringer_json (listen 'aendringer' som JSON), start/slut, med_balancering, mip_rel_gap/mip_abs_gap/tidsgraense_s som tekst. De manuelle parametre har ikke heat_csv, så D09/D10 kræver appens vej eller en ny parameter.",
   "koersel_status": {
+    "maalt": "2026-10-26, lokalt med den ægte arbejder (fjv.arbejder + hukommelseslageret, som fabric/koer_minne.py), 8 kerner, data_commit 106b9fc, model_commit eef950a. Ikke kørt i Fabric endnu.",
+    "objektiv_dkk": {
+      "D01": 3446711.91,
+      "D02": 3468627.83,
+      "D03": 3921367.11,
+      "D04": 3714863.68,
+      "D05": 3312645.86,
+      "D06": 3117644.03,
+      "D07": 3162398.25,
+      "D08": 3025300.75,
+      "D09": 4204128.43,
+      "D10": 6433917.97,
+      "D11": 30431535.06
+    },
+    "opnaaet_gab": {
+      "D01": 0.0,
+      "D02": 0.0,
+      "D03": 0.0,
+      "D04": 0.0,
+      "D05": 0.0,
+      "D06": 0.0,
+      "D07": 0.0,
+      "D08": 0.0,
+      "D09": 0.0,
+      "D10": 0.000185,
+      "D11": 0.000142
+    },
+    "koeretid_s": {
+      "D01": 18,
+      "D02": 15,
+      "D03": 15,
+      "D04": 14,
+      "D05": 16,
+      "D06": 17,
+      "D07": 14,
+      "D08": 16,
+      "D09": 521,
+      "D10": 138,
+      "D11": 643
+    }
+  },
+  "koersel_status_b49aeb0": {
     "maalt": "2026-10-16 08:45 (D01–D11) og 10:16 UTC (D12), Fabric (fjv_koer_scenarie, 2 vCPU), data_commit 392992c, model_commit b49aeb0",
     "koersels_id": {
       "D01": "87eac214-8da3-4cea-b867-b9c89e9c4983",
@@ -533,6 +629,7 @@
       "D10": 0.000193,
       "D11": 0.000176,
       "D12": 0.00087
-    }
+    },
+    "note": "Før rettelserne 19/10-2026 (b49aeb0); kan ikke sammenlignes med koersel_status."
   }
 }

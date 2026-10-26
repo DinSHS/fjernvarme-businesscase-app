@@ -2,10 +2,10 @@
 // GENERERET af _byg/byg_etiketter.py fra viden/felt_katalog.json,
 // viden/enhedstyper.json og viden/resultat_etiketter.json (fv-ekspert).
 // Ret ikke i hånden.
-// Modelcommit: b49aeb0af097be42938b80a0fea6acdd77162836 · 151 felter · 7 enhedstyper
+// Modelcommit: eef950a2ac7b3808a9456dcf48742ce08e52366a · 151 felter · 7 enhedstyper
 //-----------------------------------------------------------------------
 
-export const MODEL_COMMIT_KATALOG = "b49aeb0af097be42938b80a0fea6acdd77162836";
+export const MODEL_COMMIT_KATALOG = "eef950a2ac7b3808a9456dcf48742ce08e52366a";
 
 export const FELTER: readonly { sti: string; etiket: string; enhed: string | null }[] = [
  {
@@ -810,15 +810,15 @@ export const NOEGLETAL_TEKST: Readonly<Record<string, { etiket: string; forklari
  },
  "balanceindtaegt_dkk.brutto.i_alt": {
   "etiket": "Balanceindtægt, brutto, i alt",
-  "forklaring": "Som netto plus den sparede forbrugsomkostning (spot, tarif, afgift) ved aktivering. Det er dette beløb, der indgår i objektivet. Vis aldrig netto og brutto i samme sum."
+  "forklaring": "Som netto plus den sparede tarif og elafgift ved aktivering. Spotprisen er ikke med: strømmen er købt dagen før og betales alligevel (rettet i modellen 19/10-2026, modelversion eef950a). Det er dette beløb, der indgår i objektivet. Vis aldrig netto og brutto i samme sum."
  },
  "balanceindtaegt_dkk.brutto.afrr": {
   "etiket": "Balanceindtægt aFRR, brutto",
-  "forklaring": "aFRR netto + sparet forbrug ved aFRR-aktivering."
+  "forklaring": "aFRR netto + sparet tarif og elafgift ved aFRR-aktivering."
  },
  "balanceindtaegt_dkk.brutto.mfrr": {
   "etiket": "Balanceindtægt mFRR, brutto",
-  "forklaring": "mFRR netto + sparet forbrug ved mFRR-aktivering."
+  "forklaring": "mFRR netto + sparet tarif og elafgift ved mFRR-aktivering."
  },
  "tank_arbitrage_dkk": {
   "etiket": "Tankens arbitrageværdi (skyggepris)",
@@ -837,7 +837,7 @@ export const FORBEHOLD: readonly { hvornaar: string; tekst: string }[] = [
  },
  {
   "hvornaar": "ved sammenligning med og uden tank",
-  "tekst": "I første interval er tankens balance ubundet, så kørslen med tank får gratis varme dér. På et kort vindue kan det være en stor del af forskellen (Andeby 5.–16. jan 2026: ca. 22.300 kr. af 44.220 kr.); over et år er det småt."
+  "tekst": "Kun kørsler regnet før modelversion eef950a (19/10-2026): i første interval var tankens balance ubundet, så kørslen med tank fik gratis varme dér — på et kort vindue en stor del af forskellen (Andeby 5.–16. jan 2026: ca. 22.300 kr. af 44.220 kr.). Fra eef950a gælder lagerbalancen også i første time; sammenlign kun kørsler regnet ved samme modelversion."
  },
  {
   "hvornaar": "ved MILP og skyggepriser",
@@ -879,7 +879,7 @@ export const REGISTER: Readonly<Record<string, { etiket: string; enhed: string |
  "noegletal:el.omkostning_dkk": {
   "etiket": "Elomkostning i alt",
   "enhed": "kr.",
-  "forklaring": "Spot + nettarif + elafgift for enhedens elforbrug. Det sparede elkøb ved aktivering er ikke trukket fra her; det ligger i balanceindtægten (brutto)."
+  "forklaring": "Spot + nettarif + elafgift for enhedens elforbrug. Den sparede tarif og elafgift ved aktivering er ikke trukket fra her; den ligger i balanceindtægten (brutto)."
  },
  "noegletal:el.produktion_mwh": {
   "etiket": "Elproduktion (kraftvarme)",
@@ -929,12 +929,12 @@ export const REGISTER: Readonly<Record<string, { etiket: string; enhed: string |
  "noegletal:balancering.aktivering_brutto_dkk": {
   "etiket": "Aktiveringsindtægt, brutto",
   "enhed": "kr.",
-  "forklaring": "Netto + det sparede elkøb ved aktivering. Det er brutto, objektivet regner med. Findes kun ved metoden activation_value."
+  "forklaring": "Netto + den sparede tarif og elafgift ved aktivering (ikke spotprisen). Det er brutto, objektivet regner med. Findes kun ved metoden activation_value."
  },
  "noegletal:balancering.forbrugsmodregning_dkk": {
-  "etiket": "Sparet elkøb ved aktivering",
+  "etiket": "Sparet tarif og afgift ved aktivering",
   "enhed": "kr.",
-  "forklaring": "Det el, enheden ikke køber, når den aktiveres (spot + tarif + elafgift) = brutto − netto. Regnet med den FASTE tarif (tariff_consumption_flat), også når værket har en båndprofil — derfor ikke direkte sammenlignelig med 'Elomkostning: nettarif'."
+  "forklaring": "Den tarif og elafgift, enheden ikke betaler, når den aktiveres = brutto − netto. Spotprisen er ikke med: strømmen er købt dagen før og betales alligevel (rettet i modellen 19/10-2026). Regnet med den FASTE tarif (tariff_consumption_flat), også når værket har en båndprofil — derfor ikke direkte sammenlignelig med 'Elomkostning: nettarif'."
  },
  "noegletal:balancering.aktiveret_mwh": {
   "etiket": "Forventet aktiveret energi",
@@ -949,12 +949,12 @@ export const REGISTER: Readonly<Record<string, { etiket: string; enhed: string |
  "noegletal:lager.afladet_mwh": {
   "etiket": "Afladet varme",
   "enhed": "MWh",
-  "forklaring": "Varme hentet fra tanken over perioden. Forskellen til opladet varme er tankens varmetab (og første intervals ubundne afladning)."
+  "forklaring": "Varme hentet fra tanken over perioden. Forskellen til opladet varme er tankens varmetab og forskellen mellem indholdet ved start og slut. (I kørsler regnet før modelversion eef950a også første intervals ubundne afladning.)"
  },
  "noegletal:lager.niveau_start_mwh": {
   "etiket": "Tankens indhold ved start",
   "enhed": "MWh",
-  "forklaring": "Indholdet i periodens første interval; lig værkets startindhold (e_initial_mwh). Forbehold: i første interval er tankens balance ubundet, så kørslen med tank kan få lidt gratis varme dér."
+  "forklaring": "Indholdet efter periodens første interval: værkets startindhold (e_initial_mwh) minus varmetab plus første intervals op- og afladning. I kørsler regnet før modelversion eef950a var det låst til startindholdet, og tanken kunne få gratis varme i første interval."
  },
  "noegletal:lager.niveau_slut_mwh": {
   "etiket": "Tankens indhold ved slut",
@@ -1039,7 +1039,7 @@ export const REGISTER: Readonly<Record<string, { etiket: string; enhed: string |
  "maaned:<marked>_aktivering_brutto_dkk": {
   "etiket": "Aktiveringsindtægt, brutto",
   "enhed": "kr.",
-  "forklaring": "Netto + sparet elkøb (fast tarif) ved aktivering, i måneden. Lægges aldrig sammen med netto."
+  "forklaring": "Netto + sparet tarif og elafgift (fast tarif) ved aktivering, i måneden. Lægges aldrig sammen med netto."
  },
  "maaned:<marked>_aktiveret_mwh": {
   "etiket": "Forventet aktiveret energi",

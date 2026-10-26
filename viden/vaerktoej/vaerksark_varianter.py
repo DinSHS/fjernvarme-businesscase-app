@@ -1,4 +1,4 @@
-"""Varianter af doc/vaerksdata_skabelon.xlsx til måling af værksark-kontrakten (fv-data).
+"""Varianter af vaerksdata_skabelon.xlsx (modelrepoets rod) til måling af værksark-kontrakten (fv-data).
 
 Bruges af tjek_data_krav.py --vaerksark. Kræver openpyxl og pandas (fabric/_lokal/.venv).
 Hver variant: navn -> (fil, ekstra flag, forventet exitkode, tekst der skal stå i output).

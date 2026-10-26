@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_etiketter.py fra viden/anbefalingsregler.json og
 // viden/knapper.json (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: b49aeb0af097be42938b80a0fea6acdd77162836 · 16 knapper · 12 forbehold
+// Modelcommit: eef950a2ac7b3808a9456dcf48742ce08e52366a · 16 knapper · 12 forbehold
 //-----------------------------------------------------------------------
 
 export const KATEGORIER: Readonly<Record<string, { maerke: string; tone: string; betydning: string }>> = {
@@ -23,7 +23,7 @@ export const KATEGORIER: Readonly<Record<string, { maerke: string; tone: string;
  "undersoeg_naermere": {
   "maerke": "Undersøg nærmere",
   "tone": "advarsel",
-  "betydning": "Lovende eller tydelig, men med et væsentligt forbehold (kort vindue, Spor A, [BEKRÆFT]-værdier, løst gab, første times artefakt …). Næste skridt fjerner forbeholdet."
+  "betydning": "Lovende eller tydelig, men med et væsentligt forbehold (kort vindue, Spor A, [BEKRÆFT]-værdier, løst gab, første times artefakt i ældre kørsler …). Næste skridt fjerner forbeholdet."
  },
  "foelsomhed": {
   "maerke": "Følsomhed",
@@ -36,12 +36,12 @@ export const FORBEHOLD_REGLER: Readonly<Record<string, { virkning: string; tekst
  "faa_doegn": {
   "virkning": "nedgrader",
   "tekst": "Perioden er kun {doegn} døgn. Et kort vindue viser retningen, ikke størrelsen.",
-  "kilde": "doc/BUDSTRATEGI.md:263"
+  "kilde": "doc/BUDSTRATEGI.md:346"
  },
  "kort_periode_beslutning": {
   "virkning": "nedgrader",
   "tekst": "Perioden er {doegn} døgn. En investering skal regnes på et helt år; et kort vindue kan ikke ganges op.",
-  "kilde": "doc/BUDSTRATEGI.md:263; doc/EGET_VAERK.md:142"
+  "kilde": "doc/BUDSTRATEGI.md:346; doc/EGET_VAERK.md:142"
  },
  "en_saeson": {
   "virkning": "note",
@@ -51,12 +51,12 @@ export const FORBEHOLD_REGLER: Readonly<Record<string, { virkning: string; tekst
  "spor_a": {
   "virkning": "nedgrader",
   "tekst": "Balancetallet er Spor A: en øvre grænse ved fuld tilgængelighed, ikke en prognose.",
-  "kilde": "README.md:120-122; doc/BALANCEMARKED.md:112-120"
+  "kilde": "README.md:156-158; doc/BALANCEMARKED.md:113-121"
  },
  "kender_aktiveringerne": {
   "virkning": "nedgrader",
   "tekst": "Modellen kender aktiveringerne på forhånd; det er et loft, ingen kan nå. Kør med en prognose (trailing30, settle realized).",
-  "kilde": "doc/BUDSTRATEGI.md:76-86; doc/BUDSTRATEGI.md:254; src/config.py:232"
+  "kilde": "doc/BUDSTRATEGI.md:76-86; doc/BUDSTRATEGI.md:337; src/config.py:232"
  },
  "bekraeft": {
   "virkning": "nedgrader",
@@ -80,8 +80,8 @@ export const FORBEHOLD_REGLER: Readonly<Record<string, { virkning: string; tekst
  },
  "t0_lager": {
   "virkning": "nedgrader_begge",
-  "tekst": "Modellens første time er ubundet for tanken og giver den gratis varme; på {doegn} døgn kan det være en stor del af forskellen (målt: ca. halvdelen af tankværdien i Andeby 5.–16. jan 2026). Regn et længere vindue.",
-  "kilde": "src/reporting.py:314-338; udviklingsrapport"
+  "tekst": "Mindst én af kørslerne er regnet ved en ældre modelversion ({commit}), hvor tankens første time var ubundet og gav gratis varme; på {doegn} døgn kan det være en stor del af forskellen (målt: ca. halvdelen af tankværdien i Andeby 5.–16. jan 2026). Regn begge kørsler igen med den aktuelle modelversion.",
+  "kilde": "modelrepoet 3c2afa6 (tests/test_lager_foerste_time.py); udviklingsrapport"
  },
  "fiktivt_vaerk": {
   "virkning": "note",
@@ -91,9 +91,14 @@ export const FORBEHOLD_REGLER: Readonly<Record<string, { virkning: string; tekst
  "spor_b_kalibrering": {
   "virkning": "note",
   "tekst": "Spor B er kalibreret på marts–juni 2026 og forudsiger ikke andre perioder.",
-  "kilde": "doc/BALANCEMARKED.md:215-217"
+  "kilde": "doc/BALANCEMARKED.md:216-218"
  }
 };
+
+/** Modelversioner, hvor tankens første time var ubundet (forbeholdet t0_lager gælder kun kørsler herfra). */
+export const T0_DEFEKTE_MODEL_COMMITS: readonly string[] = [
+ "b49aeb0af097be42938b80a0fea6acdd77162836"
+];
 
 /** Begrundelser pr. trin i beslutningsrækkefølgen (pladsholdere i {}). */
 export const TRIN: Readonly<Record<string, string>> = {
@@ -128,9 +133,9 @@ export const KNAPPER: Readonly<Record<string, { spoergsmaal: string; anbefaling:
   "anbefaling": {
    "type": "beslutning",
    "kraever_helaar": false,
-   "forventet_fortegn": "≤ 0 (at byde kan modellen altid lade være med)",
+   "forventet_fortegn": "≤ 0 — men kun når scenariet ikke har kapacitetsprisgaten i mode 'driven' (reservation_gate.enabled = true og mode = driven): dér tvinger en fast blok buddet ind, når gaten er åben, og det kan koste (doc/BUDSTRATEGI.md:56). Med driven-gate: intet fortegnskrav.",
    "hvis_billigere": "Balancemarkedet sænker driftsomkostningen med {abs} i perioden{skaleret}.",
-   "hvis_dyrere": "Balancemarkedet gør driften {abs} dyrere. Det kan ikke ske ved frivillige bud — tjek budstrategien (faste blokke, driven-gate).",
+   "hvis_dyrere": "Balancemarkedet gør driften {abs} dyrere. Med frie bud kan det ikke ske; med en fast blok (driven-gate) kan det — tjek budstrategien og blokstørrelsen.",
    "naeste_skridt": [
     "Kør med en prognose (foresight trailing30, settle realized), så modellen ikke kender aktiveringerne",
     "Kør helåret (1. juli 2025 – 30. juni 2026) med samme gab",
@@ -264,7 +269,7 @@ export const KNAPPER: Readonly<Record<string, { spoergsmaal: string; anbefaling:
    "kraever_helaar": false,
    "forventet_fortegn": "intet (gaten kan både koste og spare, når der afregnes på det realiserede)",
    "hvis_billigere": "At byde kun, når det betaler sig, sparer {abs} i perioden mod at byde frit på prognosen.",
-   "hvis_dyrere": "At byde kun, når det betaler sig, koster {abs} mere end at byde frit på prognosen — men det frie bud lover mere, end det holder (doc/BUDSTRATEGI.md:254).",
+   "hvis_dyrere": "At byde kun, når det betaler sig, koster {abs} mere end at byde frit på prognosen — men det frie bud lover mere, end det holder (doc/BUDSTRATEGI.md:337).",
    "naeste_skridt": [
     "Kør helåret (1. juli 2025 – 30. juni 2026) med samme gab",
     "Sammenlign med jeres egen afregning pr. marked"
@@ -276,7 +281,7 @@ export const KNAPPER: Readonly<Record<string, { spoergsmaal: string; anbefaling:
   "anbefaling": {
    "type": "metode",
    "forventet_fortegn": "intet",
-   "tekst": "Indtægtsmetoden flytter resultatet {abs}. activation_value er den anbefalede metode (doc/BALANCEMARKED.md:52-65).",
+   "tekst": "Indtægtsmetoden flytter resultatet {abs}. activation_value er den anbefalede metode (doc/BALANCEMARKED.md:52-66).",
    "naeste_skridt": [
     "Brug activation_value i jeres tal"
    ]

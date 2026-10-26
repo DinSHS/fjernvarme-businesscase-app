@@ -1,5 +1,5 @@
 {
-  "_om": "Enhedstyper i fjernvarmemodellen @ b49aeb0. Typen er en etiket; økonomien styres af fuel og alpha. Standardværdier fra src/config.py (dataclass Unit).",
+  "_om": "Enhedstyper i fjernvarmemodellen @ eef950a. Typen er en etiket; økonomien styres af fuel og alpha. Standardværdier fra src/config.py (dataclass Unit).",
   "kilde": {
     "dataclass": "src/config.py:492",
     "validering": "src/config.py:522",

@@ -24,7 +24,8 @@ først, når tanken fjernes. (Kilde: rapport v4 §4.4)
 **Kapacitet** regnes af volumen og temperaturdifferens: ca. 1,163 kWh pr. m³ pr. grad. Har værket
 lag ved forskellige temperaturer, så skriv ét lager pr. lag. (Kilde: src/config.py:571-575; cases/andeby.yaml:407-415)
 
-**Et kendt forbehold:** i modellens første time er lagerbalancen ikke bundet, så tanken leverer
-gratis varme. Over et år er det småt, men på et kort vindue kan det være meget: i Andeby
-5.–16. januar 2026 var det ca. 22.300 kr. — omkring halvdelen af tankværdien på 44.220 kr. Regn
-tankens værdi på et langt vindue. (Kilde: src/reporting.py:314-338; demo_scenarier.json)
+**Første time er rettet.** Indtil modelversion eef950a (19. oktober 2026) var lagerbalancen ikke
+bundet i periodens første time, så tanken fik gratis varme dér: i Andeby 5.–16. januar 2026 omkring
+halvdelen af tankværdien på 44.220 kr. Fra eef950a gælder balancen også i første time. Kørsler regnet
+før har stadig fejlen; sammenlign kun kørsler ved samme modelversion. (Kilde: src/model.py:267-271;
+tests/test_lager_foerste_time.py; demo_scenarier.json)

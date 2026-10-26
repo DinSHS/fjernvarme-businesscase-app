@@ -483,7 +483,7 @@ class TestRepoTidsserier(unittest.TestCase):
             TDB.kompakt_validering({"advarsler": ["x" * 5000]})
 
 
-@unittest.skipUnless(HAR_PANDAS and REPO_DATA is not None and (REPO_DATA.parent / "doc" /
+@unittest.skipUnless(HAR_PANDAS and REPO_DATA is not None and (REPO_DATA.parent /
                      "vaerksdata_skabelon.xlsx").is_file(), "kræver modelrepoet, pandas og openpyxl")
 class TestVaerksark(unittest.TestCase):
     """Modelrepoets script køres uændret på en udfyldt kopi af skabelonen (8760 timer)."""
@@ -494,7 +494,7 @@ class TestVaerksark(unittest.TestCase):
         from datetime import datetime, timedelta
         cls.tmp = Path(tempfile.mkdtemp(prefix="fjvvs_"))
         kode = REPO_DATA.parent
-        wb = openpyxl.load_workbook(kode / "doc" / "vaerksdata_skabelon.xlsx")
+        wb = openpyxl.load_workbook(kode / "vaerksdata_skabelon.xlsx")   # i repoets rod fra eef950a (før: doc/)
         ws = wb["Timedata"]
         ws["B3"] = 100
         for rr in range(6, ws.max_row + 1):

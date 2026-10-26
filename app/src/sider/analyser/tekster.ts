@@ -18,5 +18,5 @@ export const SPOR_A_FORBEHOLD = "Spor A (fri reservation): balancetallene er et 
 export const SPOR_B_FORBEHOLD = "Spor B (værkets egen reservation som loft): beskriver én periode og forudsiger ikke.";
 
 /** Fodnoten om N−1: intervaldata mangler første interval. */
-export const N_MINUS_1 = "Intervaldata mangler kørslens første interval: modellen udelader det, fordi tankens lagerbalance er ubundet dér "
-    + "(kendt modeldefekt). Objektivet og nøgletallene medregner det; summer over intervaldata gør ikke.";
+export const N_MINUS_1 = "Intervaldata mangler kørslens første interval: modellens timefil udelader det. Objektivet og nøgletallene "
+    + "medregner det; summer over intervaldata gør ikke. (I kørsler regnet før modelversion eef950a var tankens lagerbalance også ubundet dér.)";

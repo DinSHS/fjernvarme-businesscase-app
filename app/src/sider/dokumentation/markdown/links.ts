@@ -30,6 +30,17 @@ const BUNDTET_SOM_STI = new Map<string, Dok>(
     DOKUMENTER.filter((d) => d.kilde === "modelrepo" && d.fil).map((d) => [d.sti, d]),
 );
 
+/**
+ * Filer, som modelrepoets egne tekster stadig linker til på den gamle plads. Målt ved eef950a: README, CONTRIBUTING og
+ * EGET_VAERK peger på `doc/vaerksdata_skabelon.xlsx` og `doc/*.docx`, men filerne er flyttet. Uden omdirigering giver
+ * linket 404 på GitHub. Fjern en linje, når modelrepoet selv har rettet linket.
+ */
+export const FLYTTEDE_FILER: ReadonlyMap<string, string> = new Map([
+    ["doc/vaerksdata_skabelon.xlsx", "vaerksdata_skabelon.xlsx"],
+    ["doc/rapport_billund_v4.docx", "doc/arkiv/rapport_billund_v4.docx"],
+    ["doc/notat_bestyrelse_datasikkerhed.docx", "doc/arkiv/notat_bestyrelse_datasikkerhed.docx"],
+]);
+
 export interface LinkKontekst {
     /** Rute for siden, hvor teksten vises, uden anker: `dokumentation/readme`. */
     rute: string;
@@ -47,8 +58,9 @@ export function omskrivLink(href: string, k: LinkKontekst): LinkSvar {
 
     const [stiDel, ...ankerDele] = h.split("#");
     const anker = ankerDele.length ? ankerDele.join("#") : undefined;
-    const sti = stiDel.startsWith("/") ? normaliserSti(stiDel) : normaliserSti(`${k.mappe}/${stiDel}`);
-    if (sti === undefined) return { href: githubUrl("", "tree"), ekstern: true };
+    const opløst = stiDel.startsWith("/") ? normaliserSti(stiDel) : normaliserSti(`${k.mappe}/${stiDel}`);
+    if (opløst === undefined) return { href: githubUrl("", "tree"), ekstern: true };
+    const sti = FLYTTEDE_FILER.get(opløst) ?? opløst;
 
     const dok = BUNDTET_SOM_STI.get(sti);
     if (dok) return { href: `#/dokumentation/${dok.id}${anker ? `#${anker}` : ""}`, ekstern: false };

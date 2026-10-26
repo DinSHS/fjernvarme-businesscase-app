@@ -336,9 +336,9 @@ describe("review A1: kapacitet og aktivering for hele perioden (register v3)", (
         const kunAfrr = samlNoegletal([nt("balancering", "kapacitetsindtaegt_dkk", 1, undefined, "afrr")]).balance!;
         expect(kunAfrr.i_alt.kapacitet).toBeNull();
     });
-    it("kolonnerne følger registerets etiketter og rækkefølgen kapacitet → aktivering netto → sparet elkøb → brutto → i alt", () => {
+    it("kolonnerne følger registerets etiketter og rækkefølgen kapacitet → aktivering netto → sparet tarif og afgift → brutto → i alt", () => {
         expect(BALANCE_KOLONNER.map((k) => k.felt)).toEqual(["kapacitet", "aktivering_netto", "sparet_elkoeb", "aktivering_brutto", "netto", "brutto"]);
-        expect(BALANCE_KOLONNER.map((k) => k.etiket).slice(0, 4)).toEqual(["Kapacitetsindtægt", "Aktiveringsindtægt, netto", "Sparet elkøb ved aktivering", "Aktiveringsindtægt, brutto"]);
+        expect(BALANCE_KOLONNER.map((k) => k.etiket).slice(0, 4)).toEqual(["Kapacitetsindtægt", "Aktiveringsindtægt, netto", "Sparet tarif og afgift ved aktivering", "Aktiveringsindtægt, brutto"]);
     });
 });
 

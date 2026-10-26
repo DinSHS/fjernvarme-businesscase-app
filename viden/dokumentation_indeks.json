@@ -1,13 +1,13 @@
 {
   "_om": "Hvilke dokumenter appens Dokumentation-side viser, i hvilken rækkefølge, og hvorfra. Repo-dokumenter hentes ved build fra modelrepoet ved model_commit (git show <commit>:<sti>), aldrig fra arbejdsmappen: den indeholder utrackede filer (CLAUDE.md, .claude/, doc/AUTOMATISERING.*, doc/*.html), som ikke er en del af den pinnede udgivelse.",
-  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
   "licens": {
     "navn": "MIT",
     "indehaver": "Copyright (c) 2026 Dansk Fjernvarme",
     "kilde": "LICENSE:1-3",
     "krav": "MIT tillader brug, ændring og videredistribution, også kommercielt, når copyright- og tilladelsesteksten følger med alle kopier. Bundt derfor LICENSE uændret sammen med de bundtede dokumenter, og vis den i appen (punkt 'licens' nedenfor).",
     "bundtes_ved_build": true,
-    "note": "Dokumenterne er offentlige. Værksdata, der oprettes i appen, er ikke; de må aldrig skrives tilbage til det offentlige repo (KONTRAKT §2; README.md:100-104)."
+    "note": "Dokumenterne er offentlige. Værksdata, der oprettes i appen, er ikke; de må aldrig skrives tilbage til det offentlige repo (KONTRAKT §2; README.md:136-140)."
   },
   "links_i_dokumenterne": "Repo-dokumenterne linker relativt til hinanden (fx '](BALANCEMARKED.md)', '](EGET_VAERK.md#helår-og-løsetid)', README: '](doc/...)'). Appen skal omskrive links til bundtede dokumenter til interne visninger og links til filer, der ikke bundtes, til https://github.com/skj-1964/fjernvarme-businesscase/blob/<model_commit>/<sti>.",
   "dokumenter": [
@@ -46,7 +46,17 @@
       "format": "pdf",
       "gruppe": "Modellen",
       "beskrivelse": "Hovedrapporten (22. oktober 2026): metode, Billund som case, tank og balancemarked, validering mod Billunds afregning og matematik i bilag B.",
-      "note": "Regnet ved commit 405b428; hvor README har nyere tal, har README forrang."
+      "note": "Balancetallene i rapporten er regnet før rettelserne 19. oktober 2026 (tankens første time, aktivering uden spotpris) og er for høje (README, afsnittet Referencetal). Hvor README har nyere tal, har README forrang."
+    },
+    {
+      "id": "matematisk_modelbeskrivelse",
+      "titel": "Matematisk modelbeskrivelse (bilag D)",
+      "kilde": "modelrepo",
+      "sti": "doc/matematisk_modelbeskrivelse_v4.pdf",
+      "format": "pdf",
+      "gruppe": "Modellen",
+      "beskrivelse": "Bilag D til rapport v4: den fulde formelle specifikation af optimeringsproblemet — mængder, variable, alle led og bindinger, og de valg en case kan slå til og fra. Til fagfolk, der vil efterprøve modellen.",
+      "note": "Beskriver koden ved commit 33c3832 (15. oktober 2026), altså før rettelserne 19. oktober: i den pinnede version gælder lagerbalancen også i første time, og en aktiveret MWh værdisættes uden spotprisen (src/model.py, src/activation_value.py)."
     },
     {
       "id": "koersel",
@@ -99,7 +109,7 @@
       "id": "vaerksdata_skabelon",
       "titel": "Skabelon til værksdata (Excel)",
       "kilde": "modelrepo",
-      "sti": "doc/vaerksdata_skabelon.xlsx",
+      "sti": "vaerksdata_skabelon.xlsx",
       "format": "xlsx",
       "gruppe": "Værket",
       "beskrivelse": "Regnearket, som et værk udfylder med timedata, anlæg, varmepumpe og priser. Til download.",
@@ -165,15 +175,11 @@
   "ikke_med": [
     {
       "sti": "doc/arkiv/",
-      "grund": "Rapport v3 og figurer; tal og kommandoer gælder ikke længere (README.md:16-18)."
+      "grund": "Rapport v3 og figurer (historik), og Word-udgaverne af rapport v4, bilag D og notatet om datasikkerhed: samme indhold som PDF'erne i doc/."
     },
     {
-      "sti": "doc/notat_bestyrelse_datasikkerhed.docx",
-      "grund": "Udkast fra maj 2026 om brug af Claude (GDPR/fortrolighed); ikke relevant for appen og markeret som udkast (README.md:175)."
-    },
-    {
-      "sti": "doc/rapport_billund_v4.docx",
-      "grund": "Samme indhold som PDF'en."
+      "sti": "doc/notat_bestyrelse_datasikkerhed.pdf",
+      "grund": "Notat om GDPR, fortrolighed og jurisdiktion ved brug af Claude; stadig 'Udkast v1, maj 2026' (forsiden; README.md:259). Handler om modellens arbejdsform med Claude, ikke om appen."
     },
     {
       "sti": "noter/",
@@ -181,7 +187,7 @@
     },
     {
       "sti": "CLAUDE.md, .claude/, doc/AUTOMATISERING.*, doc/*.html",
-      "grund": "Utrackede filer i arbejdsmappen; ikke en del af commit b49aeb0."
+      "grund": "Utrackede filer i arbejdsmappen; ikke en del af commit eef950a."
     }
   ]
 }
