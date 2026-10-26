@@ -6,7 +6,7 @@
   "kr_led": "kr.-beløb fra tidsserier (el, balancering) er objektivets led: Σ over intervaller af (effekt × pris), præcis som build_model og balancing.summarize_reserves summerer - uden Δt. Ved 1 h (alle repoets værker) er det kr. Ved 15 min følger vi objektivet; modellens timefil ganger kapacitetsindtægten med Δt og er derfor ikke sammenlignelig der.",
   "mwh": "MWh = Σ MW × Δt.",
   "null": "null = ikke tilgængelig (fx skyggepriser ved MILP, brutto-aktivering ved legacy-metoden, balancering uden --with-balancing). Aldrig 0 som stedfortræder.",
-  "netto_brutto": "Balanceindtægt NETTO = kapacitet + aktiveringsbetaling (kun aktiveringsprisen). BRUTTO = netto + sparet forbrug (spot + tarif + afgift) ved aktivering; det er brutto, objektivet regner med. Netto og brutto lægges aldrig sammen.",
+  "netto_brutto": "Balanceindtægt NETTO = kapacitet + aktiveringsbetaling (kun aktiveringsprisen). BRUTTO = netto + sparet tarif og elafgift ved aktivering (fra modelversion eef950a; før regnede modellen også spotprisen som sparet, src/activation_value.py:131); det er brutto, objektivet regner med. Netto og brutto lægges aldrig sammen.",
   "i_alt": "Poster med i_alt=true udsender også en række med objekt=null (summen over enheder, pr. marked hvor relevant), regnet på uafrundede tal."
  },
  "kilder": {
@@ -143,7 +143,7 @@
    "felt": "noegletal.balanceindtaegt_dkk.brutto.i_alt",
    "netto_brutto": "brutto",
    "etiket": "Balanceindtægt, brutto, i alt",
-   "forklaring": "Som netto plus den sparede forbrugsomkostning (spot, tarif, afgift) ved aktivering. Det er dette beløb, der indgår i objektivet. Vis aldrig netto og brutto i samme sum.",
+   "forklaring": "Som netto plus den sparede tarif og elafgift ved aktivering. Spotprisen er ikke med: strømmen er købt dagen før og betales alligevel (rettet i modellen 19/10-2026, modelversion eef950a). Det er dette beløb, der indgår i objektivet. Vis aldrig netto og brutto i samme sum.",
    "etiket_kilde": "fv-ekspert",
    "etiket_ref": "manifest_noegletal:balanceindtaegt_dkk.brutto.i_alt"
   },
@@ -156,7 +156,7 @@
    "felt": "noegletal.balanceindtaegt_dkk.brutto.afrr",
    "netto_brutto": "brutto",
    "etiket": "Balanceindtægt aFRR, brutto",
-   "forklaring": "aFRR netto + sparet forbrug ved aFRR-aktivering.",
+   "forklaring": "aFRR netto + sparet tarif og elafgift ved aFRR-aktivering.",
    "etiket_kilde": "fv-ekspert",
    "etiket_ref": "manifest_noegletal:balanceindtaegt_dkk.brutto.afrr"
   },
@@ -169,7 +169,7 @@
    "felt": "noegletal.balanceindtaegt_dkk.brutto.mfrr",
    "netto_brutto": "brutto",
    "etiket": "Balanceindtægt mFRR, brutto",
-   "forklaring": "mFRR netto + sparet forbrug ved mFRR-aktivering.",
+   "forklaring": "mFRR netto + sparet tarif og elafgift ved mFRR-aktivering.",
    "etiket_kilde": "fv-ekspert",
    "etiket_ref": "manifest_noegletal:balanceindtaegt_dkk.brutto.mfrr"
   },
@@ -329,7 +329,7 @@
    "i_alt": true,
    "definition": "spot + tarif + afgift. Kontrol i fjv.json: denne + var_om × Σ heat_prod = enhedens led i objektivet (målt afvigelse ≤ 1e-10 kr.).",
    "etiket": "Elomkostning i alt",
-   "forklaring": "Spot + nettarif + elafgift for enhedens elforbrug. Det sparede elkøb ved aktivering er ikke trukket fra her; det ligger i balanceindtægten (brutto).",
+   "forklaring": "Spot + nettarif + elafgift for enhedens elforbrug. Den sparede tarif og elafgift ved aktivering er ikke trukket fra her; den ligger i balanceindtægten (brutto).",
    "etiket_kilde": "fv-ekspert",
    "etiket_ref": "maaleregister_noegler:noegletal:el.omkostning_dkk"
   },
@@ -484,7 +484,7 @@
    "netto_brutto": "brutto",
    "definition": "Σ av × r (activation_gross_dkk). Kun ved activation_value; ved legacy findes rækken ikke (ikke tilgængelig).",
    "etiket": "Aktiveringsindtægt, brutto",
-   "forklaring": "Netto + det sparede elkøb ved aktivering. Det er brutto, objektivet regner med. Findes kun ved metoden activation_value.",
+   "forklaring": "Netto + den sparede tarif og elafgift ved aktivering (ikke spotprisen). Det er brutto, objektivet regner med. Findes kun ved metoden activation_value.",
    "etiket_kilde": "fv-ekspert",
    "etiket_ref": "maaleregister_noegler:noegletal:balancering.aktivering_brutto_dkk"
   },
@@ -498,9 +498,9 @@
    "serie": "afl.bal_modregning_dkk.<marked>.<enhed>",
    "aggregering": "sum",
    "i_alt": true,
-   "definition": "brutto - netto (consumption_offset_dkk). av og av_payment er regnet i datalaget med el_cost_flat = tariff_consumption_flat + electricity_tax (data_loader_github.py:690-698) - den FASTE tarif, ogsaa naar vaerket har en baandprofil. Derfor ikke direkte sammenlignelig med el.tarif_dkk.",
-   "etiket": "Sparet elkøb ved aktivering",
-   "forklaring": "Det el, enheden ikke køber, når den aktiveres (spot + tarif + elafgift) = brutto − netto. Regnet med den FASTE tarif (tariff_consumption_flat), også når værket har en båndprofil — derfor ikke direkte sammenlignelig med 'Elomkostning: nettarif'.",
+   "definition": "brutto - netto (consumption_offset_dkk) = el_cost_flat pr. aktiveret MWh; spotprisen indgaar ikke fra eef950a (src/activation_value.py:131). av og av_payment er regnet i datalaget med el_cost_flat = tariff_consumption_flat + electricity_tax (data_loader_github.py:690-698) - den FASTE tarif, ogsaa naar vaerket har en baandprofil. Derfor ikke direkte sammenlignelig med el.tarif_dkk.",
+   "etiket": "Sparet tarif og afgift ved aktivering",
+   "forklaring": "Den tarif og elafgift, enheden ikke betaler, når den aktiveres = brutto − netto. Spotprisen er ikke med: strømmen er købt dagen før og betales alligevel (rettet i modellen 19/10-2026). Regnet med den FASTE tarif (tariff_consumption_flat), også når værket har en båndprofil — derfor ikke direkte sammenlignelig med 'Elomkostning: nettarif'.",
    "etiket_kilde": "fv-ekspert",
    "etiket_ref": "maaleregister_noegler:noegletal:balancering.forbrugsmodregning_dkk"
   },
@@ -542,7 +542,7 @@
    "serie": "res.discharge.<lager>",
    "aggregering": "sum_dt",
    "etiket": "Afladet varme",
-   "forklaring": "Varme hentet fra tanken over perioden. Forskellen til opladet varme er tankens varmetab (og første intervals ubundne afladning).",
+   "forklaring": "Varme hentet fra tanken over perioden. Forskellen til opladet varme er tankens varmetab og forskellen mellem indholdet ved start og slut. (I kørsler regnet før modelversion eef950a også første intervals ubundne afladning.)",
    "etiket_kilde": "fv-ekspert",
    "etiket_ref": "maaleregister_noegler:noegletal:lager.afladet_mwh"
   },
@@ -554,9 +554,9 @@
    "kilde": "fuld.csv",
    "serie": "res.storage_energy.<lager>",
    "aggregering": "foerste",
-   "definition": "t=0's lagerbalance er ubundet i modellen (kendt defekt, noter/notat_f9_gate0_t0_lagerbalance.md).",
+   "definition": "storage_energy i første interval = (1 - tab) x e_initial + opladning - afladning i første interval (src/model.py:267-271 @ eef950a). Før eef950a var den låst til e_initial, og balancen i første interval var ubundet (noter/notat_f9_gate0_t0_lagerbalance.md).",
    "etiket": "Tankens indhold ved start",
-   "forklaring": "Indholdet i periodens første interval; lig værkets startindhold (e_initial_mwh). Forbehold: i første interval er tankens balance ubundet, så kørslen med tank kan få lidt gratis varme dér.",
+   "forklaring": "Indholdet efter periodens første interval: værkets startindhold (e_initial_mwh) minus varmetab plus første intervals op- og afladning. I kørsler regnet før modelversion eef950a var det låst til startindholdet, og tanken kunne få gratis varme i første interval.",
    "etiket_kilde": "fv-ekspert",
    "etiket_ref": "maaleregister_noegler:noegletal:lager.niveau_start_mwh"
   },
@@ -797,7 +797,7 @@
    "etiket": "Aktiveringsindtægt, brutto",
    "netto_brutto": "brutto",
    "etiket_kilde": "fv-ekspert",
-   "forklaring": "Netto + sparet elkøb (fast tarif) ved aktivering, i måneden. Lægges aldrig sammen med netto.",
+   "forklaring": "Netto + sparet tarif og elafgift (fast tarif) ved aktivering, i måneden. Lægges aldrig sammen med netto.",
    "etiket_ref": "maaleregister_noegler:maaned:<marked>_aktivering_brutto_dkk"
   },
   {
@@ -825,7 +825,7 @@
  ],
  "maaned_regler": "Måned = YYYY-MM i Europe/Copenhagen af intervallets START (EU-reglen regnet aritmetisk, fjv/dansk_tid.py). Rækken maaned='periode' er hele kørslen regnet på uafrundede intervaller - ikke summen af viste måneder. Ingen afrunding i databasen. KoerselMaaned har ingen marked-kolonne; markedet står forrest i nøglen (afrr_…, mfrr_…).",
  "tid": {
-  "beskrivelse": "KoerselTime = _hourly.csv (N-1 rækker; første interval droppes bevidst af modellen). tid = CSV'ens timestamp tolket som UTC (CSV'en har ingen 'Z', men modellens akse er UTC). varmelast_mw = heat_load_mw, spotpris = spot_price_dkk_mwh, t_ude = t_out_c; ALLE øvrige kolonner ligger uændret i vaerdier_json (kompakt, NaN -> null). Kolonneetiketter: viden/resultat_etiketter.json -> interval.",
+  "beskrivelse": "KoerselTime = _hourly.csv (N-1 rækker; modellens rapport udelader første interval - målt ved eef950a, hvor src/reporting.py er uændret, selv om begrundelsen, den ubundne lagerbalance, er rettet i src/model.py). tid = CSV'ens timestamp tolket som UTC (CSV'en har ingen 'Z', men modellens akse er UTC). varmelast_mw = heat_load_mw, spotpris = spot_price_dkk_mwh, t_ude = t_out_c; ALLE øvrige kolonner ligger uændret i vaerdier_json (kompakt, NaN -> null). Kolonneetiketter: viden/resultat_etiketter.json -> interval.",
   "kolonner": {
    "varmelast_mw": "heat_load_mw",
    "spotpris": "spot_price_dkk_mwh",

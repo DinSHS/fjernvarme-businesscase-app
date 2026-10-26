@@ -24,7 +24,7 @@ sys.stdout.reconfigure(errors="replace")
 
 HER = Path(__file__).resolve().parent
 VIDEN = HER.parent
-PIN = "b49aeb0af097be42938b80a0fea6acdd77162836"
+PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
 REPO = Path(os.environ.get("FJV_MODELREPO",
                            VIDEN.parent.parent / "fjernvarme-businesscase"))
 COMMIT = PIN
@@ -368,7 +368,7 @@ F("electricity.spot_area", "Elområde for balancepriser", "enum",
   regler=["Valideres ikke af config.py; bør være lig data.price_zone."])
 F("electricity.tariff_consumption_flat", "Forbrugstarif, fast", "number",
   "Nettarif pr. MWh el, når der ikke er en tidsvarierende profil. Bruges også "
-  "altid i aktiveringsværdien (sparet forbrug), selv når profilen er sat.",
+  "altid i aktiveringsværdien (sparet tarif ved aktivering), selv når profilen er sat.",
   K(CFG, r'tariff_consumption_flat=e\["tariff_consumption_flat"\]'),
   enhed="DKK/MWh el", paakraevet=True)
 F("electricity.tariff_production_flat", "Produktionstarif", "number",
@@ -968,7 +968,7 @@ def enhedstyper() -> dict:
         },
     }
     return {
-        "_om": "Enhedstyper i fjernvarmemodellen @ b49aeb0. Typen er en etiket; "
+        "_om": "Enhedstyper i fjernvarmemodellen @ eef950a. Typen er en etiket; "
                "økonomien styres af fuel og alpha. Standardværdier fra src/config.py "
                "(dataclass Unit).",
         "kilde": {

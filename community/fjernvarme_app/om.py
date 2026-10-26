@@ -2,7 +2,7 @@
 
 Faktaene kommer fra ``offentlig/kredit.json`` (hentet ordret fra de to repoer ved de pinnede commits) og
 licensteksterne fra ``LICENSES/``; de pinnede commits fra motoren (``fjv.konstanter``) og databasens
-Motor-række. Intet her antyder, at forfatteren, Billund Fjernvarme eller Dansk Fjernvarme står bag appen.
+Motor-række. Intet her antyder, at forfatteren, Billund Varme eller Dansk Fjernvarme står bag appen.
 """
 
 from __future__ import annotations
@@ -13,9 +13,9 @@ from . import __version__, miljoe
 
 SAETNING = ("Denne app er en brugerflade til fjernvarme-businesscase-modellen. Metoden, valideringen og "
             "referencetallene er forfatterens; appen ændrer ikke modellen, men kører den uændret på en pinnet "
-            "commit. Appen er ikke udviklet, godkendt eller støttet af forfatteren, Billund Fjernvarme eller "
+            "commit. Appen er ikke udviklet, godkendt eller støttet af forfatteren, Billund Varme eller "
             "Dansk Fjernvarme.")
-KREDITLINJE = ("Bygger på fjernvarme-businesscase af skj-1964 (MIT), udviklet med Billund Fjernvarme og "
+KREDITLINJE = ("Bygger på fjernvarme-businesscase af skj-1964 (MIT), udviklet med Billund Varme og "
                "Dansk Fjernvarme · data fra df-data")
 
 

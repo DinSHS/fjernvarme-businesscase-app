@@ -1,7 +1,7 @@
 # Metoden bag Fjernvarme Businesscase
 
 *En syntese til driftsledere og økonomer, der ikke koder. Kilden er det åbne modelrepo
-`skj-1964/fjernvarme-businesscase` ved commit `b49aeb0` (MIT) og rapport v4. Henvisninger er
+`skj-1964/fjernvarme-businesscase` ved commit `eef950a` (MIT) og rapport v4. Henvisninger er
 `fil:linje` i repoet eller `rapport v4 §afsnit`.*
 
 ---
@@ -42,7 +42,7 @@ ladning minus afladning (src/model.py:255-260). Kapaciteten regnes af volumen og
 temperaturdifferens: 1 m³ vand med 1 K giver ca. 1,163 kWh (src/config.py:571-575). Andebys to
 lag på 7.000 m³ ved 30 K og 3.000 m³ ved 55 K rummer derfor ca. 244 og 192 MWh
 (cases/andeby.yaml:416-438). Tanken skal ende, hvor den startede, så perioden ikke tærer på et
-lager, den ikke har betalt for (src/model.py:277-283; rapport v4 §2.1).
+lager, den ikke har betalt for (src/model.py:278-284; rapport v4 §2.1).
 
 **Start/stop (unit commitment).** Kedler med minimumslast, minimum driftstid og
 startomkostning gør problemet til et heltalsproblem. Logikken er kun aktiv, når enheden har
@@ -69,14 +69,14 @@ Skiftet til målt tabel flyttede alene Billunds Spor A fra 5,19 til 4,70 mio. kr
 ## 3. El: spot, tarif og afgift
 
 Spotprisen kommer time for time fra df-data; fra 1. oktober 2025 findes kvarterpriser
-(README.md:182-185). Til elprisen for varmepumpe og elkedel lægges nettarif og elafgift. Tariffen
+(README.md:224-227). Til elprisen for varmepumpe og elkedel lægges nettarif og elafgift. Tariffen
 kan være en fast sats eller en **båndprofil** fra netselskabets prisblad: bånd (fx lav, høj,
 spids), sæsoner og hverdag/weekend, slået op i dansk lokaltid med danske helligdage
 (src/tariff.py:1-24). To fælder:
 
 - Elafgiften står i profilen som dokumentation (`elafgift_net`), men lægges til af modellen via
   `electricity_tax`; de to tal skal være ens, ellers afvises casen (src/tariff.py:165-184).
-- Aktiveringsværdien i balancemarkedet regner det sparede forbrug med den **faste** tarif plus
+- Aktiveringsværdien i balancemarkedet regner den sparede tarif med den **faste** sats plus
   elafgift, også når profilen er sat (src/data_loader_github.py:690-698). Den faste sats er
   altså ikke ligegyldig.
 
@@ -107,15 +107,20 @@ markederne, af budvinduer og idriftsættelsesdato og eventuelt af nettilslutning
 (doc/BALANCEMARKED.md:19-43; doc/BUDSTRATEGI.md:60-70).
 
 **Aktiveringsværdien** regnes kvarter for kvarter, så samvariationen mellem pris og aktivering
-fanges: værdien af én MWh aktiveret op-regulering er aktiveringsprisen **plus** den sparede
-forbrugsomkostning (spot, tarif, afgift). Metoden hedder `activation_value`; den ældre `legacy`
-ganger timegennemsnit og undervurderer systematisk (doc/BALANCEMARKED.md:47-65).
+fanges: værdien af én MWh aktiveret op-regulering er aktiveringsprisen **plus** den sparede tarif
+og elafgift. Spotprisen er *ikke* en besparelse: strømmen er købt dagen før og betales, uanset om
+enheden stopper. Det blev bekræftet af Billund 19. oktober 2026 og rettet i modellen samme dag;
+før regnede modellen også spotprisen som sparet og overvurderede aktiveringen
+(src/activation_value.py:18-28; doc/BUDSTRATEGI.md:155-185). Modelrepoets doc/BALANCEMARKED.md
+viser stadig den gamle formel med spotprisen (doc/BALANCEMARKED.md:52-62); koden er gældende.
+Metoden hedder `activation_value`; den ældre `legacy`
+ganger timegennemsnit og undervurderer systematisk (doc/BALANCEMARKED.md:47-66).
 
 **Hvor meget aktiveres?** At buddet ligger i merit, er ikke det samme som at blive kaldt.
 `clear` regner hele buddet aktiveret og gav 4–5 gange for meget aktiveret energi mod Billunds
 afregning; `system_share` følger systemets faktiske aktivering skaleret med en faktor k (k = 4
 for aFRR, kalibreret på marts–juni 2026); `ramp` lader andelen vokse med prisens afstand til
-buddet (doc/BALANCEMARKED.md:79-89; doc/BUDSTRATEGI.md:125-129).
+buddet (doc/BALANCEMARKED.md:80-90; doc/BUDSTRATEGI.md:131-135).
 
 **Hvad ved værket, når det byder?** Kapacitetsbuddet afgives dagen før. Ser modellen de faktiske
 aktiveringer (`foresight: realized`), vælger den præcis timerne med prisspidser, og tallet bliver
@@ -137,15 +142,16 @@ den varme, der ellers skulle laves). Dyr gas på marginalen giver automatisk en 
 | Reservation | frit inden for lofter og kapacitetsprisgate (`mode: bound`) | værkets egen reserverede mængde pr. marked og måned som loft |
 | Brug | **øvre grænse**, ikke en prognose | validering mod afregning; forudsiger ikke |
 
-Kilde: doc/BALANCEMARKED.md:112-120. Uden månedsloftet reserverede modellen 3–8 gange mere, end
+Kilde: doc/BALANCEMARKED.md:113-121. Uden månedsloftet reserverede modellen 3–8 gange mere, end
 Billund gjorde (rapport v4 §2.2). Månedsloftet beskriver ét værk i én periode og kan ikke
-overføres (doc/BALANCEMARKED.md:155-156).
+overføres (doc/BALANCEMARKED.md:156-157).
 
 **Budstrategien er det vigtigste valg.** På samme værk, år og data kan balancetallet gå fra få
 millioner til mere end hele værkets varmeomkostning. Et balancetal skal derfor altid stå sammen
 med den budstrategi, det er regnet med (doc/BUDSTRATEGI.md:9-19). På Andebys vintervindue gav
-fire strategier en balanceværdi på 554.000 kr. (kender aktiveringerne), 261.000 kr. (prognose)
-og 156.000 kr. (beregnet budpris, prognose) (doc/BUDSTRATEGI.md:245-254).
+fire strategier en balanceværdi på 421.000 kr. (kender aktiveringerne), 216.000 kr. (prognose)
+og 128.000 kr. (beregnet budpris, prognose) ved modelversion eef950a (doc/BUDSTRATEGI.md:328-337;
+genskabt til kronen 26. oktober 2026).
 
 ## 5. Varmelasten: målt eller syntetiseret
 
@@ -169,7 +175,7 @@ sommer/vinter-temperaturer (doc/VARMELAST_OG_NETTAB.md:89-133). Med målt varmel
 allerede i målingen (doc/VARMELAST_OG_NETTAB.md:136-139).
 
 **Klimaområdet** vælges blandt fire DMI-områder (fyn, vestkyst, karup, ringsted). Valget alene
-kan flytte objektivet med op til ca. 4 % (README.md:193-195).
+kan flytte objektivet med op til ca. 4 % (README.md:235-237).
 
 ## 6. Differensmetoden og solvergab
 
@@ -194,21 +200,24 @@ ned ved differenser; rapport v4 regnede alle differenser med højst 0,1 % eller 
 
 Målt 16. oktober 2026 på Spor A, marts 2026 med balancering, ønsket gab 0,0002: med standardens absolutte gab på 5.000 kr. stoppede solveren ved 0,068 % (HiGHS angav selv 'tolerance: 0.22%') efter 52 s; med absolut gab 1 kr. ved 0,019 % efter 124 s. Objektivet blev det samme (2.273.504 kr.), men usikkerheden faldt fra ca. 1.550 til ca. 430 kr. (Kilde: udviklingsrapport, afsnit Målt)
 
-**Tre regler for brug af tallene** (README.md:112-124):
+**Tre regler for brug af tallene** (README.md:148-160):
 
 1. Differenser frem for absolutte tal.
 2. Balancetal pr. marked (aFRR/mFRR) og pr. produkt (kapacitet/aktivering), aldrig kun som total.
    Totalen har to gange i projektet skjult fejl, der udlignede hinanden (rapport v4 §2.4).
 3. Spor A er en øvre grænse, ikke en prognose.
 
-**Et kendt forbehold ved tanksammenligninger.** I modellens første time er lagerbalancen ikke
-bundet: tanken kan aflade uden at blive tømt, og den varme er gratis. Rapporterne skjuler timen
-(timefilen har derfor én række færre end perioden), men objektivet medregner den
-(src/reporting.py:314-338). Kørslen med tank får dermed gratis varme i første time, som kørslen
-uden tank ikke får. Over et år er det småt, men på et kort vindue kan det være en stor del af
-differensen: i Andeby 5.–16. januar 2026 leverede tankene 33 MWh gratis i første time, og uden tank
-kostede samme time ca. 22.300 kr. mere — omkring halvdelen af tankværdien på 44.220 kr.
-(udviklingsrapport). Regn derfor tankens værdi på et langt vindue.
+**Første time — rettet 19. oktober 2026.** Indtil modelversion `eef950a` var lagerbalancen ikke
+bundet i periodens første time: tanken kunne aflade uden at blive tømt, og den varme var gratis.
+Kørslen med tank fik dermed gratis varme, som kørslen uden tank ikke fik — på et kort vindue en
+stor del af differensen: i Andeby 5.–16. januar 2026 leverede tankene 33 MWh gratis i første time,
+omkring halvdelen af tankværdien på 44.220 kr. (udviklingsrapport). Fra `eef950a` gælder
+lagerbalancen også i første time (src/model.py:267-271; tests/test_lager_foerste_time.py), og
+tankværdien i samme vindue blev ca. halvt så stor: 21.915,92 kr., målt 26. oktober 2026 som D02 − D01 i
+demo_scenarier.json (samme tal som tests/test_lager_foerste_time.py:5-6).
+Kørsler regnet før `eef950a` har stadig fejlen; appen sammenligner kun kørsler ved samme
+modelversion. Timefilen har fortsat én række færre end perioden — modellens rapport udelader
+første interval (src/reporting.py:314-338) — mens objektivet medregner den.
 
 ## 6a. Fra differens til anbefaling
 
@@ -241,9 +250,10 @@ for løst gab blev opdaget: en ekstra elkedel gjorde driften 1.262 kr. dyrere. (
 **Forbehold, der nedgraderer "Anbefalet" til "Undersøg nærmere":** under 14 døgn; en investering
 regnet på under et år; Spor A (øvre grænse); at modellen kender aktiveringerne; [BEKRÆFT]-værdier i
 det, scenariet ændrer; løst gab; en kørsel stoppet ved tidsgrænsen; profilbundne enheder. Ændrer
-scenariet et lager på under 90 døgn, nedgraderes både "Anbefalet" og "Frarådes", fordi første times
-gratis varme kan bære en stor del af forskellen (afsnit 6). (Kilde: anbefalingsregler.json;
-doc/BUDSTRATEGI.md:263; README.md:120-122)
+scenariet et lager på under 90 døgn, og er en af kørslerne regnet før modelversion `eef950a`,
+nedgraderes både "Anbefalet" og "Frarådes", fordi første times gratis varme dér kan bære en stor
+del af forskellen (afsnit 6). (Kilde: anbefalingsregler.json;
+doc/BUDSTRATEGI.md:346; README.md:156-158)
 
 **Spørgsmål, værket ikke selv vælger** — en gaspris, et DMI-område, en indtægtsmetode — får ingen
 anbefaling, kun en følsomhed: "en gaspris 20 % højere koster X kr. i perioden".
@@ -252,7 +262,7 @@ anbefaling, kun en følsomhed: "en gaspris 20 % højere koster X kr. i perioden"
 **Investeringer.** Modellen regner kun driften; investeringsbeløbet findes ikke i den. Det årlige
 beløb fra et helår er driftsbesparelsen før kapitalomkostning. Den sammenholdes med investeringens
 annuitet A = I × r / (1 − (1 + r)^(−n)) plus faste årlige omkostninger. Andeby og Billund angiver en
-real rente på 3,5 %, som modellen ikke selv bruger. (Kilde: README.md:28; cases/andeby.yaml:74)
+real rente på 3,5 %, som modellen ikke selv bruger. (Kilde: README.md:59; cases/andeby.yaml:74)
 
 **Skalering til et år** (Δ × 365 / døgn) vises kun som et groft skøn og kun for vinduer på mindst en
 uge: en enkelt sæson er ikke repræsentativ, fordi døgnets prisspænd — som tanken tjener på — er
@@ -260,9 +270,9 @@ størst forår og sommer. (Kilde: rapport v4, bilag A)
 
 **Historien i klartekst.** Hvert par fortæller sig selv i tre sætninger: hvad vi ændrer, de vigtigste
 konsekvenser i MWh, kroner og ton CO₂, og hvor sikkert det er. Fx: "I dette scenarie slår vi begge
-tanke fra. Det flytter ca. 110 MWh til gaskedlen, øger CO₂-udledningen med 21 t og gør driften
-44.000 kr. dyrere i perioden 5.–16. januar 2026. Begge kørsler er løst til optimum, men omkring
-halvdelen af forskellen skyldes modellens første time — undersøg nærmere med et længere vindue."
+tanke fra. Det flytter ca. 87 MWh til gaskedlen, øger CO₂-udledningen med 17 t og gør driften
+22.000 kr. dyrere i perioden 5.–16. januar 2026. Begge kørsler er løst til optimum; perioden er kun
+12 døgn, så tallet viser retningen, ikke årets størrelse."
 (Kilde: anbefalingsregler.json; demo_scenarier.json)
 
 ## 7. Referencetal
@@ -270,17 +280,23 @@ halvdelen af forskellen skyldes modellens første time — undersøg nærmere me
 Kørt 15. oktober 2026 med df-data fra 5. oktober 2026 eller senere. Beløbet er modellens samlede
 driftsomkostning for vinduet (README.md:128-146):
 
-| Case | Vindue | Objektiv, kr. |
-|---|---|---:|
-| Spor A-anker (Billund) | 2. marts–23. juni 2026 | 4.698.390 |
-| Spor B (Billund) | 2. marts–30. juni 2026 | 3.964.586 |
-| Billund rullende år | jul 2025–jun 2026 | 20.341.652 |
-| Andeby helår, med balancering | jul 2025–jun 2026 | 23.067.291 (stoppet ved tidsgrænse, gab 0,12 %) |
-| Andeby helår, uden balancering | jul 2025–jun 2026 | 30.430.965 |
+| Case | Vindue | Objektiv, kr. (README) | Genskabt lokalt 26/10, kr. | Løsetid (README) |
+|---|---|---:|---:|---|
+| Spor A-anker (Billund) | 2. marts–23. juni 2026 | 5.069.729 | 5.069.729 | 2–3 min (2 kerner) |
+| Spor B (Billund) | 2. marts–30. juni 2026 | 4.204.128 | 4.204.128 | 2–3 min (2 kerner) |
+| Billund rullende år | jul 2025–jun 2026 | 21.773.827 | ikke genskabt ¹ | ca. 8 min (2 kerner) |
+| Andeby helår, med balancering | jul 2025–jun 2026 | 24.188.471 | ikke regnet | 17 min (24 kerner), ca. 3,5 GB |
+| Andeby helår, uden balancering | jul 2025–jun 2026 | 30.431.535 | 30.431.535 | 1 min (24 kerner) |
 
-Løsetider på en sandkasse med to kerner: Spor A og B ca. 2 minutter, Billunds rullende år 4
-minutter, Andeby uden balancering 6–10 minutter, Andeby med balancering ca. 1 time og 3,5 GB
-hukommelse. Regn helår på forhånd (README.md:148-153).
+¹ Lokalt (8 kerner, delt maskine) ramte løseren kodens tidsgrænse på 600 s med gab 2,03 %: løsning 22.159.684 kr., nedre grænse 21.708.371 kr. README-tallet ligger i det interval, men er ikke genskabt her.
+
+I README's kørsler er alle optimale inden for casens gab (README.md:182-186). "Genskabt lokalt" er
+kørt ved eef950a og df-data 106b9fc: README's egen kommando, og for Andeby uden balancering demo-kørslen
+D11 gennem appens motor (rapporter/fv-model.md). Løsetider: på en
+sandkasse med to kerner Spor A og B 2–3 minutter og Billunds rullende år ca. 8 minutter; på en pc med
+24 kerner Andeby uden balancering 1 minut og med balancering 17 minutter og 3,5 GB hukommelse. Regn
+helår på forhånd (README.md:186-190). Tal fra før 19. oktober 2026 — herunder rapport v4's
+balancetal og firkanten nedenfor — er regnet før rettelserne og kan ikke sammenlignes (README.md:192-195).
 
 **Billund-firkanten** (rullende år, rapport v4 §4.1, tabel 4.1): tanken er 5.002.707 kr. værd på
 spotmarkedet og 4.978.833 kr. med balancemarkedet åbent; balancemarkedet er 6.688.632 kr. værd med
@@ -292,7 +308,7 @@ begrænses reservationen af prækvalifikationen og kapacitetsprisgaten, ikke af 
 
 **Andeby** (rapport v4 §9, tabel 9.1): tankene er 4.175.596 kr. værd på spotmarkedet og
 4.356.786 kr. med balancemarkedet. Andebys balancetal er et potentiale ved fuld tilgængelighed,
-ikke hvad et værk vil tjene (README.md:157-159).
+ikke hvad et værk vil tjene (README.md:199-201).
 
 I appen er hver reference udtrykt som værk + scenarie i `viden/referencetal.json`, så de kan
 regnes igen i Fabric og sammenlignes med tolerancen fra casens eget gab.
@@ -300,9 +316,12 @@ regnes igen i Fabric og sammenlignes med tolerancen fra casens eget gab.
 ## 8. Validering mod virkeligheden
 
 Spor B for marts–juni 2026 blev sat op mod Billunds egen afregning for forbrugssidens
-op-regulering: modellen lå på 121 % (aFRR 108 %, mFRR 132 %). aFRR rammer både kapacitet og
-aktivering inden for 10 %. mFRR-kapaciteten ligger 39 % for højt, fordi modellen kender
-kapacitetsprisen på forhånd og samler reservationen i få, dyre timer (rapport v4 §5.2; README.md:155-157).
+op-regulering: efter rettelserne 19. oktober 2026 ligger modellen på 120 % (aFRR 109 %, mFRR 129 %;
+model 3,80 mio. kr. mod afregnet 3,18 mio. kr.) (README.md:197-198; cases/billund_sporB.yaml:373-376).
+Rapport v4 regnede før rettelserne og fik 121 % (aFRR 108 %, mFRR 132 %); dens opdeling pr. produkt
+viser, at mFRR-kapaciteten ligger ca. 39 % for højt, fordi modellen kender kapacitetsprisen på
+forhånd og samler reservationen i få, dyre timer (rapport v4 §5.2). Opdelingen er ikke regnet
+igen efter rettelserne, og afregningen ligger ikke i repoet, så appen kan ikke selv efterregne den.
 
 Markedet skiftede undervejs: Billund tjente 13,8 mio. kr. på forbrugssidens op-regulering i 2.
 halvår 2025 og 3,2 mio. kr. i marts–juni 2026; aFRR-kapacitetsprisen faldt fra 407 kr./MW/t i juli
@@ -311,7 +330,7 @@ med vinterdata 2026/27 (rapport v4 §5.3).
 
 ## 9. Hvad modellen ikke kan
 
-(README.md:22-31; rapport v4 §7)
+(README.md:53-62; rapport v4 §7)
 
 - **Planlægge fremad.** Den kender hele periodens spotpriser, vejr og balancepriser på forhånd.
   Absolutte tal bliver for høje, mest for balancemarkedet.
@@ -325,14 +344,14 @@ med vinterdata 2026/27 (rapport v4 §5.3).
   udetemperaturen, og der er ingen kobling fra enhed til lager (cases/andeby.yaml:412-415).
 - **Tidsvarierende afgift** over et afgiftsår: satserne er faste i hele perioden
   (cases/andeby.yaml:75-80).
-- **Regne økonomi i kvarterer.** Modellen kan løse med 15-minutters opløsning, men objektivets led er effekt × pris pr. MWh uden at gange med intervallets længde, og kapacitetsindtægten er pris × MW pr. interval. Ved 1h er det kroner; ved 15 min tæller hvert kvarter som en hel time, mens startomkostninger tælles pr. start. Appens version 1 kører derfor kun 1h (src/model.py:430-432; src/balancing.py:342; KONTRAKT §6c). Alle repoets værker er 1h (src/data_loader.py:59-63).
-- **Løse et helt år på sekunder**: fra et halvt minut til over en time (README.md:31; README.md:148-151).
+- **Regne økonomi i kvarterer.** Modellen kan løse med 15-minutters opløsning, men objektivets led er effekt × pris pr. MWh uden at gange med intervallets længde, og kapacitetsindtægten er pris × MW pr. interval. Ved 1h er det kroner; ved 15 min tæller hvert kvarter som en hel time, mens startomkostninger tælles pr. start. Appens version 1 kører derfor kun 1h (src/model.py:432-434; src/balancing.py:342; KONTRAKT §6c). Alle repoets værker er 1h (src/data_loader.py:59-63).
+- **Løse et helt år på sekunder**: fra et halvt minut til over en time (README.md:62; README.md:148-151).
 
 ## 10. Data og dækning
 
 Markeds- og vejrdata kommer fra datarepoet df-data, som opdateres hver mandag: spot, aFRR,
 mFRR-kapacitet, mFRR-aktivering, ubalancepris og DMI-observationer for fire områder. Kilden er
-api.sysapp.dk, med Energi Data Service til kontrol (README.md:180-186). Kendte grænser:
+api.sysapp.dk, med Energi Data Service til kontrol (README.md:222-228). Kendte grænser:
 
 - Ubalance- og mFRR-aktiveringsdata begynder 4. marts 2025; perioder før kan ikke køres med
   balancemarked (cases/andeby.yaml:97-101).

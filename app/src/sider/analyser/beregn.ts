@@ -161,7 +161,7 @@ export function samlNoegletal(rækker: readonly Noegletal[]): Samlet {
 export const BALANCE_KOLONNER: readonly { felt: keyof MarkedBeløb; etiket: string; forklaring: string }[] = [
     { felt: "kapacitet", ...reg("kapacitetsindtaegt_dkk", "Kapacitetsindtægt") },
     { felt: "aktivering_netto", ...reg("aktivering_netto_dkk", "Aktiveringsindtægt, netto") },
-    { felt: "sparet_elkoeb", ...reg("forbrugsmodregning_dkk", "Sparet elkøb ved aktivering") },
+    { felt: "sparet_elkoeb", ...reg("forbrugsmodregning_dkk", "Sparet tarif og afgift ved aktivering") },
     { felt: "aktivering_brutto", ...reg("aktivering_brutto_dkk", "Aktiveringsindtægt, brutto") },
     { felt: "netto", etiket: "Netto i alt", forklaring: "Kapacitet + aktivering netto." },
     { felt: "brutto", etiket: "Brutto i alt", forklaring: "Netto + sparet elkøb; det beløb, objektivet regner med." },
@@ -780,7 +780,7 @@ export function spoergsmaal(input: readonly InputRække[]): string[] {
 /**
  * Spor B (beskrivende), når reservationen er bundet af værkets egen: et månedsloft
  * (`balancing.availability.enabled`) ELLER en reservationsgate i `mode: driven`
- * (doc/BALANCEMARKED.md:136-139). Ellers Spor A — fri reservation, en øvre grænse.
+ * (doc/BALANCEMARKED.md:137-140). Ellers Spor A — fri reservation, en øvre grænse.
  * (fv-eksperts review A3: Andeby og Billund Spor A/rullende/idag/rullende_bud er A;
  * Billund Spor B og Spor B rullende er B.)
  */

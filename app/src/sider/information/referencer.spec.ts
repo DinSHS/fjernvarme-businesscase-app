@@ -14,20 +14,25 @@ const ref = (id: string) => refs.find((r) => r.id === id)!;
 const vaerk = (id: string, kode: string) => ({ id, kode }) as Vaerk;
 const scenarie = (id: string, vaerk_id: string, over: Partial<Scenarie> = {}) =>
     ({ id, vaerk_id, med_balancering: true, ...over }) as Scenarie;
+// Kørslerne er regnet ved den pinnede modelversion (referencetallenes), medmindre testen siger andet.
+const EEF950A = "eef950a2ac7b3808a9456dcf48742ce08e52366a";
 const koersel = (id: string, vaerk_id: string, scenarie_id: string, objektiv_dkk: number | undefined, over: Partial<Koersel> = {}) =>
-    ({ id, vaerk_id, scenarie_id, status: "faerdig", objektiv_dkk, afsluttet: new Date("2026-10-16T07:32:12Z"), bestilt: new Date("2026-10-16T07:29:42Z"), ...over }) as Koersel;
+    ({ id, vaerk_id, scenarie_id, status: "faerdig", objektiv_dkk, model_commit: EEF950A, afsluttet: new Date("2026-10-26T07:32:12Z"), bestilt: new Date("2026-10-26T07:29:42Z"), ...over }) as Koersel;
 
 describe("README-referencerne", () => {
     it("indlæser de fem tal fra README, med de rigtige beløb og værker", () => {
         expect(refs.map((r) => r.id)).toEqual(["spora_anker", "sporb", "billund_rullende", "andeby_helaar_bal", "andeby_helaar_spot"]);
-        expect(ref("spora_anker")).toMatchObject({ kode: "billund_spora", objektiv: 4698390, toleranceKr: 23492 });
-        expect(ref("sporb")).toMatchObject({ kode: "billund_sporb", objektiv: 3964586 });
+        expect(ref("spora_anker")).toMatchObject({ kode: "billund_spora", objektiv: 5069729, toleranceKr: 25349, modelCommit: EEF950A });
+        expect(ref("sporb")).toMatchObject({ kode: "billund_sporb", objektiv: 4204128 });
         expect(ref("billund_rullende").scenarie.heat_csv).toBe("billund_abvaerk_hourly_splejset_jun2026.csv");
     });
-    it("Andeby med balancering har intet kronebeløb — tolerancen er det opnåede gab af objektivet", () => {
+    it("Andeby med balancering er optimal inden for casens gab (eef950a) — tolerancen er casens 0,1 % af tallet", () => {
         const r = ref("andeby_helaar_bal");
-        expect(r.toleranceKr).toBeNull();
-        expect(toleranceFor(r)).toBe(27681); // 23.067.291 × 0,12 %
+        expect(r.objektiv).toBe(24188471);
+        expect(toleranceFor(r)).toBe(24188); // 24.188.471 × 0,1 %
+    });
+    it("uden kronebeløb falder tolerancen tilbage på et opnået gab af objektivet", () => {
+        expect(toleranceFor({ ...ref("andeby_helaar_bal"), toleranceKr: null, gabPct: 0.12 })).toBe(29026); // 24.188.471 × 0,12 %
     });
     it("afviser en fil uden README-gruppen", () => {
         expect(() => laesReferencer('{"grupper":[]}')).toThrow(/readme/);
@@ -35,17 +40,17 @@ describe("README-referencerne", () => {
 });
 
 describe("vurdering mod README", () => {
-    it("Spor A-ankeret: Fabric 4.698.361 mod README 4.698.390 er −0,0006 % og inden for tolerancen", () => {
-        const v = vurder(ref("spora_anker"), 4698361.3324);
+    it("Spor A-ankeret: en kørsel 28,67 kr. under README 5.069.729 er −0,0006 % og inden for tolerancen", () => {
+        const v = vurder(ref("spora_anker"), 5069729 - 28.6676);
         expect(Math.round(v.diff)).toBe(-29);
         expect(signedKr(v.diff)).toBe("−29");
         expect(signedProcent(v.brøk)).toBe("−0,0006 %");
         expect(v.indenfor).toBe(true);
-        expect(v.tolerance).toBe(23492);
+        expect(v.tolerance).toBe(25349);
     });
     it("uden for tolerancen, når afvigelsen er større end det README tillader", () => {
-        expect(vurder(ref("spora_anker"), 4698390 + 23493).indenfor).toBe(false);
-        expect(vurder(ref("spora_anker"), 4698390 - 23492).indenfor).toBe(true);
+        expect(vurder(ref("spora_anker"), 5069729 + 25350).indenfor).toBe(false);
+        expect(vurder(ref("spora_anker"), 5069729 - 25349).indenfor).toBe(true);
     });
     it("lille afvigelse vises med nok decimaler til at kunne ses", () => {
         expect(signedProcent(0)).toBe("0,0 %");
@@ -64,7 +69,7 @@ describe("hvilken kørsel er referencen", () => {
         scenarie("s-vindue", "v-bil", { periode_start: "2026-03-01" }),
     ];
     const k = [
-        koersel("k-ren", "v-bil", "s-ren", 4698361.33),
+        koersel("k-ren", "v-bil", "s-ren", 5069700.33),
         koersel("k-uden", "v-bil", "s-uden-bal", 5100000),
         koersel("k-vindue", "v-bil", "s-vindue", 1000000),
         koersel("k-fejl", "v-bil", "s-ren", undefined, { status: "fejl" }),
@@ -74,12 +79,17 @@ describe("hvilken kørsel er referencen", () => {
     it("samme værk og samme opsætning — ikke en kørsel uden balancering, med andet vindue, fejlet eller af et andet værk", () => {
         expect(kandidater(ref("spora_anker"), vaerker, scen, k).map((x) => x.koersel.id)).toEqual(["k-ren"]);
     });
+    it("en kørsel ved en ældre modelversion (b49aeb0, før rettelserne 19/10) er ikke en måling af README-tallet", () => {
+        const gammel = koersel("k-gammel", "v-bil", "s-ren", 4698361.33, { model_commit: "b49aeb0af097be42938b80a0fea6acdd77162836", afsluttet: new Date("2026-10-29T00:00:00Z") });
+        expect(kandidater(ref("spora_anker"), vaerker, scen, [...k, gammel]).map((x) => x.koersel.id)).toEqual(["k-ren"]);
+        expect(byggRaekker(refs, vaerker, scen, [gammel], new Map()).find((x) => x.ref.id === "spora_anker")!.tilstand).toBe("ikke-koert");
+    });
     it("nyeste kørsel først", () => {
-        const nyere = koersel("k-ny", "v-bil", "s-ren", 4698400, { afsluttet: new Date("2026-10-17T00:00:00Z") });
+        const nyere = koersel("k-ny", "v-bil", "s-ren", 5069760, { afsluttet: new Date("2026-10-27T00:00:00Z") });
         expect(kandidater(ref("spora_anker"), vaerker, scen, [...k, nyere]).map((x) => x.koersel.id)).toEqual(["k-ny", "k-ren"]);
     });
     it("et scenarie med ændringer er ikke referencen — selv om dets felter er ens", () => {
-        const tank = koersel("k-tank", "v-bil", "s-tank", 9999999, { afsluttet: new Date("2026-10-18T00:00:00Z") });
+        const tank = koersel("k-tank", "v-bil", "s-tank", 9999999, { afsluttet: new Date("2026-10-28T00:00:00Z") });
         const alle = [...k, tank];
         const ids = kandidatScenarier(refs, vaerker, scen, alle);
         expect(ids.sort()).toEqual(["s-ren", "s-tank"]);
@@ -96,15 +106,19 @@ describe("hvilken kørsel er referencen", () => {
     });
     it("ingen kørsel: ikke kørt; uden for tolerancen: udenfor", () => {
         expect(byggRaekker(refs, vaerker, scen, [], new Map()).every((r) => r.tilstand === "ikke-koert")).toBe(true);
-        const r = byggRaekker(refs, vaerker, scen, [koersel("k-skæv", "v-bil", "s-ren", 4800000)], new Map());
+        const r = byggRaekker(refs, vaerker, scen, [koersel("k-skæv", "v-bil", "s-ren", 5200000)], new Map());
         expect(r.find((x) => x.ref.id === "spora_anker")!.tilstand).toBe("udenfor");
     });
 });
 
 describe("Spor B mod Billunds afregning", () => {
     const { validering_billund } = JSON.parse(rå) as { validering_billund: SporB };
-    it("budskabet regnes af tabellen: samlet forhold og størst afvigelse", () => {
-        expect(sporBBudskab(validering_billund)).toBe("Modellen ramte 121 % af Billunds realiserede balanceindtægt; størst afvigelse: mFRR, kapacitet (139 %).");
+    it("budskabet bruger README's gældende validering efter rettelserne 19/10 (eef950a), ikke rapportens tabel", () => {
+        expect(validering_billund.gaeldende).toMatchObject({ i_alt_pct: 120, afrr_pct: 109, mfrr_pct: 129 });
+        expect(sporBBudskab(validering_billund)).toBe("Modellen ramte 120 % af Billunds realiserede balanceindtægt (aFRR 109 %, mFRR 129 %) efter rettelserne 19. oktober 2026.");
+    });
+    it("uden gældende validering regnes budskabet af tabellen: samlet forhold og størst afvigelse", () => {
+        expect(sporBBudskab({ ...validering_billund, gaeldende: undefined })).toBe("Modellen ramte 121 % af Billunds realiserede balanceindtægt; størst afvigelse: mFRR, kapacitet (139 %).");
     });
     it("hver række er kapacitet + aktivering = i alt (som tabellens egen note påstår)", () => {
         const r = (p: string) => validering_billund.raekker.find((x) => x.post === p)!;
@@ -115,7 +129,8 @@ describe("Spor B mod Billunds afregning", () => {
 });
 
 // I1 (fagligt review): en kørsel med SAMME ELLER STRAMMERE gab er en måling af README-tallet. Tallene er de rigtige demo-kørsler:
-// D09 Billund Spor B (README 3.964.586; casens gab 0,5 % / 5.000 kr.; demo 0,02 % / 1.000 kr.) og D11 Andeby helår uden balance.
+// D09 Billund Spor B (README 4.204.128; casens gab 0,5 % / 5.000 kr.; demo 0,02 % / 1.000 kr.) og D11 Andeby helår uden balance,
+// begge målt 2026-10-26 ved eef950a (viden/demo_scenarier.json › koersel_status).
 describe("gab: samme eller strammere (I1)", () => {
     const sporB = ref("sporb");
     const vaerker = [vaerk("v-b", "billund_sporb"), vaerk("v-a", "andeby")];
@@ -128,7 +143,7 @@ describe("gab: samme eller strammere (I1)", () => {
     });
 
     it("D09: Spor B kørt med strammere gab (og en tidsgrænse) tæller — afvigelse under 1 kr. — og gabet vises", () => {
-        const k = koersel("k-d09", "v-b", "s-d09", 3964586.28, { oensket_rel_gap: 0.0002, oensket_abs_gap: 1000, opnaaet_gap: 0.000185 });
+        const k = koersel("k-d09", "v-b", "s-d09", 4204128.43, { oensket_rel_gap: 0.0002, oensket_abs_gap: 1000, opnaaet_gap: 0.000185 });
         const [kand] = kandidater(sporB, vaerker, [d09], [k]);
         expect(kand.koersel.id).toBe("k-d09");
         expect(kand.gab).toMatchObject({ rel: 0.0002, abs: 1000, opnaaet: 0.000185, erTilladt: true, erStrammere: true });
@@ -140,16 +155,16 @@ describe("gab: samme eller strammere (I1)", () => {
 
     it("D11: Andeby helår uden balance på værkets eget gab tæller, også med en tidsgrænse i scenariet", () => {
         const s = scenarie("s-d11", "v-a", { med_balancering: false, tidsgraense_s: 3600 });
-        const k = koersel("k-d11", "v-a", "s-d11", 30430960.12, { oensket_rel_gap: 0.001, oensket_abs_gap: 1000 });
+        const k = koersel("k-d11", "v-a", "s-d11", 30431535.06, { oensket_rel_gap: 0.001, oensket_abs_gap: 1000 });
         const [kand] = kandidater(ref("andeby_helaar_spot"), vaerker, [s], [k]);
         expect(kand.gab.erStrammere).toBe(false);
         const r = byggRaekker(refs, vaerker, [s], [k], new Map()).find((x) => x.ref.id === "andeby_helaar_spot")!;
         expect(r.tilstand).toBe("indenfor");
-        expect(signedKr(r.vurdering!.diff)).toBe("−5");
+        expect(signedKr(r.vurdering!.diff)).toBe("0");
     });
 
     it("et LØSERE gab end casens tæller ikke — hverken relativt eller absolut — og samme gab er ikke 'strammere'", () => {
-        const løs = (over: Partial<Koersel>) => kandidater(sporB, vaerker, [d09], [koersel("k", "v-b", "s-d09", 3964586, over)]);
+        const løs = (over: Partial<Koersel>) => kandidater(sporB, vaerker, [d09], [koersel("k", "v-b", "s-d09", 4204128, over)]);
         expect(løs({ oensket_rel_gap: 0.01, oensket_abs_gap: 1000 })).toHaveLength(0);
         expect(løs({ oensket_rel_gap: 0.0002, oensket_abs_gap: 10000 })).toHaveLength(0);
         const lige = løs({ oensket_rel_gap: 0.005, oensket_abs_gap: 5000 });
@@ -158,7 +173,7 @@ describe("gab: samme eller strammere (I1)", () => {
     });
 
     it("kun det ene gab strammere: tæller, og er 'strammere'", () => {
-        const [k1] = kandidater(sporB, vaerker, [d09], [koersel("k", "v-b", "s-d09", 3964586, { oensket_rel_gap: 0.005, oensket_abs_gap: 100 })]);
+        const [k1] = kandidater(sporB, vaerker, [d09], [koersel("k", "v-b", "s-d09", 4204128, { oensket_rel_gap: 0.005, oensket_abs_gap: 100 })]);
         expect(k1.gab).toMatchObject({ erTilladt: true, erStrammere: true });
     });
 
@@ -166,7 +181,7 @@ describe("gab: samme eller strammere (I1)", () => {
         const gabOk = { oensket_rel_gap: 0.0002, oensket_abs_gap: 1000 };
         for (const over of [{ periode_start: "2026-03-09" }, { heat_csv: "andet.csv" }, { med_balancering: false }, { balancing_method: "legacy" }, { ekstra_flag: "--legacy-nettab" }] as Partial<Scenarie>[]) {
             const s = scenarie("s-x", "v-b", { heat_csv: csv, ...over });
-            expect(kandidater(sporB, vaerker, [s], [koersel("k", "v-b", "s-x", 3964586, gabOk)]), JSON.stringify(over)).toHaveLength(0);
+            expect(kandidater(sporB, vaerker, [s], [koersel("k", "v-b", "s-x", 4204128, gabOk)]), JSON.stringify(over)).toHaveLength(0);
         }
     });
 

@@ -1,12 +1,12 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_viden.py fra viden/knapper.json og viden/felt_katalog.json
 // (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: b49aeb0af097be42938b80a0fea6acdd77162836 · 16 knapper · 151 felter
+// Modelcommit: eef950a2ac7b3808a9456dcf48742ce08e52366a · 16 knapper · 151 felter
 //-----------------------------------------------------------------------
 
 import type { Feltpost, Knap, FastVindue, Regel } from "./viden";
 
-export const MODEL_COMMIT = "b49aeb0af097be42938b80a0fea6acdd77162836";
+export const MODEL_COMMIT = "eef950a2ac7b3808a9456dcf48742ce08e52366a";
 
 export const FAELLES_REGLER: readonly Regel[] = [
  {
@@ -143,14 +143,14 @@ export const KNAPPER: readonly Knap[] = [
    "Uden et månedsloft (availability) reserverer modellen al den effekt, footroom tillader. Tallet er en øvre grænse ved fuld tilgængelighed, ikke en prognose.",
    "Værket skal have prækvalificerede el-enheder (ancillary.afrr_qualified/mfrr_qualified) og lofter."
   ],
-  "kilde": "doc/KOERSEL.md:36; doc/BALANCEMARKED.md:10-15; cases/andeby.yaml:97-101; rapport v4 §5.4; doc/BUDSTRATEGI.md:269",
+  "kilde": "doc/KOERSEL.md:36; doc/BALANCEMARKED.md:10-15; cases/andeby.yaml:97-101; rapport v4 §5.4; doc/BUDSTRATEGI.md:352",
   "utilgaengelig_tekst": "Værket har ingen balancemarkeds-blok.",
   "anbefaling": {
    "type": "beslutning",
    "kraever_helaar": false,
-   "forventet_fortegn": "≤ 0 (at byde kan modellen altid lade være med)",
+   "forventet_fortegn": "≤ 0 — men kun når scenariet ikke har kapacitetsprisgaten i mode 'driven' (reservation_gate.enabled = true og mode = driven): dér tvinger en fast blok buddet ind, når gaten er åben, og det kan koste (doc/BUDSTRATEGI.md:56). Med driven-gate: intet fortegnskrav.",
    "hvis_billigere": "Balancemarkedet sænker driftsomkostningen med {abs} i perioden{skaleret}.",
-   "hvis_dyrere": "Balancemarkedet gør driften {abs} dyrere. Det kan ikke ske ved frivillige bud — tjek budstrategien (faste blokke, driven-gate).",
+   "hvis_dyrere": "Balancemarkedet gør driften {abs} dyrere. Med frie bud kan det ikke ske; med en fast blok (driven-gate) kan det — tjek budstrategien og blokstørrelsen.",
    "naeste_skridt": [
     "Kør med en prognose (foresight trailing30, settle realized), så modellen ikke kender aktiveringerne",
     "Kør helåret (1. juli 2025 – 30. juni 2026) med samme gab",
@@ -216,7 +216,7 @@ export const KNAPPER: readonly Knap[] = [
    "En tank kan skjule en urealistisk antagelse, fx kedler med minimumslast tændt ved start om sommeren. Uden tank kan scenariet blive uløseligt; sæt så initial_status 0 på de enheder i værket (gælder begge kørsler).",
    "Er tankens værdi ens med og uden balancemarked, begrænser budstrategien mængden så meget, at tanken ikke kommer i spil."
   ],
-  "kilde": "doc/KOERSEL.md:37; rapport v4 §4.4; doc/BUDSTRATEGI.md:270",
+  "kilde": "doc/KOERSEL.md:37; rapport v4 §4.4; doc/BUDSTRATEGI.md:353",
   "utilgaengelig_tekst": "Værket mangler et felt, knappen kræver.",
   "anbefaling": {
    "type": "beslutning",
@@ -413,7 +413,7 @@ export const KNAPPER: readonly Knap[] = [
    "Modellen regner kun driften. Investering, afskrivning og rente ligger uden for (investment.enabled bruges ikke).",
    "En ny el-enhed skal også have prækvalifikation og lofter, hvis den skal byde i balancemarkedet."
   ],
-  "kilde": "README.md:28; doc/KOERSEL.md:38",
+  "kilde": "README.md:59; doc/KOERSEL.md:38",
   "utilgaengelig_tekst": "Værket mangler et felt, knappen kræver.",
   "anbefaling": {
    "type": "beslutning",
@@ -682,7 +682,7 @@ export const KNAPPER: readonly Knap[] = [
    "Med settle realized løses modellen to gange; løsetiden cirka fordobles.",
    "Mangler activation-blokken i værket, er knappen ikke tilgængelig; tilføj blokken som værksændring (doc/BUDSTRATEGI.md §5 har en færdig blok)."
   ],
-  "kilde": "doc/BUDSTRATEGI.md:72-86; doc/BUDSTRATEGI.md:226-254; doc/BUDSTRATEGI.md:139-156",
+  "kilde": "doc/BUDSTRATEGI.md:72-86; doc/BUDSTRATEGI.md:226-254; doc/BUDSTRATEGI.md:222-239",
   "utilgaengelig_tekst": "Værket har ingen budstrategi-blok (balancing.activation med foresight og settle). Tilføj den under Konfiguration › Balancemarked; doc/BUDSTRATEGI.md §5 har en færdig blok.",
   "anbefaling": {
    "type": "metode",
@@ -753,7 +753,7 @@ export const KNAPPER: readonly Knap[] = [
    "kraever_helaar": false,
    "forventet_fortegn": "intet (gaten kan både koste og spare, når der afregnes på det realiserede)",
    "hvis_billigere": "At byde kun, når det betaler sig, sparer {abs} i perioden mod at byde frit på prognosen.",
-   "hvis_dyrere": "At byde kun, når det betaler sig, koster {abs} mere end at byde frit på prognosen — men det frie bud lover mere, end det holder (doc/BUDSTRATEGI.md:254).",
+   "hvis_dyrere": "At byde kun, når det betaler sig, koster {abs} mere end at byde frit på prognosen — men det frie bud lover mere, end det holder (doc/BUDSTRATEGI.md:337).",
    "naeste_skridt": [
     "Kør helåret (1. juli 2025 – 30. juni 2026) med samme gab",
     "Sammenlign med jeres egen afregning pr. marked"
@@ -792,12 +792,12 @@ export const KNAPPER: readonly Knap[] = [
    "activation_value kræver bid_strategy i værket.",
    "Har værket en activation-blok med andet end clear/realized (andeby, billund_spora_rullende_bud, billund_sporb), afviser config.py method legacy i casen. Via scenariefeltet (CLI --balancing-method) sker kontrollen ikke, fordi metoden overskrives efter indlæsning (run_case.py:661-668); activation-blokken bruges så slet ikke, da aktiveringsparametrene kun bygges ved activation_value (src/data_loader_github.py:690-698). Differensen blander derfor metode og aktiveringsmodel på de tre værker."
   ],
-  "kilde": "doc/KOERSEL.md:40; doc/BALANCEMARKED.md:52-65; src/config.py:1067-1071",
+  "kilde": "doc/KOERSEL.md:40; doc/BALANCEMARKED.md:52-66; src/config.py:1067-1071",
   "utilgaengelig_tekst": "Værket har ingen budstrategi (balancing.bid_strategy), som indtægtsmetoden activation_value kræver.",
   "anbefaling": {
    "type": "metode",
    "forventet_fortegn": "intet",
-   "tekst": "Indtægtsmetoden flytter resultatet {abs}. activation_value er den anbefalede metode (doc/BALANCEMARKED.md:52-65).",
+   "tekst": "Indtægtsmetoden flytter resultatet {abs}. activation_value er den anbefalede metode (doc/BALANCEMARKED.md:52-66).",
    "naeste_skridt": [
     "Brug activation_value i jeres tal"
    ]
@@ -860,7 +860,7 @@ export const KNAPPER: readonly Knap[] = [
   ],
   "tilgaengelig_i": [],
   "advarsler": [
-   "Intet værk i repoet @ b49aeb0 har en nettab-blok; knappen ændrer intet på dem.",
+   "Intet værk i repoet @ eef950a har en nettab-blok; knappen ændrer intet på dem.",
    "Med målt varmelast er nettabet allerede i målingen."
   ],
   "kilde": "doc/KOERSEL.md:41; doc/VARMELAST_OG_NETTAB.md:93-99; doc/VARMELAST_OG_NETTAB.md:136-139",
@@ -916,7 +916,7 @@ export const KNAPPER: readonly Knap[] = [
    "Valget alene kan flytte objektivet op til ca. 4 %.",
    "fyn og vestkyst mangler timer 28. februar 2026 (fyn også 1. januar 2026); perioder hen over dem stopper på dækningen."
   ],
-  "kilde": "README.md:193-195; cases/andeby.yaml:89; doc/KOERSEL.md:110-111",
+  "kilde": "README.md:235-237; cases/andeby.yaml:89; doc/KOERSEL.md:110-111",
   "utilgaengelig_tekst": "Værket har ingen data-blok med DMI-område.",
   "anbefaling": {
    "type": "foelsomhed",
@@ -961,7 +961,7 @@ export const KNAPPER: readonly Knap[] = [
    "Billunds måling passer kun til Billund-værkerne.",
    "billund_abvaerk_hourly.csv har 161 manglende timer i marts–juni 2026; brug den splejsede fil."
   ],
-  "kilde": "doc/KOERSEL.md:117; doc/BALANCEMARKED.md:209-210",
+  "kilde": "doc/KOERSEL.md:117; doc/BALANCEMARKED.md:210-211",
   "utilgaengelig_tekst": "Der findes ingen målt varmelast for dette værk i modelrepoets data/ — kun Billunds.",
   "anbefaling": {
    "type": "metode",
@@ -1804,7 +1804,7 @@ export const FELTER: readonly Feltpost[] = [
   "tilladte": null,
   "min": null,
   "max": null,
-  "forklaring": "Nettarif pr. MWh el, når der ikke er en tidsvarierende profil. Bruges også altid i aktiveringsværdien (sparet forbrug), selv når profilen er sat.",
+  "forklaring": "Nettarif pr. MWh el, når der ikke er en tidsvarierende profil. Bruges også altid i aktiveringsværdien (sparet tarif ved aktivering), selv når profilen er sat.",
   "avanceret": false,
   "kan_saettes_i_scenarie": true
  },

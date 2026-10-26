@@ -22,7 +22,7 @@ De historiske tilstande koerer to ting:
   2. KRAVLISTEN (offentlig/kredit.json): fuld kredit til den oprindelige case i begge udgaver. Fejler, hvis CREDITS.md,
      NOTICE, de ordrette licenstekster (SHA-256), README's foerste afsnit, appens kreditlinje (med layout-hooken
      data-layout="kreditlinje" i skallen), licenstekster i appens indhold, tredjepartslicenser, eller de pinnede commits
-     er forkerte - eller en tekst antyder, at Dansk Fjernvarme, Billund Fjernvarme eller forfatteren staar bag appen.
+     er forkerte - eller en tekst antyder, at Dansk Fjernvarme, Billund Varme eller forfatteren staar bag appen.
 
 Niveauer: "fejl" giver exitkode 1, "advarsel" ikke (ukendt e-mail, ikke-syntetisk GUID uden for listen, ...).
 Exitkode 2 = brugsfejl (mangler forbudsliste: uden den er der intet at tjekke imod).

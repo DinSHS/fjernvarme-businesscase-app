@@ -1,6 +1,6 @@
 # Validering — alle fejl, modellen rejser, og hvem der kan fange dem
 
-Kilde: modelrepoet @ `b49aeb0`. Linjehenvisninger er `fil:linje` ved den commit.
+Kilde: modelrepoet @ `eef950a`. Linjehenvisninger er `fil:linje` ved den commit.
 Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 
 - **Klient** — kan afgøres alene ud fra værkets parametre og scenariet. Appen bør
@@ -42,7 +42,7 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 | `time.start`/`end`/`resolution` mangler | `KeyError` (traceback) | src/config.py:921-926 | Klient |
 | Ugyldig ISO-tid | `ValueError` fra `datetime.fromisoformat` | src/config.py:923-924 | Klient |
 | `resolution` ikke `1h`/`15min` | Ukendt cfg.time.resolution | run_case.py:465-474; src/data_loader.py:61 | Klient |
-| Effektiv opløsning ≠ `1h` | afvises af `startBestilling` og arbejderen: kroneleddene summeres uden intervallets længde ved 15min | KONTRAKT §6c; src/model.py:430-432 | Klient + Function + Notebook |
+| Effektiv opløsning ≠ `1h` | afvises af `startBestilling` og arbejderen: kroneleddene summeres uden intervallets længde ved 15min | KONTRAKT §6c; src/model.py:432-434 | Klient + Function + Notebook |
 | Slut før start (scenariets periode) | --end (…) skal være efter --start (…) | run_case.py:545-546 | Klient |
 | Kun start eller kun slut | --start og --end skal bruges sammen | run_case.py:528-529 | Klient |
 | Periode længere end 366 døgn | afvises af `startBestilling` | KONTRAKT §3.0 | Klient + Function |
@@ -150,7 +150,7 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 | `presolve_rule_off` < 0 | solver.presolve_rule_off skal vaere >= 0 | src/config.py:729-732 | Klient |
 | Ukendt nøgle i `grid` | ukendte noegler i grid-blokken | src/config.py:1135-1138 | Klient |
 | `grid.max_consumption_mw` ≤ 0 | grid.max_consumption_mw skal vaere > 0 | src/config.py:1142-1143 | Klient |
-| Nettilslutning uden aktive el-enheder | grid.max_consumption_mw er sat, men casen har ingen … | src/model.py:406-409 | Klient |
+| Nettilslutning uden aktive el-enheder | grid.max_consumption_mw er sat, men casen har ingen … | src/model.py:408-411 | Klient |
 
 ## 9. Værk › Varmelast (`heat_load_params`)
 
@@ -200,5 +200,5 @@ både slås til og fra i ét scenarie, så rækkefølgen er uden betydning.
 
 Typiske uløselige kombinationer, som klienten kan **advare** om (ikke afvise):
 `reservation_gate.mode: driven` hvor aFRR- + mFRR-blok overstiger de bydende enheders samlede
-eloptag (doc/BUDSTRATEGI.md:164-166), `driven` uden tank om sommeren, og enheder med
+eloptag (doc/BUDSTRATEGI.md:247-249), `driven` uden tank om sommeren, og enheder med
 `initial_status: 1` og minimumslast i et sommervindue uden tank (rapport v4 §4.4).

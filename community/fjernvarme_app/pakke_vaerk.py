@@ -60,7 +60,7 @@ Pakken er et værk (parametre, tidsserier, scenarier) til community-udgaven af a
 brugerflade til fjernvarme-businesscase-modellen af skj-1964 (MIT):
   https://github.com/skj-1964/fjernvarme-businesscase  (model, pinnet commit {model})
   https://github.com/skj-1964/df-data                   (markeds- og vejrdata, pinnet commit {data})
-Modellen er udviklet med Billund Fjernvarme og Dansk Fjernvarme. Pakken indeholder ikke modellens kode.
+Modellen er udviklet med Billund Varme og Dansk Fjernvarme. Pakken indeholder ikke modellens kode.
 
 Importér:  python -m fjernvarme_app import {fil}
 """

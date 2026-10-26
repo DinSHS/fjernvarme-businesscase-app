@@ -25,7 +25,7 @@ HER = Path(__file__).resolve().parent
 VIDEN = HER.parent
 PRODUKT = VIDEN.parent
 REPO = Path(os.environ.get("FJV_MODELREPO", PRODUKT.parent / "fjernvarme-businesscase"))
-PIN = "b49aeb0af097be42938b80a0fea6acdd77162836"
+PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
 sys.path.insert(0, str(HER))
 sys.path.insert(0, str(PRODUKT / "fabric"))
 import yaml  # noqa: E402

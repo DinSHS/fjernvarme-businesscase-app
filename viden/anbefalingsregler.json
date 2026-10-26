@@ -1,6 +1,8 @@
 {
-  "_om": "Regler for at gøre en differens mellem to kørsler til en ærlig anbefaling og en historie i klartekst (brief 15, afsnit A og A2). Gælder et par reference (a) og scenarie (b) af samme værk; Δ = objektiv(b) − objektiv(a), negativ = scenariet er billigere. Formuleringen pr. knap står i knapper.json → anbefaling. Kilder er fil:linje i modelrepoet @ b49aeb0 eller målinger i udviklingsrapport",
-  "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836",
+  "_om": "Regler for at gøre en differens mellem to kørsler til en ærlig anbefaling og en historie i klartekst (brief 15, afsnit A og A2). Gælder et par reference (a) og scenarie (b) af samme værk; Δ = objektiv(b) − objektiv(a), negativ = scenariet er billigere. Formuleringen pr. knap står i knapper.json → anbefaling. Kilder er fil:linje i modelrepoet @ eef950a eller målinger i udviklingsrapport",
+  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+  "t0_defekte_model_commits": ["b49aeb0af097be42938b80a0fea6acdd77162836"],
+  "t0_defekte_model_commits_om": "Modelversioner, hvor lagerbalancen ikke gjaldt i periodens første time (rettet i modelrepoet 3c2afa6, 19/10-2026; første pinnede version med rettelsen er eef950a). Kun kørsler regnet ved disse commits får forbeholdet t0_lager. Listen er de commits, appen har været pinnet til før eef950a.",
   "kontrakt_version": "2.2",
 
   "kategorier": [
@@ -11,7 +13,7 @@
     {"id": "kan_ikke_afgoeres", "maerke": "Kan ikke afgøres", "tone": "neutral",
      "betydning": "Forskellen er inden for solverens tolerance eller under væsentlighedsgrænsen, kørslerne er ikke sammenlignelige, eller fortegnet kan ikke passe."},
     {"id": "undersoeg_naermere", "maerke": "Undersøg nærmere", "tone": "advarsel",
-     "betydning": "Lovende eller tydelig, men med et væsentligt forbehold (kort vindue, Spor A, [BEKRÆFT]-værdier, løst gab, første times artefakt …). Næste skridt fjerner forbeholdet."}
+     "betydning": "Lovende eller tydelig, men med et væsentligt forbehold (kort vindue, Spor A, [BEKRÆFT]-værdier, løst gab, første times artefakt i ældre kørsler …). Næste skridt fjerner forbeholdet."}
   ],
   "ikke_beslutning": {
     "maerke": "Følsomhed", "tone": "neutral",
@@ -24,7 +26,7 @@
     "tolerance": "T = gab_kr(reference) + gab_kr(scenarie) (KONTRAKT §6b). Ukendt, hvis et af gabene er ukendt.",
     "vaesentlighed": "V = max(1.000 kr.; 0,001 × |objektiv(reference)|) — 0,1 % af periodens driftsomkostning. Under det er forskellen for lille til at bære en beslutning, også når solveren har bevist den.",
     "margin": "Forskellen er tydelig, når |Δ| > 2 × T OG |Δ| > V. Faktoren 2 giver plads til solverstøj mellem miljøer (målt 28 kr. på Spor A mellem 2 og 8 kerner, KONTRAKT §6b) og til, at gabet er et loft.",
-    "t0_korrektion": "Ændrer scenariet et lager (til/fra, volumen, lade-/afladeeffekt, startindhold), indeholder Δ første intervals ubundne lagerbalance: kørslen med tank får gratis varme dér (src/reporting.py:314-338). Er begge kørslers omkostning i første interval tilgængelig (ønske til fv-fabric: nøgletallet objektiv.t0_omkostning_dkk), bruges Δ_korr = Δ − (t0(scenarie) − t0(reference)) i kategori og historie, og begge tal vises. Ellers gælder forbeholdet 't0_lager'. Målt: Andeby vinter (D01/D02) — tankene leverede 33,2 MWh gratis i første time; uden tank kostede samme time ca. 22.300 kr. mere, dvs. omkring halvdelen af tankværdien på 44.220 kr. (udviklingsrapport).",
+    "t0_korrektion": "Gælder kun kørsler regnet ved en modelversion i t0_defekte_model_commits (før rettelsen 19/10-2026, src/model.py:267-270 @ eef950a). Ændrer scenariet et lager (til/fra, volumen, lade-/afladeeffekt, startindhold), indeholder Δ ved de versioner første intervals ubundne lagerbalance: kørslen med tank får gratis varme dér. Er begge kørslers omkostning i første interval tilgængelig (ønske til fv-fabric: nøgletallet objektiv.t0_omkostning_dkk), bruges Δ_korr = Δ − (t0(scenarie) − t0(reference)) i kategori og historie, og begge tal vises. Ellers gælder forbeholdet 't0_lager'. Målt: Andeby vinter (D01/D02) — tankene leverede 33,2 MWh gratis i første time; uden tank kostede samme time ca. 22.300 kr. mere, dvs. omkring halvdelen af tankværdien på 44.220 kr. (udviklingsrapport).",
     "gange_tolerancen": "n = |Δ| / T, afrundet ned til helt tal; er T = 0 (begge løst til optimum), skrives 'begge kørsler er løst til optimum' i stedet for n."
   },
 
@@ -51,15 +53,15 @@
 
   "forbehold": [
     {"id": "faa_doegn", "virkning": "nedgrader", "betingelse": "Perioden er under 14 døgn.",
-     "tekst": "Perioden er kun {doegn} døgn. Et kort vindue viser retningen, ikke størrelsen.", "kilde": "doc/BUDSTRATEGI.md:263"},
+     "tekst": "Perioden er kun {doegn} døgn. Et kort vindue viser retningen, ikke størrelsen.", "kilde": "doc/BUDSTRATEGI.md:346"},
     {"id": "kort_periode_beslutning", "virkning": "nedgrader", "betingelse": "Knappen er en investering eller en varig beslutning (anbefaling.kraever_helaar = true), og perioden er under 365 døgn.",
-     "tekst": "Perioden er {doegn} døgn. En investering skal regnes på et helt år; et kort vindue kan ikke ganges op.", "kilde": "doc/BUDSTRATEGI.md:263; doc/EGET_VAERK.md:142"},
+     "tekst": "Perioden er {doegn} døgn. En investering skal regnes på et helt år; et kort vindue kan ikke ganges op.", "kilde": "doc/BUDSTRATEGI.md:346; doc/EGET_VAERK.md:142"},
     {"id": "en_saeson", "virkning": "note", "betingelse": "Alle periodens måneder ligger i oktober–marts (vinter) eller i april–september (sommer).",
      "tekst": "Perioden dækker kun {saeson}. Tankens værdi er størst i forår og sommer, hvor døgnets prisspænd er størst; en vinterperiode alene undervurderer eller overvurderer året.", "kilde": "rapport v4, bilag A"},
     {"id": "spor_a", "virkning": "nedgrader", "betingelse": "Mindst én af kørslerne har balancemarked og er Spor A (intet månedsloft; ikke driven-gate).",
-     "tekst": "Balancetallet er Spor A: en øvre grænse ved fuld tilgængelighed, ikke en prognose.", "kilde": "README.md:120-122; doc/BALANCEMARKED.md:112-120"},
+     "tekst": "Balancetallet er Spor A: en øvre grænse ved fuld tilgængelighed, ikke en prognose.", "kilde": "README.md:156-158; doc/BALANCEMARKED.md:113-121"},
     {"id": "kender_aktiveringerne", "virkning": "nedgrader", "betingelse": "Mindst én kørsel har balancemarked med effektivt balancing.activation.foresight = realized (også standarden, når blokken mangler).",
-     "tekst": "Modellen kender aktiveringerne på forhånd; det er et loft, ingen kan nå. Kør med en prognose (trailing30, settle realized).", "kilde": "doc/BUDSTRATEGI.md:76-86; doc/BUDSTRATEGI.md:254; src/config.py:232"},
+     "tekst": "Modellen kender aktiveringerne på forhånd; det er et loft, ingen kan nå. Kør med en prognose (trailing30, settle realized).", "kilde": "doc/BUDSTRATEGI.md:76-86; doc/BUDSTRATEGI.md:337; src/config.py:232"},
     {"id": "bekraeft", "virkning": "nedgrader", "betingelse": "Et af de ændrede felter — eller et felt på en enhed/et lager, scenariet slår til eller fra — er markeret [BEKRÆFT] i værket (VaerkParameter.bekraeft).",
      "tekst": "{antal} af de værdier, scenariet afhænger af, er markeret [BEKRÆFT]: {felter}. Bekræft dem, før tallet bruges.", "kilde": "cases/andeby.yaml:43-46"},
     {"id": "gab_loest", "virkning": "nedgrader", "betingelse": "Ønsket relativt gab > 0,0002 eller ønsket absolut gab > 1.000 kr. i en af kørslerne.",
@@ -68,12 +70,12 @@
      "tekst": "{rolle} stoppede ved tidsgrænsen med gab {gab}; tallet er ikke bevist optimalt.", "kilde": "README.md:146"},
     {"id": "profilbunden", "virkning": "nedgrader", "betingelse": "Scenariet ændrer en enhed med production_profile_path (fx solvarme).",
      "tekst": "{enhed} følger en produktionsprofil; resultatet afhænger af profilens skalering og dækning.", "kilde": "cases/andeby.yaml:53-60"},
-    {"id": "t0_lager", "virkning": "nedgrader_begge", "betingelse": "Scenariet ændrer et lager, perioden er under 90 døgn, og t0-korrektionen er ikke tilgængelig.",
-     "tekst": "Modellens første time er ubundet for tanken og giver den gratis varme; på {doegn} døgn kan det være en stor del af forskellen (målt: ca. halvdelen af tankværdien i Andeby 5.–16. jan 2026). Regn et længere vindue.", "kilde": "src/reporting.py:314-338; udviklingsrapport"},
+    {"id": "t0_lager", "virkning": "nedgrader_begge", "betingelse": "Scenariet ændrer et lager, perioden er under 90 døgn, og mindst én af kørslerne er regnet ved en modelversion i t0_defekte_model_commits (før rettelsen 19/10-2026).",
+     "tekst": "Mindst én af kørslerne er regnet ved en ældre modelversion ({commit}), hvor tankens første time var ubundet og gav gratis varme; på {doegn} døgn kan det være en stor del af forskellen (målt: ca. halvdelen af tankværdien i Andeby 5.–16. jan 2026). Regn begge kørsler igen med den aktuelle modelversion.", "kilde": "modelrepoet 3c2afa6 (tests/test_lager_foerste_time.py); udviklingsrapport"},
     {"id": "fiktivt_vaerk", "virkning": "note", "betingelse": "Værkets meta.titel eller meta.description indeholder 'fiktiv' (Andeby og kopier af det).",
      "tekst": "Værket er fiktivt: tallene viser metoden, ikke et rigtigt værks økonomi.", "kilde": "cases/andeby.yaml:4-6"},
     {"id": "spor_b_kalibrering", "virkning": "note", "betingelse": "Spor B (månedsloft eller driven-gate).",
-     "tekst": "Spor B er kalibreret på marts–juni 2026 og forudsiger ikke andre perioder.", "kilde": "doc/BALANCEMARKED.md:215-217"}
+     "tekst": "Spor B er kalibreret på marts–juni 2026 og forudsiger ikke andre perioder.", "kilde": "doc/BALANCEMARKED.md:216-218"}
   ],
 
   "skalering": {
@@ -85,7 +87,7 @@
 
   "investering": {
     "tekst": "Modellen regner kun driften. Investeringsbeløbet findes ikke i modellen, og det årlige beløb er driftsbesparelsen før kapitalomkostning, skat og faste D&V.",
-    "kilde": "README.md:28; src/config.py:763 (investment.enabled læses, men bruges ikke)",
+    "kilde": "README.md:59; src/config.py:763 (investment.enabled læses, men bruges ikke)",
     "annuitet": {
       "formel": "A = I × r / (1 − (1 + r)^(−n))",
       "forklaring": "I = investering (kr.), r = real kalkulationsrente, n = levetid (år). Investeringen betaler sig, når den årlige driftsbesparelse fra et helår er større end A plus enhedens faste årlige omkostninger.",
@@ -158,9 +160,9 @@
     },
     "eksempel": {
       "par": "P1 (D01 → D02, Andeby vinter uden tankene)",
-      "tekst": "I dette scenarie slår vi begge tanke fra — ellers som Andeby vinter (reference). Det flytter ca. 110 MWh til gaskedlen (mest fra elkedlen), øger CO₂-udledningen med 21 t og gør driften 44.000 kr. dyrere i perioden 5.–16. januar 2026. Begge kørsler er løst til optimum, men omkring halvdelen af forskellen skyldes modellens første time, hvor tanken leverer gratis varme — undersøg nærmere med et længere vindue.",
-      "kategori": "undersoeg_naermere",
-      "beregnet_af": "D01/D02 kpi og manifest: gaskedel +105,7 MWh, elkedel −61,6 MWh; CO₂ 475,4 → 496,8 t; Δ 44.219,87 kr.; t0: 33,2 MWh gratis, ca. 22.300 kr. (udviklingsrapport)."
+      "tekst": "I dette scenarie slår vi begge tanke fra — ellers som Andeby vinter (reference). Det flytter ca. 87 MWh til gaskedlen (mest fra elkedlen), øger CO₂-udledningen med 17 t og gør driften 22.000 kr. dyrere i perioden 5.–16. januar 2026. Begge kørsler er løst til optimum; perioden er kun 12 døgn, så tallet viser retningen, ikke årets størrelse.",
+      "kategori": "fraraades",
+      "beregnet_af": "D01/D02 ved eef950a (målt 2026-10-26): gaskedel +87,0 MWh, elkedel −65,6 MWh, varmepumpe −18,2 MWh; CO₂ 479,3 → 496,7 t; Δ 21.915,92 kr. Ved b49aeb0 var Δ 44.219,87 kr., og t0_lager gjorde udfaldet 'undersøg nærmere'."
     }
   }
 }

@@ -30,7 +30,7 @@
     "url": "https://github.com/skj-1964"
   },
   "partnere": [
-    "Billund Fjernvarme",
+    "Billund Varme",
     "Dansk Fjernvarme"
   ],
   "kilder": [
@@ -44,7 +44,7 @@
     "skj-1964/fjernvarme-businesscase",
     "skj-1964/df-data",
     "Steen Kramer Jensen",
-    "Billund Fjernvarme",
+    "Billund Varme",
     "Dansk Fjernvarme",
     "Energinet",
     "Energi Data Service",
@@ -65,7 +65,7 @@
     "skal_indeholde": [
       "Bygger på",
       "skj-1964",
-      "Billund Fjernvarme og Dansk Fjernvarme",
+      "Billund Varme og Dansk Fjernvarme",
       "df-data",
       "Om og kredit"
     ],
@@ -115,7 +115,7 @@
     "(?i)(godkendt|anbefalet|udgivet|leveret|støttet|sponsoreret|certificeret|autoriseret)\\s+af\\s+(dansk fjernvarme|billund|skj-1964|steen)",
     "(?i)officiel(?:t|le)?\\s+(?:app|udgave|version|brugerflade|frontend)\\s+(?:til|for|fra)\\s+(?:dansk fjernvarme|billund|fjernvarme-businesscase)",
     "(?i)official\\s+(?:app|edition|frontend|ui)\\s+(?:of|for|from)\\s+(?:dansk fjernvarme|billund|fjernvarme-businesscase)",
-    "(?i)\\bi samarbejde med\\s+(?:dansk fjernvarme|billund fjernvarme)\\b"
+    "(?i)\\bi samarbejde med\\s+(?:dansk fjernvarme|billund fjernvarme|billund varme)\\b"
   ],
   "ikke_antydning_udelad": [
     "offentlig/**",

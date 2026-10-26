@@ -8,8 +8,8 @@
 export const MODELREPO = {
     navn: "skj-1964/fjernvarme-businesscase",
     url: "https://github.com/skj-1964/fjernvarme-businesscase",
-    commit: "b49aeb0af097be42938b80a0fea6acdd77162836",
-    kort: "b49aeb0",
+    commit: "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+    kort: "eef950a",
     licens: "MIT",
 } as const;
 
@@ -21,8 +21,8 @@ export const MODELREPO = {
 export const DATAREPO = {
     navn: "skj-1964/df-data",
     url: "https://github.com/skj-1964/df-data",
-    commit: "392992c7fe35992e79fba8d1ba7b91967e8d1481",
-    kort: "392992c",
+    commit: "106b9fce9a2e3610090b1a542559024056449b88",
+    kort: "106b9fc",
 } as const;
 
 export const DATAREPO_URL = DATAREPO.url;

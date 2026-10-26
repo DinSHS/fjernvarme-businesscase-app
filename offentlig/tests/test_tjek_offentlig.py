@@ -77,7 +77,7 @@ def lav_produkt(rod: Path) -> Path:
     skriv(rod, "fabric/fjv/konstanter.py", f'MODEL_COMMIT = "{MODEL_SHA}"\nDF_DATA_SHA = "{DATA_SHA}"\n')
     skriv(rod, "app/LICENSE", "Copyright (c) Microsoft Corporation.\n\nMIT License\n")
     skriv(rod, "app/src/sider/dokumentation/kredit.ts",
-          'export const L = "Bygger på fjernvarme-businesscase af skj-1964 (MIT), udviklet med Billund Fjernvarme og Dansk Fjernvarme · data fra df-data · Om og kredit";\n')
+          'export const L = "Bygger på fjernvarme-businesscase af skj-1964 (MIT), udviklet med Billund Varme og Dansk Fjernvarme · data fra df-data · Om og kredit";\n')
     skriv(rod, "app/src/sider/dokumentation/kredit.spec.ts", "// test\n")
     # K6-F3: en realistisk monteringskaede - skallen bruger Sidefod, som bruger Kreditlinje, som bruger kredit.ts.
     skriv(rod, "app/src/App.tsx", 'import { Sidefod } from "@/components/layout";\nexport default function App() { return <div><Sidefod /></div>; }\n')
@@ -244,7 +244,7 @@ class TestKrav(Taeppe):
         self.fejler("krav-credits")
 
     def test_credits_mangler_et_paakraevet_ord(self):
-        for ord_ in ("Energinet", "api.sysapp.dk", "Billund Fjernvarme", "CC BY 4.0", "distribuerer ikke modellens kode",
+        for ord_ in ("Energinet", "api.sysapp.dk", "Billund Varme", "CC BY 4.0", "distribuerer ikke modellens kode",
                      "pinnet commit", "brugerflade til"):
             with self.subTest(ord=ord_):
                 skriv(self.rod, "CREDITS.md", credits_tekst().replace(ord_, "XXXX"))
@@ -330,7 +330,7 @@ class TestKrav(Taeppe):
 
     def test_om_og_kredit_mangler(self):
         skriv(self.rod, "app/src/sider/dokumentation/kredit.ts",
-              'export const L = "Bygger på fjernvarme-businesscase af skj-1964 (MIT), udviklet med Billund Fjernvarme og Dansk Fjernvarme · data fra df-data";\n')
+              'export const L = "Bygger på fjernvarme-businesscase af skj-1964 (MIT), udviklet med Billund Varme og Dansk Fjernvarme · data fra df-data";\n')
         self.fejler("krav-kreditlinje")
 
     def test_licenstekster_skal_bundtes_i_appen(self):
@@ -348,7 +348,7 @@ class TestKrav(Taeppe):
 
     def test_antydning_af_godkendelse_afvises(self):
         for tekst in ("Appen er godkendt af Dansk Fjernvarme.", "Den officielle app til Dansk Fjernvarme",
-                      "Official app for fjernvarme-businesscase", "Udviklet i samarbejde med Billund Fjernvarme"):
+                      "Official app for fjernvarme-businesscase", "Udviklet i samarbejde med Billund Fjernvarme", "Udviklet i samarbejde med Billund Varme"):
             with self.subTest(tekst=tekst):
                 skriv(self.rod, "app/src/sider/x/om.tsx", f"<p>{tekst}</p>\n")
                 self.fejler("krav-antydning")
@@ -357,7 +357,7 @@ class TestKrav(Taeppe):
     def test_ingen_godkendelse_undtagelse_og_citatet_fra_modellen_er_ok(self):
         skriv(self.rod, "app/src/sider/x/om.tsx",
               "<p>Ingen godkendelse: appen er ikke godkendt af Dansk Fjernvarme.</p>\n"
-              "<p>udviklet sammen med **Billund Fjernvarme** og **Dansk Fjernvarme**</p>\n")
+              "<p>udviklet sammen med **Billund Varme** og **Dansk Fjernvarme**</p>\n")
         self.assertEqual(krav(self.rod), [])
 
     def test_krav_ignorerer_filer_uden_for_det_offentlige_saet(self):

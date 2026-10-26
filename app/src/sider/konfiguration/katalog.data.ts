@@ -1,12 +1,12 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_katalog.py fra viden/felt_katalog.json og
 // viden/enhedstyper.json (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: b49aeb0af097be42938b80a0fea6acdd77162836 · 151 felter · 7 enhedstyper
+// Modelcommit: eef950a2ac7b3808a9456dcf48742ce08e52366a · 151 felter · 7 enhedstyper
 //-----------------------------------------------------------------------
 
 import type { FeltPost, Enhedstype } from "./katalog";
 
-export const MODEL_COMMIT = "b49aeb0af097be42938b80a0fea6acdd77162836";
+export const MODEL_COMMIT = "eef950a2ac7b3808a9456dcf48742ce08e52366a";
 
 export const FELTER: readonly FeltPost[] = [
  {
@@ -1332,7 +1332,7 @@ export const FELTER: readonly FeltPost[] = [
   "max": null,
   "paakraevet": true,
   "gaelder_for": null,
-  "forklaring": "Nettarif pr. MWh el, når der ikke er en tidsvarierende profil. Bruges også altid i aktiveringsværdien (sparet forbrug), selv når profilen er sat.",
+  "forklaring": "Nettarif pr. MWh el, når der ikke er en tidsvarierende profil. Bruges også altid i aktiveringsværdien (sparet tarif ved aktivering), selv når profilen er sat.",
   "kilde": "src/config.py:949",
   "avanceret": false,
   "laeses_af_koden": true,

@@ -2,7 +2,7 @@
 
 En lokal brugerflade til den åbne MILP-driftsmodel
 [github.com/skj-1964/fjernvarme-businesscase](https://github.com/skj-1964/fjernvarme-businesscase) (MIT) af
-Steen Kramer Jensen (`skj-1964`), udviklet sammen med **Billund Fjernvarme** og **Dansk Fjernvarme**, og
+Steen Kramer Jensen (`skj-1964`), udviklet sammen med **Billund Varme** og **Dansk Fjernvarme**, og
 datarepoet [github.com/skj-1964/df-data](https://github.com/skj-1964/df-data) (Energinet/Energi Data Service og
 DMI, CC BY 4.0). Metoden, valideringen og referencetallene er forfatterens; appen er en brugerflade til modellen
 og kører den uændret på en pinnet commit. Vi distribuerer ikke modellens kode — den hentes fra GitHub på den
@@ -26,7 +26,8 @@ python -m venv .venv
 
 Browseren åbner `http://localhost:8000`. `--demo` indlæser modelrepoets egne cases (Andeby, Billund …) som værker
 første gang; næste gang springes de over. Bestil så en kørsel af Andeby på 2 døgn: den skal give
-**844.727,28 kr.** — samme tal som Fabric-udgaven (målt 2026-10-16).
+**867.031,23 kr.** ved modelversion eef950a (målt 2026-10-26 fra et rent venv med wheel'en; samme tal som
+den ægte arbejder i `fabric/koer_minne.py`). Før rettelserne 19/10-2026 (b49aeb0) var tallet 844.727,28 kr.
 
 * Python 3.11–3.13. `[model]` installerer modellens pins (`linopy 0.10.0`, `highspy 1.15.1` …) i samme venv.
   Uden `[model]` bygger motoren selv et venv med modelrepoets `requirements.txt` ved første kørsel (kræver net).

@@ -7,11 +7,11 @@ Betales pr. MWh. Se også *kapacitet*.
 
 **Aktiveret andel** — hvor stor en del af den reserverede effekt modellen regner som aktiveret i et
 kvarter: `clear` (hele buddet, når prisen er over buddet), `system_share` (følger systemets
-aktivering, skaleret med k) eller `ramp`. (Kilde: doc/BALANCEMARKED.md:79-89)
+aktivering, skaleret med k) eller `ramp`. (Kilde: doc/BALANCEMARKED.md:80-90)
 
-**Aktiveringsværdi** — værdien af én MWh aktiveret op-regulering: aktiveringsprisen plus den
-forbrugsomkostning (spot, tarif, afgift), enheden sparer ved at stoppe. Regnes kvarter for kvarter.
-(Kilde: doc/BALANCEMARKED.md:52-62)
+**Aktiveringsværdi** — værdien af én MWh aktiveret op-regulering: aktiveringsprisen plus den tarif
+og elafgift, enheden sparer ved at stoppe. Spotprisen spares ikke: strømmen er købt dagen før. Regnes
+kvarter for kvarter. (Kilde: src/activation_value.py:18-28)
 
 **aFRR** — *automatic Frequency Restoration Reserve*: automatisk, hurtig reserve, som Energinet
 aktiverer direkte. Ét af de to balancemarkeder i modellen.

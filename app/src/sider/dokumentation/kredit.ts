@@ -2,7 +2,7 @@
 // Kredit til den oprindelige case (produktejer 2026-10-16: fuld kredit i begge udgaver).
 // Ren modul uden React — så både kreditlinjen i sidefoden, siden "Om og kredit" og tests bruger de samme ord.
 //
-// Ingen formulering må antyde, at Dansk Fjernvarme, Billund Fjernvarme eller modellens forfatter står bag eller har
+// Ingen formulering må antyde, at Dansk Fjernvarme, Billund Varme eller modellens forfatter står bag eller har
 // godkendt appen. kredit.spec.ts fejler på de vendinger, der ville gøre det.
 //-----------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ export const KREDITLINJE: readonly { tekst: string; href?: string; ekstern?: boo
     { tekst: "fjernvarme-businesscase", href: MODELREPO.url, ekstern: true },
     { tekst: " af " },
     { tekst: "skj-1964", href: FORFATTER_URL, ekstern: true },
-    { tekst: " (MIT), udviklet med Billund Fjernvarme og Dansk Fjernvarme · data fra " },
+    { tekst: " (MIT), udviklet med Billund Varme og Dansk Fjernvarme · data fra " },
     { tekst: "df-data", href: DATAREPO.url, ekstern: true },
     { tekst: " · " },
     { tekst: "Om og kredit", href: OM_HREF },
@@ -34,7 +34,7 @@ export const FORFATTERENS =
 export const IKKE_DISTRIBUERET =
     "Appen distribuerer ikke modellens kode: den afhænger af den på en pinnet commit og henter den, når en kørsel regnes.";
 export const INGEN_GODKENDELSE =
-    "Der foreligger ingen godkendelse eller tilslutning fra Dansk Fjernvarme, Billund Fjernvarme eller modellens forfatter; kreditten er en anerkendelse af, hvor modellen kommer fra.";
+    "Der foreligger ingen godkendelse eller tilslutning fra Dansk Fjernvarme, Billund Varme eller modellens forfatter; kreditten er en anerkendelse af, hvor modellen kommer fra.";
 
 /** Adresse på en bestemt commit i et repo. */
 export const commitHref = (repoUrl: string, sha: string) => `${repoUrl}/tree/${sha}`;

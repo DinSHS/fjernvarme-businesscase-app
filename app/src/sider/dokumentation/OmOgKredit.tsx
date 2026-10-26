@@ -86,7 +86,7 @@ export function OmOgKredit() {
             </Gitter>
             <Gitter form="6-6">
                 <Kort titel="Kredit — modellen" afgraensning={MODELREPO.navn}
-                    budskab="Modellen er udviklet sammen med Billund Fjernvarme og Dansk Fjernvarme og frigivet under MIT."
+                    budskab="Modellen er udviklet sammen med Billund Varme og Dansk Fjernvarme og frigivet under MIT."
                     fod={<>Citat fra modelrepoets README ved commit {MODELREPO.kort}. <a className="fjv-lnk" href={githubUrl("README.md")} target="_blank" rel="noopener noreferrer">Åbn README</a> · <a className="fjv-lnk" href={githubUrl("doc/rapport_billund_v4.pdf")} target="_blank" rel="noopener noreferrer">Rapport v4 (PDF)</a></>}>
                     <Md kilde={modelIndledning} />
                     <div className="fjv-md fjv-brod">

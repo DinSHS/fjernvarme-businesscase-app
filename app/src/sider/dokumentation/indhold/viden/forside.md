@@ -1,7 +1,7 @@
 # Fjernvarme Businesscase
 
 **Hvad er en tank, en varmepumpe eller en prækvalifikation værd for jeres værk?** Appen regner
-svaret med den åbne driftsmodel, som Dansk Fjernvarme og Billund Fjernvarme har udviklet: en
+svaret med den åbne driftsmodel, som Dansk Fjernvarme og Billund Varme har udviklet: en
 optimering af hele driften time for time over en periode, typisk et år, mod spotprisen og — hvis
 I vil — balancemarkederne aFRR og mFRR. (Kilde: README.md:1-11)
 
@@ -22,7 +22,7 @@ I vil — balancemarkederne aFRR og mFRR. (Kilde: README.md:1-11)
 - **Balancetal pr. marked og pr. produkt**, aldrig kun som total.
 - **Spor A er en øvre grænse**, ikke en prognose.
 
-(Kilde: README.md:112-124)
+(Kilde: README.md:148-160)
 
 Et modeltal gælder for en periode, under nogle antagelser, med en metode. Skifter en af de tre,
-skifter tallet. (Kilde: README.md:123-124)
+skifter tallet. (Kilde: README.md:159-160)

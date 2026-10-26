@@ -17,7 +17,7 @@ import {
     absolutGab, feltInfo, inputDiff, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, visJson,
     type InputForskel, type Koersel, type Profil, type Samlet,
 } from "./beregn";
-import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, SKALERING_TEKST, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
+import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, SKALERING_TEKST, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
 import { dec, periodeTekst } from "./fmt";
 import { aendringsResume } from "./kandidater";
 
@@ -268,7 +268,9 @@ export function forbehold(p: Par, bekraeft: ReadonlySet<string>): Forbehold[] {
     }
     const profil = p.diff.map((x) => /^units\.([^.]+)\./.exec(x.sti)?.[1]).find((u) => u && (() => { const v = blad(p.scen, `units.${u}.production_profile_path`) ?? blad(p.ref, `units.${u}.production_profile_path`); return typeof v === "string" && v !== ""; })());
     if (profil) tilføj("profilbunden", { enhed: profil });
-    if (d !== null && d < 90 && p.diff.some((x) => x.sti.startsWith("storage."))) tilføj("t0_lager", { doegn: tal(d) });
+    // Tankens første time var ubundet før modelrettelsen 19/10-2026; kun kørsler regnet ved de versioner bærer forbeholdet.
+    const defekt = [p.ref.k, p.scen.k].map((k) => k.model_commit ?? "").find((c) => T0_DEFEKTE_MODEL_COMMITS.includes(c));
+    if (defekt && d !== null && d < 90 && p.diff.some((x) => x.sti.startsWith("storage."))) tilføj("t0_lager", { doegn: tal(d), commit: defekt.slice(0, 7) });
     const titel = `${blad(p.ref, "meta.titel") ?? ""} ${blad(p.ref, "meta.description") ?? ""}`;
     if (/fiktiv/i.test(titel)) tilføj("fiktivt_vaerk");
     if (medBal.some((x) => spor(x.input) === "B")) tilføj("spor_b_kalibrering");

@@ -1,8 +1,9 @@
 //-----------------------------------------------------------------------
 // KoerselTime — intervaldispatch, bredt med JSON (KONTRAKT §3.10).
 //
-// `_hourly.csv` har N-1 rækker (første interval droppes bevidst; t=0's
-// lagerbalance er en kendt modeldefekt). 1h og 15min (`Koersel.oploesning`).
+// `_hourly.csv` har N-1 rækker (modellens rapport udelader første interval;
+// begrundelsen, en ubundet lagerbalance i første time, er rettet i modellen fra
+// eef950a, men rapporteringen er uændret). 1h og 15min (`Koersel.oploesning`).
 // Appen læser ALTID filtreret på koersel_id + tidsvindue, sorteret, pagineret.
 // `vaerdier_json` = de øvrige kolonner i `_hourly.csv` som objekt, kompakt,
 // NaN -> null (`{"p_halmkedel_mw":3.0,…}`). Skrives kun af notebooken.

@@ -31,7 +31,7 @@ indekset* — mod **tre** lister:
    sporet. Et nyt id eller servernavn kan derfor aldrig glippe, fordi nogen glemte at skrive det på en liste.
 
 Den kører også **kreditkravene** (`CREDITS.md`, `NOTICE`, licenstekster med SHA-256, kreditlinjen monteret i appens skal, pinnede commits ens overalt, ingen antydning af, at
-Dansk Fjernvarme, Billund Fjernvarme eller modellens forfatter står bag appen). UTF-16, arkiver (zip/xlsx/wheel) og ikke-scannelige filer er fejl, ikke tavse spring.
+Dansk Fjernvarme, Billund Varme eller modellens forfatter står bag appen). UTF-16, arkiver (zip/xlsx/wheel) og ikke-scannelige filer er fejl, ikke tavse spring.
 
 ```
 python scripts/tjek.py                     # hele repoet (CI, før en release)
@@ -87,5 +87,5 @@ oprindelige arbejdsrepo indeholdt en organisations egen installation (workspace,
 ## 7. Det, der ikke er afgjort
 
 * Repoets endelige navn og hjemsted (privat GitHub-repo delt med modellens forfatter; intet er offentliggjort).
-* Om Dansk Fjernvarme, Billund Fjernvarme og modellens forfatter ønsker at blive nævnt som her — kreditten er en anerkendelse, ikke en godkendelse.
+* Om Dansk Fjernvarme, Billund Varme og modellens forfatter ønsker at blive nævnt som her — kreditten er en anerkendelse, ikke en godkendelse.
 * En CI-pipeline, der kører `python scripts/tjek.py` og testsuiterne ved hver pull request (kommandoerne findes; pipelinen er ikke sat op).

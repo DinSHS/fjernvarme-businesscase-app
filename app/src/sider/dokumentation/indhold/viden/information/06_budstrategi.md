@@ -14,16 +14,18 @@ Et balancetal skal altid stå sammen med den budstrategi, det er regnet med.
 
 | Kørsel | Prognosen lovede | Afregnet | Balancens værdi |
 |---|---:|---:|---:|
-| Uden balance | – | 3.424.408 kr. | – |
-| Byd frit, kender aktiveringerne | – | 2.869.989 kr. | 554.000 kr. |
-| Byd frit, prognose | 2.720.352 kr. | 3.163.413 kr. | 261.000 kr. |
-| Beregnet budpris, prognose | 3.247.444 kr. | 3.268.332 kr. | 156.000 kr. |
+| Uden balance | – | 3.446.712 kr. | – |
+| Byd frit, kender aktiveringerne | – | 3.025.301 kr. | 421.000 kr. |
+| Byd frit, prognose | 2.932.972 kr. | 3.231.194 kr. | 216.000 kr. |
+| Beregnet budpris, prognose | 3.303.953 kr. | 3.319.185 kr. | 128.000 kr. |
 
-(Kilde: doc/BUDSTRATEGI.md:245-252)
+Regnet ved modelversion eef950a, efter rettelserne 19. oktober 2026 (tankens første time og
+aktiveringsværdien uden spotpris); genskabt til kronen 26. oktober 2026 med df-data 106b9fc. Tal fra
+før rettelserne kan ikke sammenlignes. (Kilde: doc/BUDSTRATEGI.md:328-335)
 
 Den første er et loft, ingen kan nå. Den anden lover mest, men skuffer mest: modellen kører
 elkedlen for at fange aktiveringer, der ikke kommer. Den sidste lover mindre, men holder.
-(Kilde: doc/BUDSTRATEGI.md:254)
+(Kilde: doc/BUDSTRATEGI.md:337)
 
 ## Advarselstegn
 
@@ -33,4 +35,4 @@ elkedlen for at fange aktiveringer, der ikke kommer. Den sidste lover mindre, me
   prisspidser, den ikke kunne kende.
 - **Ligger modellen langt over jeres afregning**, er det oftest mængden, ikke prisen, der er forkert.
 
-(Kilde: doc/BUDSTRATEGI.md:267-273)
+(Kilde: doc/BUDSTRATEGI.md:350-356)

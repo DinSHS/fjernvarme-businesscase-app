@@ -324,7 +324,7 @@ function LagerDelta({ a, b }: { a: Pakke; b: Pakke }) {
             : "Samme lagre i begge kørsler.";
     return (
         <Kort titel="Lager" afgraensning="afladet energi, MWh" budskab={budskab}
-            fod={kunA.length || kunB.length ? forbehold("ved sammenligning med og uden tank") : "Niveau ved start er modellens første interval, hvor lagerbalancen er ubundet."}>
+            fod={kunA.length || kunB.length ? forbehold("ved sammenligning med og uden tank") : "Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance)."}>
             <Tabel rækker={navne} nøgle={(n) => n} tom="Ingen lagre." kolonner={[
                 { navn: "Lager", vis: (n) => n },
                 { navn: "Reference", vis: (n) => (la.has(n) ? ellers(la.get(n)!.afladet_mwh, tal) : "slået fra"), tal: true },

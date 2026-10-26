@@ -12,15 +12,17 @@ SQL-database; notebooken `fjv_koer_scenarie` regner dem og skriver resultaterne 
 
 | Ting | Tilstand |
 |---|---|
-| Modelkode | `b49aeb0af097be42938b80a0fea6acdd77162836` (pinnet, `fjv/konstanter.py`) |
-| df-data | `392992c7fe35992e79fba8d1ba7b91967e8d1481` (pinnet; opdateres om mandagen — skift bevidst) |
+| Modelkode | `eef950a2ac7b3808a9456dcf48742ce08e52366a` (pinnet, `fjv/konstanter.py`; før 2026-10-26: `b49aeb0`) |
+| df-data | `106b9fce9a2e3610090b1a542559024056449b88` (pinnet; opdateres om mandagen — skift bevidst; før 2026-10-26: `392992c`) |
 
 Installationens workspace, lakehouse og item-id'er står **ikke** i kernen: udrulningen læser dem fra
 `fabric_miljoe.py` (udfyld den - se `FABRIC.md` i roden).
 
-Referencetal målt i Fabric: Andeby 5.–16. jan 2026 uden balancering **3.424.407,96** (bit-identisk
-med lokal kørsel), med balancering **3.000.362,97**; Billund Spor A-anker **4.698.361** (README
-4.698.390, gab 0,05 % af tilladt 0,5 %).
+Referencetal ved eef950a, målt lokalt 2026-10-26 med den ægte arbejder over hukommelseslageret
+(som `koer_minne.py`; df-data 106b9fc): Andeby 5.–16. jan 2026 uden balancering **3.446.711,91**, med
+balancering **3.117.644,03**; Billund Spor B **4.204.128,43** (= README). Ikke kørt i Fabric endnu.
+Ved b49aeb0 (før rettelserne 19/10) gav Fabric 3.424.407,96 / 3.000.362,97 og Spor A-ankeret 4.698.361 —
+de tal kan ikke sammenlignes med de nye.
 
 ## Kørsel i hånden
 
@@ -116,8 +118,8 @@ Arbejderen er databaseuafhængig; alt Fabric-specifikke ligger bag protokollerne
 `vaerksark.koer_importer`. **Fabric-adfærden er låst af et SQL-spor:** `tests/spor.py` kører begge indgange mod en
 stub, og `tests/test_lager.py` kræver byte-identitet med `tests/data/sql_spor.json` (genereret fra koden før
 grænsefladen, 3d144d5). Ændres Fabric-SQL med vilje, genereres sporet igen, og diffen hører med i committen.
-`python koer_minne.py andeby 2026-01-05 2026-01-06` kører den ægte arbejder mod hukommelseslageret: 844.727,28 kr.,
-samme bits som Fabric. Filroden er `FJV_FILES` (sæt den før `import fjv`).
+`python koer_minne.py andeby 2026-01-05 2026-01-06` kører den ægte arbejder mod hukommelseslageret: 867.031,23 kr.
+ved eef950a, samme tal som community-udgaven (målt 2026-10-26; ved b49aeb0 844.727,28 kr., samme bits som Fabric). Filroden er `FJV_FILES` (sæt den før `import fjv`).
 
 ## Udvikling
 
@@ -157,6 +159,6 @@ Rediger aldrig `_byg/*.ipynb` i hånden.
   uden omregning: `deploy.py koer fjv_selvtest "probe:string=genpubliser:<id>,<id>"`.
 - **Windows**: `run_case.py` læser YAML med `read_text()` uden encoding → `PYTHONUTF8=1`; lange
   output-stems rammer 260-tegnsgrænsen → kort arbejdsmappe (`C:\fjvt`) lokalt.
-- **`andeby --dummy` kan ikke køre** ved b49aeb0 (dummy-data hæfter ikke solprofilen på); røgtesten bruger `billund_sporA --dummy`.
+- **`andeby --dummy` kan ikke køre** ved b49aeb0 og eef950a (målt 2026-10-26; dummy-data hæfter ikke solprofilen på); røgtesten bruger `billund_sporA --dummy`.
 - **MILP-gab og miljø**: Spor A løses ikke til 0 % gab, og 2 kerner (Fabric) finder en anden løsning
   end 8 (lokalt) — 28 DKK fra hinanden. Kør differenser i samme miljø og med stramt gab.

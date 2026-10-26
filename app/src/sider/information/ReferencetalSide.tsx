@@ -67,7 +67,7 @@ function sammenfatning(raekker: readonly RefRække[]): string {
     return dele.join(", ") + ".";
 }
 
-/** "Spor A-anker: README 4.698.390 · Fabric 4.698.361 (−0,0006 %)" — den første reference med en kørsel. */
+/** "Spor A-anker: README 5.069.729 · Fabric 5.069.700 (−0,0006 %)" — den første reference med en kørsel. */
 function eksempel(raekker: readonly RefRække[]): string | undefined {
     const r = raekker.find((x) => x.vurdering && x.kandidat);
     if (!r?.vurdering || !r.kandidat) return undefined;
@@ -116,7 +116,7 @@ export function ReferencetalSide({ emne, emner, anker }: { emne: Emne; emner: re
                 {sporB ? (
                     <Kort titel="Spor B mod Billunds afregning" afgraensning="marts–juni 2026, kr."
                         budskab={sporBBudskab(sporB)}
-                        fod={<>{sporB.kilde}. {sporB.forbehold}</>}>
+                        fod={<>{sporB.gaeldende ? <>{sporB.gaeldende.kilde}. Tabellen: </> : null}{sporB.kilde}. {sporB.forbehold}</>}>
                         <div className="fjv-tabelrul">
                             <table className="fjv-tabel" data-layout="tabel">
                                 <thead><tr><th>Post</th><th className="fjv-h">Realiseret</th><th className="fjv-h">Model</th><th className="fjv-h">Forhold</th></tr></thead>
