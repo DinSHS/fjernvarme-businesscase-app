@@ -3,7 +3,7 @@ Fjernvarme Businesscase (app)
 Denne app er en BRUGERFLADE TIL den åbne driftsmodel
   fjernvarme-businesscase  af skj-1964 (Steen Kramer Jensen)
   https://github.com/skj-1964/fjernvarme-businesscase   (MIT, Copyright (c) 2026 Dansk Fjernvarme)
-udviklet sammen med Billund Fjernvarme og Dansk Fjernvarme,
+udviklet sammen med Billund Varme og Dansk Fjernvarme,
 og bruger markeds- og vejrdata fra
   df-data  af skj-1964
   https://github.com/skj-1964/df-data
@@ -16,7 +16,7 @@ ikke en del af dette repo: appen afhænger af den på en pinnet commit
 kørsel regnes.
 
 Der foreligger ingen godkendelse eller tilslutning fra Dansk Fjernvarme,
-Billund Fjernvarme eller modellens forfatter.
+Billund Varme eller modellens forfatter.
 
 Fuld kredit, ordrette kildecitater og de pinnede commits: CREDITS.md
 Licenstekster (ordret fra kilderne):                      LICENSES/

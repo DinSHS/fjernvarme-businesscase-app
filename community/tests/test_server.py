@@ -188,7 +188,7 @@ class TestKredit(unittest.TestCase):
     def test_readme_foerste_afsnit(self):
         k = json.loads((H.HER.parent.parent / "offentlig/kredit.json").read_text(encoding="utf-8"))
         linjer = (H.HER.parent / "README.md").read_text(encoding="utf-8").splitlines()[:k["readme_foerste_afsnit_linjer"]]
-        for x in k["readme_foerste_afsnit_skal_naevne"] + ["Billund Fjernvarme", "Dansk Fjernvarme", "brugerflade til",
+        for x in k["readme_foerste_afsnit_skal_naevne"] + ["Billund Varme", "Dansk Fjernvarme", "brugerflade til",
                                                            "distribuerer ikke modellens kode", "pinnet commit"]:
             self.assertIn(x, " ".join(linjer).replace("\n", " "), x)
 
@@ -196,7 +196,7 @@ class TestKredit(unittest.TestCase):
         import re
         k = json.loads((H.HER.parent.parent / "offentlig/kredit.json").read_text(encoding="utf-8"))
         o = om.om()
-        for x in ("Bygger på", "skj-1964", "Billund Fjernvarme og Dansk Fjernvarme", "df-data"):
+        for x in ("Bygger på", "skj-1964", "Billund Varme og Dansk Fjernvarme", "df-data"):
             self.assertIn(x, o["kreditlinje"])
         tekst = json.dumps(o, ensure_ascii=False) + (H.HER.parent / "README.md").read_text(encoding="utf-8")
         for m in k["ikke_antydning"]:

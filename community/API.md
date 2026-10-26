@@ -138,7 +138,7 @@ stadig (rollen tages fra stien).
 ## Om og kredit: `GET /api/om`
 
 ```
-{ "kreditlinje": "Bygger på fjernvarme-businesscase af skj-1964 (MIT), udviklet med Billund Fjernvarme og Dansk Fjernvarme · data fra df-data",
+{ "kreditlinje": "Bygger på fjernvarme-businesscase af skj-1964 (MIT), udviklet med Billund Varme og Dansk Fjernvarme · data fra df-data",
   "saetning": "Denne app er en brugerflade til fjernvarme-businesscase-modellen. …",
   "model": { repo, url, licens, ophavsret, commit, commit_url, licenstekst },
   "data":  { repo, url, licens, ophavsret, commit, commit_url, licenstekst, kilder },

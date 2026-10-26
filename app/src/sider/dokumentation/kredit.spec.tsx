@@ -22,7 +22,7 @@ const læs = (...d: string[]) => readFileSync(join(...d), "utf8");
 describe("kreditlinjen (sidefoden)", () => {
     it("siger præcis det, produktejeren bad om — og peger på Om og kredit", () => {
         expect(KREDITLINJE_TEKST).toBe(
-            "Bygger på fjernvarme-businesscase af skj-1964 (MIT), udviklet med Billund Fjernvarme og Dansk Fjernvarme · data fra df-data · Om og kredit",
+            "Bygger på fjernvarme-businesscase af skj-1964 (MIT), udviklet med Billund Varme og Dansk Fjernvarme · data fra df-data · Om og kredit",
         );
     });
 
@@ -64,12 +64,12 @@ describe("Om og kredit", () => {
         expect(tekst()).toMatch(/Appen distribuerer ikke modellens kode: den afhænger af den på en pinnet commit/);
     });
 
-    it("fuld kreditering: modelrepo, forfatter, Billund Fjernvarme og Dansk Fjernvarme (README's egne ord), df-data og de oprindelige kilder", async () => {
+    it("fuld kreditering: modelrepo, forfatter, Billund Varme og Dansk Fjernvarme (README's egne ord), df-data og de oprindelige kilder", async () => {
         const { container } = vis();
         // README's citat indlæses som en lazy chunk: vent på det, ikke på sidens egne ord.
         await waitFor(() => expect(container.textContent).toMatch(/Frigivet under MIT-licens/));
         const t = container.textContent ?? "";
-        expect(t).toMatch(/udviklet sammen med\s*Billund Fjernvarme\s*og\s*Dansk Fjernvarme/);
+        expect(t).toMatch(/udviklet sammen med\s*Billund Varme\s*og\s*Dansk Fjernvarme/);
         await waitFor(() => expect(container.textContent).toMatch(/råudtræk fra Energinet Energi Data Service/));
         await waitFor(() => expect(container.textContent).toMatch(/api\.sysapp\.dk/));
         expect(container.textContent).toMatch(/DMI/);
@@ -116,7 +116,7 @@ describe("Om og kredit", () => {
         const { container } = vis();
         await waitFor(() => expect(container.textContent).toMatch(/Energinet Energi Data Service/));
         const t = container.textContent ?? "";
-        expect(t).toMatch(/Der foreligger ingen godkendelse eller tilslutning fra Dansk Fjernvarme, Billund Fjernvarme eller modellens forfatter/);
+        expect(t).toMatch(/Der foreligger ingen godkendelse eller tilslutning fra Dansk Fjernvarme, Billund Varme eller modellens forfatter/);
         expect(t.replace(/Der foreligger ingen godkendelse eller tilslutning[^.;]*;/, "")).not.toMatch(KRAV_OM_GODKENDELSE);
     });
 

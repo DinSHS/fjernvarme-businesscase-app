@@ -16,7 +16,7 @@ udgave, og `tjek_offentlig.py` fejler, hvis denne fil, kreditlinjen i appen elle
 |---|---|
 | Repo | https://github.com/skj-1964/fjernvarme-businesscase |
 | Forfatter | Steen Kramer Jensen (`skj-1964`) |
-| Udviklet sammen med | **Billund Fjernvarme** og **Dansk Fjernvarme** |
+| Udviklet sammen med | **Billund Varme** og **Dansk Fjernvarme** |
 | Licens | MIT — `Copyright (c) 2026 Dansk Fjernvarme` |
 | Pinnet commit | `eef950a2ac7b3808a9456dcf48742ce08e52366a` |
 | Licenstekst | [`LICENSES/fjernvarme-businesscase_LICENSE.txt`](LICENSES/fjernvarme-businesscase_LICENSE.txt) — bytes fra den pinnede commit |
@@ -24,13 +24,13 @@ udgave, og `tjek_offentlig.py` fejler, hvis denne fil, kreditlinjen i appen elle
 Modellens egen indledning, ordret fra dens `README.md` ved den pinnede commit:
 
 > En åben MILP-driftsmodel for fjernvarmeværker, udviklet sammen med
-> **Billund Fjernvarme** og **Dansk Fjernvarme**. Frigivet under MIT-licens,
+> **Billund Varme** og **Dansk Fjernvarme**. Frigivet under MIT-licens,
 > så andre værker kan regne på deres eget anlæg og bygge videre.
 
 Og dens licensafsnit, ordret:
 
 > MIT — se [`LICENSE`](LICENSE). Frit at bruge, ændre og videredistribuere,
-> også kommercielt. Modellen er udviklet sammen med Billund Fjernvarme og
+> også kommercielt. Modellen er udviklet sammen med Billund Varme og
 > Dansk Fjernvarme og deles, så andre værker kan bygge videre på den.
 
 Rapporten om metode, antagelser og validering, [`doc/rapport_billund_v4.pdf`](https://github.com/skj-1964/fjernvarme-businesscase/blob/eef950a2ac7b3808a9456dcf48742ce08e52366a/doc/rapport_billund_v4.pdf),
@@ -91,7 +91,7 @@ brugeren og er ikke omfattet af denne kredit.
 - Appen er en **brugerflade til** modellen. Den er ikke modellen, og den ændrer ikke modellens metode.
 - Referencetal, valideringer og anbefalinger, appen viser, stammer fra modelrepoet og dets rapport; hvor appen
   selv regner (fx sammenligning af to kørsler, månedsopdeling i dansk tid), står det i dens egen dokumentation.
-- **Der foreligger ingen godkendelse eller tilslutning fra Dansk Fjernvarme, Billund Fjernvarme eller modellens
+- **Der foreligger ingen godkendelse eller tilslutning fra Dansk Fjernvarme, Billund Varme eller modellens
   forfatter.** Kreditten er en anerkendelse af, hvor modellen kommer fra, ikke en påstand om, at de står bag
   appen eller har gennemgået den. Ingen tekst, intet navn og intet logo i appen må tilsige andet.
 

@@ -2,10 +2,10 @@
 
 Dette er en brugerflade til [`fjernvarme-businesscase`](https://github.com/skj-1964/fjernvarme-businesscase) af
 skj-1964 (MIT), den åbne MILP-driftsmodel for fjernvarmeværker, som Steen Kramer Jensen har udviklet sammen med
-Billund Fjernvarme og Dansk Fjernvarme, og de markeds- og vejrdata fra [`df-data`](https://github.com/skj-1964/df-data),
+Billund Varme og Dansk Fjernvarme, og de markeds- og vejrdata fra [`df-data`](https://github.com/skj-1964/df-data),
 den regner på. Metoden, valideringen og referencetallene er forfatterens; denne app gør modellen brugbar uden
 kommandolinje. Se [`CREDITS.md`](CREDITS.md). Der foreligger ingen godkendelse eller tilslutning fra Dansk Fjernvarme,
-Billund Fjernvarme eller modellens forfatter.
+Billund Varme eller modellens forfatter.
 
 > **Status:** privat repo til deling med modellens forfatter; ikke offentliggjort. Repoet er **kilden** — se [`SYNKRONISERING.md`](SYNKRONISERING.md).
 

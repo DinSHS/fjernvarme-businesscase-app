@@ -2,7 +2,7 @@
 
 En lokal brugerflade til den åbne MILP-driftsmodel
 [github.com/skj-1964/fjernvarme-businesscase](https://github.com/skj-1964/fjernvarme-businesscase) (MIT) af
-Steen Kramer Jensen (`skj-1964`), udviklet sammen med **Billund Fjernvarme** og **Dansk Fjernvarme**, og
+Steen Kramer Jensen (`skj-1964`), udviklet sammen med **Billund Varme** og **Dansk Fjernvarme**, og
 datarepoet [github.com/skj-1964/df-data](https://github.com/skj-1964/df-data) (Energinet/Energi Data Service og
 DMI, CC BY 4.0). Metoden, valideringen og referencetallene er forfatterens; appen er en brugerflade til modellen
 og kører den uændret på en pinnet commit. Vi distribuerer ikke modellens kode — den hentes fra GitHub på den

@@ -1,7 +1,7 @@
 # Fjernvarme Businesscase
 
 **Hvad er en tank, en varmepumpe eller en prækvalifikation værd for jeres værk?** Appen regner
-svaret med den åbne driftsmodel, som Dansk Fjernvarme og Billund Fjernvarme har udviklet: en
+svaret med den åbne driftsmodel, som Dansk Fjernvarme og Billund Varme har udviklet: en
 optimering af hele driften time for time over en periode, typisk et år, mod spotprisen og — hvis
 I vil — balancemarkederne aFRR og mFRR. (Kilde: README.md:1-11)
 
