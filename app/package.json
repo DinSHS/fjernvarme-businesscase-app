@@ -21,6 +21,7 @@
     "installation:paafoer": "python ../scripts/installation.py paafoer",
     "installation:fjern": "python ../scripts/installation.py fjern",
     "tjek": "python ../scripts/tjek.py",
+    "tokens": "node scripts/gen_tokens.mjs --tokens design/ibcs-tokens.json --overrides design/ibcs-tokens.overrides.json --out src/ibcs/tokens.generated.ts && node scripts/gen_tokens.mjs --tokens design/ibcs-tokens.json --out src/ibcs/tokens.base.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

@@ -1,0 +1,92 @@
+# Analyser · Kørsler (#/analyser) og Anbefalinger (#/analyser/anbefalinger). To sider med samme tal-kontrakt:
+# driftsomkostning i t.kr., ΔRef = Scen − Ref i t.kr. med virkningsfarve (polaritet −1). Notation: app/IBCS.md.
+ibcsVisualSpec: "1.0"
+page:
+  id: analyser-anbefalinger
+  name: Anbefalinger
+  kind: message
+  media: [web-app, fabric-app]
+  canvas: {width: 1280, height: 1200, scroll: vertical}
+  objective:
+    goal: decide
+    audience: "Driftsleder/ledelse; vil vide, hvilke scenarier der er værd at gå videre med"
+    question: "Hvilke af de regnede scenarier sparer penge, og hvor sikkert er det?"
+  storyline: {report: analyser, parent: analyser-liste, position: 4}
+  model:
+    semanticModel: "appens SQL-database (Koersel) + anbefalingsreglerne (viden/anbefalingsregler.json)"
+    dateTable: "ingen"
+    scenarioSource: "alle direkte sammenlignelige par (samme værk, periode, data, model, gab)"
+    varianceSource: "beregn.ts difference(): Δ på de præcise objektiver"
+  context:
+    reportingUnit: "Alle værker"
+    fixedFilters: []
+    slicers:
+      - {id: vaerk, field: "Vaerk.navn", default: all, multi: false, titleLine: 1}
+    period: {type: day, default: "hvert pars egen periode", asOf: "Koersel.afsluttet"}
+  message:
+    type: detection
+    source: template
+    text: "1 par: 1 bør undersøges nærmere; det største ΔRef er +44,2 t.kr. (uden tank, Andeby 5.–16. jan. 2026)."
+    template: "{n} par: {fordeling}; det største ΔRef er {dref} t.kr. ({navn})."
+    bindings:
+      dref: {ref: v1.dref, rule: "største |ΔRef|", format: "t.kr. 1 decimal med fortegn"}
+    scope: "Alle viste par"
+    highlights:
+      - {kind: ellipse, target: {visual: v1, category: "{storstePar}", value: dref}}
+  title:
+    who: "Alle værker{vaerk}"
+    what: [{measure: Driftsomkostning, unit: t.kr., by: par, sort: "kategori, så ΔRef ↓"}]
+    when: "hvert pars periode · ΔRef"
+  footer:
+    sources: ["Kørslerne i appens database; anbefalingsreglerne (Information → Anbefalinger)"]
+    asOf: "seneste Koersel.afsluttet"
+    footnotes:
+      - {marker: "Δ", text: "ΔRef = scenarie − reference; positiv = dyrere. Et ΔRef inden for summen af de to solvergab kan ikke skelnes fra nul."}
+  layout:
+    grid: {columns: 12, rows: 8, margin: 24, gutter: 16}
+    header: {messagePosition: above-title}
+    responsive: "Under 640 px: parrets navn over bjælken"
+
+scaleGroups:
+  - id: tkr
+    unit: t.kr.
+    kind: absolute
+    members: [v1]
+    domain: shared
+    sizing: identical
+
+visuals:
+  - id: v1
+    type: variance-bar
+    card: A-25
+    question: "Hvor meget sparer eller koster hvert scenarie i forhold til sin reference?"
+    subtitle: "**ΔRef driftsomkostning** i t.kr., pr. par"
+    grid: {col: 1, row: 2, colSpan: 12, rowSpan: 4}
+    scaleGroup: tkr
+    data:
+      grain: [par]
+      category: {field: par, kind: structure, sort: {by: kategori, order: asc}}
+      measures:
+        - {id: obj, name: Driftsomkostning, field: "Koersel.objektiv_dkk", kind: absolute, unit: kr., display: {prefix: t, decimals: 1}, polarity: -1}
+      scenarios: [{code: Ref}, {code: Scen}]
+      variances:
+        - {id: dref, code: ΔRef, measure: obj, minuend: Scen, subtrahend: Ref, kind: absolute}
+      shape: [par, kategori, dref_kr, tolerance_kr]
+    labels: {data: all, legend: none}
+    notes: >
+      Én bjælke pr. par i virkningsfarve (billigere = grøn, dyrere = rød). Inden for tolerancen (|ΔRef| ≤ summen af de to
+      gab) er forskellen tvetydig og tegnes neutral blå (IBCS UN 4.1: "neutral/ambiguous"); fodnoten siger det. Bjælken følger fortegnet. Kategori-mærket og historien står i rækken under bjælken
+      (tekst, ikke graf). Ref-aksen som dobbelt tynd linje. Sorteret efter kategori (Anbefalet, Undersøg nærmere, Frarådes,
+      Kan ikke afgøres), inden for kategori efter ΔRef.
+
+interactions:
+  crossFilter: none
+  slicerPlacement: "værksvælgeren over listen; aldrig over titelblokken"
+  scaleRecompute: per-filter-context
+  messageOnFilter: re-scope
+  emptyState: "Ingen sammenlignelige par endnu — link til Scenarier → Nyt scenarie fra et spørgsmål"
+
+# Kørselslisten (#/analyser) er en opslagstabel (analysis): ingen graf. Kolonnerne følger samme kontrakt:
+#   Driftsomkostning (t.kr.)  →  3.424,4 / 3.468,6        (4 cifre før komma; hele kr. i tooltip)
+#   ΔRef (t.kr.)              →  +44,2 i virkningsfarve    (tom for referencer)
+# og listens fodnote henviser ikke til interne filer (før-fund #8).

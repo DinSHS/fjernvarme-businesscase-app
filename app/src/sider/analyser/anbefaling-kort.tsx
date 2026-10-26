@@ -45,13 +45,13 @@ export function HistorieKort({ par, historie }: { par: Par; historie: string }) 
         <Kort titel="Scenariet fortalt" afgraensning={`${par.scen.navn} mod ${par.ref.navn}`}
             budskab={historie}
             handling={<KopierKnap tekst={historie} />}
-            fod={par.byttet ? "Den kørsel, der bærer ændringen ift. værket, fortælles som scenariet — her den, du valgte som reference." : "Regnet af de frosne input og resultaterne; tallene er afrundet efter fv-eksperts regler."} />
+            fod={par.byttet ? "Den kørsel, der bærer ændringen ift. værket, fortælles som scenariet — her den, du valgte som reference." : "Regnet af de frosne input og resultaterne; tallene er afrundet efter appens anbefalingsregler."} />
     );
 }
 
 export function AnbefalingKort({ v, vaerkKode, kopiTekst }: { v: Vurdering; vaerkKode: string | null; kopiTekst: string }) {
     return (
-        <Kort titel="Anbefaling" afgraensning={`${v.maerke.toLowerCase()} — efter fv-eksperts regler`}
+        <Kort titel="Anbefaling" afgraensning={`${v.maerke.toLowerCase()} — efter appens anbefalingsregler`}
             budskab={v.saetning}
             handling={<div className="fjv-a-raekke"><Maerke tone={v.tone}>{v.maerke}</Maerke><KopierKnap tekst={kopiTekst} etiket="Kopiér" /></div>}
             fod={<>{KATEGORIER[v.kategori]?.betydning}{v.investering ? ` ${v.investering}` : ""}</>}>

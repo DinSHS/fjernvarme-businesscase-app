@@ -6,6 +6,9 @@
 // (farvepladser i beregn.ts), tynde mærker, hårfine gitterlinjer, direkte
 // etiketter sparsomt, tekst altid i tekst-tokens, hover med tal på alt.
 // Hver graf ledsages af en tabel på siden (tal-visningen).
+// IBCS (app/IBCS.md): her står kun sammensætningen over tid (stablede måneder,
+// dispatch, punkter) — afvigelse AF1/AF3. Sammenligninger (Ref mod Scen, ΔRef)
+// og strukturgrafer er i ibcs-grafer.tsx med IBCS-notation.
 //-----------------------------------------------------------------------
 
 import { useState, type ReactNode } from "react";
@@ -53,61 +56,12 @@ function Tip({ x, bredde, titel, rækker }: { x: number; bredde: number; titel: 
     );
 }
 
-/** Søjle med 4 px afrundet dataende og firkantet basis (vokser fra nul-linjen). */
-function soejleSti(x: number, y0: number, y1: number, b: number, afrund: boolean): string {
+/** Søjle fra nul-linjen, kantet (IBCS SI 2.1: ingen afrundede datamærker). */
+function soejleSti(x: number, y0: number, y1: number, b: number): string {
     const op = y1 < y0;
     const h = Math.abs(y1 - y0);
-    const r = afrund ? Math.min(4, h / 2, b / 2) : 0;
     if (h <= 0) return "";
-    if (op) return `M${x},${y0}V${y1 + r}Q${x},${y1} ${x + r},${y1}H${x + b - r}Q${x + b},${y1} ${x + b},${y1 + r}V${y0}Z`;
-    return `M${x},${y0}V${y1 - r}Q${x},${y1} ${x + r},${y1}H${x + b - r}Q${x + b},${y1} ${x + b},${y1 - r}V${y0}Z`;
-}
-
-/** Vandret bjælke fra x0 til x1 (afrundet ende ved x1). */
-function bjaelkeSti(x0: number, x1: number, y: number, h: number): string {
-    const w = Math.abs(x1 - x0);
-    if (w <= 0) return "";
-    const r = Math.min(4, w / 2, h / 2);
-    if (x1 > x0) return `M${x0},${y}H${x1 - r}Q${x1},${y} ${x1},${y + r}V${y + h - r}Q${x1},${y + h} ${x1 - r},${y + h}H${x0}Z`;
-    return `M${x0},${y}H${x1 + r}Q${x1},${y} ${x1},${y + r}V${y + h - r}Q${x1},${y + h} ${x1 + r},${y + h}H${x0}Z`;
-}
-
-// ---------------------------------------------------------------- vandrette bjælker (én værdi pr. række)
-
-export interface BjaelkeRaekke { navn: string; plads: number; værdi: number; etiket: string }
-
-/** Vandrette bjælker med direkte etiket ved spidsen. Til "produktion pr. enhed". */
-export function Bjaelker({ rækker, enhed }: { rækker: readonly BjaelkeRaekke[]; enhed: string }) {
-    const [ref, bredde] = useBredde<HTMLDivElement>();
-    const [hover, setHover] = useState<number | null>(null);
-    const navneB = Math.min(140, Math.max(80, bredde * 0.28));
-    // Plads til den længste etiket ved spidsen (≈ 6,5 px pr. tegn ved --t-datalabel 11 px).
-    const etiketB = Math.max(...rækker.map((r) => r.etiket.length), 4) * 6.5 + 10;
-    const rh = 26, bh = 14;
-    const maks = Math.max(1e-9, ...rækker.map((r) => r.værdi));
-    const plot = Math.max(10, bredde - navneB - etiketB);
-    const højde = rækker.length * rh + 4;
-    return (
-        <div className="fjv-a-graf" ref={ref}>
-            {bredde > 0 && (
-                <svg width={bredde} height={højde} role="img" aria-label={`Bjælker, ${enhed}`}>
-                    {rækker.map((r, i) => {
-                        const y = i * rh + 4;
-                        const x1 = navneB + (Math.max(0, r.værdi) / maks) * plot;
-                        return (
-                            <g key={r.navn} onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(null)}>
-                                <rect x={0} y={y - 4} width={bredde} height={rh} fill="transparent" />
-                                <text className="fjv-a-akse-navn" x={navneB - 8} y={y + bh / 2} dy="0.35em" textAnchor="end">{r.navn}</text>
-                                <path d={bjaelkeSti(navneB, x1, y, bh)} fill={farve(r.plads)} opacity={hover === null || hover === i ? 1 : 0.45} />
-                                <text className="fjv-a-etiket" x={x1 + 6} y={y + bh / 2} dy="0.35em">{r.etiket}</text>
-                            </g>
-                        );
-                    })}
-                    <line className="fjv-a-nul" x1={navneB} x2={navneB} y1={0} y2={højde} />
-                </svg>
-            )}
-        </div>
-    );
+    return `M${x},${y0}V${op ? y0 - h : y0 + h}H${x + b}V${y0}Z`;
 }
 
 // ---------------------------------------------------------------- stablede søjler pr. måned (også diverging Δ)
@@ -161,13 +115,13 @@ export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, høj
                                     const y0 = y(opAkk), y1 = y(opAkk + d.værdi);
                                     opAkk += d.værdi;
                                     const gab = j > 0 ? 1 : 0;   // 2 px flade-mellemrum mellem segmenter (1 px hver side)
-                                    return <path key={d.navn} d={soejleSti(x, y0 - gab, y1 + (j < positive.length - 1 ? 1 : 0), sb, j === positive.length - 1)} fill={farve(d.plads)} opacity={hover === null || hover === i ? 1 : 0.55} />;
+                                    return <path key={d.navn} d={soejleSti(x, y0 - gab, y1 + (j < positive.length - 1 ? 1 : 0), sb)} fill={farve(d.plads)} opacity={hover === null || hover === i ? 1 : 0.55} />;
                                 })}
                                 {negative.map((d, j) => {
                                     const y0 = y(nedAkk), y1 = y(nedAkk + d.værdi);
                                     nedAkk += d.værdi;
                                     const gab = j > 0 ? 1 : 0;
-                                    return <path key={d.navn} d={soejleSti(x, y0 + gab, y1 - (j < negative.length - 1 ? 1 : 0), sb, j === negative.length - 1)} fill={farve(d.plads)} opacity={hover === null || hover === i ? 1 : 0.55} />;
+                                    return <path key={d.navn} d={soejleSti(x, y0 + gab, y1 - (j < negative.length - 1 ? 1 : 0), sb)} fill={farve(d.plads)} opacity={hover === null || hover === i ? 1 : 0.55} />;
                                 })}
                                 {s.markør != null && <line x1={x - 4} x2={x + sb + 4} y1={y(s.markør)} y2={y(s.markør)} stroke="var(--dash-ink)" strokeWidth={2} />}
                                 {s.topEtiket && !tynd && (
@@ -229,117 +183,6 @@ export function PunktRaekke({ punkter, enhed, formatér, højde = 90 }: {
             )}
             {hover !== null && punkter[hover]?.værdi != null && (
                 <Tip x={cx(hover)} bredde={bredde} titel={punkter[hover].etiket} rækker={[{ navn: enhed, værdi: formatér(punkter[hover].værdi!) }]} />
-            )}
-        </div>
-    );
-}
-
-// ---------------------------------------------------------------- IBCS-varians: a vs b, Δ absolut, Δ relativ
-
-export interface VariansRaekke { navn: string; plads: number; a: number; b: number; delta: number; relativ: number | null }
-
-/**
- * Tre paneler med fælles rækker: (1) a (hul) og b (fyldt) på samme skala,
- * (2) Δ absolut, (3) Δ relativ. Δ er neutralt farvet — mere produktion er
- * hverken godt eller skidt; omkostning vurderes på objektivet.
- */
-export function Varians({ rækker, enhed, formatér, aNavn = "Reference", bNavn = "Scenarie" }: {
-    rækker: readonly VariansRaekke[]; enhed: string; formatér: (v: number) => string; aNavn?: string; bNavn?: string;
-}) {
-    const [ref, bredde] = useBredde<HTMLDivElement>();
-    const [hover, setHover] = useState<number | null>(null);
-    const smal = bredde < 640;
-    const navneB = smal ? 96 : 120;
-    const rh = 34, bh = 10;
-    const top = 22;
-    const højdePanel = rækker.length * rh + top;
-    const panelB = smal ? bredde - navneB : (bredde - navneB) / 3;
-    const maks = Math.max(1e-9, ...rækker.flatMap((r) => [r.a, r.b]));
-    const dMaks = Math.max(1e-9, ...rækker.map((r) => Math.abs(r.delta)));
-    const rMaks = Math.max(1e-9, ...rækker.map((r) => Math.abs(r.relativ ?? 0)));
-    const plads = 64;   // til etiket ved spidsen
-
-    const panel = (nr: number, titel: string, children: (x0: number, w: number) => ReactNode) => {
-        const x0 = smal ? navneB : navneB + nr * panelB;
-        const yOff = smal ? nr * (højdePanel + 8) : 0;
-        return (
-            <g key={nr} transform={`translate(0,${yOff})`}>
-                <text className="fjv-a-akse-navn" x={x0} y={12}>{titel}</text>
-                {(smal || nr === 0) && rækker.map((r, i) => (
-                    <text key={r.navn} className="fjv-a-akse-navn" x={navneB - 8} y={top + i * rh + rh / 2} dy="0.35em" textAnchor="end">{r.navn}</text>
-                ))}
-                {children(x0, panelB - 8)}
-                {rækker.map((r, i) => (
-                    <rect key={r.navn} x={0} y={top + i * rh} width={bredde} height={rh} fill="transparent"
-                        onPointerEnter={() => setHover(i)} />
-                ))}
-            </g>
-        );
-    };
-
-    const svgH = smal ? 3 * (højdePanel + 8) : højdePanel;
-    return (
-        <div className="fjv-a-graf" ref={ref} onPointerLeave={() => setHover(null)}>
-            {bredde > 0 && (
-                <svg width={bredde} height={svgH} role="img" aria-label={`Varians pr. enhed, ${enhed}`}>
-                    {panel(0, `${aNavn} og ${bNavn} (${enhed})`, (x0, w) => {
-                            const s = (v: number) => (Math.max(0, v) / maks) * (w - plads);
-                            return <>{rækker.map((r, i) => {
-                                const y = top + i * rh + (rh - 2 * bh - 2) / 2;
-                                return (
-                                    <g key={r.navn} opacity={hover === null || hover === i ? 1 : 0.5}>
-                                        <path d={bjaelkeSti(x0, x0 + s(r.a), y, bh)} fill="none" stroke="var(--dash-ink-2)" strokeWidth={1.5} />
-                                        <path d={bjaelkeSti(x0, x0 + s(r.b), y + bh + 2, bh)} fill={farve(r.plads)} />
-                                        <text className="fjv-a-etiket" x={x0 + s(r.b) + 6} y={y + bh + 2 + bh / 2} dy="0.35em">{formatér(r.b)}</text>
-                                    </g>
-                                );
-                            })}<line className="fjv-a-nul" x1={x0} x2={x0} y1={top - 2} y2={højdePanel} /></>;
-                        })}
-                    {panel(1, `Δ ${bNavn.toLowerCase()} − ${aNavn.toLowerCase()} (${enhed})`, (x0, w) => {
-                            const midt = x0 + w / 2;
-                            const s = (v: number) => (v / dMaks) * (w / 2 - plads);
-                            return <>{rækker.map((r, i) => {
-                                const y = top + i * rh + (rh - bh) / 2;
-                                const x1 = midt + s(r.delta);
-                                return (
-                                    <g key={r.navn} opacity={hover === null || hover === i ? 1 : 0.5}>
-                                        <path d={bjaelkeSti(midt, x1, y, bh)} fill="var(--dash-ink-2)" />
-                                        <text className="fjv-a-etiket" x={r.delta >= 0 ? x1 + 6 : x1 - 6} y={y + bh / 2} dy="0.35em" textAnchor={r.delta >= 0 ? "start" : "end"}>
-                                            {(r.delta > 0 ? "+" : r.delta < 0 ? "−" : "") + formatér(Math.abs(r.delta))}
-                                        </text>
-                                    </g>
-                                );
-                            })}<line className="fjv-a-nul" x1={midt} x2={midt} y1={top - 2} y2={højdePanel} /></>;
-                        })}
-                    {panel(2, "Δ relativ (%)", (x0, w) => {
-                            const midt = x0 + w / 2;
-                            const s = (v: number) => (v / rMaks) * (w / 2 - plads);
-                            return <>{rækker.map((r, i) => {
-                                const y = top + i * rh + (rh - bh) / 2;
-                                if (r.relativ === null) {
-                                    return <text key={r.navn} className="fjv-a-etiket-svag" x={midt + 6} y={y + bh / 2} dy="0.35em">{r.b > 0 ? "ny" : "–"}</text>;
-                                }
-                                const x1 = midt + s(r.relativ);
-                                return (
-                                    <g key={r.navn} opacity={hover === null || hover === i ? 1 : 0.5}>
-                                        <path d={bjaelkeSti(midt, x1, y + 2, bh - 4)} fill="var(--dash-ink-3)" />
-                                        <circle cx={x1} cy={y + bh / 2} r={4} fill="var(--dash-ink-2)" stroke="var(--color-card)" strokeWidth={2} />
-                                        <text className="fjv-a-etiket" x={r.relativ >= 0 ? x1 + 8 : x1 - 8} y={y + bh / 2} dy="0.35em" textAnchor={r.relativ >= 0 ? "start" : "end"}>
-                                            {(r.relativ > 0 ? "+" : r.relativ < 0 ? "−" : "") + dec(Math.abs(r.relativ) * 100, 0) + " %"}
-                                        </text>
-                                    </g>
-                                );
-                            })}<line className="fjv-a-nul" x1={midt} x2={midt} y1={top - 2} y2={højdePanel} /></>;
-                        })}
-                </svg>
-            )}
-            {hover !== null && rækker[hover] && (
-                <Tip x={bredde / 2} bredde={bredde} titel={rækker[hover].navn} rækker={[
-                    { navn: aNavn, værdi: formatér(rækker[hover].a) },
-                    { navn: bNavn, plads: rækker[hover].plads, værdi: formatér(rækker[hover].b) },
-                    { navn: "Δ", værdi: (rækker[hover].delta < 0 ? "−" : rækker[hover].delta > 0 ? "+" : "") + formatér(Math.abs(rækker[hover].delta)) },
-                    { navn: "Δ relativ", værdi: rækker[hover].relativ === null ? "–" : `${rækker[hover].relativ! < 0 ? "−" : "+"}${dec(Math.abs(rækker[hover].relativ!) * 100, 1)} %` },
-                ]} />
             )}
         </div>
     );

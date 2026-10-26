@@ -1,0 +1,526 @@
+{
+  "color": {
+    "scenario": {
+      "ac": {
+        "$value": "var(--fjv-ac)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. Scen (fyldt mørk)."
+          }
+        }
+      },
+      "py": {
+        "$value": "var(--fjv-py)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "pl": {
+        "fill": {
+          "$value": "var(--color-card)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. Ref: omrids på kortets flade."
+            }
+          }
+        },
+        "stroke": {
+          "$value": "var(--fjv-pl)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+            }
+          }
+        }
+      },
+      "bu": {
+        "fill": {
+          "$value": "var(--color-card)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. Ref: omrids på kortets flade."
+            }
+          }
+        },
+        "stroke": {
+          "$value": "var(--fjv-pl)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+            }
+          }
+        }
+      },
+      "fc": {
+        "stripe": {
+          "$value": "var(--fjv-ac)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+            }
+          }
+        },
+        "ground": {
+          "$value": "var(--color-card)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+            }
+          }
+        },
+        "stroke": {
+          "$value": "var(--fjv-ac)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+            }
+          }
+        }
+      }
+    },
+    "variance": {
+      "good": {
+        "$value": "var(--fjv-delta-pos)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. IBCS-virkning (app/IBCS.md §2)."
+          }
+        }
+      },
+      "goodText": {
+        "$value": "var(--fjv-delta-pos)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. Målt ≥ 4,5:1 på flade i alle temaer, så tallet må farves."
+          }
+        }
+      },
+      "cvd": {
+        "good": {
+          "$value": "var(--fjv-delta-pos)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. De neutrale temaer bruger allerede farveblinde-varianten (blågrøn = god)."
+            }
+          }
+        },
+        "goodText": {
+          "$value": "var(--fjv-delta-pos)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+            }
+          }
+        },
+        "bad": {
+          "$value": "var(--fjv-delta-neg)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. De neutrale temaer bruger allerede farveblinde-varianten (blågrøn = god)."
+            }
+          }
+        },
+        "badText": {
+          "$value": "var(--fjv-delta-neg)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+            }
+          }
+        },
+        "neutral": {
+          "$value": "var(--fjv-delta-neutral)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. De neutrale temaer bruger allerede farveblinde-varianten (blågrøn = god)."
+            }
+          }
+        },
+        "neutralText": {
+          "$value": "var(--fjv-delta-neutral)",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+            }
+          }
+        }
+      },
+      "bad": {
+        "$value": "var(--fjv-delta-neg)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. IBCS-virkning (app/IBCS.md §2)."
+          }
+        }
+      },
+      "badText": {
+        "$value": "var(--fjv-delta-neg)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. Målt ≥ 4,5:1 på flade i alle temaer, så tallet må farves."
+          }
+        }
+      },
+      "neutral": {
+        "$value": "var(--fjv-delta-neutral)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. IBCS-virkning (app/IBCS.md §2)."
+          }
+        }
+      },
+      "neutralText": {
+        "$value": "var(--fjv-delta-neutral)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. Målt ≥ 4,5:1 på flade i alle temaer, så tallet må farves."
+          }
+        }
+      }
+    },
+    "marker": {
+      "highlight": {
+        "$value": "var(--fjv-fokus)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "annotationRef": {
+        "$value": "var(--fjv-fokus)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "referenceArrowhead": {
+        "$value": "var(--dash-ink)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "scaleBandFill": {
+        "$value": "var(--color-accent)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "scaleBandLine": {
+        "$value": "var(--dash-series-2)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "adjustment": {
+        "$value": "var(--color-accent)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "assistingLine": {
+        "$value": "var(--dash-ink-3)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "assistingArea": {
+        "$value": "var(--dash-elevated)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      }
+    },
+    "text": {
+      "primary": {
+        "$value": "var(--dash-ink)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "secondary": {
+        "$value": "var(--dash-ink-2)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "onAc": {
+        "$value": "var(--color-card)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "onDark": {
+        "$value": "var(--color-card)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      }
+    },
+    "background": {
+      "page": {
+        "$value": "var(--color-card)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts. Graferne står på kortets flade (afvigelse AF2)."
+          }
+        }
+      }
+    },
+    "axis": {
+      "category": {
+        "$value": "var(--dash-ink-2)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "pyReference": {
+        "$value": "var(--fjv-py)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "plReference": {
+        "$value": "var(--fjv-pl)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "grid": {
+        "$value": "var(--dash-grid)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      }
+    },
+    "table": {
+      "rule": {
+        "$value": "var(--dash-ink)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "ruleLight": {
+        "$value": "var(--dash-hairline)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      },
+      "totalFill": {
+        "$value": "var(--dash-elevated)",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Tema-variabel (src/styles/tema-kerne.ts CSS_VARIABLER): skifter med tema og lys/mørk; kontrast målt af scripts/kontrast.ts."
+          }
+        }
+      }
+    }
+  },
+  "typography": {
+    "family": {
+      "web": {
+        "$value": [
+          "var(--font-base)",
+          "system-ui",
+          "Segoe UI",
+          "sans-serif"
+        ],
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Temaets skrift."
+          }
+        }
+      }
+    }
+  },
+  "number": {
+    "separator": {
+      "thousands": {
+        "$value": ".",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "da-DK, som resten af appen (UN 1.2: ét format i hele organisationen)."
+          }
+        }
+      },
+      "decimal": {
+        "$value": ",",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "da-DK."
+          }
+        }
+      }
+    },
+    "sign": {
+      "negative": {
+        "$value": "−",
+        "$extensions": {
+          "ibcs": {
+            "src": "ORG",
+            "ref": "app/IBCS.md",
+            "note": "Ægte minus som appens medFortegn()."
+          }
+        }
+      }
+    },
+    "scaling": {
+      "monetary": {
+        "thousand": {
+          "$value": "t.",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "t.kr. (appens monetære præfiks; IBCS.md §3)."
+            }
+          }
+        },
+        "million": {
+          "$value": "mio. ",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "mio. kr."
+            }
+          }
+        },
+        "billion": {
+          "$value": "mia. ",
+          "$extensions": {
+            "ibcs": {
+              "src": "ORG",
+              "ref": "app/IBCS.md",
+              "note": "mia. kr."
+            }
+          }
+        }
+      }
+    }
+  },
+  "$description": "Appens IBCS-overrides: farver er temaets CSS-variabler, talformat er da-DK. Regenerér med `npm run tokens`."
+}

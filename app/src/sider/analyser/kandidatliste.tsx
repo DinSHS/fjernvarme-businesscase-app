@@ -68,7 +68,7 @@ export default function Kandidatliste({ pakke, alle }: { pakke: Pakke; alle: Hen
                 return (
                     <Kort titel="Hvad skal denne kørsel sammenlignes med?" afgraensning="vælg en reference — differensen er produktet"
                         budskab={budskab}
-                        fod={<>Direkte sammenlignelig = samme værk, periode, opløsning, data, modelversion og ønsket gab (KONTRAKT §6b). Den naturlige
+                        fod={<>Direkte sammenlignelig = samme værk, periode, opløsning, data, modelversion og ønsket gab (differensmetoden). Den naturlige
                             reference er scenariets egen reference, ellers værket som det er med samme balancering. Den valgte kørsel bliver
                             referencen; "Byt reference og scenarie" findes på sammenligningssiden.</>}>
                         {anbefalet.length > 0

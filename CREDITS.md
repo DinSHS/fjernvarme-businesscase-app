@@ -101,6 +101,13 @@ Appens frontend og backend bygger på Rayfin-app-skabelonen (Microsoft, MIT — 
 open source-pakker (React, Vite m.fl.), hvis licenser står i deres pakker (`app/package-lock.json`). Regnemotoren
 installerer modellens egne pakkepins (modelrepoets `requirements.txt`: Linopy, HiGHS m.fl.) med deres respektive licenser.
 
+Graferne, tabeltallene og nøgletalskortene i Analyser og Scenarier følger IBCS® Standards (International Business
+Communication Standards, ISO 24896). De er bygget på IBCS-referencekomponenterne fra `ibcs-web-charts`
+(simmelsgaard-reporting-skills, MIT, Copyright (c) 2026 Sonni Simmelsgaard) — kopieret til `app/src/ibcs/` og tilpasset
+appens temaer og talformat; licensen står uændret i `app/src/ibcs/LICENSE`, og design-tokens i `app/design/`. Appens
+notationsvalg står i `app/IBCS.md`. Appen følger IBCS® Standards, men er ikke certificeret af IBCS Institute; IBCS® er et
+registreret varemærke tilhørende IBCS Institute.
+
 ## 5. Sådan holdes kreditten korrekt
 
 - Pinnede commits står i `fabric/fjv/konstanter.py` (`MODEL_COMMIT`, `DF_DATA_SHA`). Skift dem **kun** sammen med

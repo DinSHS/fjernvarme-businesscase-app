@@ -78,6 +78,10 @@ export interface Samlet {
     co2_ton: number | null;
     /** Samlet elforbrug (MWh el), registerets i_alt-række for el.forbrug_mwh. */
     el_forbrug_mwh: number | null;
+    /** El-poster i alt (i_alt-rækken, kr.) til omkostningsvandfaldet (app/docs/ibcs/analyser-sammenlign v1). Valgfri: ældre kørsler/fixtures. */
+    el_omkostning_dkk?: number | null;
+    el_salg_dkk?: number | null;
+    el_produktionstarif_dkk?: number | null;
     /** null = ikke tilgængelig (MILP har ingen skyggepriser) — ALDRIG 0. */
     tank_arbitrage_dkk: number | null;
     enheder: EnhedTal[];
@@ -151,6 +155,9 @@ export function samlNoegletal(rækker: readonly Noegletal[]): Samlet {
         nettab_pct: v("varme", "nettab_pct"),
         co2_ton: v("miljoe", "co2_ton"),
         el_forbrug_mwh: v("el", "forbrug_mwh"),
+        el_omkostning_dkk: v("el", "omkostning_dkk"),
+        el_salg_dkk: v("el", "salg_dkk"),
+        el_produktionstarif_dkk: v("el", "produktionstarif_dkk"),
         tank_arbitrage_dkk: v("lager", "tank_arbitrage_dkk"),
         enheder, lagre,
         balance: harBalance ? balance : null,
@@ -747,6 +754,15 @@ export function aendringTekst(sti: string, før: string | undefined, efter: stri
     if (sti === `${KOERSEL_PRAEFIKS}data_commit`) return `Datagrundlag (frosset): ${String(ny).slice(0, 7)}`;
     if (sti === `${KOERSEL_PRAEFIKS}start`) return `Periodens start: ${String(ny)}`;
     if (sti === `${KOERSEL_PRAEFIKS}slut`) return `Periodens slut: ${String(ny)}`;
+    // En frosset tidsserie (`{"id": …, "sha256": …}`) er en reference, ikke en værdi: vis rollen og fingeraftrykket,
+    // aldrig den rå JSON (review fv-ibcs #20). Navnet står i kortet "Data i denne kørsel".
+    const tsPraefiks = `${KOERSEL_PRAEFIKS}tidsserie.`;
+    const ts = sti.startsWith(tsPraefiks) ? sti.slice(tsPraefiks.length) : null;
+    if (ts) {
+        const rolle = ts.charAt(0).toUpperCase() + ts.slice(1);
+        const sha = ny && typeof ny === "object" && "sha256" in ny ? String((ny as { sha256: unknown }).sha256).slice(0, 12) : null;
+        return efter === undefined ? `${rolle}: ingen frosset tidsserie` : `${rolle}: frosset tidsserie${sha ? ` (sha256 ${sha})` : ""}`;
+    }
     const info = feltInfo(sti);
     const enhed = info.enhed ? ` ${info.enhed}` : "";
     const hvad = `${info.etiket}${info.objekt ? ` (${info.objekt})` : ""}`;

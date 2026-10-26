@@ -400,7 +400,7 @@ export function tjekPeriode(
         if (!p) return { fund: [{ niveau: "fejl", tekst: "Værket har ingen gyldig time-blok, og scenariet har ingen periode." }] };
     }
     const opl = jsonTekst(blade.get("time.resolution")) ?? "1h";
-    if (opl !== "1h") fund.push({ niveau: "fejl", tekst: `Værket regner i opløsningen ${opl}; version 1 kører kun 1h (KONTRAKT §6c).` });
+    if (opl !== "1h") fund.push({ niveau: "fejl", tekst: `Værket regner i opløsningen ${opl}; appens version 1 kører kun 1h.` });
     if (p.doegn > GRAENSER.maksPeriodeDoegn) {
         fund.push({ niveau: "fejl", tekst: `Perioden er ${Math.ceil(p.doegn)} døgn; højst ${GRAENSER.maksPeriodeDoegn} døgn pr. kørsel.` });
     }

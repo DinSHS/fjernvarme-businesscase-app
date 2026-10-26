@@ -1,0 +1,82 @@
+# Scenarier · scenarieside (#/scenarier/<id>) — resultatdelen: kortet "Kørsel" og "Scenariet fortalt".
+# Formularen (indstillinger, ændringer, forhåndsvisning) er ikke en rapport og er uden for IBCS-scope.
+ibcsVisualSpec: "1.0"
+page:
+  id: scenarie-resultat
+  name: Scenarie
+  kind: message
+  media: [web-app, fabric-app]
+  canvas: {width: 1280, height: 1900, scroll: vertical}
+  objective:
+    goal: inform
+    audience: "Den, der har oprettet scenariet; vil se, om kørslen er færdig, og hvad den gav"
+    question: "Hvad gav scenariets seneste kørsel i forhold til referencen?"
+  storyline: {report: scenarier, parent: scenarier-oversigt, position: 2}
+  model:
+    semanticModel: "appens SQL-database (Scenarie, Koersel)"
+    dateTable: "ingen"
+    scenarioSource: "scenariets seneste færdige kørsel = Scen; referencens seneste færdige kørsel = Ref"
+    varianceSource: "beregn.ts difference()"
+  context:
+    reportingUnit: "{vaerk}"
+    fixedFilters:
+      - {field: "Scenarie.id", value: "{scenarie}"}
+    slicers: []
+    period: {type: day, default: "scenariets periode", asOf: "Koersel.afsluttet"}
+  message:
+    type: detection
+    source: template
+    text: "2 ændringer mod Andeby — fiktivt referenceværk, 5.–16. jan. 2026, uden balancemarked; scenariet koster 44,2 t.kr. mere end referencen (større end solverens tolerance)."
+    template: "{n} ændringer mod {vaerk}, {periode}, {balancemarked}; scenariet koster {dref} t.kr. {retning} end referencen ({tolerance})."
+    bindings:
+      dref: {ref: k1.dref, format: "t.kr. 1 decimal uden fortegn"}
+      retning: {rule: "dref > 0", then: "mere", else: "mindre"}
+    scope: "Scenariets seneste færdige kørsel mod referencens"
+    highlights:
+      - {kind: ellipse, target: {visual: k1, row: Driftsomkostning, variance: dref}}
+  title:
+    who: "{vaerk}, {balancemarked}"
+    what: [{measure: Driftsomkostning, unit: t.kr.}]
+    when: "{periode} · Scen og ΔRef"
+  footer:
+    sources: ["Kørslerne i appens database (frosset input)"]
+    asOf: "Koersel.afsluttet"
+    footnotes:
+      - {marker: "Δ", text: "ΔRef = scenarie − reference på de præcise objektiver."}
+  layout:
+    grid: {columns: 12, rows: 12, margin: 24, gutter: 16}
+    header: {messagePosition: above-title}
+    responsive: "Kortet 'Kørsel' under formularen"
+
+visuals:
+  - id: k1
+    type: kpi-cards
+    card: B-T-KPI
+    question: "Hvad kostede scenariet, og hvor meget afviger det fra referencen?"
+    subtitle: "**Driftsomkostning** i t.kr. · Scen og ΔRef"
+    grid: {col: 9, row: 3, colSpan: 4, rowSpan: 2}
+    cards: {perRow: 1, phonePerRow: 1, sparkline: none, deltaOrder: absolute-first}
+    data:
+      grain: [kørsel]
+      rows:
+        - {line: Driftsomkostning, type: measure, measure: obj, unit: t.kr., variances: [dref, drefp]}
+      columns: [{type: scenario, code: Scen}]
+      measures:
+        - {id: obj, name: Driftsomkostning, field: "Koersel.objektiv_dkk", kind: absolute, unit: kr., display: {prefix: t, decimals: 1}, polarity: -1}
+      scenarios: [{code: Ref}, {code: Scen}]
+      variances:
+        - {id: dref, code: ΔRef, measure: obj, minuend: Scen, subtrahend: Ref, kind: absolute}
+        - {id: drefp, code: ΔRef%, measure: obj, minuend: Scen, subtrahend: Ref, kind: relative, display: {format: number.format.relativeVariance1}}
+      shape: [Scen, Ref, ΔRef, ΔRef%]
+    labels: {data: all, legend: none}
+    notes: "3.468,6 · +44,2 · +1,3 % ΔRef (rød). Uden færdig reference: kun Scen-værdien og teksten 'referencen er ikke regnet'."
+
+interactions:
+  crossFilter: none
+  slicerPlacement: none
+  scaleRecompute: per-filter-context
+  messageOnFilter: re-scope
+  emptyState: "Ingen færdig kørsel → status og knappen 'Kør scenariet'"
+
+# Scenarieoversigten (#/scenarier) bruger samme talkontrakt: Driftsomkostning i t.kr. (3.468,6 — ikke "3,5 mio. kr.",
+# der skjuler forskellen) og en ΔRef-kolonne i virkningsfarve.

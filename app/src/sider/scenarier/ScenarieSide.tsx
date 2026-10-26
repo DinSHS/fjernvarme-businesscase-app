@@ -11,7 +11,9 @@ import { bestilKoersel, gemScenarieAendringer, opdaterScenarie, type ÆndringUdk
 import { STATUS_TEKST, erAktiv } from "@/lib/data/koersel-status";
 import { opdaterAlt } from "@/lib/data/opdatering";
 import { kodVaerdi, visVaerdi } from "@/lib/data/vaerdi";
-import { kr, modelDato, tal, tidspunkt } from "@/lib/format";
+import { modelDato, tal, tidspunkt } from "@/lib/format";
+import { tkr } from "../analyser/ibcs-grafer";
+import { periodeTekst as periodeKort } from "../analyser/fmt";
 import { rutehref } from "@/lib/rute";
 import { GRAENSER, MAKS, TILLADTE_FLAG } from "../../../rayfin/data/fjv.constants";
 import type { Koersel } from "../../../rayfin/data/Koersel";
@@ -231,7 +233,8 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     };
 
     const antal = aendringer.length;
-    const periodeTekst = gemtPeriode.start ? `${modelDato(gemtPeriode.start)} – ${modelDato(gemtPeriode.slut)}` : "ugyldig periode";
+    // Samme periodeform som Analyser (IBCS.md §3, review-fund B8): "5. jan.–16. jan. 2026", ikke "05-01-2026 – 16-01-2026".
+    const periodeTekst = gemtPeriode.start ? periodeKort(gemtPeriode.start, gemtPeriode.slut) : "ugyldig periode";
     const diff = seneste?.status === "faerdig" && reference?.status === "faerdig" ? difference(reference, seneste) : null;
     const budskab = `${antal === 0 ? "Ingen ændringer" : `${antal} ændring${antal === 1 ? "" : "er"}`} mod ${vaerk.navn}, ${periodeTekst}, ${s.med_balancering ? "med" : "uden"} balancering; `
         + (!seneste ? "ikke kørt endnu."
@@ -386,7 +389,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                                     { navn: "Bestilt", vis: (x) => tidspunkt(x.bestilt) },
                                     { navn: "Status", vis: (x) => <StatusMaerke status={x.status} /> },
                                     { navn: "Revision", tal: true, vis: (x) => x.vaerk_revision },
-                                    { navn: "Driftsomkostning", tal: true, vis: (x) => (x.objektiv_dkk != null ? kr(x.objektiv_dkk) : "–") },
+                                    { navn: "Driftsomkostning (t.kr.)", tal: true, vis: (x) => tkr(x.objektiv_dkk) },
                                     { navn: "Opnået gab", tal: true, vis: (x) => (x.opnaaet_gap != null ? `${(x.opnaaet_gap * 100).toLocaleString("da-DK", { maximumFractionDigits: 3 })} %` : "–") },
                                     { navn: "", vis: (x) => <KørselsLinks k={x} reference={reference} /> },
                                 ]} />
