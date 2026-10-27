@@ -55,11 +55,18 @@ export function useSkalagruppe(g: Skalagruppe | undefined, bredde: number): numb
     return useScale(req).get(g?.enhed ?? "");
 }
 
-/** Energi: GWh med 2 decimaler, når det største tal er ≥ 1.000 MWh (≤ 3 cifre i grafer, SI 5.2); ellers MWh uden decimaler. */
-export function energiSkala(mwh: readonly (number | null | undefined)[]): { skala: NumberScale; enhed: "GWh" | "MWh" } {
-    const maks = Math.max(0, ...mwh.map((v) => Math.abs(v ?? 0)));
-    return maks >= 1000 ? { skala: { factor: 1000, prefix: "G", decimals: 2 }, enhed: "GWh" } : { skala: { factor: 1, prefix: "", decimals: 0 }, enhed: "MWh" };
+/**
+ * Energi: GWh med 2 decimaler, når det største tal ellers får mere end `cifre` heltalscifre i MWh; ellers MWh uden
+ * decimaler. Ét præfiks for hele grafen eller tabellen. Grafer ≤ 3 cifre (SI 5.2, skift ved 1.000 MWh); tabeller og
+ * kort ≤ 4 cifre (IBCS.md §3, skift ved 10.000 MWh) — samme regel, kald med `ENERGI_TABEL`.
+ */
+export function energiSkala(mwh: readonly (number | null | undefined)[], cifre = 3): { skala: NumberScale; enhed: "GWh" | "MWh" } {
+    const maks = Math.max(0, ...mwh.map((v) => (v == null || !Number.isFinite(v) ? 0 : Math.abs(v))));
+    // Afrundet, som MWh vises (0 decimaler): 9.999,6 MWh står som "10.000" — 5 cifre — og skal derfor være GWh.
+    return Math.round(maks) >= 10 ** cifre ? { skala: { factor: 1000, prefix: "G", decimals: 2 }, enhed: "GWh" } : { skala: { factor: 1, prefix: "", decimals: 0 }, enhed: "MWh" };
 }
+/** Tabeller og kort: højst 4 heltalscifre (IBCS.md §3) — `energiSkala(tal, ENERGI_TABEL)`. */
+export const ENERGI_TABEL = 4;
 
 /** Driftsomkostning i t.kr. med én decimal (IBCS.md §3: ≤ 4 cifre i tabeller og kort). */
 export const TKR: NumberScale = { factor: 1000, prefix: "t.", decimals: 1 };

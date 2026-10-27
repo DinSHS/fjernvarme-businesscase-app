@@ -53,6 +53,9 @@ Appen har derfor to egne scenariekoder med faste IBCS-virkemidler — samme nota
 | Energi | MWh under 10.000, ellers GWh | MWh eller GWh, ét præfiks pr. skalagruppe |
 | CO₂ | t | t |
 
+- **Energi har ét præfiks pr. graf eller tabel**, valgt af `energiSkala(tal, cifre)` (`ibcs-grafer.tsx`): GWh med 2 decimaler,
+  når det største tal afrundet i MWh ellers får mere end 3 heltalscifre (grafer) eller 4 (tabeller og kort, `ENERGI_TABEL`).
+  Samme funktion, kun grænsen er forskellig; titel, kolonnehoved, budskab og fodnote følger valget (`r9_cifre.spec.tsx`).
 - Enheden står i titlen (linje 2) eller i kolonnehovedet — ikke på hvert tal.
 - Decimaler er faste pr. skalagruppe. Fuld præcision (hele kr.) findes i tooltip og i "Kopiér som tekst".
 - Tal i løbende tekst (budskaber, historie) følger samme præfiks som siden.

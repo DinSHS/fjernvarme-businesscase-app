@@ -4,7 +4,7 @@
 //-----------------------------------------------------------------------
 
 import { useMemo } from "react";
-import { ScaleProvider } from "@/ibcs";
+import { ScaleProvider, formatDelta, formatValue } from "@/ibcs";
 import { DataTilstand, FarveValg, Gitter, HeatSkalaProvider, Knap, Kort, Maerke, Side, StatusMaerke, Tabel, useHeatMaks, useVisning } from "@/components/layout";
 import { farvning, forklaring, skalaMaks } from "@/lib/tabelfarve";
 import { erAktiv } from "@/lib/data/koersel-status";
@@ -25,7 +25,7 @@ import { kandidater } from "./kandidater";
 import { NOEGLETAL_TEKST } from "./etiketter.data";
 import { dec, ellers, energi, gabPct, maanedKort, pctVaerdi, periodeTekst, varighed } from "./fmt";
 import { Forklaring, PunktRaekke, StablededeSoejler } from "./grafer";
-import { ProduktionPrEnhed, tkr } from "./ibcs-grafer";
+import { ENERGI_TABEL, ProduktionPrEnhed, energiSkala, tkr } from "./ibcs-grafer";
 import { forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
 
 /**
@@ -196,7 +196,7 @@ function Objektiv({ d }: { d: Pakke }) {
     );
 }
 
-function Enheder({ d }: { d: Pakke }) {
+export function Enheder({ d }: { d: Pakke }) {
     const e = d.samlet.enheder;
     const producerer = e.filter((x) => (x.produktion_mwh ?? 0) > 0);
     const st = stoersteEnhed(e);
@@ -211,7 +211,10 @@ function Enheder({ d }: { d: Pakke }) {
     const mMwh = useHeatMaks("MWh·enhed·periode", skalaMaks(e.map((x) => x.produktion_mwh)));
     const mAndel = skalaMaks(e.map((x) => x.andel_pct)), mDrift = skalaMaks(e.map((x) => x.driftstimer));
     const mFuld = skalaMaks(e.map((x) => x.fuldlasttimer)), mKap = skalaMaks(e.map((x) => x.kapacitetsfaktor_pct));
-    const legende = forklaring(vis, art, [["MWh", mMwh, tal(mMwh)], ["andel", mAndel, pctVaerdi(mAndel)], ["driftstimer", mDrift, tal(mDrift)], ["fuldlasttimer", mFuld, tal(mFuld)], ["kap.faktor", mKap, pctVaerdi(mKap)]]);
+    // Energi med højst 4 heltalscifre (IBCS.md §3): GWh, når MWh ellers får 5 cifre — samme regel som graferne.
+    const E = energiSkala(e.map((x) => x.produktion_mwh), ENERGI_TABEL);
+    const energiTal = (v: number) => formatValue(v, E.skala);
+    const legende = forklaring(vis, art, [[E.enhed, mMwh, energiTal(mMwh)], ["andel", mAndel, pctVaerdi(mAndel)], ["driftstimer", mDrift, tal(mDrift)], ["fuldlasttimer", mFuld, tal(mFuld)], ["kap.faktor", mKap, pctVaerdi(mKap)]]);
     const HEL = { factor: 1, prefix: "", decimals: 0 }, EN = { factor: 1, prefix: "", decimals: 1 };
     return (
         <Kort titel="Varmeproduktion pr. enhed" afgraensning="hele perioden, sorteret efter produktion" budskab={budskab}
@@ -221,7 +224,7 @@ function Enheder({ d }: { d: Pakke }) {
             <Tabel rækker={e} nøgle={(x) => x.navn} kolonner={[
                 { navn: "Enhed", vis: (x) => x.navn },
                 { navn: "Type", vis: (x) => `${enhedstype(d.input, x.navn) ?? "–"}${profil.has(x.navn) ? " *" : ""}` },
-                { navn: "MWh", vis: (x) => ellers(x.produktion_mwh, tal), tal: true, farve: (x) => farvning(vis, x.produktion_mwh, art, mMwh, HEL) },
+                { navn: E.enhed, vis: (x) => ellers(x.produktion_mwh, energiTal), tal: true, farve: (x) => farvning(vis, x.produktion_mwh, art, mMwh, E.skala) },
                 { navn: "Andel", vis: (x) => ellers(x.andel_pct, (v) => pctVaerdi(v)), tal: true, farve: (x) => farvning(vis, x.andel_pct, art, mAndel, EN) },
                 { navn: "Driftstimer", vis: (x) => ellers(x.driftstimer, tal), tal: true, farve: (x) => farvning(vis, x.driftstimer, art, mDrift, HEL) },
                 { navn: "Fuldlasttimer", vis: (x) => ellers(x.fuldlasttimer, tal), tal: true, farve: (x) => farvning(vis, x.fuldlasttimer, art, mFuld, HEL) },
@@ -232,18 +235,21 @@ function Enheder({ d }: { d: Pakke }) {
     );
 }
 
-function VarmeOgMiljoe({ d }: { d: Pakke }) {
+export function VarmeOgMiljoe({ d }: { d: Pakke }) {
     const s = d.samlet;
     const lagerNetto = s.produktion_mwh != null && s.varmebehov_mwh != null ? s.produktion_mwh - s.varmebehov_mwh : null;
+    // Ét præfiks for kortets energital, højst 4 heltalscifre (IBCS.md §3).
+    const E = energiSkala([s.varmebehov_mwh, s.produktion_mwh, s.nettab_mwh, lagerNetto], ENERGI_TABEL);
+    const en = (v: number) => `${formatValue(v, E.skala)} ${E.enhed}`;
     return (
         <Kort titel="Varme og miljø" afgraensning="hele perioden"
             budskab={s.nettab_pct != null ? `Nettabet er ${pctVaerdi(s.nettab_pct)} af varmebehovet.` : s.varmebehov_mwh != null ? `Varmebehovet er ${energi(s.varmebehov_mwh)} (målt last — nettab indgår i målingen).` : undefined}
             fod={NOEGLETAL_TEKST.samlet_produktion_mwh?.forklaring}>
             <Fakta par={[
-                ["Varmebehov", ellers(s.varmebehov_mwh, (v) => `${tal(v)} MWh`)],
-                ["Samlet produktion", ellers(s.produktion_mwh, (v) => `${tal(v)} MWh`)],
-                lagerNetto != null && ["Produktion − behov", `${lagerNetto > 0 ? "+" : lagerNetto < 0 ? "−" : ""}${tal(Math.abs(lagerNetto))} MWh`],
-                ["Nettab", ellers(s.nettab_mwh, (v) => `${tal(v)} MWh`)],
+                ["Varmebehov", ellers(s.varmebehov_mwh, en)],
+                ["Samlet produktion", ellers(s.produktion_mwh, en)],
+                lagerNetto != null && ["Produktion − behov", `${formatDelta(lagerNetto, E.skala)} ${E.enhed}`],
+                ["Nettab", ellers(s.nettab_mwh, en)],
                 ["CO₂-udledning", ellers(s.co2_ton, (v) => `${tal(v)} t`)],
             ]} />
         </Kort>
@@ -329,21 +335,24 @@ function Balancering({ d }: { d: Pakke }) {
     );
 }
 
-function Lager({ d }: { d: Pakke }) {
+export function Lager({ d }: { d: Pakke }) {
     const l = d.samlet.lagre;
     const op = l.reduce((a, x) => a + (x.opladet_mwh ?? 0), 0), af = l.reduce((a, x) => a + (x.afladet_mwh ?? 0), 0);
+    // Ét præfiks for tabellen og budskabet, højst 4 heltalscifre (IBCS.md §3): et helår lader og aflader > 10.000 MWh.
+    const E = energiSkala([op, af, ...l.flatMap((x) => [x.niveau_start_mwh, x.niveau_slut_mwh, x.niveau_max_mwh, x.opladet_mwh, x.afladet_mwh])], ENERGI_TABEL);
+    const en = (v: number) => formatValue(v, E.skala);
     return (
-        <Kort titel="Lager" afgraensning="hele perioden, MWh"
-            budskab={l.length === 0 ? "Ingen aktive lagre i kørslen." : `${l.length === 1 ? "Tanken" : `De ${l.length} lagre`} ladede ${tal(op)} MWh op og afladede ${tal(af)} MWh.`}
+        <Kort titel="Lager" afgraensning={`hele perioden, ${E.enhed}`}
+            budskab={l.length === 0 ? "Ingen aktive lagre i kørslen." : `${l.length === 1 ? "Tanken" : `De ${l.length} lagre`} ladede ${en(op)} ${E.enhed} op og afladede ${en(af)} ${E.enhed}.`}
             fod={<>Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance). {forbehold("ved MILP og skyggepriser")}</>}>
             {l.length > 0 && (
                 <Tabel rækker={l} nøgle={(x) => x.navn} kolonner={[
                     { navn: "Lager", vis: (x) => x.navn },
-                    { navn: "Start", vis: (x) => ellers(x.niveau_start_mwh, tal), tal: true },
-                    { navn: "Slut", vis: (x) => ellers(x.niveau_slut_mwh, tal), tal: true },
-                    { navn: "Højeste", vis: (x) => ellers(x.niveau_max_mwh, tal), tal: true },
-                    { navn: "Opladet", vis: (x) => ellers(x.opladet_mwh, tal), tal: true },
-                    { navn: "Afladet", vis: (x) => ellers(x.afladet_mwh, tal), tal: true },
+                    { navn: "Start", vis: (x) => ellers(x.niveau_start_mwh, en), tal: true },
+                    { navn: "Slut", vis: (x) => ellers(x.niveau_slut_mwh, en), tal: true },
+                    { navn: "Højeste", vis: (x) => ellers(x.niveau_max_mwh, en), tal: true },
+                    { navn: "Opladet", vis: (x) => ellers(x.opladet_mwh, en), tal: true },
+                    { navn: "Afladet", vis: (x) => ellers(x.afladet_mwh, en), tal: true },
                 ]} />
             )}
             <Fakta par={[["Tankens værdi", d.samlet.tank_arbitrage_dkk == null

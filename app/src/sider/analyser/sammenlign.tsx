@@ -21,7 +21,8 @@ import { AnbefalingKort, HistorieKort } from "./anbefaling-kort";
 import { Commit, Fakta, KoerselLink, SporMaerke } from "./dele";
 import DispatchKort from "./dispatch-kort";
 import { dec, ellers, energi, maanedKort, medFortegn, periodeTekst } from "./fmt";
-import { DeltaTal, NoegletalKort, OmkostningsVandfald, ProduktionMod, TKR, omkostningsBro, tkr, vandfaldSkala, type Noegletal } from "./ibcs-grafer";
+import { formatValue } from "@/ibcs";
+import { DeltaTal, ENERGI_TABEL, NoegletalKort, OmkostningsVandfald, ProduktionMod, TKR, energiSkala, omkostningsBro, tkr, vandfaldSkala, type Noegletal } from "./ibcs-grafer";
 import { forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
 
 function begge(a: Hentet<Pakke | null>, b: Hentet<Pakke | null>): Hentet<[Pakke | null, Pakke | null]> {
@@ -215,9 +216,10 @@ export function DeltaObjektiv({ a, b }: { a: Pakke; b: Pakke }) {
 const objektiv = (p: Pakke): number | null => p.k.objektiv_dkk ?? p.samlet.objektiv_dkk ?? null;
 
 /** KPI-kort (spec k1): driftsomkostning, CO₂, elforbrug og — med balancemarked — balanceindtægt netto. */
-function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
+export function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
     const sa = a.samlet, sb = b.samlet;
     const heltal = { factor: 1, prefix: "", decimals: 0 };
+    const el = energiSkala([sa.el_forbrug_mwh, sb.el_forbrug_mwh], ENERGI_TABEL);
     const tal_: Noegletal[] = [
         {
             navn: "Driftsomkostning", enhed: "t.kr.", ref: objektiv(a), scen: objektiv(b), skala: TKR, polaritet: -1,
@@ -225,7 +227,8 @@ function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
         },
         { navn: "CO₂-udledning", enhed: "t", ref: sa.co2_ton, scen: sb.co2_ton, skala: heltal, polaritet: -1 },
         {
-            navn: "Elforbrug", enhed: "MWh el", ref: sa.el_forbrug_mwh, scen: sb.el_forbrug_mwh, skala: heltal, polaritet: 0,
+            // Kortets tal har højst 4 heltalscifre (IBCS.md §3): GWh, når et helårs elforbrug ellers får 5 cifre.
+            navn: "Elforbrug", enhed: `${el.enhed} el`, ref: sa.el_forbrug_mwh, scen: sb.el_forbrug_mwh, skala: el.skala, polaritet: 0,
             definition: "El til varmepumper og elkedler. Neutral: virkningen står i driftsomkostningen.",
         },
         ...(sa.balance || sb.balance ? [{ navn: "Balanceindtægt netto", enhed: "t.kr.", ref: sa.balance?.i_alt.netto ?? null, scen: sb.balance?.i_alt.netto ?? null, skala: TKR, polaritet: 1, relativ: false }] : []),
@@ -350,11 +353,14 @@ export function MaanedDelta({ a, b }: { a: Pakke; b: Pakke }) {
         return va == null && vb == null ? null : ((vb ?? 0) - (va ?? 0)) * 1000;
     };
     const kolonner = [...måneder, "periode"];
+    // Ét præfiks for hele tabellen (måneder og 'Hele perioden') og budskabet, højst 4 heltalscifre (IBCS.md §3): GWh,
+    // når MWh ellers får 5 cifre — samme regel som graferne (energiSkala).
+    const E = energiSkala(kolonner.flatMap((m) => [...enheder, null].map((e) => d(m, e))), ENERGI_TABEL);
+    const en = (v: number) => `${formatValue(v, E.skala)} ${E.enhed}`;
     const flyt = måneder.map((m) => [m, enheder.reduce((sum, e) => sum + Math.abs(d(m, e) ?? 0), 0) / 2] as const).sort((x, y) => y[1] - x[1]);
     const budskab = måneder.length === 0 ? "Ingen månedstal."
         : flyt[0][1] < 0.5 ? "Ingen produktion flytter mellem enhederne i nogen måned."
-            : `Mest flytning i ${maanedKort(flyt[0][0])}: ${tal(flyt[0][1])} MWh skifter enhed.`;
-    const MWH = { factor: 1, prefix: "", decimals: 0 };
+            : `Mest flytning i ${maanedKort(flyt[0][0])}: ${en(flyt[0][1])} skifter enhed.`;
     // Heatmap (IBCS.md §8): én skala for månedscellerne og én for 'Hele perioden' (delt med lagertabellens ΔMWh), så
     // totalen ikke vasker månederne ud. Varmebehovet står i samme MWh og deler månedernes skala.
     const rækker = [...enheder, VARMEBEHOV];
@@ -363,18 +369,18 @@ export function MaanedDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const maksM = useHeatMaks("ΔMWh·måned", skalaMaks(måneder.flatMap((m) => rækker.map((e) => celle(m, e)))));
     const maksP = useHeatMaks("ΔMWh·periode", skalaMaks(rækker.map((e) => celle("periode", e))));
     const art = { slags: "delta", polaritet: 0 } as const;
-    const legende = forklaring(vis, art, [["månederne", maksM, `${tal(maksM)} MWh`], ["hele perioden", maksP, `${tal(maksP)} MWh`]]);
+    const legende = forklaring(vis, art, [["månederne", maksM, en(maksM)], ["hele perioden", maksP, en(maksP)]]);
     return (
-        <Kort titel="Måned for måned" afgraensning="ΔRef varmeproduktion, MWh, pr. enhed og måned" budskab={budskab}
+        <Kort titel="Måned for måned" afgraensning={`ΔRef varmeproduktion, ${E.enhed}, pr. enhed og måned`} budskab={budskab}
             handling={<FarveValg slags="delta" />}
             fod={`ΔRef = scenarie − reference${vis === "ingen" ? ", neutral (blå)" : ""}. ${legende ? `${legende} ` : ""}'Hele perioden' er differensen mellem de to kørslers periode-rækker (regnet på de fulde tidsserier), ikke summen af månederne.`}>
             <Tabel rækker={rækker} nøgle={(e) => e} kolonner={[
                 { navn: "Enhed", vis: (e) => (e === VARMEBEHOV ? <span className="fjv-a-svag">Varmebehov</span> : e) },
                 ...kolonner.map((m) => ({
                     navn: m === "periode" ? "Hele perioden" : maanedKort(m), tal: true,
-                    farve: (e: string) => farvning(vis, celle(m, e), art, m === "periode" ? maksP : maksM, MWH),
+                    farve: (e: string) => farvning(vis, celle(m, e), art, m === "periode" ? maksP : maksM, E.skala),
                     vis: (e: string) => {
-                        const t = <DeltaTal v={celle(m, e)} polaritet={0} skala={MWH} arv={vis !== "ingen"} />;
+                        const t = <DeltaTal v={celle(m, e)} polaritet={0} skala={E.skala} arv={vis !== "ingen"} />;
                         return m === "periode" ? <strong>{t}</strong> : t;
                     },
                 })),
@@ -429,7 +435,7 @@ function BalanceDelta({ a, b }: { a: Pakke; b: Pakke }) {
     );
 }
 
-function LagerDelta({ a, b }: { a: Pakke; b: Pakke }) {
+export function LagerDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const navne = [...new Set([...a.samlet.lagre.map((l) => l.navn), ...b.samlet.lagre.map((l) => l.navn)])].sort();
     const la = new Map(a.samlet.lagre.map((l) => [l.navn, l])), lb = new Map(b.samlet.lagre.map((l) => [l.navn, l]));
     const kunA = navne.filter((n) => la.has(n) && !lb.has(n)), kunB = navne.filter((n) => lb.has(n) && !la.has(n));
@@ -437,21 +443,23 @@ function LagerDelta({ a, b }: { a: Pakke; b: Pakke }) {
         : kunA.length ? `Scenariet kører uden ${kunA.join(" og ")}.` : kunB.length ? `Scenariet har ${kunB.join(" og ")}, som referencen ikke har.`
             : "Samme lagre i begge kørsler.";
     const dl = (n: string) => (lb.get(n)?.afladet_mwh ?? 0) - (la.get(n)?.afladet_mwh ?? 0);
-    const MWH = { factor: 1, prefix: "", decimals: 0 };
+    // Ét præfiks for tabellen, højst 4 heltalscifre (IBCS.md §3): et helårs afladning er > 10.000 MWh.
+    const E = energiSkala(navne.flatMap((n) => [la.get(n)?.afladet_mwh, lb.get(n)?.afladet_mwh, dl(n)]), ENERGI_TABEL);
+    const en = (v: number) => formatValue(v, E.skala);
     // Samme MWh-skala som månedstabellens 'Hele perioden' (begge er periodens ΔRef i MWh; IBCS.md §8).
     const vis = useVisning("delta");
     const maks = useHeatMaks("ΔMWh·periode", skalaMaks(navne.map(dl)));
     const art = { slags: "delta", polaritet: 0 } as const;
-    const legende = forklaring(vis, art, [["", maks, `${tal(maks)} MWh, samme skala som månedstabellens 'Hele perioden'`]]);
+    const legende = forklaring(vis, art, [["", maks, `${en(maks)} ${E.enhed}, samme skala som månedstabellens 'Hele perioden'`]]);
     return (
-        <Kort titel="Lager" afgraensning="afladet energi, MWh" budskab={budskab}
+        <Kort titel="Lager" afgraensning={`afladet energi, ${E.enhed}`} budskab={budskab}
             handling={navne.length ? <FarveValg slags="delta" /> : undefined}
             fod={`${kunA.length || kunB.length ? forbehold("ved sammenligning med og uden tank") : "Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance)."}${legende ? ` ΔRef: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
             <Tabel rækker={navne} nøgle={(n) => n} tom="Ingen lagre." kolonner={[
                 { navn: "Lager", vis: (n) => n },
-                { navn: "Ref (MWh)", vis: (n) => (la.has(n) ? ellers(la.get(n)!.afladet_mwh, tal) : "slået fra"), tal: true },
-                { navn: "Scen (MWh)", vis: (n) => (lb.has(n) ? ellers(lb.get(n)!.afladet_mwh, tal) : "slået fra"), tal: true },
-                { navn: "ΔRef", tal: true, farve: (n) => farvning(vis, dl(n), art, maks, MWH), vis: (n) => <DeltaTal v={dl(n)} polaritet={0} skala={MWH} arv={vis !== "ingen"} /> },
+                { navn: `Ref (${E.enhed})`, vis: (n) => (la.has(n) ? ellers(la.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
+                { navn: `Scen (${E.enhed})`, vis: (n) => (lb.has(n) ? ellers(lb.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
+                { navn: "ΔRef", tal: true, farve: (n) => farvning(vis, dl(n), art, maks, E.skala), vis: (n) => <DeltaTal v={dl(n)} polaritet={0} skala={E.skala} arv={vis !== "ingen"} /> },
             ]} />
         </Kort>
     );
