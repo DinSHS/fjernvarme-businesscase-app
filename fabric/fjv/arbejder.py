@@ -19,11 +19,13 @@ _SLUT = ("faerdig", "annulleret", "afbrudt", "fejl")
 
 def arbejd(koe, RAP, *, mig: str, tilstand: dict | None = None, koersel_id: str = "",
            oprettede: bool = False, test_doed_efter_s: float = 0,
-           maks: int = MAX_KOERSLER_PR_JOB) -> dict:
+           maks: int = MAX_KOERSLER_PR_JOB, tilladt_data: dict | None = None) -> dict:
     """Ét arbejderjob. ``tilstand`` (fra kalderen) udvides og returneres.
 
     ``oprettede``: kalderen har lige lagt kørsler i køen (manuel vej / batch) - kun til
-    advarslen, hvis låsen er optaget."""
+    advarslen, hvis låsen er optaget.
+    ``tilladt_data``: koersel_id -> df-data-SHA, som operatøren eksplicit valgte til netop den kørsel
+    (notebookens ``data_commit``); alle andre kørsler skal have motorens egne pins (``koersel.pin_afvigelse``)."""
     from .koersel import Afbrudt, koer_en
     from .rapport import Rapport
 
@@ -54,7 +56,8 @@ def arbejd(koe, RAP, *, mig: str, tilstand: dict | None = None, koersel_id: str 
         lager = koe.koersel_lager(kid, mig, laas)
         lager.test_doed_efter_s = test_doed_efter_s      # kun live-test (0 = fra)
         try:
-            res = koer_en(raekker, kid, lager, kr, forventet_hash=k["input_hash"])
+            res = koer_en(raekker, kid, lager, kr, forventet_hash=k["input_hash"],
+                          tilladt_data_commit=(tilladt_data or {}).get(kid))
         except Afbrudt as e:
             if lager.annulleret and not lager.tabt and lager.annuller_selv():
                 res = {"koersel_id": kid, "status": "annulleret", "besked": str(e)}

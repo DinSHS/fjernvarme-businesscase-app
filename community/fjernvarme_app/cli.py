@@ -123,6 +123,13 @@ def byg_app(data: str, db_url: str | None, *, bruger: str | None = None, bruger_
     if opret:
         db.opret()
     db.kontroller()
+    if opret:
+        # Runde 7c: Motor-rækken = denne udgaves motor, FØR nogen bestilling kan fryse pins. Ellers ville
+        # første bestilling efter en opgradering fryse den forrige versions pins og blive afvist af
+        # arbejderen (fjv/koersel.pin_afvigelse) - som Fabric-udgavens deploy.py kode/pins.
+        from fjv import konstanter as K
+        from . import lokal_lager as LL
+        LL.skriv_motor_pins(db, K.MODEL_COMMIT, K.DF_DATA_SHA)
     motor = Motor(db, datamappe, url, model_python=model_python, start_processer=start_processer)
     return App(db=db, skema=sk, datamappe=datamappe, files=files,
                bruger=(bruger or f"{getpass.getuser()}@lokal")[:200], motor=motor,

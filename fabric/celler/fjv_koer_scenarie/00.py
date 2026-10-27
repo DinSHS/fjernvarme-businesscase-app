@@ -75,7 +75,7 @@ try:
         raekker = raekker_fra_vaerk(params, json.loads(aendringer_json or "[]"), _sc)
         kid = koersel_id or str(uuid.uuid4())
         RAP.trin("koersel", {"id": kid, "vaerk_fil": fil.name, "raekker": len(raekker)})
-        resume = koer_en(raekker, kid, IngenLager(), RAP)
+        resume = koer_en(raekker, kid, IngenLager(), RAP, tilladt_data_commit=data_commit or None)
         RAP["ok"] = resume.get("status") == "faerdig"
 except Afbrudt as e:
     RAP.advar(f"afbrudt: {e}")

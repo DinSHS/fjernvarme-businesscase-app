@@ -148,11 +148,35 @@ class _Hjerte(threading.Thread):
                 self.fejl.append(f"{type(fejl).__name__}: {fejl}"[:300])
 
 
+def pin_afvigelse(model_sha: str, data_sha: str, tilladt_data_commit: str | None = None) -> str | None:
+    """Afviger kørslens frosne pins fra den motor, der kører den? (runde 7c)
+
+    Motorkoden i lakehouset er bygget til netop ``K.MODEL_COMMIT`` og ``K.DF_DATA_SHA``. Fryser en
+    bestilling andre pins (fx fordi ``dbo.Motors`` endnu stod på den forrige motor, målt 2026-10-27:
+    første bestilling efter opgraderingen kørte b49aeb0 og blev vist som den nye), skal kørslen
+    afvises - hellere ingen kørsel end en kørsel med et forkert mærke. Eneste undtagelse er en
+    df-data-SHA, som operatøren eksplicit har valgt til netop denne kørsel (notebookens ``data_commit``).
+    """
+    dele = []
+    if model_sha != K.MODEL_COMMIT:
+        dele.append(f"modelkode {model_sha[:7]} (motoren er bygget til {K.MODEL_COMMIT[:7]})")
+    if data_sha != K.DF_DATA_SHA and data_sha != (tilladt_data_commit or ""):
+        dele.append(f"df-data {data_sha[:7]} (motoren er bygget til {K.DF_DATA_SHA[:7]})")
+    if not dele:
+        return None
+    return ("Kørslen er bestilt med andre versioner end den motor, der skal regne den: "
+            + " og ".join(dele) + ". Den er afvist, så den ikke får et forkert mærke. "
+            "Bestil den igen - en ny bestilling fryser motorens versioner.")
+
+
 def koer_en(raekker: list[dict], koersel_id: str, lager, rap, *,
             forventet_hash: str | None = None, timeout_s: float = 4 * 3600,
-            hjerte_s: float = 60.0) -> dict:
+            hjerte_s: float = 60.0, tilladt_data_commit: str | None = None) -> dict:
     """Kør én kørsel. Returnerer et resumé; rejser aldrig for en modelfejl (den
-    bliver til status ``fejl``), men rejser ``Afbrudt`` hvis en anden tog over."""
+    bliver til status ``fejl``), men rejser ``Afbrudt`` hvis en anden tog over.
+
+    ``tilladt_data_commit``: en df-data-SHA, operatøren eksplicit har valgt til netop denne
+    kørsel (se ``pin_afvigelse``)."""
     resume: dict = {"koersel_id": koersel_id, "motor_version": MOTOR_VERSION}
     rap["koersel"] = resume
     arbejde = Path(tempfile.gettempdir()) / "fjv_koer" / koersel_id
@@ -207,6 +231,10 @@ def koer_en(raekker: list[dict], koersel_id: str, lager, rap, *,
             return fejl("Input mangler frosne model- og data-SHA'er (_koersel.model_commit/"
                         "_koersel.data_commit). Bestil kørslen igen.", "koerer")
         model_sha, data_sha = plan.model_commit, plan.data_commit
+        afvigelse = pin_afvigelse(model_sha, data_sha, tilladt_data_commit)
+        if afvigelse:
+            resume.update(model_commit=model_sha, data_commit=data_sha)
+            return fejl(afvigelse, "koerer")
         kode_lh, kode_info = R.sikr_model(model_sha)
         df_lh, df_info = R.sikr_dfdata(data_sha)
         if arbejde.exists():

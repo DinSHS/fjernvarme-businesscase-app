@@ -679,8 +679,8 @@ def genpubliser(db: Db, koersel_id: str) -> dict:
 
 # ------------------------------------------------------------------ Motor (§6c)
 
-#: Den ene Motor-række (fv-app, rapporter/fv-app.md 08:46: MOTOR_ID).
-MOTOR_ID = "00000000-0000-4000-8000-00000000f001"
+#: Den ene Motor-række (fv-app, rapporter/fv-app.md 08:46: MOTOR_ID) - i konstanter, så deploy.py kan skrive den uden yaml.
+MOTOR_ID = K.MOTOR_ID
 
 
 def motor_pins(db: Db) -> dict:
@@ -884,6 +884,9 @@ def koer_notebook(konfig: dict, RAP, *, koersel_id: str = "", vaerk_kode: str = 
         pass
     tilstand = {"arbejder_id": mig, "koersler": [], "ok": True}
     RAP.trin("arbejder", {"arbejder_id": mig})
+    # Operatørens eksplicitte df-data-valg (parameteren data_commit) gælder kun de kørsler, dette job
+    # selv opretter - aldrig en anden bestilling i køen (koersel.pin_afvigelse, runde 7c).
+    tilladt_data: dict = {}
 
     if batch:
         tilstand["batch"] = []
@@ -891,6 +894,8 @@ def koer_notebook(konfig: dict, RAP, *, koersel_id: str = "", vaerk_kode: str = 
             try:
                 kid = opret_manuel(db, post["vaerk_kode"], post.get("navn") or post.get("id", ""),
                                    list(post.get("aendringer") or []), post.get("scenarie") or {})
+                if (post.get("scenarie") or {}).get("data_commit"):
+                    tilladt_data[kid] = post["scenarie"]["data_commit"]
                 tilstand["batch"].append({"id": post.get("id"), "koersel_id": kid})
             except InputFejl as e:
                 # Én ugyldig post må ikke stoppe resten; den står i rapporten.
@@ -899,13 +904,15 @@ def koer_notebook(konfig: dict, RAP, *, koersel_id: str = "", vaerk_kode: str = 
         RAP.trin("batch_oprettet", tilstand["batch"])
     if vaerk_kode:
         kid = opret_manuel(db, vaerk_kode, scenarie_navn, list(aendringer), scenarie or {})
+        if (scenarie or {}).get("data_commit"):
+            tilladt_data[kid] = scenarie["data_commit"]
         tilstand["oprettet"] = kid
         RAP.trin("oprettet", {"koersel_id": kid, "vaerk_kode": vaerk_kode})
 
     # Selve løkken er databaseuafhængig (fjv/arbejder.py); her er kun Fabric-bindingen.
     return arbejd(SqlKoe(db), RAP, mig=mig, tilstand=tilstand, koersel_id=koersel_id,
                   oprettede=bool(vaerk_kode or batch), test_doed_efter_s=test_doed_efter_s,
-                  maks=MAX_KOERSLER_PR_JOB)
+                  maks=MAX_KOERSLER_PR_JOB, tilladt_data=tilladt_data)
 
 
 class SqlKoe:

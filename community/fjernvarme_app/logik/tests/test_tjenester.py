@@ -50,8 +50,11 @@ class Grund(unittest.TestCase):
         self.l = _fabrik()
         self.filer = MinneFiler()
         self.starter = []
-        self.l.indsaet("Motors", {"id": MOTOR_ID, **PINS})
-        vaerk = _ts_vektor("byg_frosset_input", "pins")["input"]["params"]
+        if self.l.raekker("Motors", id=MOTOR_ID):        # serveren skriver selv sine pins ved opstart (runde 7c)
+            self.l.opdater("Motors", MOTOR_ID, **PINS)
+        else:
+            self.l.indsaet("Motors", {"id": MOTOR_ID, **PINS})
+        vaerk =_ts_vektor("byg_frosset_input", "pins")["input"]["params"]
         self.v = self.l.indsaet("Vaerks", {"kode": "probe", "navn": "Probe", "kilde": "repo", "revision": 1, "arkiveret": False})
         for i, p in enumerate(vaerk, 1):
             d = p["sti"].split(".")

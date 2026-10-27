@@ -3,7 +3,8 @@
 
     python deploy.py --tor <kommando>           # TØR: vis hvert fab-kald, udfør intet
 
-    python deploy.py kode                       # fjv/*.py -> Files/fjv/motor/fjv/
+    python deploy.py kode                       # fjv/*.py -> Files/fjv/motor/fjv/, derefter `pins`
+    python deploy.py pins                       # dbo.Motors = motorens pins (kører også efter `kode` og `db`)
     python deploy.py notebook fjv_selvtest      # byg + importér item
     python deploy.py koer fjv_selvtest          # fab job run (headless)
     python deploy.py koer fjv_koer_scenarie "vaerk_kode:string=andeby,start:string=2026-01-05"
@@ -143,6 +144,67 @@ def kmd_kode() -> int:
         upload(data, f"Files/{K.REL_MOTOR}/fjv/{navn}")
         print(f"  {navn}: sha256 {hashlib.sha256(data).hexdigest()[:16]} ({len(data)} bytes)")
     print(f"kode: {n} moduler + maaleregister.json + orakel -> Files/{K.REL_MOTOR}/fjv/")
+    # Runde 7c: pins skrives EFTER uploadet. Omvendt kunne en bestilling fryse de nye pins, mens en
+    # arbejder på den gamle kode stadig kørte - nu kan en bestilling højst fryse de gamle, og dem
+    # afviser den nye arbejder (koersel.pin_afvigelse).
+    return kmd_pins(foerste_installation_ok=True)
+
+
+def motor_pins_sql(model_commit: str, data_commit: str) -> str:
+    """Samme skrivning som ``fjv.db.skriv_motor_pins``, som ét sqlcmd-batch (runde 7c).
+
+    Findes tabellen/kolonnen ikke endnu (første installation: appen er ikke oprettet), sker intet. Til sidst læses
+    rækken tilbage, så ``kmd_pins`` kan kontrollere den. SHA'erne er hex (kontrolleret), så de kan stå som literaler."""
+    import re
+    for sha in (model_commit, data_commit):
+        if not re.fullmatch(r"[0-9a-f]{40}", sha or ""):
+            raise ValueError(f"Motor-pins skal være fulde 40-tegns SHA'er, fik {sha!r}")
+    m = K.MOTOR_ID
+    return (
+        "SET NOCOUNT ON; "
+        "IF COL_LENGTH(N'dbo.Motors', N'data_commit') IS NULL BEGIN SELECT 'FJV_PINS|ingen-tabel'; RETURN; END; "
+        f"IF NOT EXISTS (SELECT 1 FROM dbo.Motors WHERE id='{m}') "
+        f"INSERT INTO dbo.Motors (id, aendret) VALUES ('{m}', SYSUTCDATETIME()); "
+        f"UPDATE dbo.Motors SET model_commit='{model_commit}', data_commit='{data_commit}', aendret=SYSUTCDATETIME() WHERE id='{m}'; "
+        f"SELECT 'FJV_PINS|' + model_commit + '|' + data_commit FROM dbo.Motors WHERE id='{m}';")
+
+
+def kmd_pins(foerste_installation_ok: bool = False) -> int:
+    """dbo.Motors = de pins, motoren i lakehouset er bygget til (K.MODEL_COMMIT, K.DF_DATA_SHA).
+
+    Appens Functions fryser en bestillings pins fra den række. Står den på den forrige motor, regner den
+    nye motor en kørsel med forkert mærke (målt 2026-10-27, rapporter/fv-model.md) - derfor skriver deployet
+    rækken, og en fejl her er en fejl i deployet. Ingen database endnu (første installation: `kode` før
+    `rayfin-up`) er ikke en fejl; `deploy.py db` skriver pins, når databasen findes.
+    """
+    inst = MILJOE.INSTALLATION
+    if foerste_installation_ok and any(not isinstance(inst.get(k), str) or not inst[k].strip() or inst[k].strip().startswith("<")
+                                       for k in ("sql_server", "sql_database")):
+        print("pins: ingen database i config/installation.json endnu - springes over (deploy.py db skriver dem senere)")
+        return 0
+    b = db_binding()
+    sql = motor_pins_sql(K.MODEL_COMMIT, K.DF_DATA_SHA)
+    if TOR:
+        print(f"[TOER] sqlcmd -S {b['server']} -d {b['database']} (ActiveDirectoryAzCli): dbo.Motors <- "
+              f"model {K.MODEL_COMMIT}, df-data {K.DF_DATA_SHA}")
+        return 0
+    import azsql
+    try:
+        r = azsql.koer_sqlcmd(b["server"], b["database"], sql, ekstra=("-y", "0", "-b", "-h", "-1"))
+    except azsql.AzFejl as e:
+        print(f"pins: FEJL - az kunne ikke give et token: {e}")
+        return 1
+    svar = [ln.strip() for ln in (r.stdout or "").splitlines() if ln.strip().startswith("FJV_PINS|")]
+    if r.returncode != 0 or not svar:
+        print(f"pins: FEJL - dbo.Motors blev ikke skrevet (sqlcmd {r.returncode}): {(r.stderr or r.stdout or '').strip()[-400:]}")
+        return 1
+    if svar[-1] == "FJV_PINS|ingen-tabel":
+        print("pins: appens database har endnu ingen Motors-tabel - springes over (kør igen efter rayfin-up)")
+        return 0
+    if svar[-1] != f"FJV_PINS|{K.MODEL_COMMIT}|{K.DF_DATA_SHA}":
+        print(f"pins: FEJL - dbo.Motors læst tilbage som {svar[-1]!r}")
+        return 1
+    print(f"pins: dbo.Motors = model {K.MODEL_COMMIT[:7]}, df-data {K.DF_DATA_SHA[:7]} (læst tilbage)")
     return 0
 
 
@@ -163,7 +225,7 @@ def kmd_db() -> int:
     print("db.json-indhold: " + data.decode("utf-8"))
     upload(data, f"Files/{K.REL_KONFIG}/db.json")
     print(f"db: bindingen er skrevet til Files/{K.REL_KONFIG}/db.json")
-    return 0
+    return kmd_pins()
 
 
 def kmd_notebook(navn: str) -> int:
@@ -239,6 +301,8 @@ def _main(argv: list[str]) -> int:
         return kmd_kode()
     if k == "db":
         return kmd_db()
+    if k == "pins":
+        return kmd_pins()
     if k == "notebook":
         return max(kmd_notebook(n) for n in (rest or byg.alle()))
     if k == "koer":

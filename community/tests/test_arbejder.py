@@ -18,7 +18,7 @@ from fjernvarme_app.laas import FilLaas, er_fri
 from fjernvarme_app.motor import Motor
 from fjernvarme_app.typer import nu
 
-from fjv import arbejder as A, koersel as KS, lager as L  # noqa: E402  (efter hjaelp: FJV_FILES er sat)
+from fjv import arbejder as A, konstanter as K, koersel as KS, lager as L  # noqa: E402  (efter hjaelp: FJV_FILES er sat)
 from fjv.rapport import Rapport  # noqa: E402
 
 
@@ -232,7 +232,9 @@ class TestMotor(unittest.TestCase):
     def test_motor_pins_og_jobstart_uden_koe(self):
         app = H.ny_app()
         m = Motor(app.db, H.ROD / f"m{time.time_ns()}", app.db.url)
-        self.assertEqual(LL.motor_pins(app.db)["kilde"], "konstanter")
+        # Runde 7c: serveren skriver sin egen motors pins ved opstart - ikke først, når arbejderen tager låsen.
+        self.assertEqual(LL.motor_pins(app.db), {"model_commit": K.MODEL_COMMIT, "data_commit": K.DF_DATA_SHA,
+                                                 "kilde": "Motor"})
         LL.skriv_motor_pins(app.db, "a" * 40, "b" * 40)
         self.assertEqual(LL.motor_pins(app.db), {"model_commit": "a" * 40, "data_commit": "b" * 40, "kilde": "Motor"})
         with self.assertRaises(ValueError):

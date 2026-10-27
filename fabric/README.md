@@ -127,7 +127,8 @@ ved eef950a, samme tal som community-udgaven (målt 2026-10-26; ved b49aeb0 844.
 _lokal/.venv/Scripts/python -m unittest discover -s tests -t .     # 165 tests (2 kun på Linux), ingen netværk
 python byg.py                                                     # celler/ -> _byg/*.Notebook
 python koer_lokalt.py fjv_koer_scenarie vaerk_kode=andeby start=2026-01-05 slut=2026-01-16
-python deploy.py kode                                             # fjv/*.py + maaleregister.json -> lakehouse
+python deploy.py kode                                             # fjv/*.py + maaleregister.json -> lakehouse, derefter pins
+python deploy.py pins                                             # dbo.Motors = motorens pins (læst tilbage; kræver az)
 python deploy.py notebook <navn>                                  # byg + importér item
 python deploy.py koer <navn> "navn:type=værdi,…"                  # fab job run
 python deploy.py rapport <navn>                                   # læs Files/_run/<navn>.json
@@ -160,5 +161,9 @@ Rediger aldrig `_byg/*.ipynb` i hånden.
 - **Windows**: `run_case.py` læser YAML med `read_text()` uden encoding → `PYTHONUTF8=1`; lange
   output-stems rammer 260-tegnsgrænsen → kort arbejdsmappe (`C:\fjvt`) lokalt.
 - **`andeby --dummy` kan ikke køre** ved b49aeb0 og eef950a (målt 2026-10-26; dummy-data hæfter ikke solprofilen på); røgtesten bruger `billund_sporA --dummy`.
+- **Pins efter en motoropgradering** (målt 2026-10-27): bestillinger fryser pins fra `dbo.Motors`, men arbejderen skrev
+  først rækken, når den havde taget låsen - efter bestillingen. Første kørsel efter opgraderingen regnede derfor den gamle
+  model (b49aeb0) under det nye navn. Nu skriver `deploy.py kode` rækken lige efter uploadet, og `koersel.pin_afvigelse`
+  afviser en kørsel, hvis frosne pins ikke er motorens (kun et eksplicit `data_commit` i notebooken er tilladt).
 - **MILP-gab og miljø**: Spor A løses ikke til 0 % gab, og 2 kerner (Fabric) finder en anden løsning
   end 8 (lokalt) — 28 DKK fra hinanden. Kør differenser i samme miljø og med stramt gab.

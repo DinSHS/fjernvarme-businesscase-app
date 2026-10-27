@@ -40,6 +40,8 @@ REL_DFDATA = "fjv/df-data"       # fjv/df-data/<data_sha>/
 REL_VARMEDATA = "fjv/varmedata"  # fjv/varmedata/<fil>.csv
 REL_KOERSLER = "fjv/koersler"    # fjv/koersler/<koersel_id>/
 REL_MOTOR = "fjv/motor"          # denne pakke (fjv/motor/fjv/*.py)
+#: Den ene Motor-række i appens database (§6c); deploy.py og arbejderen skriver dens pins.
+MOTOR_ID = "00000000-0000-4000-8000-00000000f001"
 REL_KONFIG = "fjv/konfig"        # fjv/konfig/db.json (miljøbinding, ikke i itemet)
 REL_RUN = "_run"                 # _run/<notebook>.json
 
