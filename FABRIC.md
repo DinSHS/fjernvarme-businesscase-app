@@ -64,7 +64,10 @@ Læg mærke til, at **appens SQL-database først findes efter appens første udr
    `git update-index --skip-worktree`, så de to filer ikke kan committes med dine værdier. `python scripts/installation.py fjern` ruller tilbage (gør det før `git pull`).
 5. **Databasebindingen til notebooks.** `python fabric/deploy.py db` skriver `Files/fjv/konfig/db.json` fra `sql_server`/`sql_database`
    og motorens pins i `dbo.Motors` (`python fabric/deploy.py pins` gør kun det sidste; kræver `az login`).
-6. **Værkerne.** `python fabric/deploy.py koer fjv_importer_vaerker` importerer modelrepoets værker i databasen.
+6. **Værkerne.** `python fabric/deploy.py koer fjv_importer_vaerker` importerer modelrepoets værker i databasen. **Kør den igen efter hver
+   ændring af `MODEL_COMMIT`:** værkerne i databasen er casefilerne ved den commit, de blev importeret ved, og ellers regner appen på en ældre
+   versions antagelser (målt 2026-10-27: alle 7 repoværker stod ved b49aeb0, mens motoren kørte eef950a). Uændrede repoværker (revision 1)
+   opdateres; rettede beskyttes. Konfiguration › værk › kortet *Modelrepoet* viser afdrift felt for felt mod casefilen ved den pinnede commit.
 7. **Kontrol.** `python fabric/deploy.py koer fjv_selvtest` og `python fabric/deploy.py rapport fjv_selvtest` (modelrepoets egen testsuite i Fabric), og åbn appen i portalen.
 
 Hver kommando kan prøves **tørt** uden at røre Fabric: `python fabric/deploy.py --tor kode` (og `--tor notebook`, `--tor db`, `--tor koer …`),

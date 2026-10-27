@@ -13,6 +13,7 @@
 // Rene funktioner, testet i __tests__/varmelast.spec.ts.
 //-----------------------------------------------------------------------
 
+import type { Modelkoersel } from "@/lib/modelspejl";
 import { KNAPPER } from "./viden.data";
 import { datoTilFelt, værksperiode, type Blade, type Fund, type Ændring } from "./logik";
 
@@ -225,4 +226,16 @@ export function varmelastTekst(valg: Varmelastvalg, serier: readonly TidsserieIn
     if (valg.type === "repo") return `repo-filen ${valg.fil}`;
     const s = valgtSerie(valg, serier);
     return s ? `tidsserien ${s.navn}` : "ukendt tidsserie";
+}
+
+/**
+ * Standardvarmelasten for et nyt par: værkets aktive tidsserie, hvis det har en (et bevidst valg på værket); ellers
+ * modelrepoets målte fil for casen (fx Spor B: billund_abvaerk_hourly_splejset_jun2026.csv, README.md:177), hvis den
+ * er en mulighed; ellers "følg værkets aktive" (= syntetisk).
+ */
+export function standardVarmelastvalg(mk: Modelkoersel | undefined, serier: readonly TidsserieInfo[],
+    muligheder: readonly { nøgle: string }[]): Varmelastvalg {
+    if (aktivSerie(serier) || !mk?.heat_csv) return { type: "aktiv" };
+    const repo: Varmelastvalg = { type: "repo", fil: mk.heat_csv };
+    return muligheder.some((m) => m.nøgle === valgNøgle(repo)) ? repo : { type: "aktiv" };
 }

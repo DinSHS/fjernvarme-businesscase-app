@@ -3,7 +3,8 @@
 * Modelrepoet hentes som zip på den pinnede commit (``fjv.runtime.sikr_model``) — eller læses fra en lokal
   kopi (``--modelrepo``), hvis maskinen er uden net. Modellens kode distribueres ikke med appen.
 * Hvert ``cases/*.yaml`` (ikke ``heat_load_params_*``) flades til blade og bliver et værk med kilde ``repo``,
-  revision 1. Findes koden allerede, røres værket ikke (idempotent; et værk rettet i appen overskrives aldrig).
+  revision 1. Findes koden allerede, bringes et UÆNDRET repo-værk op til casefilen ved den pinnede commit
+  (``vaerksskriv.opdater_repo_vaerk``, samme regler som Fabric's importør); et værk rettet i appen overskrives aldrig.
 * Casefilens egne datafiler registreres som tidsserier (kilde ``repo``): solprofilen aktiv (casen læser den
   selv), målte varmelaster IKKE aktive (casene kører med syntetisk varmelast) — præcis som i Fabric.
 * Motor-rækken får de pinnede SHA'er, så en bestilling kan fryse dem.
@@ -45,15 +46,23 @@ def importer_cases(db: Database, modelrepo: Path | None = None, rap=print) -> li
             continue
         navn, besk = _meta(tekst, kode)
         with db.skriv() as cn:
-            if VS.kode_findes(db, cn, kode):
-                ud.append({"kode": kode, "udfald": "findes"})
-                continue
             blade = [{**p.dict(), "bekraeft": bool(p.bekraeft)} for p in params]
+            if VS.kode_findes(db, cn, kode):
+                # Runde 8: et uændret repo-værk følger casefilen ved den pinnede commit (som Fabric's importør).
+                r = VS.opdater_repo_vaerk(db, cn, kode=kode, navn=navn, beskrivelse=besk, blade=blade, hvem=HVEM,
+                                          kilde_fil=f"cases/{fil.name}", repo_commit=sha)
+                ud.append(r)
+                if r["udfald"] == "opdateret":
+                    gem_kildefil(kode, tekst)
+                    rap(f"  {kode}: opdateret til {sha[:7]} ({r['aendringer']} ændringer, revision {r['revision']})")
+                continue
             vid = VS.opret_vaerk(db, cn, kode=kode, navn=navn, beskrivelse=besk, kilde="repo", blade=blade,
                                  hvem=HVEM, kilde_fil=f"cases/{fil.name}", repo_commit=sha)
             case = yaml.safe_load(tekst) or {}
             ts = []
-            for f in repo_tidsserier(tekst, params):
+            readme = mappe / "README.md"
+            for f in repo_tidsserier(tekst, params, fil.name,
+                                     readme.read_text(encoding="utf-8") if readme.is_file() else None):
                 kilde_sti = mappe / "data" / f["fil"]
                 if not kilde_sti.is_file():
                     ts.append({"fil": f["fil"], "udfald": "mangler i repoet"})

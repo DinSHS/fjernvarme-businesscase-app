@@ -181,7 +181,7 @@ describe("trin 7 — gennemse", () => {
 
 describe("skabelonens egne regler (viden/nyt_vaerk_skabelon.json)", () => {
     it("guiden bruger fv-eksperts skabelon, ikke den midlertidige", () => {
-        expect(NYT_VAERK_SKABELON?.kilde).toMatch(/^viden\/nyt_vaerk_skabelon\.json @ b49aeb0/);
+        expect(NYT_VAERK_SKABELON?.kilde).toMatch(/^viden\/nyt_vaerk_skabelon\.json @ eef950a/);
         expect(s.varmelast.reference_gwh).toBe(50);
         expect([...s.varmelast.skaleres].sort()).toEqual(["heat_load_params.baseline_profile_mw", "heat_load_params.gaf_mw_per_k", "heat_load_params.nettab_slope_mw_per_k"]);
     });
@@ -191,8 +191,9 @@ describe("skabelonens egne regler (viden/nyt_vaerk_skabelon.json)", () => {
         for (const sti of s.varmelast.skaleres) expect(v.get(sti), sti).toBe(s.blade.find((b) => b.sti === sti)!.vaerdi_json);
         expect(v.get("units.gaskedel.p_max_heat")).toBe("25.0"); // rund(0,5 × 50)
     });
-    it("krydstjek mod Andeby: ved G = 105,52 GWh (Andebys målte årsbehov) bliver varmelasten Andebys egen (±0,05 %)", () => {
-        const v = new Map(bygVaerk({ ...gyldigt(), varme: { kilde: "gwh", gwh: "105,52" } }, s).blade.map((b) => [b.sti, JSON.parse(b.vaerdi_json)]));
+    // Runde 8: modelrepoets skalering (scripts/vaerksark_til_yaml.py: f = round(G/100, 4)) — ved G = 100 er f = 1.
+    it("krydstjek mod Andeby: ved G = 100 GWh (modelrepoets reference) bliver varmelasten Andebys egen", () => {
+        const v = new Map(bygVaerk({ ...gyldigt(), varme: { kilde: "gwh", gwh: "100" } }, s).blade.map((b) => [b.sti, JSON.parse(b.vaerdi_json)]));
         const a = new Map(andeby.map((b) => [b.sti, JSON.parse(b.vaerdi_json)]));
         for (const sti of ["heat_load_params.gaf_mw_per_k", "heat_load_params.nettab_slope_mw_per_k"]) {
             expect(Math.abs(v.get(sti) / a.get(sti) - 1), sti).toBeLessThan(5e-4);
@@ -207,10 +208,10 @@ describe("skabelonens egne regler (viden/nyt_vaerk_skabelon.json)", () => {
         u.enheder[0].værdier.set("p_max_heat", "35");
         expect(new Map(bygVaerk(u, s).blade.map((b) => [b.sti, b])).get("units.gaskedel.p_max_heat")).toMatchObject({ vaerdi_json: "35.0", bekraeft: false });
     });
-    it("enhederne skal dække spidslasten (0,38 MW pr. GWh); solvarme tæller ikke", () => {
+    it("enhederne skal dække spidslasten (0,4 MW pr. GWh); solvarme tæller ikke", () => {
         const u = { ...gyldigt(), varme: { kilde: "gwh" as const, gwh: "100" } };
-        u.enheder[0].værdier.set("p_max_heat", "30"); // 30 < 38
-        expect(fejlPå("enheder", u).join()).toMatch(/spidslasten er ca\. 38 MW/);
+        u.enheder[0].værdier.set("p_max_heat", "30"); // 30 < 40
+        expect(fejlPå("enheder", u).join()).toMatch(/spidslasten er ca\. 40 MW/);
         u.enheder.push({ type: "solar_thermal", navn: "sol", værdier: new Map([["p_max_heat", "20"]]) });
         expect(fejlPå("enheder", u).join()).toMatch(/spidslasten/); // solens nameplate dækker ikke spidslast
         u.enheder.push({ type: "electric_boiler", navn: "elkedel", værdier: new Map([["p_max_heat", "10"]]) });

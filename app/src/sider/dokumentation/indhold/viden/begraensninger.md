@@ -6,7 +6,7 @@
 | **Gasmotorernes balanceindtægt er ikke med.** | Modellens balancetal er ikke værkets samlede. Hos Billund var motorerne 29 % af balanceindtægten i marts–juni 2026. |
 | **Nedregulering er ikke med.** | Billund fik netto 0,07 mio. kr. derfra i samme periode. |
 | **Spor B forudsiger ikke.** | Det er kalibreret på ét værk i én periode med værkets egen reservation som input. |
-| **mFRR-kapacitet overvurderes med ca. 30–40 %.** | Modellen samler reservationen i få dyre timer, fordi kapacitetsprisen er kendt. |
+| **mFRR-kapacitet overvurderes med ca. 30 %** (README.md:61; rapport v4 målte 39 % før rettelserne 19/10). | Modellen samler reservationen i få dyre timer, fordi kapacitetsprisen er kendt. |
 | **Pris-tager.** Værkets bud antages ikke at flytte prisen. | Holder for en lille reservation; ikke for et værk, der byder fuld prækvalifikation hver time (17,52 MW = 18 % af den indkøbte aFRR i DK1). |
 | **Fast temperaturdifferens og ingen kobling fra enhed til lager.** | Fremløb og retur påvirker ikke tankens kapacitet; en varmepumpe kan i modellen lade et lag, den i praksis ikke kan nå. |
 | **Faste afgiftssatser i hele perioden.** | Et vindue over to afgiftsår regnes med ét års satser. |

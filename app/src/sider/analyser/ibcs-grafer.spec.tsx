@@ -90,7 +90,7 @@ describe("omkostningsvandfaldet (spec analyser-sammenlign v1)", () => {
         const bro = omkostningsBro(samlet(666_278, 179_347, 433), samlet(616_614, 171_530, 426), 3_424_407.96, 3_468_627.83)!;
         const sum = bro.steps.reduce((s, x) => s + x.delta, bro.base.value);
         expect(sum).toBeCloseTo(bro.total.value, 6);
-        expect(bro.steps.map((x) => x.label)).toEqual(["Elkøb", "Elsalg netto", "Brændsel, D&V, start m.m."]);
+        expect(bro.steps.map((x) => x.label)).toEqual(["Elkøb", "Elsalg netto", "Brændsel, CO₂-kvoter, D&V, start m.m."]);
         expect(bro.steps[0].delta).toBeCloseTo(-49_664, 0);
         expect(bro.steps[1].delta).toBeCloseTo(7_810, 0);   // mindre salg = dyrere
         expect(bro.steps.at(-1)!.remainder).toBe(true);

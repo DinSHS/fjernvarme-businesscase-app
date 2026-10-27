@@ -147,10 +147,10 @@ function trinFod(trin: TrinId, s: NytVaerkSkabelon): string {
     switch (trin) {
         case "navn": return "Koden: små bogstaver, cifre og _ (højst 60 tegn).";
         case "klima": return findFelt("data.dmi_area")?.forklaring ?? "";
-        case "varme": return `Formel: ${s.varmelast.tekst}.${s.varmelast.forbehold ? ` ${s.varmelast.forbehold}` : ""}`;
-        case "enheder": return `Mindst én enhed, og tilsammen skal de dække spidslasten (ca. ${String(s.spidslastPrGwh ?? 0.38).replace(".", ",")} MW pr. GWh/år; solvarme tæller ikke med). Det gælder også med timedata: værket og prøvekørslen regner på varmelastmodellen, indtil et scenarie vælger en fil. Felterne starter med typens skønnede værdier — erstat dem med værkets egne; resten kan rettes efter oprettelsen.`;
+        case "varme": return `Formel (modelrepoets, som værksarket): ${s.varmelast.tekst}${s.varmelast.kilde ? ` — ${s.varmelast.kilde}` : ""}.${s.varmelast.forbehold ? ` ${s.varmelast.forbehold}` : ""}${s.egneAntagelser?.length ? ` Egne antagelser i skabelonen: ${s.egneAntagelser.join(" ")}` : ""}`;
+        case "enheder": return `Mindst én enhed, og tilsammen skal de dække spidslasten (ca. ${String(s.spidslastVedF1 ?? 40.02).replace(".", ",")} MW × modelrepoets faktor f, dvs. ca. 0,4 MW pr. GWh/år over 1 GWh; solvarme tæller ikke med). Det gælder også med timedata: værket og prøvekørslen regner på varmelastmodellen, indtil et scenarie vælger en fil. Felterne starter med typens skønnede værdier — erstat dem med værkets egne; resten kan rettes efter oprettelsen.`;
         case "lager": return "Kapacitet = volumen × 1,163 kWh/(m³·K) × ΔT / 1000. Startindhold sættes halvfuldt og tab pr. time som Andebys tanke — begge [BEKRÆFT].";
-        case "priser": return "Ekskl. moms. electricity_tax og elafgift_net holdes ens (paritetsreglen). Tarifbåndene er Andebys som [BEKRÆFT].";
+        case "priser": return "Ekskl. moms. electricity_tax og elafgift_net holdes ens (paritetsreglen). Priser og tarifbånd er Andebys (cases/andeby.yaml i modelrepoet; kilden står ved hvert felt) og markeret [BEKRÆFT].";
         case "gennemse": return "Værket kontrolleres med modellens egne regler før oprettelsen og oprettes i én transaktion som revision 1 med kilde 'Appen'; hvert felt logges i revisionsloggen.";
     }
 }
@@ -245,7 +245,7 @@ function TrinEnheder({ u, s, opdater }: { u: Udkast; s: NytVaerkSkabelon; opdate
                             {felter.map((rel) => {
                                 const p = findFelt(`units.x.${rel}`);
                                 return (
-                                    <label key={rel}>{p?.etiket ?? rel}<small>{p?.enhed ?? ""}{e.værdier.has(rel) ? "" : rel === "p_max_heat" && e.forvalg && e.type === "gas_boiler" ? " · følger varmebehovet [BEKRÆFT]" : e.forvalg?.get(rel)?.bekraeft !== false ? " · skøn [BEKRÆFT]" : " · skabelonens værdi"}</small>
+                                    <label key={rel}>{p?.etiket ?? rel}<small>{p?.enhed ?? ""}{e.værdier.has(rel) ? "" : rel === "p_max_heat" && e.forvalg && e.type === "gas_boiler" ? " · følger varmebehovet [BEKRÆFT]" : e.forvalg?.get(rel)?.kilde ? ` · ${e.forvalg.get(rel)!.kilde}${e.forvalg.get(rel)!.bekraeft ? " [BEKRÆFT]" : ""}` : e.forvalg?.get(rel) ? (e.forvalg.get(rel)!.bekraeft ? " · skabelonens skøn [BEKRÆFT]" : " · skabelonens værdi") : " · egen antagelse: typens pladsholder [BEKRÆFT]"}</small>
                                         <input className="fjv-felt kf-tal-input" inputMode="decimal"
                                             value={e.værdier.get(rel) ?? (rel === "p_max_heat" ? String(effektAf(e, u, s)).replace(".", ",") : redigerbarTekst(sk(rel)))}
                                             onChange={(ev) => sæt(j, rel, ev.target.value)} />
@@ -313,7 +313,7 @@ function TrinPriser({ u, s, opdater }: { u: Udkast; s: NytVaerkSkabelon; opdater
                                 <td>
                                     <span className="kf-feltnavn">{p?.etiket ?? sti}{sti.startsWith("prices.") ? ` · ${BRAENDSEL[sti.split(".")[1]] ?? sti.split(".")[1]}` : /bands|fixed_components/.test(sti) ? ` · ${sti.split(".").pop()}` : ""}</span>
                                     <span className="kf-maerker">{b?.bekraeft && !egen?.trim() && <Maerke tone="advarsel">[BEKRÆFT]</Maerke>}{!b && <Maerke tone="fejl">mangler — en enhed bruger {fri}</Maerke>}</span>
-                                    <div className="kf-sti">{sti}</div>
+                                    <div className="kf-sti">{sti}{b?.kilde && !egen?.trim() ? ` · ${b.kilde}` : ""}</div>
                                 </td>
                                 <td className="fjv-h">
                                     <input className="fjv-felt kf-tal-input" inputMode="decimal" aria-label={p?.etiket ?? sti}

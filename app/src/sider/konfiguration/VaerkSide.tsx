@@ -19,6 +19,9 @@ import { AendringerSidenKoersel, Kildefil, Revisionslog } from "./Historik";
 import { NyEnhed } from "./NyEnhed";
 import { KomIGang } from "./KomIGang";
 import { TidsserieFane } from "./Tidsserier";
+import { ModelrepoKort } from "./Modelrepo";
+import { VaerdikildeKontekst, vaerdikilde } from "./modelrepo-logik";
+import { rodKode } from "../scenarier/hjaelp";
 
 const EKSTRA = [
     { id: "tidsserier", navn: "Tidsserier" },
@@ -77,6 +80,10 @@ export function VaerkSide({ kode, fane, valg, gåTil, bruger }: { kode: string; 
                     </a>
                 ))}
             </nav>
+            {vaerk && parametre.data && ["enheder", "meta", "kilde"].includes(aktiv) && (
+                <ModelrepoKort vaerk={vaerk} rod={rodKode(vaerk, vaerker.data)}
+                    blade={new Map(parametre.data.map((b) => [b.sti, b.vaerdi_json]))} />
+            )}
             {rt.grundFund.length > 0 && !["log", "aendringer", "kilde", "tidsserier"].includes(aktiv) && (
                 <Gitter>
                     <Kort titel="Kontrol af værket" afgraensning="klientens regler"
@@ -93,6 +100,7 @@ export function VaerkSide({ kode, fane, valg, gåTil, bruger }: { kode: string; 
                     </Kort>
                 </Gitter>
             )}
+            <VaerdikildeKontekst.Provider value={(sti, v) => (vaerk ? vaerdikilde(rodKode(vaerk, vaerker.data), sti, v) : undefined)}>
             <DataTilstand h={parametre} højde={320}>
                 {(blade) => {
                     if (!vaerk) return null;
@@ -119,6 +127,7 @@ export function VaerkSide({ kode, fane, valg, gåTil, bruger }: { kode: string; 
                     }
                 }}
             </DataTilstand>
+            </VaerdikildeKontekst.Provider>
         </Side>
     );
 }

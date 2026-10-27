@@ -181,7 +181,12 @@ export function ParVarians({ par }: { par: readonly ParDelta[] }) {
  * (kørsel uden balancemarked); mangler et forventet tal, fordeles posten ikke, og resten siger, at den rummer den
  * (Codex K7 F5) — ellers ville `?? 0` vise hele den anden kørsels beløb som en kendt forklaring.
  */
-export function omkostningsBro(a: Samlet, b: Samlet, objA: number | null, objB: number | null): Bridge | null {
+/**
+ * Vandfaldet: ΔRef forklaret af de poster, kørslerne gemmer. `legacy` (runde 8, V9): med metoden legacy er modellens
+ * sammendrag "brutto" = netto (src/balancing.py:1132-1140, "udelader sparet forbrug"), mens objektivet også regner
+ * den sparede tarif og afgift med (src/balancing.py:353-358). Så bruges netto, og det manglende led navngives i resten.
+ */
+export function omkostningsBro(a: Samlet, b: Samlet, objA: number | null, objB: number | null, legacy = false): Bridge | null {
     if (objA == null || objB == null) return null;
     const kendt = (x: number | null | undefined) => (x == null || !Number.isFinite(x) ? null : x);
     const trin: Bridge["steps"] = [];
@@ -195,11 +200,14 @@ export function omkostningsBro(a: Samlet, b: Samlet, objA: number | null, objB: 
     const netSalg = (s: Samlet) => { const salg = kendt(s.el_salg_dkk), tarif = kendt(s.el_produktionstarif_dkk); return salg == null || tarif == null ? null : salg - tarif; };
     post("Elsalg netto", netSalg(a), netSalg(b), -1);
     // Uden balancemarked er balanceindtægten dokumenteret 0; med balancemarked og intet bruttotal er den ukendt.
-    const brutto = (s: Samlet) => (s.balance ? kendt(s.balance.i_alt.brutto) : 0);
-    if (a.balance || b.balance) post("Balanceindtægt", brutto(a), brutto(b), -1);
+    const brutto = (s: Samlet) => (s.balance ? kendt(legacy ? s.balance.i_alt.netto : s.balance.i_alt.brutto) : 0);
+    if (a.balance || b.balance) {
+        post(legacy ? "Balanceindtægt, netto" : "Balanceindtægt", brutto(a), brutto(b), -1);
+        if (legacy) ukendte.push("sparet tarif og afgift ved aktivering (legacy-metoden)");
+    }
     const total = objB - objA;
     const rest = total - trin.reduce((s, x) => s + x.delta, 0);
-    const restNavn = "Brændsel, D&V, start m.m." + (ukendte.length ? ` inkl. ${ukendte.join(", ")} (ukendt)` : "");
+    const restNavn = "Brændsel, CO₂-kvoter, D&V, start m.m." + (ukendte.length ? ` inkl. ${ukendte.join(", ")} (ukendt)` : "");
     trin.push({ label: restNavn, delta: rest, remainder: true });
     return {
         base: { label: "Reference", scenario: "PL", value: objA },

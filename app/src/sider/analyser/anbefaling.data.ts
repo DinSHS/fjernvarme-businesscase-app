@@ -81,7 +81,7 @@ export const FORBEHOLD_REGLER: Readonly<Record<string, { virkning: string; tekst
  "t0_lager": {
   "virkning": "nedgrader_begge",
   "tekst": "Mindst én af kørslerne er regnet ved en ældre modelversion ({commit}), hvor tankens første time var ubundet og gav gratis varme; på {doegn} døgn kan det være en stor del af forskellen (målt: ca. halvdelen af tankværdien i Andeby 5.–16. jan 2026). Regn begge kørsler igen med den aktuelle modelversion.",
-  "kilde": "modelrepoet 3c2afa6 (tests/test_lager_foerste_time.py); udviklingsrapport"
+  "kilde": "modelrepoet 3c2afa6 (tests/test_lager_foerste_time.py); egen måling (appens udvikling, Andeby D01/D02 ved b49aeb0, 16.10.2026; står ikke i modelrepoet)"
  },
  "fiktivt_vaerk": {
   "virkning": "note",

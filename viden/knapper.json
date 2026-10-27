@@ -59,7 +59,8 @@
     "mip_rel_gap": 0.0002,
     "mip_abs_gap": 100,
     "begrundelse": "Det absolutte gab må ikke binde før det relative: abs ≤ 0,0002 × objektiv. 100 kr. opfylder det for ethvert objektiv over 0,5 mio. kr. (alle repoets værker og vinduer). Målt 2026-10-16: med 0,0002 og 100 kr. løste alle otte Andeby-vinterkørsler til gab 0 på under 1 s; Billund Spor B (4 måneder, abs 1.000) nåede 0,013–0,019 %.",
-    "kilde": "doc/KOERSEL.md:57-60; src/config.py:742-751; udviklingsrapport (gab-forsøg og demo-kørsler)"
+    "kilde": "doc/KOERSEL.md:57-60 og README.md:152 (kun det relative gab 0,0002); src/config.py:742-751 (HiGHS får begge gab); det absolutte gab på 100 kr. er appens egen antagelse, bygget på egen måling (appens udvikling, 16.10.2026 ved b49aeb0; står ikke i modelrepoet)",
+    "egen_antagelse": "Modelrepoet siger kun --mip-gap 0.0002 til differenser og lader det absolutte gab stå (casens eller kodens 5.000 kr.). Appen sætter også det absolutte gab ned til 100 kr., fordi HiGHS stopper ved det første af de to gab."
   },
   "knapper": [
     {

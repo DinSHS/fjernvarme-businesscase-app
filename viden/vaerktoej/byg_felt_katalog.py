@@ -253,11 +253,11 @@ F("heat_load_params.t_net", "Referencetemperatur for nettab", "number",
   K(DL, r't_net=float\(d\.get\("t_net"'), enhed="°C", standard=12.0)
 F("heat_load_params.baseline_profile_mw", "Grundlast pr. time på døgnet", "list",
   "24 tal: varmebehovet uden rumvarme (brugsvand og konstant nettab) for time 0–23 i UTC — modellens tidsakse, ikke dansk tid (time 0 = kl. 01 dansk vintertid, kl. 02 sommertid).",
-  K(DL, r'if self\.baseline_profile_mw\.shape != \(24,\)'), enhed="MW",
+  K(DL, r'd\.get\("baseline_profile_mw", \[6\.0\] \* 24\)'), enhed="MW",
   standard=[6.0] * 24, regler=["Præcis 24 tal."])
 F("heat_load_params.weekly_dip", "Weekend-reduktion", "number",
   "Andel varmebehovet sænkes lørdag og søndag (0,02 = 2 %). Ugedagen bestemmes på UTC-aksen.",
-  K(DL, r'if params\.weekly_dip:'), enhed="brøk", standard=0.02, avanceret=True)
+  K(DL, r'weekly_dip=float\(d\.get\("weekly_dip"'), enhed="brøk", standard=0.02, avanceret=True)
 for felt in ("_source", "_calibrated", "_fit_r2", "_fit_rmse", "_n_observations"):
     F(f"heat_load_params.{felt}", "Kalibreringsmetadata", "string" if felt in ("_source", "_calibrated") else "number",
       "Sporbarhed fra kalibreringsscriptet. Felter med '_' foran læses ikke af modellen.",
@@ -752,7 +752,7 @@ F(B + "activation.foresight", "Hvad modellen ved, når den byder", "enum",
   "realized: kender de faktiske aktiveringer (kun øvre grænse). profile: "
   "gennemsnit pr. måned og time. trailing30: de seneste 30 døgn. lag24/lag168: "
   "i går / sidste uge.",
-  K(CFG, r'_FORESIGHT = \('), tilladte=["realized", "profile", "trailing30", "lag24", "lag168"],
+  K(CFG, r'foresight: str = "realized"'), tilladte=["realized", "profile", "trailing30", "lag24", "lag168"],
   standard="realized",
   regler=["Andet end realized kræver method activation_value."])
 F(B + "activation.settle", "Afregning", "enum",
@@ -765,7 +765,7 @@ F(B + "activation.*.model", "Aktiveret andel", "enum",
   "clear: hele buddet aktiveres, når prisen clearer (overvurderer 4–5 gange uden "
   "loft). system_share: andel efter systemets aktivering × k. ramp: andelen "
   "vokser med prisens afstand til buddet.",
-  K(CFG, r'_MODELLER = \('), stjerne=[MARKED],
+  K(CFG, r'model: str = "clear"'), stjerne=[MARKED],
   tilladte=["clear", "system_share", "ramp"], standard="clear",
   regler=["Andet end clear kræver method activation_value."])
 F(B + "activation.*.k", "Skalering af systemandel (k)", "number",

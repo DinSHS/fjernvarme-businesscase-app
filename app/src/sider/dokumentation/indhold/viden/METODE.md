@@ -156,7 +156,9 @@ genskabt til kronen 26. oktober 2026).
 ## 5. Varmelasten: målt eller syntetiseret
 
 Den sikreste varmelast er **målt** ab værk, time for time (`--heat-csv`). Sådan kører Billund-
-casene og alle værker, der kommer ind via regnearket (doc/VARMELAST_OG_NETTAB.md:41-44).
+casene og alle værker, der kommer ind via regnearket (doc/VARMELAST_OG_NETTAB.md:41-44) — med én undtagelse i
+modelrepoet selv: Spor A-ankeret kører med syntetisk varmelast (README.md:176). Appens standardkørsel følger
+modelrepoets kommando for hver case (Konfiguration › Modelrepoet).
 
 Uden måling **syntetiseres** varmelasten af DMI-temperaturen
 (src/data_loader.py:632-661):
@@ -198,7 +200,7 @@ så binder det før 0,02 % på ethvert objektiv under 25 mio. kr. Sæt derfor og
 ned ved differenser; rapport v4 regnede alle differenser med højst 0,1 % eller 1.000 kr.
 (src/config.py:713-714; rapport v4 §2.3).
 
-Målt 16. oktober 2026 på Spor A, marts 2026 med balancering, ønsket gab 0,0002: med standardens absolutte gab på 5.000 kr. stoppede solveren ved 0,068 % (HiGHS angav selv 'tolerance: 0.22%') efter 52 s; med absolut gab 1 kr. ved 0,019 % efter 124 s. Objektivet blev det samme (2.273.504 kr.), men usikkerheden faldt fra ca. 1.550 til ca. 430 kr. (Kilde: udviklingsrapport, afsnit Målt)
+Målt 16. oktober 2026 på Spor A, marts 2026 med balancering, ønsket gab 0,0002: med standardens absolutte gab på 5.000 kr. stoppede solveren ved 0,068 % (HiGHS angav selv 'tolerance: 0.22%') efter 52 s; med absolut gab 1 kr. ved 0,019 % efter 124 s. Objektivet blev det samme (2.273.504 kr.), men usikkerheden faldt fra ca. 1.550 til ca. 430 kr. (Kilde: egen måling (appens udvikling, 16.10.2026 ved b49aeb0; står ikke i modelrepoet))
 
 **Tre regler for brug af tallene** (README.md:148-160):
 
@@ -211,7 +213,7 @@ Målt 16. oktober 2026 på Spor A, marts 2026 med balancering, ønsket gab 0,000
 bundet i periodens første time: tanken kunne aflade uden at blive tømt, og den varme var gratis.
 Kørslen med tank fik dermed gratis varme, som kørslen uden tank ikke fik — på et kort vindue en
 stor del af differensen: i Andeby 5.–16. januar 2026 leverede tankene 33 MWh gratis i første time,
-omkring halvdelen af tankværdien på 44.220 kr. (udviklingsrapport). Fra `eef950a` gælder
+omkring halvdelen af tankværdien på 44.220 kr. (egen måling (appens udvikling, Andeby D01/D02 ved b49aeb0, 16.10.2026; står ikke i modelrepoet)). Fra `eef950a` gælder
 lagerbalancen også i første time (src/model.py:267-271; tests/test_lager_foerste_time.py), og
 tankværdien i samme vindue blev ca. halvt så stor: 21.915,92 kr., målt 26. oktober 2026 som D02 − D01 i
 demo_scenarier.json (samme tal som tests/test_lager_foerste_time.py:5-6).
@@ -277,8 +279,8 @@ tanke fra. Det flytter ca. 87 MWh til gaskedlen, øger CO₂-udledningen med 17 
 
 ## 7. Referencetal
 
-Kørt 15. oktober 2026 med df-data fra 5. oktober 2026 eller senere. Beløbet er modellens samlede
-driftsomkostning for vinduet (README.md:128-146):
+Kørt 19. oktober 2026 på `d813e6b` (samme kode som `eef950a`) med df-data fra 5. oktober 2026 eller senere,
+efter rettelserne samme dag. Beløbet er modellens samlede driftsomkostning for vinduet (README.md:164-180):
 
 | Case | Vindue | Objektiv, kr. (README) | Genskabt lokalt 26/10, kr. | Løsetid (README) |
 |---|---|---:|---:|---|
@@ -337,7 +339,7 @@ med vinterdata 2026/27 (rapport v4 §5.3).
 - **Gasmotorernes balanceindtægt og nedregulering** er ikke med.
 - **Forudsige balanceindtægten.** Spor B er kalibreret på ét værk i én periode med værkets egen
   reservation som input.
-- **mFRR-kapacitet præcist**: overvurderes med ca. 30–40 %.
+- **mFRR-kapacitet præcist**: overvurderes med ca. 30 % (README.md:61); rapport v4 målte ca. 39 % før rettelserne 19/10 (rapport v4 §5.2).
 - **Være pris-tager uden forbehold**: Billunds 17,52 MW svarer til 18 % af den aFRR-op-regulering,
   Energinet i snit købte i DK1 (rapport v4, bilag A).
 - **Fremløbs- og returtemperatur**: tanken regnes med fast ΔT, nettabet afhænger af
@@ -345,7 +347,7 @@ med vinterdata 2026/27 (rapport v4 §5.3).
 - **Tidsvarierende afgift** over et afgiftsår: satserne er faste i hele perioden
   (cases/andeby.yaml:75-80).
 - **Regne økonomi i kvarterer.** Modellen kan løse med 15-minutters opløsning, men objektivets led er effekt × pris pr. MWh uden at gange med intervallets længde, og kapacitetsindtægten er pris × MW pr. interval. Ved 1h er det kroner; ved 15 min tæller hvert kvarter som en hel time, mens startomkostninger tælles pr. start. Appens version 1 kører derfor kun 1h (src/model.py:432-434; src/balancing.py:342; KONTRAKT §6c). Alle repoets værker er 1h (src/data_loader.py:59-63).
-- **Løse et helt år på sekunder**: fra et halvt minut til over en time (README.md:62; README.md:148-151).
+- **Løse et helt år på sekunder**: fra et halvt minut til over et kvarter (README.md:62); Andeby med balancering tog 17 minutter på 24 kerner (README.md:186-189).
 
 ## 10. Data og dækning
 

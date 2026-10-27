@@ -15,26 +15,28 @@ Bruges af ``fjv_importer_vaerker`` (repoets egne datafiler, kilde ``repo``) og
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 from . import datakrav as DK
 from . import konstanter as K
+from . import modelkoersel as MK
 from . import tidsserie as TS
 
-_HEAT_CSV_I_KOMMENTAR = re.compile(r"--heat-csv\s+data/([A-Za-z0-9_.\-]+\.csv)")
 
-
-def repo_tidsserier(tekst: str, params) -> list[dict]:
+def repo_tidsserier(tekst: str, params, case_fil: str | None = None, readme: str | None = None) -> list[dict]:
     """De datafiler i modelrepoets ``data/``, en casefil bruger.
 
     * ``units.<navn>.production_profile_path: data/<fil>.csv`` → ``solprofil``. Casen
       læser den selv, så den registreres som **aktiv** (samme værdier, så udfaldet er
       uændret — bevist bitvis med modellens egen læser).
-    * ``--heat-csv data/<fil>.csv`` i casefilens kørselsvejledning (kommentar) →
-      ``varmelast``, **ikke aktiv**: casen kører i dag med syntetisk varmelast, medmindre
-      man vælger filen. At gøre den aktiv ville ændre udfaldet af eksisterende scenarier,
-      uden at nogen havde bedt om det.
+    * ``--heat-csv data/<fil>.csv`` i **modelrepoets egne kommandoer for netop denne case**
+      (casens hoved og README's referencetabel, ``fjv.modelkoersel``) → ``varmelast``, ikke
+      aktiv. Standardkørslen vælger filen, når modelrepoet kører casen med den (Scenarier,
+      runde 8); en aktiv serie ville gælde alle scenarier på værket. Før runde 8 tog et
+      regulært udtryk ``--heat-csv`` fra *alle* kommentarer — også en nedarvet kommando for
+      en anden casefil — og registrerede ``billund_abvaerk_hourly.csv`` for Spor A og de
+      rullende cases, som modelrepoet kører syntetisk eller med ``…_splejset_jun2026.csv``.
+      Uden ``case_fil`` registreres ingen varmelast.
     """
     ud, set_ = [], set()
     for p in params:
@@ -48,8 +50,9 @@ def repo_tidsserier(tekst: str, params) -> list[dict]:
                 if k not in set_:
                     set_.add(k)
                     ud.append({"rolle": "solprofil", "fil": k[1], "enhed": d[1], "aktiv": True})
-    for m in _HEAT_CSV_I_KOMMENTAR.finditer(tekst):
-        k = ("varmelast", m.group(1))
+    filer = MK.varmelastfiler(MK.kommandoer(case_fil, tekst, readme)) if case_fil else []
+    for fil in filer:
+        k = ("varmelast", fil)
         if k not in set_:
             set_.add(k)
             ud.append({"rolle": "varmelast", "fil": k[1], "enhed": None, "aktiv": False})
@@ -125,7 +128,8 @@ def registrer_repo_tidsserier(db, kode_mappe: Path, fil: Path, files: str | None
     kode = kode_af(fil.name)
     tekst = fil.read_text(encoding="utf-8")
     params = flad(tekst)
-    filer = repo_tidsserier(tekst, params)
+    readme = kode_mappe / "README.md"
+    filer = repo_tidsserier(tekst, params, fil.name, readme.read_text(encoding="utf-8") if readme.is_file() else None)
     if not filer:
         return []
     import yaml

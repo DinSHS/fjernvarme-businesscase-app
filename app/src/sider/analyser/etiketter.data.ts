@@ -778,7 +778,7 @@ export const ENHEDSTYPER: Readonly<Record<string, string>> = {
 export const NOEGLETAL_TEKST: Readonly<Record<string, { etiket: string; forklaring: string }>> = {
  "objektiv_dkk": {
   "etiket": "Samlet driftsomkostning (objektiv)",
-  "forklaring": "Det tal, optimeringen minimerer: brændsel, el, tariffer, afgifter, D&V og starter minus elsalg og balanceindtægt (brutto) for hele perioden. Afrundet til hele kr. i manifestet; brug det præcise tal fra løsningen til differenser."
+  "forklaring": "Det tal, optimeringen minimerer: brændsel, CO₂-kvoter (src/model.py:96-100), el, tariffer, afgifter, D&V og starter minus elsalg og balanceindtægt (brutto) for hele perioden. Afrundet til hele kr. i manifestet; brug det præcise tal fra løsningen til differenser."
  },
  "varmeefterspoergsel_mwh": {
   "etiket": "Varmebehov",
@@ -826,7 +826,7 @@ export const NOEGLETAL_TEKST: Readonly<Record<string, { etiket: string; forklari
  },
  "co2_ton": {
   "etiket": "CO₂-udledning",
-  "forklaring": "Brændsel × udledningsfaktor for enheder med co2_emissions_per_mwh_fuel > 0. Biomasse regnes CO₂-neutral."
+  "forklaring": "Brændsel × udledningsfaktor for enheder med co2_emissions_per_mwh_fuel > 0. Biomasse regnes CO₂-neutral, og elforbrug (varmepumper, elkedler) regnes uden CO₂ — modellens definition (src/manifest.py:128-145). Et skift fra gas til el sænker derfor tallet fuldt ud."
  }
 };
 

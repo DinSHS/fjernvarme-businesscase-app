@@ -11,7 +11,7 @@
     "stramt_gab": {
       "mip_rel_gap": 0.0002,
       "mip_abs_gap": 100.0,
-      "begrundelse": "Differenser kræver stramt gab, og det absolutte gab skal også ned, ellers binder det først (målt, udviklingsrapport). 100 kr. er småt mod de forventede differenser (tusinder til hundredtusinder af kr.)."
+      "begrundelse": "Differenser kræver stramt gab, og det absolutte gab skal også ned, ellers binder det først (egen måling (appens udvikling, 16.10.2026 ved b49aeb0; står ikke i modelrepoet); HiGHS stopper ved det første af de to gab, src/config.py:742-751). 100 kr. er småt mod de forventede differenser (tusinder til hundredtusinder af kr.)."
     },
     "sammenlignelighed": "Hvert pars to kørsler har samme værk, periode, opløsning, gab og datakilde (KONTRAKT §6b) og bør regnes i samme miljø.",
     "tolerance_regel": "En differens er 'inden for solverens tolerance', når |Δ| < summen af de to kørslers opnåede absolutte gab (KONTRAKT §6b). Ved forventninger om fortegn tillades denne tolerance."
@@ -234,7 +234,7 @@
         }
       ],
       "forventet_objektiv_dkk": 3025301,
-      "forventet_tolerance_dkk": 3000,
+      "forventet_tolerance_dkk": 3025,
       "forventet_grundlag": "BUDSTRATEGI-kontroltal (2) 3.025.301 kr., regnet med Andebys gab 0,1 %/1.000 kr. (doc/BUDSTRATEGI.md:333); målt 2026-10-26 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved eef950a / df-data 106b9fc: 3.025.300,75 med gab 0 %.",
       "forventet_loesetid": "under 1 minut"
     },

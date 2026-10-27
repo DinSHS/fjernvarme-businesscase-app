@@ -6,7 +6,7 @@
       "noegle": "objektiv_dkk",
       "etiket": "Samlet driftsomkostning (objektiv)",
       "enhed": "kr.",
-      "forklaring": "Det tal, optimeringen minimerer: brændsel, el, tariffer, afgifter, D&V og starter minus elsalg og balanceindtægt (brutto) for hele perioden. Afrundet til hele kr. i manifestet; brug det præcise tal fra løsningen til differenser.",
+      "forklaring": "Det tal, optimeringen minimerer: brændsel, CO₂-kvoter (src/model.py:96-100), el, tariffer, afgifter, D&V og starter minus elsalg og balanceindtægt (brutto) for hele perioden. Afrundet til hele kr. i manifestet; brug det præcise tal fra løsningen til differenser.",
       "kilde": "src/manifest.py:208; src/solve.py:216-218"
     },
     {
@@ -90,7 +90,7 @@
       "noegle": "co2_ton",
       "etiket": "CO₂-udledning",
       "enhed": "t",
-      "forklaring": "Brændsel × udledningsfaktor for enheder med co2_emissions_per_mwh_fuel > 0. Biomasse regnes CO₂-neutral.",
+      "forklaring": "Brændsel × udledningsfaktor for enheder med co2_emissions_per_mwh_fuel > 0. Biomasse regnes CO₂-neutral, og elforbrug (varmepumper, elkedler) regnes uden CO₂ — modellens definition (src/manifest.py:128-145). Et skift fra gas til el sænker derfor tallet fuldt ud.",
       "kilde": "src/manifest.py:130-147"
     }
   ],
@@ -369,7 +369,7 @@
     {
       "hvornaar": "ved sammenligning med og uden tank",
       "tekst": "Kun kørsler regnet før modelversion eef950a (19/10-2026): i første interval var tankens balance ubundet, så kørslen med tank fik gratis varme dér — på et kort vindue en stor del af forskellen (Andeby 5.–16. jan 2026: ca. 22.300 kr. af 44.220 kr.). Fra eef950a gælder lagerbalancen også i første time; sammenlign kun kørsler regnet ved samme modelversion.",
-      "kilde": "modelrepoet 3c2afa6 (src/model.py:267-271 @ eef950a); udviklingsrapport"
+      "kilde": "modelrepoet 3c2afa6 (src/model.py:267-271 @ eef950a); egen måling (appens udvikling, Andeby D01/D02 ved b49aeb0, 16.10.2026; står ikke i modelrepoet)"
     },
     {
       "hvornaar": "ved MILP og skyggepriser",

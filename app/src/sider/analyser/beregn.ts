@@ -179,7 +179,7 @@ export const BALANCE_KOLONNER: readonly BalanceKolonne[] = [
     { felt: "sparet_elkoeb", ...reg("forbrugsmodregning_dkk", "Sparet tarif og afgift ved aktivering") },
     { felt: "aktivering_brutto", ...reg("aktivering_brutto_dkk", "Aktiveringsindtægt, brutto") },
     { felt: "netto", etiket: "Netto i alt", forklaring: "Kapacitet + aktivering netto." },
-    { felt: "brutto", etiket: "Brutto i alt", forklaring: "Netto + sparet elkøb; det beløb, objektivet regner med." },
+    { felt: "brutto", etiket: "Brutto i alt", forklaring: "Netto + sparet elkøb; ved activation_value det beløb, objektivet regner med. Ved legacy er modellens brutto = netto, selv om objektivet også regner den sparede tarif og afgift med (src/balancing.py:353-358, :1132-1140)." },
 ];
 /**
  * Balancekolonnerne for de viste kørsler (Codex K7-F2). Forbrugsmodregningen (brutto − netto) betød før
@@ -935,4 +935,16 @@ export function sammenligningsRaekkefoelge(valgt: readonly Koersel[]): [string, 
     if (valgt.length !== 2) return null;
     const [x, y] = [...valgt].sort((p, q) => modtaget(p).getTime() - modtaget(q).getTime());
     return [x.id, y.id];
+}
+
+/**
+ * Kørslens balanceringsmetode, som modellen bruger den: scenariets `_koersel.balancing_method` (CLI-flaget slår casen),
+ * ellers værkets `balancing.method`, ellers kodens standard "legacy" (src/config.py:993 @ eef950a). Runde 8 (V9).
+ */
+export function balanceMetode(input: readonly { sti: string; vaerdi_json: string }[]): string {
+    const læs = (sti: string) => {
+        const r = [...input].reverse().find((x) => x.sti === sti);
+        try { const v = r ? JSON.parse(r.vaerdi_json) : undefined; return typeof v === "string" && v ? v : undefined; } catch { return undefined; }
+    };
+    return læs(`${KOERSEL_PRAEFIKS}balancing_method`) ?? læs("balancing.method") ?? "legacy";
 }
