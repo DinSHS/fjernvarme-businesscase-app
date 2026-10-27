@@ -7,7 +7,7 @@ datarepoet [github.com/skj-1964/df-data](https://github.com/skj-1964/df-data) (E
 DMI, CC BY 4.0). Metoden, valideringen og referencetallene er forfatterens; appen er en brugerflade til modellen
 og kører den uændret på en pinnet commit. Vi distribuerer ikke modellens kode — den hentes fra GitHub på den
 pinnede commit ved første kørsel. Appen er ikke udviklet, godkendt eller støttet af forfatteren, Billund
-Fjernvarme eller Dansk Fjernvarme. Fuld kreditering og licenstekster: `CREDITS.md`, `NOTICE`, `LICENSES/` og
+Varme eller Dansk Fjernvarme. Fuld kreditering og licenstekster: `CREDITS.md`, `NOTICE`, `LICENSES/` og
 `GET /api/om`.
 
 ---
@@ -17,6 +17,9 @@ Samme app som Fabric-udgaven — samme sider, samme databaseskema (`skema/skema.
 maskine: en Python-server med SQLite (eller din egen database), en lokal arbejder-proces og filer i en mappe.
 
 ## Kom i gang
+
+Wheel'en bygges fra repoet: se [README › Kom i gang](../README.md#kom-i-gang--lokal-udgave-ca-5-minutter) (brugerfladen med
+`npm run build:community`, derefter `python community/pakke.py`). Har du allerede en wheel:
 
 ```
 python -m venv .venv
@@ -102,9 +105,13 @@ FJV_BETROET_LAGER=sql_fabrik:fabrik PYTHONPATH=tests \
 _lokal/.venv/Scripts/python pakke.py                                                   # wheel i _byg/dist/
 ```
 
+Manuelle live-prøver mod en kørende server (ikke en del af testsuiten, som kun samler `test_*.py`):
+`python tests/live_bestil.py http://localhost:8000 andeby 2026-01-05 2026-01-06` (samme kald som knappen *Bestil*) og
+`python tests/live_upload.py http://localhost:8000 <værk> <fil.csv> <ark.xlsx>` (upload af CSV og værksark).
+
 Fra repoet kører `python -m fjernvarme_app` direkte (motoren læses fra `../fabric/fjv`, skemaet fra `../skema`).
 `pakke.py` lægger dem ind i pakken. Docker: `docker build -f community/Dockerfile .` fra repoets rod.
 
 ## Licens
 
-Appens egen kode: se `LICENSE`. Modellen og data: se `CREDITS.md` og `LICENSES/`.
+Appens egen kode: se [`LICENSE`](../LICENSE). Modellen og data: se [`CREDITS.md`](../CREDITS.md) og [`LICENSES/`](../LICENSES/).

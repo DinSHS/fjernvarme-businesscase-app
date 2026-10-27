@@ -7,7 +7,7 @@ aldrig noget udvalgt på navn eller nøgle, som en bruger selv kan skrive. Kræv
     python scripts/ryd_testdata.py --server <fqdn> --database <navn> --koersel <id> [--koersel <id> ...]
                                    [--scenarie <id> ...] [--vaerk <id> ...] [--udfoer]
 
-Server og database står i app/docs/db_skema.md / rapporter/fv-app.md (skrives ikke ind her, så scriptet
+Server og database står i din config/installation.json (sql_server, sql_database; skrives ikke ind her, så scriptet
 ikke peger på et bestemt miljø).
 """
 import argparse

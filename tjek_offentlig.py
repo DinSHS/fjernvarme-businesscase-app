@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tjek_offentlig.py - repoets gate: intet organisationsspecifikt og intet manglende kredit maa kunne committes eller deles.
 
-Repoet er KILDEN (se SYNKRONISERING.md). Normalt koeres gaten via scripts/tjek.py (`--repo`):
+Repoet er KILDEN (se doc/SYNKRONISERING.md). Normalt koeres gaten via scripts/tjek.py (`--repo`):
 
   python scripts/tjek.py                   hele repoet: det git kender mod generisk + lokal forbudsliste + vaerdierne i den lokale
                                            installation (config/installation.json), og kreditkravene

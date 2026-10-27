@@ -26,8 +26,14 @@ This licence covers the code of this app only. It does NOT cover the model it
 is a front end to, nor the data the model reads; those have their own licences,
 reproduced verbatim in LICENSES/ and described in CREDITS.md:
 
-  LICENSES/fjernvarme-businesscase_LICENSE.txt   (MIT, the model, not distributed here)
+  LICENSES/fjernvarme-businesscase_LICENSE.txt   (MIT, the model: its code is not distributed
+                                                  here; its guides shown in the app are)
   LICENSES/df-data_LICENSE.txt                   (MIT scripts, CC BY 4.0 data)
+  LICENSES/ibcs-web-charts_LICENSE.txt           (MIT, the IBCS chart components copied into
+                                                  app/src/ibcs/ and shipped in the built front end)
 
 The Rayfin app template this front end started from keeps its own notice
 (app/LICENSE: Copyright (c) Microsoft Corporation, MIT).
+
+IBCS(R) is a registered trademark of IBCS Institute. The app follows the IBCS
+Standards but is not certified by, affiliated with or endorsed by IBCS Institute.

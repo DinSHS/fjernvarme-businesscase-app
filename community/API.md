@@ -11,7 +11,7 @@ Alt er JSON (UTF-8). Basis: `/api`. Serveren lytter som standard på `http://loc
 
 | Kald | Svar |
 |---|---|
-| `GET /api/session` | `{ "bruger": "<e-mail/navn>", "udgave": "community", "version": "0.1.0", "skemaversion": 1 }` |
+| `GET /api/session` | `{ "bruger": "<e-mail/navn>", "udgave": "community", "version": "0.3.1", "skemaversion": 1 }` |
 | `GET /api/om` | kreditering, se nederst |
 
 Der er **intet login**. Brugeren er en konfigurationsværdi (`--bruger`, `FJV_BRUGER`; standard `<login>@lokal`).

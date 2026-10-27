@@ -116,7 +116,7 @@ class Installation(unittest.TestCase):
         self.cfg.unlink()
         r = self.kor("paafoer")
         self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
-        self.assertIn("FABRIC.md", r.stdout + r.stderr)
+        self.assertIn("doc/FABRIC.md", r.stdout + r.stderr)
         self.assertNotIn(WS, self.konfig())
 
     def test_paafoer_kraever_felterne_til_functions(self):

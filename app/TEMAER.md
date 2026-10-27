@@ -27,7 +27,7 @@ profil), så læg det som en fil `src/styles/temaer/privat/<id>.json` i din egen
 1. Filen følger formatet nedenfor. Giv den `standard: 100`, hvis den skal være standard i Fabric-installationen.
 2. Mappen `privat/` er **git-ignoreret**: temaet kommer ikke i repoet, og `scripts/tjek.py` afviser en fil dér, hvis nogen
    alligevel tvinger den ind (`git add -f`). Navnet på din organisation hører til i `config/forbud.lokal.json` (også lokal), så gaten
-   også stopper navnet i tekst og kode (se SYNKRONISERING.md).
+   også stopper navnet i tekst og kode (se doc/SYNKRONISERING.md).
 3. Er temaet efter en *anden* organisations offentlige profil, skal det være `uofficielt: true` med `maerke` og `kilder` (se tabellen),
    og må ikke bære organisationens navn eller logo i sidehovedet. Vis det aldrig offentligt uden organisationens lov.
 4. Tjek kontrasten, før temaet tages i brug (afsnittet *Tjek et tema* nedenfor).
