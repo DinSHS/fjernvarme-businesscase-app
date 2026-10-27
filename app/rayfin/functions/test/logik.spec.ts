@@ -11,7 +11,7 @@ import {
 } from "../src/logik";
 
 // Målt 2026-10-16 på en rigtig kørsel (f7289288-…): Functionens hash, og den
-// samme værdi regnet af scripts/tjek_hash.py i Python. Ændres hash-definitionen,
+// samme værdi regnet af fabric/fjv/byg_case.py (input_hash) i Python. Ændres hash-definitionen,
 // skal notebooken ændres samtidig — derfor er vektoren låst her.
 const MÅLTE_RÆKKER: InputRad[] = [
     { kilde: "aendring", sti: "prices.straw.value", vaerdi_json: "50.0" },

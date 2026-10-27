@@ -22,7 +22,7 @@ sker med ``fab cp`` (v1.7.0 kan uploade fra lokal disk — husets note om det
 modsatte gjaldt v1.6.1).
 
 Workspace, lakehouse og database læses fra den lokale, git-ignorerede ``config/installation.json`` via ``fabric_miljoe.py``
-(skabelon: ``config/installation.eksempel.json``; se FABRIC.md). Intet organisationsspecifikt står i koden.
+(skabelon: ``config/installation.eksempel.json``; se doc/FABRIC.md). Intet organisationsspecifikt står i koden.
 """
 
 from __future__ import annotations
@@ -214,7 +214,7 @@ def db_binding() -> dict:
     mangler = [k for k in ("sql_server", "sql_database")
                if not isinstance(inst.get(k), str) or not inst[k].strip() or inst[k].strip().startswith("<")]
     if mangler:
-        raise SystemExit(f"deploy.py db: config/installation.json mangler eller har pladsholdere i: {', '.join(mangler)} (se FABRIC.md)")
+        raise SystemExit(f"deploy.py db: config/installation.json mangler eller har pladsholdere i: {', '.join(mangler)} (se doc/FABRIC.md)")
     server = inst["sql_server"].strip()
     return {"server": server if "," in server else server + ",1433", "database": inst["sql_database"].strip()}
 

@@ -5,7 +5,7 @@ repoet. De staar i `config/installation.json` (git-ignoreret; skabelon: `config/
 miljoevariablen `FJV_INSTALLATION` peger paa, hvis du driver flere installationer fra samme kopi. Udrulningsvaerktoejerne
 (`deploy.py`, `byg.py`) og `scripts/installation.py` laeser herfra; motorpakken `fjv/` kender ingen af vaerdierne.
 
-Mangler filen eller et paakraevet felt, stopper importen med en forklaring (se FABRIC.md, afsnittet "Din installation").
+Mangler filen eller et paakraevet felt, stopper importen med en forklaring (se doc/FABRIC.md, afsnittet "Din installation").
 """
 import json
 import os
@@ -23,7 +23,7 @@ _GUID = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4
 
 def _stop(tekst: str):
     raise SystemExit(f"fabric_miljoe: {tekst}\n"
-                     f"Se FABRIC.md (afsnittet 'Din installation'). Kopier config/installation.eksempel.json til "
+                     f"Se doc/FABRIC.md (afsnittet 'Din installation'). Kopier config/installation.eksempel.json til "
                      f"config/installation.json og udfyld den; filen er git-ignoreret.")
 
 

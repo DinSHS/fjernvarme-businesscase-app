@@ -10,7 +10,7 @@
 Alt organisationsspecifikt staar i `config/installation.json` (git-ignoreret; skabelon `config/installation.eksempel.json`) - eller i den
 fil, `FJV_INSTALLATION` / `--config` peger paa. De to sporede filer, Rayfin bygger fra, har tomme vaerdier/pladsholdere i repoet:
 `paafoer` skriver installationens vaerdier ind LOKALT og saetter `git update-index --skip-worktree`, saa de ikke kan committes ved en
-fejl; `scripts/tjek.py` (pre-commit) er bagstopperen. Se FABRIC.md. Kun standardbibliotek.
+fejl; `scripts/tjek.py` (pre-commit) er bagstopperen. Se doc/FABRIC.md. Kun standardbibliotek.
 """
 import argparse
 import json
@@ -61,7 +61,7 @@ def config_sti(arg=None) -> Path:
 
 def laes(sti: Path) -> dict:
     if not sti.is_file():
-        raise Stop(f"findes ikke: {sti}\nKopier config/installation.eksempel.json til config/installation.json og udfyld den (se FABRIC.md, "
+        raise Stop(f"findes ikke: {sti}\nKopier config/installation.eksempel.json til config/installation.json og udfyld den (se doc/FABRIC.md, "
                    f"afsnittet 'Din installation'). Filen er git-ignoreret.")
     try:
         return json.loads(sti.read_text(encoding="utf-8"))
@@ -82,7 +82,7 @@ def udfyldt(v: str) -> bool:
 def kraev(d: dict, felter) -> None:
     mangler = [".".join(f) for f in felter if not udfyldt(hent(d, f))]
     if mangler:
-        raise Stop(f"config/installation.json mangler eller har pladsholdere i: {', '.join(mangler)} (se FABRIC.md)")
+        raise Stop(f"config/installation.json mangler eller har pladsholdere i: {', '.join(mangler)} (se doc/FABRIC.md)")
 
 
 def konfig_tekst(tekst: str, d: dict) -> str:

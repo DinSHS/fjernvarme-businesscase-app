@@ -1,6 +1,6 @@
 # Fabric-udgaven — udrulning i dit eget workspace
 
-Samme app som den lokale udgave (`community/README.md`), men kørt i **Microsoft Fabric**: appen er en Fabric App (Rayfin) med SQL-database,
+Samme app som den lokale udgave ([`community/README.md`](../community/README.md)), men kørt i **Microsoft Fabric**: appen er en Fabric App (Rayfin) med SQL-database,
 Entra-login og hosting; regnemotoren er en **Python-notebook**, der tager kørsler fra databasens kø; data og kode ligger i et **lakehouse**.
 Modellen kører aldrig i browseren.
 
@@ -15,9 +15,21 @@ værdierne alligevel havner i noget, der committes.
 | Fabric | en **kapacitet** (F-SKU eller prøvekapacitet), hvor *Fabric Apps (preview)*, SQL database, Lakehouse og Python-notebooks er slået til for dit workspace. En SQL-database, der røres oftere end hvert 15. minut, er tændt døgnet rundt (~1,7 CU konstant); appen polle­r derfor kun, mens en kørsel er aktiv og fanen er synlig. |
 | Rolle | administrator/medlem af workspacet og ret til at oprette items |
 | Python | 3.11–3.13 (kun standardbibliotek til udrulningsværktøjerne) |
-| `fab` | Fabric CLI: `pip install ms-fabric-cli`. Log ind i en **rigtig konsol** (`fab auth login`); på Windows ligger `fab.exe` i Python-brugerens `Scripts`-mappe, som ikke er på PATH — peg på den med miljøvariablen `FJV_FAB`. |
+| `fab` | Fabric CLI **1.7.0 eller nyere** (`pip install --user ms-fabric-cli`; 1.6 kan ikke uploade fra lokal disk). På Windows ligger `fab.exe` i Python-brugerens `Scripts`-mappe, som ikke er på PATH — peg på den med miljøvariablen `FJV_FAB` (fx `…\Python313\Scripts\fab.exe`). |
+| `az` + `sqlcmd` | Azure CLI og **go-sqlcmd** på PATH. `deploy.py db`/`pins` skriver motorens pins i appens SQL-database med dit Entra-login (`az account get-access-token`). |
 | Node.js | ≥ 20 med npm. **Rayfin CLI 1.36.1** installeres af `npm ci` i `app/` (præcis den version; `^` trækker en nyere med manglende afhængighed) |
 | Netværk | adgang til GitHub (kørslerne henter modelkoden og df-data på pinnede commits) |
+
+## Logins — tre forskellige, alle i en rigtig konsol
+
+Log ind i **cmd eller PowerShell**, ikke i Git Bash eller et værktøj uden terminal: `fab` og `az` afviser en konsol, de ikke kan
+styre. Loginnet gemmes, så andre skaller (og scripts) kan bruge det bagefter.
+
+| Værktøj | Kommando | Bruges af | Udløber |
+|---|---|---|---|
+| Fabric CLI | `fab auth login` (tjek: `fab auth status`) | `fabric/deploy.py` (lakehouse, notebooks, jobs) | sjældent; cachen holder |
+| Azure CLI | `az login --tenant <din tenant>` | `deploy.py db`/`pins` (SQL med Entra) | efter organisationens regler (ofte 10–12 timer) |
+| Rayfin CLI | `cd app && npx rayfin login` | `scripts/installation.py rayfin-up`/`rayfin-db-apply` | ca. 1 time |
 
 ## Din installation — det du udfylder
 
@@ -73,6 +85,25 @@ Læg mærke til, at **appens SQL-database først findes efter appens første udr
 Hver kommando kan prøves **tørt** uden at røre Fabric: `python fabric/deploy.py --tor kode` (og `--tor notebook`, `--tor db`, `--tor koer …`),
 `python scripts/installation.py rayfin-up --tor`. En tørkørsel skriver hver `fab`-kommando, den ville have kørt, og udfører ingen.
 
+## Opdatér en eksisterende installation
+
+Efter `git pull` (fx en ny version af appen eller en ny pinnet modelversion), fra repoets rod:
+
+```
+python scripts/installation.py fjern          # før pull: rul de lokalt påførte værdier tilbage
+git pull
+python fabric/deploy.py kode                  # motorkoden + pins i dbo.Motors (læst tilbage)
+python fabric/deploy.py notebook              # notebooks (kun nødvendigt, hvis fabric/celler/ er ændret)
+cd app && npm ci && npx rayfin login
+python ../scripts/installation.py rayfin-up   # paafoer + appen; exit 1, hvis Rayfin melder en fejl
+python ../scripts/installation.py rayfin-db-apply   # kun hvis skema/skema.json er ændret
+cd ..
+python fabric/deploy.py koer fjv_importer_vaerker   # kun hvis MODEL_COMMIT er ændret (se trin 6)
+```
+
+Rækkefølgen betyder noget: motoren (og dermed `dbo.Motors`) før appen, så den første bestilling efter opdateringen fryser de nye pins.
+`CHANGELOG.md` siger for hver version, hvilke af trinene den kræver.
+
 ## Det der gælder altid
 
 * **Kør Rayfin fra `app/`** (CLI'en finder projektet ud fra den aktuelle mappe). Giv altid `--workspace-id` — `scripts/installation.py rayfin-up` gør det.
@@ -83,6 +114,8 @@ Hver kommando kan prøves **tørt** uden at røre Fabric: `python fabric/deploy.
 * `installation.py rayfin-up`/`rayfin-db-apply` læser Rayfin-CLI'ens output og slutter med **exitkode 1**, hvis den melder `Deployment failed`, en fejlet
   database-apply o.l. — CLI'en selv slutter med 0 i de tilfælde (en halv udrulning: frontenden er ude, resten ikke).
 * `fab job run` melder kun Completed/Failed; hver notebook skriver sin egen rapport til `Files/_run/<navn>.json` (`deploy.py rapport <navn>`).
+* `deploy.py koer` venter højst en time (`fab job run --timeout 3600`). En længere kørsel (Andeby helår med balancemarked tog 38 minutter;
+  et rullende Billund-år kan tage mere) bestilles i appen eller startes med `fab job start` og følges i appen.
 
 ## Hvad ligger hvor
 
@@ -91,7 +124,7 @@ Hver kommando kan prøves **tørt** uden at røre Fabric: `python fabric/deploy.
 | `config/installation.eksempel.json` | ja | skabelonen (pladsholdere) |
 | `config/installation.json` | **nej** (git-ignoreret) | dine id'er, servernavn, adresser |
 | `config/forbud.lokal.json` | **nej** | dine organisationsnavne m.m., som gaten skal stoppe (valgfri) |
-| `app/src/styles/temaer/privat/` | **nej** | dit eget tema (se `app/TEMAER.md`) |
+| `app/src/styles/temaer/privat/` | **nej** | dit eget tema (se [`app/TEMAER.md`](../app/TEMAER.md)) |
 | `app/rayfin/.deployments.json`, `app/rayfin/.env`, `app/.env.local` | **nej** | Rayfins egen udrulningstilstand |
 | `app/rayfin/functions/src/konfig.ts`, `app/rayfin/rayfin.yml` | ja — **med tomme værdier** | `paafoer` fylder dem lokalt (skip-worktree) |
 | `app/rayfin/functions/host.json` | ja | Azure Functions-værtens standard (Rayfin-CLI'ens skabelon); uden den udruller `rayfin up` ikke functions |

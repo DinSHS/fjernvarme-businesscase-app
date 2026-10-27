@@ -7,7 +7,7 @@
 
 Forbudslisten er foreningen af tre ting: den generiske liste i repoet (offentlig/forbud.generisk.json), den lokale liste
 (config/forbud.lokal.json, git-ignoreret) og VAERDIERNE i den lokale installation (config/installation.json, git-ignoreret). Det er
-det samme `tjek_offentlig.py`, bare med `--repo`; se SYNKRONISERING.md. Kun standardbibliotek, intet netvaerk.
+det samme `tjek_offentlig.py`, bare med `--repo`; se doc/SYNKRONISERING.md. Kun standardbibliotek, intet netvaerk.
 """
 import subprocess
 import sys

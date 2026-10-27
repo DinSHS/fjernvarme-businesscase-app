@@ -4,4 +4,4 @@ Bygger på github.com/skj-1964/fjernvarme-businesscase (MIT) og datarepoet githu
 Se ``CREDITS.md`` og ``GET /api/om``. Modellens kode distribueres ikke her; den hentes på en pinnet commit.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.3.1"

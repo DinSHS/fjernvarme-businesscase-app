@@ -16,7 +16,7 @@ SQL-database; notebooken `fjv_koer_scenarie` regner dem og skriver resultaterne 
 | df-data | `106b9fce9a2e3610090b1a542559024056449b88` (pinnet; opdateres om mandagen — skift bevidst; før 2026-10-26: `392992c`) |
 
 Installationens workspace, lakehouse og item-id'er står **ikke** i kernen: udrulningen læser dem fra
-`fabric_miljoe.py` (udfyld den - se `FABRIC.md` i roden).
+`fabric_miljoe.py` (udfyld den - se `doc/FABRIC.md`).
 
 Referencetal ved eef950a, målt lokalt 2026-10-26 med den ægte arbejder over hukommelseslageret
 (som `koer_minne.py`; df-data 106b9fc): Andeby 5.–16. jan 2026 uden balancering **3.446.711,91**, med

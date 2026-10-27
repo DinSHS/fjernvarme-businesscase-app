@@ -18,7 +18,7 @@ git-ignorerede filer. Det er dét, der gør, at samme repo kan deles med modelle
 | `fjernvarme_data/`, `_lokal/`, `node_modules/`, `dist*/` — kørselsdata og build | koden, skemaet, vektorerne, dokumentationen |
 
 `python scripts/installation.py paafoer` skriver installationens værdier ind i `konfig.ts` og `rayfin.yml` **lokalt** og sætter `skip-worktree`, så de to
-filer aldrig står som ændrede. `fjern` ruller tilbage. Se `FABRIC.md`.
+filer aldrig står som ændrede. `fjern` ruller tilbage. Se [`FABRIC.md`](FABRIC.md).
 
 ## 2. Gaten — intet organisationsspecifikt kan committes ved en fejl
 

@@ -412,7 +412,9 @@ class TestKonstanterOffentlig(unittest.TestCase):
 
     def test_konstanter_py_er_kerne_og_baerer_ingen_guid(self):
         t = (ROD / "fabric/fjv/konstanter.py").read_text(encoding="utf-8")
-        self.assertEqual(T.GUID_RX.findall(t), [], "konstanter.py maa ikke baere id'er (den er kerne og bundles i wheel'en)")
+        # Kun syntetiske id'er, der er ens i enhver installation (fx MOTOR_ID, raekken i dbo.Motors; runde 7c), er tilladt.
+        self.assertEqual([g for g in T.GUID_RX.findall(t) if not T.er_syntetisk(g)], [],
+                         "konstanter.py maa ikke baere en installations id'er (den er kerne og bundles i wheel'en)")
         self.assertIn("MODEL_COMMIT", t)   # pins er stadig kerne
         self.assertIn("DF_DATA_SHA", t)
 

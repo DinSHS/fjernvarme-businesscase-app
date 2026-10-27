@@ -76,7 +76,7 @@ class TestDeployTor(unittest.TestCase):
     def test_uden_installation_stopper_deploy_med_henvisning_til_fabric_md(self):
         r = self.kor("--tor", "kode", cfg=Path(self._t.name) / "findes-ikke.json")
         self.assertNotEqual(r.returncode, 0)
-        self.assertIn("FABRIC.md", r.stdout + r.stderr)
+        self.assertIn("doc/FABRIC.md", r.stdout + r.stderr)
 
     def test_en_pladsholder_er_ikke_en_installation(self):
         self.cfg.write_text(json.dumps(dict(INST, workspace_id="<DIT-WORKSPACE-ID>")), encoding="utf-8")

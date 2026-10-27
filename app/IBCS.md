@@ -3,7 +3,7 @@
 Appens grafer, tabeller og nøgletal følger IBCS® Standards v2.0 (SIMPLIFY · UNIFY · CHECK), som de er omsat i
 `ibcs-notation`-skillen (tokens i `src/ibcs/tokens.generated.ts`). Denne fil er appens **notationsmanual**: de få
 steder, hvor domænet kræver et valg, IBCS ikke træffer, og de dokumenterede afvigelser. Visualspecs pr. side står i
-`docs/ibcs/*.visual-spec.yaml`. Appen følger IBCS; den er ikke certificeret af IBCS Institute.
+`docs/ibcs/*.visual-spec.yaml`. Appen følger IBCS; den er ikke certificeret af IBCS Institute. IBCS® er et registreret varemærke tilhørende IBCS Institute.
 
 ## 1. Scenarier: reference og scenarie
 

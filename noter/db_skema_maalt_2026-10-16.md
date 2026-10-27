@@ -1,7 +1,11 @@
 # Databasens faktiske skema — målt 2026-10-16 06:25 UTC via Function skemaInfo (SQL som app-ejer)
 
+> **Udviklingsnote (historik).** Et øjebliksbillede fra den første udrulning. Skemaet er siden udvidet (fx `Tidsseries`,
+> `Vaerksarkimports`, `Motors`); kontrakten er [`skema/skema.json`](../skema/skema.json) og [`skema/SKEMA.md`](../skema/SKEMA.md),
+> og den målte database, testen sammenligner med, står i `skema/maalt/`.
+
 ```
-login: shs-aad-ai-tst@example.com
+login: <app-ejerens konto>
 
 Aendringsanmodnings: id uniqueidentifier NN, aendringer_json nvarchar(4000) NN, anmodet datetime2 NN, anmodet_af nvarchar(200) NN, forventet_revision int NN, status nvarchar(7) NN, svar nvarchar(2000), vaerk_id uniqueidentifier NN
 
