@@ -5,7 +5,7 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { HeatSkalaProvider } from "@/components/layout";
-import { glemVisning, saetVisning } from "@/lib/tabelfarve";
+import { glemVisning, saetFarvesaet, saetVisning } from "@/lib/tabelfarve";
 import { maanedstabel, produktionsvarians, sammenligningsBudskab, type EnhedTal, type LagerTal, type Maaned } from "./beregn";
 import type { Pakke } from "./data";
 import { energi } from "./fmt";
@@ -23,7 +23,8 @@ const celler = (c: HTMLElement): Celle[][][] => [...c.querySelectorAll("table")]
     .filter((rækker) => rækker.some((r) => r.length > 1));
 const række = (c: Celle[][], navn: string) => c.find((r) => r[0].text === navn)!;
 
-beforeEach(() => { localStorage.clear(); glemVisning(); saetVisning("delta", "heatmap"); saetVisning("niveau", "heatmap"); });
+// Farvesættet Neutral (IBCS: op/ned): prøverne gælder ukendt, nul og skala — farvesættene har deres egne tests (r10_farvesaet).
+beforeEach(() => { localStorage.clear(); glemVisning(); saetVisning("delta", "heatmap"); saetVisning("niveau", "heatmap"); saetFarvesaet("neutral"); });
 afterEach(cleanup);
 
 describe("Codex K9-prøverne (rød → grøn)", () => {

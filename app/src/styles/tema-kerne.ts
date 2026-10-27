@@ -25,7 +25,7 @@ export const FARVER = [
     "primaer", "primaer_tekst", "accent", "accent_2", "fokus",
     "pos", "neg", "advarsel",
     "serie_oevrige", "ac", "py", "pl", "delta_pos", "delta_neg", "delta_neutral",
-    "heatmap_op", "heatmap_ned",
+    "heatmap_op", "heatmap_ned", "heatmap_groen", "heatmap_roed", "heatmap_blaa",
 ] as const;
 export type Farve = (typeof FARVER)[number];
 
@@ -187,6 +187,9 @@ export const CSS_VARIABLER: Record<Farve, readonly string[]> = {
     delta_neutral: ["--fjv-delta-neutral"],
     heatmap_op: ["--fjv-heat-op"],
     heatmap_ned: ["--fjv-heat-ned"],
+    heatmap_groen: ["--fjv-heat-groen"],
+    heatmap_roed: ["--fjv-heat-roed"],
+    heatmap_blaa: ["--fjv-heat-blaa"],
 };
 
 /** Signaturstriben øverst: farverne i forholdet 4-1-1 (to farver: 4-2, én farve: hel). */
@@ -244,8 +247,11 @@ const AFLEDTE_VARIABLER: Record<keyof Afledte, string> = {
 // skærmen og kontrastscriptet bruger samme hex — ingen color-mix bag tekst.
 // ---------------------------------------------------------------------------
 
-/** Rampernes navne: neutral op/ned (divergerende), virkning god/dårlig (IBCS-polaritet) og niveau (sekventiel). */
-export const HEAT_RAMPER = ["op", "ned", "god", "daarlig", "niveau"] as const;
+/**
+ * Rampernes navne: neutral op/ned (divergerende) og virkning god/dårlig (IBCS-polaritet) er farvesættet Neutral;
+ * grøn, rød og blå er farvesættene Rød/grøn og Blå/rød (runde 10, IBCS.md AF7); niveau (sekventiel) følger intet sæt.
+ */
+export const HEAT_RAMPER = ["op", "ned", "god", "daarlig", "groen", "roed", "blaa", "niveau"] as const;
 export type HeatRampe = (typeof HEAT_RAMPER)[number];
 /**
  * Polens andel over fladen pr. trin (trin 5 = polen selv = Retning-farven). Valgt så lysheden (OKLab L) falder i næsten
@@ -272,7 +278,10 @@ export function laesbarTekst(bg: string, v: Pick<ModusTokens, "tekst" | "flade">
  * en bleg yderpol (DIN mørk: trin 3 #0163d1 så kraftigere ud end trin 5 #b8d8fb — review fund 6).
  */
 export function heatRamper(v: ModusTokens): Record<HeatRampe, HeatCelle[]> {
-    const pol: Record<HeatRampe, string> = { op: v.heatmap_op, ned: v.heatmap_ned, god: v.delta_pos, daarlig: v.delta_neg, niveau: v.sekventiel[4] };
+    const pol: Record<HeatRampe, string> = {
+        op: v.heatmap_op, ned: v.heatmap_ned, god: v.delta_pos, daarlig: v.delta_neg,
+        groen: v.heatmap_groen, roed: v.heatmap_roed, blaa: v.heatmap_blaa, niveau: v.sekventiel[4],
+    };
     const ud = {} as Record<HeatRampe, HeatCelle[]>;
     for (const r of HEAT_RAMPER) ud[r] = HEAT_ANDEL.map((a) => { const bg = bland(pol[r], v.flade, a); return { bg, tekst: laesbarTekst(bg, v) }; });
     return ud;
@@ -341,6 +350,9 @@ export const KONTRASTKRAV: readonly (readonly [Farve | `serie.${number}` | `dive
     // Tabellernes farvevalg (IBCS.md §8): Retning farver tallet med polen, Heatmap har polen som mørkeste celle.
     ["heatmap_op", ["flade"], TEKST, "tabelfarve: mere end referencen (tal og mørkeste celle)"],
     ["heatmap_ned", ["flade"], TEKST, "tabelfarve: mindre end referencen (tal og mørkeste celle)"],
+    ["heatmap_groen", ["flade"], TEKST, "tabelfarve Rød/grøn og Blå/rød: grøn (tal og mørkeste celle)"],
+    ["heatmap_roed", ["flade"], TEKST, "tabelfarve Rød/grøn og Blå/rød: rød (tal og mørkeste celle)"],
+    ["heatmap_blaa", ["flade"], TEKST, "tabelfarve Blå/rød: blå (tal og mørkeste celle)"],
     ...Array.from({ length: 8 }, (_, i) => [`serie.${i}`, ["flade"], GRAFIK, `kategorisk serie ${i + 1}`] as const),
     ["divergerende.0", ["flade"], GRAFIK, "divergerende yderpunkt"],
     ["divergerende.4", ["flade"], GRAFIK, "divergerende yderpunkt"],
@@ -442,6 +454,11 @@ export function maal(t: Tema): Fund[] {
         }
         const opNed = Math.min(afstand(v.heatmap_op, v.heatmap_ned, "protan"), afstand(v.heatmap_op, v.heatmap_ned, "deutan"));
         if (opNed < CVD_GULV) fund("farveblind", "heatmap op/ned under protan/deutan", opNed, CVD_GULV);
+        // Blå/rød er det farveblind-sikre sæt: blå og rød skal kunne skelnes under protan/deutan. Rød/grøn kan det per
+        // definition ikke (derfor findes Blå/rød); der skal de blot kunne skelnes med normalt syn.
+        const blaaRoed = Math.min(afstand(v.heatmap_blaa, v.heatmap_roed, "protan"), afstand(v.heatmap_blaa, v.heatmap_roed, "deutan"));
+        if (blaaRoed < CVD_GULV) fund("farveblind", "heatmap blå/rød under protan/deutan", blaaRoed, CVD_GULV);
+        if (afstand(v.heatmap_groen, v.heatmap_roed) < NORMAL_GULV) fund("normalt syn", "heatmap grøn mod rød", afstand(v.heatmap_groen, v.heatmap_roed), NORMAL_GULV);
     }
     return ud;
 }

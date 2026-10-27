@@ -89,6 +89,7 @@ Appen har derfor to egne scenariekoder med faste IBCS-virkemidler — samme nota
 | AF4 | A5 (farve med betydning) | Den højeste time i grundprofilen er fremhævet i accentfarve | Fremhævning af den værdi, kortets budskab nævner | Fremhævning er IBCS' egen markør (UN 5.1) |
 | AF5 | SI 2.2 (ingen dekorativ farve) / UN 4 (størrelse vises med længde) | Tabellernes **Heatmap** farver cellens baggrund efter \|værdi\| | Brugerens ønske (runde 9): mønstret i en enhed × måned-tabel (hvem overtager hvilke måneder) skal kunne ses uden at læse hvert tal | Valgfrit og fra som standard (`Ingen`); farven følger polariteten (§2) og aldrig god/dårlig for neutrale størrelser; fortegnet står altid i tallet; skala og 100 % står i fodnoten (§8) |
 | AF6 | UN 4.1 (samme farve = samme betydning) / E6 (neutral afvigelse er blå) | I tabellernes **Retning** og **Heatmap** er en neutral afvigelse blå, når den er positiv, og **orange**, når den er negativ — graferne tegner al neutral ΔRef blå | Briefens krav (runde 9): brugeren vil se, hvad der går op og ned i en enhed × måned-tabel; et blåt Δ for begge fortegn viser kun størrelsen | Kun når valgt (standard `Ingen` = blå for begge fortegn som graferne); fodnoten siger "blå = mere, orange = mindre" i netop den tabel; orange er en okker (`heatmap_ned`), ikke `delta_neg`, og bruges aldrig om god/dårlig. Påpeget af IBCS-reviewet (fund 1 og 3) og bevidst beholdt |
+| AF7 | UN 4.1 / E6 (ingen rød/grøn for retning; neutral afvigelse er blå) / CHECK (farveblindhed) | Tabellernes **Retning** og **Heatmap** har et valgfrit **farvesæt**: **Rød/grøn** (standard) · **Blå/rød** · **Neutral**. I Rød/grøn er en neutral størrelse (produktion, MWh, timer) grøn, når den er mere end referencen, og rød, når den er mindre | Brugerens valg 2026-10-27 (runde 10): "I know that IBCS will not allow red/green per se, but could we please do that here?" | Kun i tabellerne, og kun når Retning/Heatmap er valgt (standard `Ingen` = IBCS). **Neutral er IBCS-varianten** (AF5/AF6). Med polaritet er grøn/blå altid *godt* og rød *dårligt* — en omkostning, der stiger, er rød i alle sæt. For neutrale tabeller siger fodnoten "farven siger retning, ikke godt eller dårligt". Rød/grøn kan ikke skelnes ved rød-grøn-farveblindhed; derfor findes **Blå/rød** (målt ≥ 6 ΔE under protan/deutan i alle temaer), og fortegnet står altid i tallet. Graferne er uændrede |
 
 ## 7. Komponenter
 
@@ -103,6 +104,18 @@ da-DK. Layoutfunktionerne er rene (`layout(rækker, valg) → mærker`), og hver
 Tabeller med Δ eller niveauer pr. enhed × måned/periode har en lille segmenteret knap ved titlen (`FarveValg`,
 `src/components/layout/Tabelfarve.tsx`; logikken i `src/lib/tabelfarve.ts`). Samme komponent overalt.
 
+Ved **Retning** og **Heatmap** vælger en anden lille knap **farvesættet** for Δ (runde 10, AF7): **Rød/grøn** (standard) ·
+**Blå/rød** (farveblind-sikker) · **Neutral** (IBCS, tabellen herunder). Det huskes pr. bruger
+(`fjv.tabelfarve.farvesaet.v1`) og gælder alle Δ-tabeller på alle sider; niveau-tabeller følger intet farvesæt.
+
+| Farvesæt | Med polaritet (omkostning, CO₂: op = dårligt; balanceindtægt: op = godt) | Neutrale tabeller (produktion, MWh, timer) |
+|---|---|---|
+| **Rød/grøn** | grøn = godt, rød = dårligt (`heatmap_groen`/`heatmap_roed`) | grøn = mere end referencen, rød = mindre |
+| **Blå/rød** | blå = godt, rød = dårligt (`heatmap_blaa`/`heatmap_roed`) | blå = mere, rød = mindre |
+| **Neutral** | temaets `delta_pos`/`delta_neg` (§2) | blå = mere, orange = mindre (`heatmap_op`/`heatmap_ned`) |
+
+Farvesættet Neutral:
+
 | Valg | Δ-tabeller | Niveau-tabeller |
 |---|---|---|
 | **Ingen** (standard) | som hidtil: tallet i virkningsfarven (§2) | ingen farve |
@@ -114,7 +127,7 @@ Tabeller med Δ eller niveauer pr. enhed × måned/periode har en lille segmente
   med ≥ 1,35:1 mod fladen, og intensiteten er monoton i alle temaer pr. konstruktion. Trin 5 = polen = Retning-farven.
 - **Tekstfarven på en farvet celle** er målt pr. tema og modus: temaets tekst, ellers fladen, ellers sort/hvid — den
   første med ≥ 4,5:1 på netop den baggrund (`laesbarTekst` i `tema-kerne.ts`). Ramperne skrives som tokens
-  (`--fjv-heat-<op|ned|god|daarlig|niveau>-<1–5>[-tekst]`), så skærm og `node scripts/kontrast.ts` bruger samme hex.
+  (`--fjv-heat-<op|ned|god|daarlig|groen|roed|blaa|niveau>-<1–5>[-tekst]`), så skærm og `node scripts/kontrast.ts` bruger samme hex.
 - **En celle, der VISES som 0, får ingen farve** — 0, 0,00, 0,0 % og tal, der afrundes til 0 ved de viste decimaler, i
   niveau- og Δ-tabeller. `farvning()` kræver derfor cellens viste skala (faktor og decimaler), så farve og tal ikke kan
   være uenige (`r9_nul.spec.tsx` tester det på kørslens og sammenligningens månedstabeller). Tomme celler: ingen farve.
@@ -128,7 +141,9 @@ Tabeller med Δ eller niveauer pr. enhed × måned/periode har en lille segmente
   så den ikke vasker månederne ud. **Samme størrelse og enhed på samme side = samme skala** (`HeatSkalaProvider`, som
   grafernes `ScaleProvider`): fx månedstabellens 'Hele perioden' og lagertabellens ΔRef (ΔMWh i perioden), og kørslens
   enhedstabel (MWh) og månedstabellens 'Hele perioden'. Tabeller med flere enheder (enhedstabellen) har én skala pr. kolonne.
-- **Legenden står i fodnoten**: "Blå = mere end referencen, orange = mindre; jo kraftigere farve, jo større (5 trin à 20 %; kraftigst = …)".
+- **Legenden står i fodnoten** og følger farvesættet: "Blå = mere end referencen, orange = mindre; jo kraftigere farve, jo større (5 trin à 20 %; kraftigst = …)".
+  I Rød/grøn og Blå/rød siger den for neutrale tabeller ærligt: "Grøn = mere end referencen, rød = mindre — farven siger
+  retning, ikke godt eller dårligt"; med polaritet "Grøn (blå) = bedre end referencen, rød = dårligere".
   *Kraftigere*, ikke *mørkere*: i mørk tilstand er det stærkeste trin det lyseste.
 - Valget huskes pr. bruger og slags (`fjv.tabelfarve.delta.v1`, `fjv.tabelfarve.niveau.v1` i localStorage, i try/catch —
   siden virker uden) og gælder alle tabeller af samme slags, også på andre sider.
