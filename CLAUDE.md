@@ -57,8 +57,9 @@ Sådan svarer du:
 ```bash
 # Lokal udgave fra kilden (Node ≥ 20, Python 3.11–3.13)
 cd app && npm ci && npm run build:community && cd ..
-python community/pakke.py --ud _lokal/wheel
-python -m venv .venv && .venv/Scripts/pip install "_lokal/wheel/fjernvarme_app-<version>-py3-none-any.whl[model]"   # POSIX: .venv/bin/
+python -m venv .venv && .venv/Scripts/python -m pip install setuptools     # POSIX: .venv/bin/
+.venv/Scripts/python community/pakke.py --ud _lokal/wheel                  # kræver setuptools (pip wheel --no-build-isolation)
+.venv/Scripts/python -m pip install "_lokal/wheel/fjernvarme_app-<version>-py3-none-any.whl[model]"
 .venv/Scripts/python -m fjernvarme_app --demo --data C:\fjv
 
 # Gaten (begge udgaver, 10–15 min; trofasthed kræver modelrepoet i ../fjernvarme-businesscase eller FJV_MODELREPO)

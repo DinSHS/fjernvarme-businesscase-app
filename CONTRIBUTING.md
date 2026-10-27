@@ -68,6 +68,8 @@ længe den regner præcis som modellen. Det er den ene regel, der går forud for
   `ae`/`oe`/`aa` i filnavne og identifiers. Modellens egne navne (`run_case.py`, `heat_load_params`) bevares.
 - Kommentarer begrunder et valg og navngiver den fejl, de forhindrer. Behold den tæthed.
 - **Testen skrives før rettelsen** og skal fejle af den rigtige grund.
+  Testfiler og specs med et K-nummer (`test_k5.py`, `k8.spec.ts`) er regressionstests for fund fra uafhængige
+  gennemgange; nummeret peger på gennemgangen, og hver test siger i sin docstring, hvilken fejl den forhindrer.
 - Organisationsspecifikke værdier (id'er, servernavne, temaer, navne) hører i `config/installation.json` og
   `app/src/styles/temaer/privat/` — aldrig i repoet. Gaten stopper dem; omgå den ikke med `--no-verify`.
 - Den betroede logik findes i to sprog (TypeScript i Rayfin Functions, Python i `community/`), bundet af fælles

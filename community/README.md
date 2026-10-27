@@ -18,7 +18,7 @@ maskine: en Python-server med SQLite (eller din egen database), en lokal arbejde
 
 ## Kom i gang
 
-Wheel'en bygges fra repoet: se [README › Kom i gang](../README.md#kom-i-gang--lokal-udgave-ca-5-minutter) (brugerfladen med
+Wheel'en bygges fra repoet: se [README › Kom i gang](../README.md#kom-i-gang--lokal-udgave-520-minutter) (brugerfladen med
 `npm run build:community`, derefter `python community/pakke.py`). Har du allerede en wheel:
 
 ```

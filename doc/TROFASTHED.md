@@ -2,7 +2,7 @@
 
 Appen er en brugerflade til [`fjernvarme-businesscase`](https://github.com/skj-1964/fjernvarme-businesscase). Den skal regne
 **præcis som modelrepoet** og må ikke opfinde, afrunde, forenkle eller "forbedre" en antagelse uden at sige det. Denne side
-viser, hvordan du selv kan efterprøve det på 15 minutter. Den er skrevet til modellens forfatter, men alle kan følge den.
+viser, hvordan du selv kan efterprøve det på en halv time (det meste er installation og ventetid). Den er skrevet til modellens forfatter, men alle kan følge den.
 
 **Modelrepoet er sandheden.** Hvor appen afviger, står der *egen antagelse* i appen og i tabellen nederst.
 
@@ -67,7 +67,7 @@ git -C model/data/df-data checkout 106b9fce9a2e3610090b1a542559024056449b88
 
 python -m venv .venv
 source .venv/bin/activate                     # Windows: .venv\Scripts\activate
-pip install -r model/requirements.txt pyyaml
+pip install -r model/requirements.txt pyyaml   # ca. 4 minutter
 ```
 
 ### 4a. Trofasthedstesten (sekunder)
@@ -100,7 +100,7 @@ grænse, profilens decimaler, `python3` i en kommando, et nyt flag `--legacy-net
 kræver, at gaten bliver rød:
 
 ```bash
-FJV_MODELREPO=model python app/viden/vaerktoej/test_trofasthed.py   # 10 tests, ca. 1 minut
+FJV_MODELREPO=model python app/viden/vaerktoej/test_trofasthed.py   # 10 tests, ca. 3 minutter
 ```
 
 Vil du se den fange en ændring, du selv vælger: ret en værdi i `model/cases/andeby.yaml` (fx CO₂-prisen), og sæt
@@ -134,7 +134,7 @@ argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.cs
 
 ### 4c. Hele appen med en rigtig kørsel
 
-Følg [kom-i-gang i README](../README.md#kom-i-gang--lokal-udgave-ca-5-minutter) og bestil Andeby 5.–6. januar 2026 uden
+Følg [kom-i-gang i README](../README.md#kom-i-gang--lokal-udgave-520-minutter) og bestil Andeby 5.–6. januar 2026 uden
 balancemarked: **867.031,23 kr.** Samme tal giver den ægte arbejder uden server (`python fabric/koer_minne.py andeby
 2026-01-05 2026-01-06`). Kørslens side viser modelversionerne og *Data i denne kørsel*; de rå filer — `case.yaml`,
 `argv.json`, modellens egne `_kpi.csv`/`_hourly.csv`/`_manifest.json` og solverloggen — ligger i

@@ -16,7 +16,7 @@ regnet med. Graferne følger IBCS® Standards.
 | | | |
 |---|---|---|
 | ![Værk](doc/skaermbilleder/vaerk.png) | ![Scenarier](doc/skaermbilleder/scenarier.png) | ![Sammenligning](doc/skaermbilleder/sammenlign.png) |
-| *Konfiguration: et værk, felt for felt, med kilden i modelrepoet* | *Scenarier: værk + ændringer + periode* | *Analyser: scenarie mod reference* |
+| *Konfiguration: Andeby, felt for felt, med kilden i modelrepoet* | *Scenarier: et scenarie fortalt og dets kørsel* | *Analyser: hvad er balancemarkedet værd for Andeby i to døgn?* |
 
 ---
 
@@ -37,14 +37,15 @@ regnet med. Graferne følger IBCS® Standards.
 |---|---|---|
 | Hvad | en Python-server på din maskine, SQLite (eller din egen database), en lokal arbejder | en Fabric App med SQL-database, Entra-login og hosting; regnemotoren er en Python-notebook |
 | Til | den enkelte ingeniør, et kursus, en afprøvning | en organisation med en Fabric-kapacitet |
-| Kom i gang | [nedenfor](#kom-i-gang--lokal-udgave-ca-5-minutter) og [`community/README.md`](community/README.md) | [`doc/FABRIC.md`](doc/FABRIC.md) |
+| Kom i gang | [nedenfor](#kom-i-gang--lokal-udgave-520-minutter) og [`community/README.md`](community/README.md) | [`doc/FABRIC.md`](doc/FABRIC.md) |
 
 ---
 
-## Kom i gang — lokal udgave (ca. 5 minutter)
+## Kom i gang — lokal udgave (5–20 minutter)
 
 **Du skal have:** Python **3.11–3.13**, Node.js **20 eller nyere** (kun til at bygge brugerfladen én gang), git og
-netværk til GitHub. Windows, macOS eller Linux, og mindst 4 GB fri hukommelse.
+netværk til GitHub. Windows, macOS eller Linux, og mindst 4 GB fri hukommelse. Det meste af tiden går med at hente
+pakker (`npm ci` og `pip install`): fem minutter på en hurtig forbindelse, op til tyve på en travl maskine.
 
 ```bash
 git clone https://github.com/DinSHS/fjernvarme-businesscase-app.git
@@ -68,9 +69,11 @@ python -m venv .venv
 
 Browseren åbner `http://localhost:8000`. Første start henter modelkoden og df-data på de pinnede commits (ca. 60 MB).
 
-**Prøv en kørsel:** *Scenarier › Nyt scenarie* → værket **Andeby**, perioden **5.–6. januar 2026**, uden balancemarked →
-*Bestil*. Efter et minut står den under *Analyser*. Objektivet skal være **867.031,23 kr.** — samme tal som modellen
-selv giver ved den pinnede commit.
+**Prøv en kørsel:** *Scenarier › Nyt scenarie fra et spørgsmål* → værket **Andeby** → spørgsmålet *Hvad er tanken værd?*
+→ perioden *Egen periode*, 05-01-2026 til 06-01-2026 → *Bekræft og kør begge*. Appen bestiller to kørsler: referencen
+(Andeby, som modelrepoet kører casen) og scenariet (uden tanke). Efter et par minutter (første gang henter den
+data) står de under *Analyser*. Referencens driftsomkostning skal være **867.031,23 kr.** — samme tal som modellen selv
+giver ved den pinnede commit.
 
 * **Windows: datamappen skal have en kort sti** (`C:\fjv`). Modellens filnavne er lange, og Windows' grænse er 260 tegn.
 * Uden `[model]` bygger appen selv et venv med modelrepoets `requirements.txt` ved første kørsel.
