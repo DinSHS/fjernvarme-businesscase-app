@@ -6,12 +6,27 @@
 //-----------------------------------------------------------------------
 
 import { createContext, useCallback, useContext, useId, useLayoutEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import { abonner, laesVisning, saetVisning, VALG, type Tabelslags, type Visning } from "@/lib/tabelfarve";
+import {
+    abonner, FARVESAET, laesFarvesaet, laesVisning, saetFarvesaet, saetVisning, STANDARD_FARVESAET, VALG,
+    type Farvesaet, type Tabelslags, type Visning,
+} from "@/lib/tabelfarve";
 
 /** Det aktuelle valg for en slags tabel; alle tabeller af samme slags følger med, når én knap trykkes. */
 export function useVisning(slags: Tabelslags): Visning {
     return useSyncExternalStore(abonner, () => laesVisning(slags), () => "ingen");
 }
+
+/** Brugerens farvesæt for Δ-tabellerne (runde 10, IBCS.md AF7); fælles for alle tabeller på alle sider. */
+export function useFarvesaet(): Farvesaet {
+    return useSyncExternalStore(abonner, laesFarvesaet, () => STANDARD_FARVESAET);
+}
+
+const SAET_ETIKET: Record<Farvesaet, string> = { roedgroen: "Rød/grøn", blaaroed: "Blå/rød", neutral: "Neutral" };
+const SAET_FORKLARING: Record<Farvesaet, string> = {
+    roedgroen: "Grøn = mere eller bedre, rød = mindre eller dårligere",
+    blaaroed: "Blå = mere eller bedre, rød = mindre eller dårligere — kan skelnes af farveblinde",
+    neutral: "IBCS: blå/orange for retning, temaets god/dårlig for virkning",
+};
 
 const ETIKET: Record<Visning, string> = { ingen: "Ingen", retning: "Retning", heatmap: "Heatmap" };
 const FORKLARING: Record<Visning, string> = {
@@ -21,17 +36,29 @@ const FORKLARING: Record<Visning, string> = {
 };
 
 /**
- * Den lille segmenterede knap ved tabellens titel (Kort.handling). Knapperne er almindelige knapper med aria-pressed,
- * så de nås med Tab og vælges med Enter/mellemrum.
+ * De små segmenterede knapper ved tabellens titel (Kort.handling): farvevalget og — i Δ-tabeller, når Retning eller
+ * Heatmap er valgt — farvesættet. Knapperne er almindelige knapper med aria-pressed, så de nås med Tab og vælges med
+ * Enter/mellemrum. Niveau-tabeller har intet farvesæt (én sekventiel nuance).
  */
 export function FarveValg({ slags }: { slags: Tabelslags }) {
     const v = useVisning(slags);
+    const saet = useFarvesaet();
     return (
-        <div className="fjv-farvevalg" role="group" aria-label="Farver i tabellen" data-slags={slags}>
-            {VALG[slags].map((x) => (
-                <button key={x} type="button" aria-pressed={v === x} title={FORKLARING[x]}
-                    onClick={() => saetVisning(slags, x)}>{ETIKET[x]}</button>
-            ))}
+        <div className="fjv-farvevalg-raekke">
+            <div className="fjv-farvevalg" role="group" aria-label="Farver i tabellen" data-slags={slags}>
+                {VALG[slags].map((x) => (
+                    <button key={x} type="button" aria-pressed={v === x} title={FORKLARING[x]}
+                        onClick={() => saetVisning(slags, x)}>{ETIKET[x]}</button>
+                ))}
+            </div>
+            {slags === "delta" && v !== "ingen" && (
+                <div className="fjv-farvevalg" role="group" aria-label="Farvesæt" data-farvesaet={saet}>
+                    {FARVESAET.map((x) => (
+                        <button key={x} type="button" aria-pressed={saet === x} title={SAET_FORKLARING[x]}
+                            onClick={() => saetFarvesaet(x)}>{SAET_ETIKET[x]}</button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

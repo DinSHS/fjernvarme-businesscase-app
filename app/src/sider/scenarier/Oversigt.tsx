@@ -5,11 +5,11 @@
 //-----------------------------------------------------------------------
 
 import { useMemo } from "react";
-import { DataTilstand, FarveValg, Gitter, Kort, Knap, Maerke, Side, StatusMaerke, Tabel, useHeatMaks, useVisning } from "@/components/layout";
+import { DataTilstand, FarveValg, Gitter, Kort, Knap, Maerke, Side, StatusMaerke, Tabel, useFarvesaet, useHeatMaks, useVisning } from "@/components/layout";
 import { useKoersler, useKoerselStatus, useScenarier, useVaerker } from "@/lib/data/hooks";
 import { erAktiv } from "@/lib/data/koersel-status";
 import { tal, tidspunkt } from "@/lib/format";
-import { farvning, forklaring, skalaMaks } from "@/lib/tabelfarve";
+import { farverTeksten, farvning, forklaring, skalaMaks } from "@/lib/tabelfarve";
 import { DeltaTal, TKR, tkr } from "../analyser/ibcs-grafer";
 import { GRAENSER } from "../../../rayfin/data/fjv.constants";
 import type { OmraadeProps } from "../typer";
@@ -55,9 +55,9 @@ export default function Oversigt({ gåTil, bruger }: OmraadeProps) {
     const aktive = useMemo(() => levende.filter((k) => erAktiv(k.status)), [levende]);
     // ΔRef (driftsomkostning, op = dårligt): tabellens farvevalg med én skala for kolonnen (IBCS.md §8).
     const delta = (x: ScenarieRække) => (x.reference?.art === "par" && x.reference.delta !== undefined ? x.reference.delta : null);
-    const vis = useVisning("delta");
+    const vis = useVisning("delta"), saet = useFarvesaet();
     const maks = useHeatMaks("Δt.kr.·par", skalaMaks((rækker ?? []).map(delta)));
-    const art = { slags: "delta", polaritet: -1 } as const;
+    const art = { slags: "delta", polaritet: -1, saet } as const;
     const legende = forklaring(vis, art, [["", maks, `${tkr(maks)} t.kr.`]]);
     const regner = aktive.filter((k) => k.status !== "koe");
     // FIFO efter server-tid `modtaget` (KONTRAKT §6c); klientens `bestilt` kun indtil feltet findes.
@@ -87,7 +87,7 @@ export default function Oversigt({ gåTil, bruger }: OmraadeProps) {
                                     { navn: "Driftsomkostning (t.kr.)", tal: true, vis: (x) => <span style={{ whiteSpace: "nowrap" }} title={x.seneste?.objektiv_dkk != null ? `${tal(x.seneste.objektiv_dkk)} kr.` : undefined}>{tkr(x.seneste?.objektiv_dkk)}</span> },
                                     {
                                         navn: "ΔRef (t.kr.)", tal: true, farve: (x) => farvning(vis, delta(x), art, maks, TKR),
-                                        vis: (x) => (delta(x) !== null ? <DeltaTal v={delta(x)} polaritet={-1} arv={vis === "heatmap"} /> : "–"),
+                                        vis: (x) => (delta(x) !== null ? <DeltaTal v={delta(x)} polaritet={-1} arv={farverTeksten(vis, art)} /> : "–"),
                                     },
                                     { navn: "Reference", vis: (x) => <ReferenceCelle r={x.reference} /> },
                                 ]} />

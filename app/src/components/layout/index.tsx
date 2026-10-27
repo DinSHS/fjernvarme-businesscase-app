@@ -14,7 +14,7 @@ import type { KoerselStatus } from "../../../rayfin/data/fjv.constants";
 // Temaet anvendes, så snart layoutet importeres (src/styles/tema.ts kører ved import).
 export { TemaVaelger } from "./TemaVaelger";
 export { Sidefod } from "./Sidefod";
-export { FarveValg, HeatSkalaProvider, useHeatMaks, useVisning } from "./Tabelfarve";
+export { FarveValg, HeatSkalaProvider, useFarvesaet, useHeatMaks, useVisning } from "./Tabelfarve";
 
 /**
  * IBCS-titlen i tre linjer (UN 2.2, app/IBCS.md §4): hvem (værk + alle afgrænsninger), **hvad** (mål i fed + enhed),

@@ -4,6 +4,9 @@
   "beskrivelse": "Køligt og roligt: skifergrå flader og fjordblå handlinger. Standard i den offentlige udgave.",
   "standard": 10,
   "lys": {
+    "heatmap_groen": "#2e7d4f",
+    "heatmap_roed": "#b8403a",
+    "heatmap_blaa": "#2f6aad",
     "heatmap_op": "#3b5bdb",
     "heatmap_ned": "#b05a00",
     "baggrund": "#f3f5f8",
@@ -39,6 +42,9 @@
     "skygge_kort": "none"
   },
   "moerk": {
+    "heatmap_groen": "#6cc290",
+    "heatmap_roed": "#ef8079",
+    "heatmap_blaa": "#7eaaee",
     "heatmap_op": "#8ea2ff",
     "heatmap_ned": "#e8a25a",
     "baggrund": "#0e141b",

@@ -248,7 +248,9 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--dash-navy); }
 /* Heatmap-celle: 1 px kortfarve rundt om, så nabocellerne står som fliser (farven og teksten kommer fra temaets heat-tokens). */
 .fjv-tabel td[data-heat] { box-shadow: inset 0 0 0 1px var(--color-card); }
 /* Smal skærm: knappen lægger sig under titlen i stedet for at presse den sammen (kun kort med farvevalget). */
-.fjv-kort-hoved:has(> .fjv-farvevalg) { flex-wrap: wrap; row-gap: 8px; }
-.fjv-kort-hoved:has(> .fjv-farvevalg) > .fjv-kort-titelblok { flex: 1 1 320px; }
+.fjv-kort-hoved:has(> .fjv-farvevalg-raekke) { flex-wrap: wrap; row-gap: 8px; }
+.fjv-kort-hoved:has(> .fjv-farvevalg-raekke) > .fjv-kort-titelblok { flex: 1 1 320px; }
+/* Farvevalg + farvesæt (runde 10) side om side; på smal skærm bryder farvesættet under farvevalget. */
+.fjv-farvevalg-raekke { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: flex-start; }
 /* Smal skærm: kun ikonet i knappen. */
 @media (max-width: 899px) { .fjv-tema-navn { display: none; } }
