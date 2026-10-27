@@ -99,10 +99,11 @@ export const tkr = (v: number | null | undefined) => (v == null ? "–" : format
  * En afvigelse som tal i en tabel eller tekst: fortegn, afrundet nul uden fortegn og farve, virkningsfarve efter
  * polaritet (temaets delta-tokens er målt ≥ 4,5:1 som tekst). `data-role` gør den synlig for ibcs_lint dom.
  */
-export function DeltaTal({ v, polaritet, skala = TKR }: { v: number | null | undefined; polaritet: number; skala?: NumberScale }) {
+export function DeltaTal({ v, polaritet, skala = TKR, arv = false }: { v: number | null | undefined; polaritet: number; skala?: NumberScale; arv?: boolean }) {
     if (v == null || !Number.isFinite(v)) return <>–</>;
     const k = impactKey(v, { polarity: polaritet, isZero: roundsToZero(v, skala) });
-    return <span data-role="variance-label" data-impact={k} style={{ color: impactText(k) }}>{formatDelta(v, skala)}</span>;
+    // `arv`: tabellens farvevalg (Retning/Heatmap) har sat cellens tekstfarve — tallet arver den (IBCS.md §8).
+    return <span data-role="variance-label" data-impact={k} style={arv ? undefined : { color: impactText(k) }}>{formatDelta(v, skala)}</span>;
 }
 
 // ---------------------------------------------------------------- produktion pr. enhed (én kørsel)

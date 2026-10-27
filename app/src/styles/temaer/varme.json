@@ -4,6 +4,8 @@
   "beskrivelse": "Fjernvarmens egne farver: varmrøde handlinger og en fremløbsstribe fra rød til orange på varmgrå flader.",
   "standard": 5,
   "lys": {
+    "heatmap_op": "#3b5bdb",
+    "heatmap_ned": "#b05a00",
     "baggrund": "#f5f4f2",
     "flade": "#ffffff",
     "flade_haevet": "#f0eeeb",
@@ -32,6 +34,8 @@
     "signatur": ["#9e2a1c", "#d9541e", "#f2a23a"]
   },
   "moerk": {
+    "heatmap_op": "#8ea2ff",
+    "heatmap_ned": "#e8a25a",
     "baggrund": "#14110f",
     "flade": "#1d1916",
     "flade_haevet": "#262120",

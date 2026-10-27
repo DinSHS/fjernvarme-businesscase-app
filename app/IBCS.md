@@ -84,6 +84,8 @@ Appen har derfor to egne scenariekoder med faste IBCS-virkemidler — samme nota
 | AF2 | web-charts §7 (hvidt "papir") | Graferne følger temaets flade, også i mørk tilstand | Appen har fire temaer × lys/mørk med målt kontrast | Notationen er tokens pr. modus; `node scripts/kontrast.ts` måler AC/PL/Δ-farverne mod fladen i begge modi |
 | AF3 | A8 (ingen værdiakse) | Tætte tidsgrafer (dispatch, tidsserier, varighedskurve) har værdiakse og hårfine gitterlinjer | Hundreder af intervaller kan ikke etiketteres | Tilladt undtagelse (SI 3.1: tætte grafer) |
 | AF4 | A5 (farve med betydning) | Den højeste time i grundprofilen er fremhævet i accentfarve | Fremhævning af den værdi, kortets budskab nævner | Fremhævning er IBCS' egen markør (UN 5.1) |
+| AF5 | SI 2.2 (ingen dekorativ farve) / UN 4 (størrelse vises med længde) | Tabellernes **Heatmap** farver cellens baggrund efter \|værdi\| | Brugerens ønske (runde 9): mønstret i en enhed × måned-tabel (hvem overtager hvilke måneder) skal kunne ses uden at læse hvert tal | Valgfrit og fra som standard (`Ingen`); farven følger polariteten (§2) og aldrig god/dårlig for neutrale størrelser; fortegnet står altid i tallet; skala og 100 % står i fodnoten (§8) |
+| AF6 | UN 4.1 (samme farve = samme betydning) / E6 (neutral afvigelse er blå) | I tabellernes **Retning** og **Heatmap** er en neutral afvigelse blå, når den er positiv, og **orange**, når den er negativ — graferne tegner al neutral ΔRef blå | Briefens krav (runde 9): brugeren vil se, hvad der går op og ned i en enhed × måned-tabel; et blåt Δ for begge fortegn viser kun størrelsen | Kun når valgt (standard `Ingen` = blå for begge fortegn som graferne); fodnoten siger "blå = mere, orange = mindre" i netop den tabel; orange er en okker (`heatmap_ned`), ikke `delta_neg`, og bruges aldrig om god/dårlig. Påpeget af IBCS-reviewet (fund 1 og 3) og bevidst beholdt |
 
 ## 7. Komponenter
 
@@ -92,3 +94,34 @@ se `src/ibcs/LICENSE`; den fulde licens skrives ind i den byggede frontends `THI
 `src/ibcs/notices.ts`, og `scripts/tjek_bundle.mjs` fejler, hvis den mangler), tilpasset appen: farver er appens tema-variabler (`src/ibcs/tema.ts`), talformat er
 da-DK. Layoutfunktionerne er rene (`layout(rækker, valg) → mærker`), og hvert mærke bærer `data-role` /
 `data-impact`, så `ibcs_lint.py dom` kan efterse en gemt side.
+
+## 8. Tabellernes farvevalg (Ingen · Retning · Heatmap)
+
+Tabeller med Δ eller niveauer pr. enhed × måned/periode har en lille segmenteret knap ved titlen (`FarveValg`,
+`src/components/layout/Tabelfarve.tsx`; logikken i `src/lib/tabelfarve.ts`). Samme komponent overalt.
+
+| Valg | Δ-tabeller | Niveau-tabeller |
+|---|---|---|
+| **Ingen** (standard) | som hidtil: tallet i virkningsfarven (§2) | ingen farve |
+| **Retning** | kun tekstfarven efter fortegn: neutral (polaritet 0) **blå = mere, orange = mindre** (`heatmap_op`/`heatmap_ned`); med polaritet uændret god/dårlig | — (intet fortegn) |
+| **Heatmap** | baggrund i 5 trin ∝ \|værdi\|: neutral blå/orange (*divergerende*, to neutrale nuancer — ikke god/dårlig), med polaritet temaets `delta_pos`/`delta_neg` | baggrund i én nuance: temaets stærkeste `sekventiel`-trin (*sekventiel*) |
+
+- **Trinene**: trin *k* dækker \|værdi\| ∈ ((k−1)·20 %; k·20 %] af skalaens 100 %. Hver rampe blandes af én pol over fladen
+  med andelene 0,22 · 0,40 · 0,58 · 0,78 · 1 (`HEAT_ANDEL`), så lysheden falder i næsten lige store skridt, trin 1 står
+  med ≥ 1,35:1 mod fladen, og intensiteten er monoton i alle temaer pr. konstruktion. Trin 5 = polen = Retning-farven.
+- **Tekstfarven på en farvet celle** er målt pr. tema og modus: temaets tekst, ellers fladen, ellers sort/hvid — den
+  første med ≥ 4,5:1 på netop den baggrund (`laesbarTekst` i `tema-kerne.ts`). Ramperne skrives som tokens
+  (`--fjv-heat-<op|ned|god|daarlig|niveau>-<1–5>[-tekst]`), så skærm og `node scripts/kontrast.ts` bruger samme hex.
+- **En celle, der VISES som 0, får ingen farve** — 0, 0,00, 0,0 % og tal, der afrundes til 0 ved de viste decimaler, i
+  niveau- og Δ-tabeller. `farvning()` kræver derfor cellens viste skala (faktor og decimaler), så farve og tal ikke kan
+  være uenige (`r9_nul.spec.tsx` tester det på kørslens og sammenligningens månedstabeller). Tomme celler: ingen farve.
+  Fortegnet står altid i tallet (farve er aldrig eneste bærer).
+- **Knappen vises kun, hvor der er noget at farve** (fx ikke på balancekortet, når kun den ene kørsel har balancemarked).
+- **Én skala pr. tabel**: 100 % = største \|værdi\| i månedscellerne; totalen (`Hele perioden`, `I alt`) har sin egen skala,
+  så den ikke vasker månederne ud. **Samme størrelse og enhed på samme side = samme skala** (`HeatSkalaProvider`, som
+  grafernes `ScaleProvider`): fx månedstabellens 'Hele perioden' og lagertabellens ΔRef (ΔMWh i perioden), og kørslens
+  enhedstabel (MWh) og månedstabellens 'Hele perioden'. Tabeller med flere enheder (enhedstabellen) har én skala pr. kolonne.
+- **Legenden står i fodnoten**: "Blå = mere end referencen, orange = mindre; jo kraftigere farve, jo større (5 trin à 20 %; kraftigst = …)".
+  *Kraftigere*, ikke *mørkere*: i mørk tilstand er det stærkeste trin det lyseste.
+- Valget huskes pr. bruger og slags (`fjv.tabelfarve.delta.v1`, `fjv.tabelfarve.niveau.v1` i localStorage, i try/catch —
+  siden virker uden) og gælder alle tabeller af samme slags, også på andre sider.

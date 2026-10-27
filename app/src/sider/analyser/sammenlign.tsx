@@ -6,7 +6,8 @@
 //-----------------------------------------------------------------------
 
 import { useMemo } from "react";
-import { DataTilstand, Gitter, Knap, Kort, Maerke, Side, StatusMaerke, Tabel } from "@/components/layout";
+import { DataTilstand, FarveValg, Gitter, HeatSkalaProvider, Knap, Kort, Maerke, Side, StatusMaerke, Tabel, useHeatMaks, useVisning } from "@/components/layout";
+import { farvning, forklaring, skalaMaks } from "@/lib/tabelfarve";
 import { useVaerkParametre, type Hentet } from "@/lib/data/hooks";
 import { tal } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
@@ -103,7 +104,7 @@ function Indhold({ a, b }: { a: Pakke; b: Pakke }) {
         return { par, v, h, kopi };
     }, [vp.data, a, b]);
     return (
-        <>
+        <HeatSkalaProvider>
             {/* Nøgletal og vandfald over folden ved 1280 px (sidekvalitet, K7; orkestratorens beslutning 2026-10-26), så
                 historien og anbefalingen — begge regnet af data (brief 15 A2/A). */}
             <Gitter><Noegletal a={a} b={b} /></Gitter>
@@ -125,7 +126,7 @@ function Indhold({ a, b }: { a: Pakke; b: Pakke }) {
                 <LagerDelta a={a} b={b} />
             </Gitter>
             <Gitter><DispatchKort a={a} b={b} pladser={pladser} /></Gitter>
-        </>
+        </HeatSkalaProvider>
     );
 }
 
@@ -302,18 +303,30 @@ function Produktion({ a, b }: { a: Pakke; b: Pakke }) {
     const ea = new Map(a.samlet.enheder.map((e) => [e.navn, e])), eb = new Map(b.samlet.enheder.map((e) => [e.navn, e]));
     const rækker = [...v].sort((x, y) => y.b - x.b || y.a - x.a || x.navn.localeCompare(y.navn));
     const fremhaev = [...v].sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta))[0];
+    const andelDelta = (x: (typeof v)[number]) => {
+        const pa = ea.get(x.navn)?.andel_pct, pb = eb.get(x.navn)?.andel_pct;
+        return pa == null || pb == null ? null : pb - pa;
+    };
+    const PP = { factor: 1, prefix: "", decimals: 1 };
+    const vis = useVisning("delta");
+    const maks = useHeatMaks("Δpp·andel", skalaMaks(rækker.map(andelDelta)));
+    const art = { slags: "delta", polaritet: 0 } as const;
+    const legende = forklaring(vis, art, [["", maks, `${dec(maks, 1)} pp`]]);
     return (
         <Kort titel="Varmeproduktion pr. enhed" afgraensning="hele perioden · Ref og Scen, ΔRef, ΔRef%" budskab={budskab}
-            fod="Ref = omrids (reference), Scen = fyldt (scenarie), ΔRef = scenarie − reference på samme skala; ΔRef% med én decimal, N/A når referencen er 0. Afvigelserne er neutrale (blå): at en enhed producerer mere, er hverken godt eller skidt — virkningen står i Δ driftsomkostning. Tabellen viser andel og driftstimer, som grafen ikke viser.">
+            handling={<FarveValg slags="delta" />}
+            fod={`Ref = omrids (reference), Scen = fyldt (scenarie), ΔRef = scenarie − reference på samme skala; ΔRef% med én decimal, N/A når referencen er 0. Afvigelserne er neutrale (blå): at en enhed producerer mere, er hverken godt eller skidt — virkningen står i Δ driftsomkostning. Tabellen viser andel og driftstimer, som grafen ikke viser.${legende ? ` Tabellens ΔRef andel: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
             <ProduktionMod varians={v} fremhaev={fremhaev && Math.abs(fremhaev.delta) > 0.5 ? fremhaev.navn : undefined} />
             <Tabel rækker={rækker} nøgle={(x) => x.navn} kolonner={[
                 { navn: "Enhed", vis: (x) => x.navn },
                 { navn: "Andel Ref", vis: (x) => ellers(ea.get(x.navn)?.andel_pct, (z) => `${dec(z, 1)} %`), tal: true },
                 { navn: "Andel Scen", vis: (x) => ellers(eb.get(x.navn)?.andel_pct, (z) => `${dec(z, 1)} %`), tal: true },
                 {
-                    navn: "ΔRef andel (pp)", tal: true, vis: (x) => {
-                        const pa = ea.get(x.navn)?.andel_pct, pb = eb.get(x.navn)?.andel_pct;
-                        return pa == null || pb == null ? "–" : <DeltaTal v={pb - pa} polaritet={0} skala={{ factor: 1, prefix: "", decimals: 1 }} />;
+                    navn: "ΔRef andel (pp)", tal: true,
+                    farve: (x) => farvning(vis, andelDelta(x), art, maks, PP),
+                    vis: (x) => {
+                        const dd = andelDelta(x);
+                        return dd == null ? "–" : <DeltaTal v={dd} polaritet={0} skala={PP} arv={vis !== "ingen"} />;
                     },
                 },
                 { navn: "Driftstimer Ref", vis: (x) => ellers(ea.get(x.navn)?.driftstimer, tal), tal: true },
@@ -323,7 +336,7 @@ function Produktion({ a, b }: { a: Pakke; b: Pakke }) {
     );
 }
 
-function MaanedDelta({ a, b }: { a: Pakke; b: Pakke }) {
+export function MaanedDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const ta = a.maaneder, tb = b.maaneder;
     const måneder = [...new Set([...ta.maaneder, ...tb.maaneder])].sort();
     const enheder = [...new Set([...ta.objekter("produktion_gwh"), ...tb.objekter("produktion_gwh")])];
@@ -342,15 +355,26 @@ function MaanedDelta({ a, b }: { a: Pakke; b: Pakke }) {
         : flyt[0][1] < 0.5 ? "Ingen produktion flytter mellem enhederne i nogen måned."
             : `Mest flytning i ${maanedKort(flyt[0][0])}: ${tal(flyt[0][1])} MWh skifter enhed.`;
     const MWH = { factor: 1, prefix: "", decimals: 0 };
+    // Heatmap (IBCS.md §8): én skala for månedscellerne og én for 'Hele perioden' (delt med lagertabellens ΔMWh), så
+    // totalen ikke vasker månederne ud. Varmebehovet står i samme MWh og deler månedernes skala.
+    const rækker = [...enheder, VARMEBEHOV];
+    const celle = (m: string, e: string) => d(m, e === VARMEBEHOV ? null : e);
+    const vis = useVisning("delta");
+    const maksM = useHeatMaks("ΔMWh·måned", skalaMaks(måneder.flatMap((m) => rækker.map((e) => celle(m, e)))));
+    const maksP = useHeatMaks("ΔMWh·periode", skalaMaks(rækker.map((e) => celle("periode", e))));
+    const art = { slags: "delta", polaritet: 0 } as const;
+    const legende = forklaring(vis, art, [["månederne", maksM, `${tal(maksM)} MWh`], ["hele perioden", maksP, `${tal(maksP)} MWh`]]);
     return (
         <Kort titel="Måned for måned" afgraensning="ΔRef varmeproduktion, MWh, pr. enhed og måned" budskab={budskab}
-            fod="ΔRef = scenarie − reference, neutral (blå). 'Hele perioden' er differensen mellem de to kørslers periode-rækker (regnet på de fulde tidsserier), ikke summen af månederne.">
-            <Tabel rækker={[...enheder, VARMEBEHOV]} nøgle={(e) => e} kolonner={[
+            handling={<FarveValg slags="delta" />}
+            fod={`ΔRef = scenarie − reference${vis === "ingen" ? ", neutral (blå)" : ""}. ${legende ? `${legende} ` : ""}'Hele perioden' er differensen mellem de to kørslers periode-rækker (regnet på de fulde tidsserier), ikke summen af månederne.`}>
+            <Tabel rækker={rækker} nøgle={(e) => e} kolonner={[
                 { navn: "Enhed", vis: (e) => (e === VARMEBEHOV ? <span className="fjv-a-svag">Varmebehov</span> : e) },
                 ...kolonner.map((m) => ({
                     navn: m === "periode" ? "Hele perioden" : maanedKort(m), tal: true,
+                    farve: (e: string) => farvning(vis, celle(m, e), art, m === "periode" ? maksP : maksM, MWH),
                     vis: (e: string) => {
-                        const t = <DeltaTal v={d(m, e === VARMEBEHOV ? null : e)} polaritet={0} skala={MWH} />;
+                        const t = <DeltaTal v={celle(m, e)} polaritet={0} skala={MWH} arv={vis !== "ingen"} />;
                         return m === "periode" ? <strong>{t}</strong> : t;
                     },
                 })),
@@ -364,10 +388,15 @@ const VARMEBEHOV = "Varmebehov ";
 
 function BalanceDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const ba = a.samlet.balance, bb = b.samlet.balance;
+    const rk = ba || bb ? balanceDelta(ba, bb, balanceKolonner([a.k.model_commit, b.k.model_commit])) : [];   // K7-F2
+    // Heatmap: 'I alt'-rækkerne har deres egen skala, så summen ikke vasker produkterne ud (IBCS.md §8). Balanceindtægt:
+    // op = godt (polaritet +1), så heatmappet bruger temaets god/dårlig. Hooks før den tidlige retur.
+    const vis = useVisning("delta");
+    const maksP = useHeatMaks("Δt.kr.·balance", skalaMaks(rk.filter((r) => r.marked !== "I alt").map((r) => r.delta)));
+    const maksI = useHeatMaks("Δt.kr.·balance i alt", skalaMaks(rk.filter((r) => r.marked === "I alt").map((r) => r.delta)));
     if (!ba && !bb) {
         return <Kort titel="Balancemarked" afgraensning="aFRR og mFRR" budskab="Ingen af kørslerne er regnet med balancemarked." />;
     }
-    const rk = balanceDelta(ba, bb, balanceKolonner([a.k.model_commit, b.k.model_commit]));   // K7-F2
     const forskel = balanceForskel(a, b);
     const dNetto = ba?.i_alt.netto != null && bb?.i_alt.netto != null ? bb.i_alt.netto - ba.i_alt.netto : null;
     const sporer = [...new Set([...(ba ? [spor(a.input)] : []), ...(bb ? [spor(b.input)] : [])])];
@@ -379,16 +408,22 @@ function BalanceDelta({ a, b }: { a: Pakke; b: Pakke }) {
         : forskel?.type === "blandet"
             ? `Kun ${hvem(forskel.med)} har balancemarked, men kørslerne afviger også i ${forskel.grunde.slice(0, 3).map(grund).join(", ")}${forskel.grunde.length > 3 ? " med flere" : ""}. Δ driftsomkostning (${medFortegn((forskel.med === "b" ? -forskel.vaerdi : forskel.vaerdi) / 1000, (v) => dec(v, 1))} t.kr.) er en samlet omkostningsforskel med flere ændringer — ikke balancemarkedets værdi.`
             : dNetto !== null ? `ΔRef balanceindtægt netto ${medFortegn(dNetto / 1000, (v) => dec(v, 1))} t.kr.` : "Balancetallene kan ikke stilles op mod hinanden.";
+    const art = { slags: "delta", polaritet: 1 } as const;
+    const legende = forklaring(vis, art, [["markederne", maksP, `${tkr(maksP)} t.kr.`], ["I alt", maksI, `${tkr(maksI)} t.kr.`]]);
     return (
         <Kort titel="Balancemarked" afgraensning="pr. marked og produkt, t.kr." budskab={budskab}
-            fod={<>{forbehold("altid ved balancetal")} {sporer.includes("A") ? SPOR_A_FORBEHOLD : ""} {sporer.includes("B") ? SPOR_B_FORBEHOLD : ""} Netto og brutto lægges aldrig sammen. Δ vises kun, når begge kørsler har tallet.</>}>
+            handling={rk.some((r) => r.delta != null) ? <FarveValg slags="delta" /> : undefined}
+            fod={<>{forbehold("altid ved balancetal")} {sporer.includes("A") ? SPOR_A_FORBEHOLD : ""} {sporer.includes("B") ? SPOR_B_FORBEHOLD : ""} Netto og brutto lægges aldrig sammen. Δ vises kun, når begge kørsler har tallet.{legende ? ` ΔRef: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}</>}>
             <div className="fjv-a-raekke">{sporer.map((s) => <SporMaerke key={s} spor={s} />)}</div>
             <Tabel rækker={rk} nøgle={(r) => `${r.marked}|${r.felt}`} kolonner={[
                 { navn: "Marked", vis: (r) => (r.marked === "I alt" ? <strong>I alt</strong> : r.marked) },
                 { navn: "Produkt", vis: (r) => r.etiket },
                 { navn: "Ref (t.kr.)", vis: (r) => tkr(r.a), tal: true },
                 { navn: "Scen (t.kr.)", vis: (r) => tkr(r.b), tal: true },
-                { navn: "ΔRef", vis: (r) => <DeltaTal v={r.delta} polaritet={1} />, tal: true },
+                {
+                    navn: "ΔRef", tal: true, farve: (r) => farvning(vis, r.delta, art, r.marked === "I alt" ? maksI : maksP, TKR),
+                    vis: (r) => <DeltaTal v={r.delta} polaritet={1} arv={vis === "heatmap"} />,
+                },
             ]} />
         </Kort>
     );
@@ -401,14 +436,22 @@ function LagerDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const budskab = navne.length === 0 ? "Ingen af kørslerne har aktive lagre."
         : kunA.length ? `Scenariet kører uden ${kunA.join(" og ")}.` : kunB.length ? `Scenariet har ${kunB.join(" og ")}, som referencen ikke har.`
             : "Samme lagre i begge kørsler.";
+    const dl = (n: string) => (lb.get(n)?.afladet_mwh ?? 0) - (la.get(n)?.afladet_mwh ?? 0);
+    const MWH = { factor: 1, prefix: "", decimals: 0 };
+    // Samme MWh-skala som månedstabellens 'Hele perioden' (begge er periodens ΔRef i MWh; IBCS.md §8).
+    const vis = useVisning("delta");
+    const maks = useHeatMaks("ΔMWh·periode", skalaMaks(navne.map(dl)));
+    const art = { slags: "delta", polaritet: 0 } as const;
+    const legende = forklaring(vis, art, [["", maks, `${tal(maks)} MWh, samme skala som månedstabellens 'Hele perioden'`]]);
     return (
         <Kort titel="Lager" afgraensning="afladet energi, MWh" budskab={budskab}
-            fod={kunA.length || kunB.length ? forbehold("ved sammenligning med og uden tank") : "Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance)."}>
+            handling={navne.length ? <FarveValg slags="delta" /> : undefined}
+            fod={`${kunA.length || kunB.length ? forbehold("ved sammenligning med og uden tank") : "Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance)."}${legende ? ` ΔRef: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
             <Tabel rækker={navne} nøgle={(n) => n} tom="Ingen lagre." kolonner={[
                 { navn: "Lager", vis: (n) => n },
                 { navn: "Ref (MWh)", vis: (n) => (la.has(n) ? ellers(la.get(n)!.afladet_mwh, tal) : "slået fra"), tal: true },
                 { navn: "Scen (MWh)", vis: (n) => (lb.has(n) ? ellers(lb.get(n)!.afladet_mwh, tal) : "slået fra"), tal: true },
-                { navn: "ΔRef", vis: (n) => <DeltaTal v={(lb.get(n)?.afladet_mwh ?? 0) - (la.get(n)?.afladet_mwh ?? 0)} polaritet={0} skala={{ factor: 1, prefix: "", decimals: 0 }} />, tal: true },
+                { navn: "ΔRef", tal: true, farve: (n) => farvning(vis, dl(n), art, maks, MWH), vis: (n) => <DeltaTal v={dl(n)} polaritet={0} skala={MWH} arv={vis !== "ingen"} /> },
             ]} />
         </Kort>
     );

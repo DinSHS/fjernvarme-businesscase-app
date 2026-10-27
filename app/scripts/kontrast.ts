@@ -5,7 +5,7 @@
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { afledte, BASISTEMA, loes, maal, mangler, validerFil, type Fund, type Tema, type TemaFil } from "../src/styles/tema-kerne.ts";
+import { afledte, BASISTEMA, heatRamper, loes, maal, mangler, validerFil, type Fund, type Tema, type TemaFil } from "../src/styles/tema-kerne.ts";
 import { afstand, kontrast } from "../src/styles/farve.ts";
 
 const her = fileURLToPath(new URL(".", import.meta.url));
@@ -47,7 +47,7 @@ const adv = alle.filter((f) => f.niveau === "advarsel");
 
 // Oversigt pr. tema × modus: den svageste måling i hver klasse — så en tæt sag ses, også når den består.
 const tekstpar = [["tekst_3", "flade"], ["tekst_3", "baggrund"], ["accent", "flade"], ["advarsel", "flade"], ["primaer_tekst", "primaer"]] as const;
-console.log("tema               modus   min.tekst          min.serie  CVD alle par  normal alle par  brud");
+console.log("tema               modus   min.tekst          min.serie  CVD alle par  normal alle par  heatmap  brud");
 for (const t of temaer) {
     for (const m of ["lys", "moerk"] as const) {
         const v = t[m];
@@ -65,8 +65,10 @@ for (const t of temaer) {
             cvd = Math.min(cvd, afstand(f[i], f[j], "protan"), afstand(f[i], f[j], "deutan"));
             nor = Math.min(nor, afstand(f[i], f[j]));
         }
+        // Heatmap (runde 9): den svageste celle — tekst på sin egen baggrund — over alle fem ramper × fem trin.
+        const heat = Math.min(...Object.values(heatRamper(v)).flat().map((c) => kontrast(c.tekst, c.bg)));
         const n = brud.filter((f) => f.tema === t.id && f.modus === m).length;
-        console.log(`${t.id.padEnd(18)} ${m.padEnd(7)} ${tk[1].toFixed(2).padStart(5)} ${tk[0].padEnd(12)} ${ser.toFixed(2).padStart(5)}  ${cvd.toFixed(1).padStart(12)}  ${nor.toFixed(1).padStart(15)}  ${String(n).padStart(4)}`);
+        console.log(`${t.id.padEnd(18)} ${m.padEnd(7)} ${tk[1].toFixed(2).padStart(5)} ${tk[0].padEnd(12)} ${ser.toFixed(2).padStart(5)}  ${cvd.toFixed(1).padStart(12)}  ${nor.toFixed(1).padStart(15)}  ${heat.toFixed(2).padStart(7)}  ${String(n).padStart(4)}`);
     }
 }
 for (const f of brud) console.log(`BRUD     ${f.tema}/${f.modus}: ${f.regel} — ${f.detalje}: ${f.maalt} < ${f.krav}`);

@@ -63,6 +63,12 @@
   --fjv-ac: #26303c; --fjv-py: #7f8a97; --fjv-pl: #26303c; --fjv-delta-pos: #007a80; --fjv-delta-neg: #c62828; --fjv-delta-neutral: #3b5bdb;
   --fjv-sek-1: #d6e4f2; --fjv-sek-2: #a9c6e4; --fjv-sek-3: #6f9fd0; --fjv-sek-4: #3a76b4; --fjv-sek-5: #1d4f7c;
   --fjv-div-1: #c2410c; --fjv-div-2: #eba184; --fjv-div-3: #e7e9ec; --fjv-div-4: #8fb4dc; --fjv-div-5: #1f62a8;
+  /* Tabellernes farvevalg (IBCS.md §8): Retning-farverne op/ned og heatmap-ramperne, 5 trin med målt tekstfarve (tema-kerne.ts, heatRamper()). */
+  --fjv-heat-op: #3b5bdb; --fjv-heat-op-1: #d4dbf7; --fjv-heat-op-1-tekst: #16202b; --fjv-heat-op-2: #b1bdf1; --fjv-heat-op-2-tekst: #16202b; --fjv-heat-op-3: #8da0ea; --fjv-heat-op-3-tekst: #16202b; --fjv-heat-op-4: #667fe3; --fjv-heat-op-4-tekst: #000000; --fjv-heat-op-5: #3b5bdb; --fjv-heat-op-5-tekst: #ffffff;
+  --fjv-heat-ned: #b05a00; --fjv-heat-ned-1: #eedbc7; --fjv-heat-ned-1-tekst: #16202b; --fjv-heat-ned-2: #dfbd99; --fjv-heat-ned-2-tekst: #16202b; --fjv-heat-ned-3: #d19f6b; --fjv-heat-ned-3-tekst: #16202b; --fjv-heat-ned-4: #c17e38; --fjv-heat-ned-4-tekst: #16202b; --fjv-heat-ned-5: #b05a00; --fjv-heat-ned-5-tekst: #ffffff;
+  --fjv-heat-god-1: #c7e2e3; --fjv-heat-god-1-tekst: #16202b; --fjv-heat-god-2: #99cacc; --fjv-heat-god-2-tekst: #16202b; --fjv-heat-god-3: #6bb2b5; --fjv-heat-god-3-tekst: #16202b; --fjv-heat-god-4: #38979c; --fjv-heat-god-4-tekst: #16202b; --fjv-heat-god-5: #007a80; --fjv-heat-god-5-tekst: #ffffff;
+  --fjv-heat-daarlig-1: #f2d0d0; --fjv-heat-daarlig-1-tekst: #16202b; --fjv-heat-daarlig-2: #e8a9a9; --fjv-heat-daarlig-2-tekst: #16202b; --fjv-heat-daarlig-3: #de8282; --fjv-heat-daarlig-3-tekst: #16202b; --fjv-heat-daarlig-4: #d35757; --fjv-heat-daarlig-4-tekst: #000000; --fjv-heat-daarlig-5: #c62828; --fjv-heat-daarlig-5-tekst: #ffffff;
+  --fjv-heat-niveau-1: #cdd8e2; --fjv-heat-niveau-1-tekst: #16202b; --fjv-heat-niveau-2: #a5b9cb; --fjv-heat-niveau-2-tekst: #16202b; --fjv-heat-niveau-3: #7c99b3; --fjv-heat-niveau-3-tekst: #16202b; --fjv-heat-niveau-4: #4f7699; --fjv-heat-niveau-4-tekst: #ffffff; --fjv-heat-niveau-5: #1d4f7c; --fjv-heat-niveau-5-tekst: #ffffff;
   --fjv-streg-felt: #8592a2;
   --fjv-fokus: #1f62a8;
   --fjv-signatur: linear-gradient(90deg, #1d4f7c 0.0% 66.7%, #5b8fc4 66.7% 83.3%, #a9c6e4 83.3% 100.0%);
