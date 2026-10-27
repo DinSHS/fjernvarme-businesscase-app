@@ -102,14 +102,21 @@ def byg_nyt_vaerk(katalog: dict) -> None:
     tilladte = {f["sti"]: f["tilladte"] for f in katalog["felter"] if f["sti"] in ("data.dmi_area", "data.price_zone")}
     regler = {t["id"]: t["regel"] for t in s["guide_trin"]}
     data = {
-        "blade": [{"sti": b["sti"], "vaerdi_json": b["vaerdi_json"], "bekraeft": bool(b["bekraeft"]), "kommentar": b.get("kommentar")} for b in s["blade"]],
+        "blade": [{"sti": b["sti"], "vaerdi_json": b["vaerdi_json"], "bekraeft": bool(b["bekraeft"]), "kommentar": b.get("kommentar"),
+                   "kilde": b.get("kilde")} for b in s["blade"]],
         "varmelast": {
-            # Bladene står ved standard_varmebehov_gwh; skaleret lineært er det = Andebys tal × G / g_andeby_gwh.
+            # Modelrepoets regel (scripts/vaerksark_til_yaml.py): f = round(G / divisor, afrunding); værdi = round(grundtal × f, decimaler).
             "reference_gwh": s["standard_varmebehov_gwh"],
             "skaleres": skaleres,
+            "divisor_gwh": s["skalering"]["divisor_gwh"],
+            "afrunding": s["skalering"]["afrunding"],
+            "grundtal": s["skalering"]["grundtal"],
+            "decimaler": s["skalering"]["decimaler"],
+            "kilde": s["skalering"]["kilde"],
             "tekst": f"{formel['faktor']}; {', '.join(f'{k.split('.')[-1]} = {formel[k]}' for k in skaleres)}; uændret: {formel.get('uændret', '')}",
             "forbehold": s["skalering"].get("forbehold", ""),
         },
+        "egneAntagelser": s.get("egne_antagelser", []),
         "dmi": tilladte["data.dmi_area"],
         "zoner": tilladte["data.price_zone"],
         "kilde": f"viden/nyt_vaerk_skabelon.json @ {s['model_commit'][:7]}",

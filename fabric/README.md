@@ -89,9 +89,11 @@ lover samme double for `1.234560` og `1.23456`. Bevist: modellens egne læsere g
   kodekopi. Varmelast → `--heat-csv … --heat-csv-column mw`; solprofil → `production_profile_path` på enheden
   med markøren `"tidsserie:solprofil"` (ellers den ene aktive `solar_thermal`).
 - **Repoets egne filer** registreres af `fjv_importer_vaerker` (kilde `repo`): Andebys solprofil (**aktiv** —
-  casen læser den selv, så udfaldet er uændret) og Billunds `--heat-csv`-filer fra casefilernes
-  kørselsvejledning (**ikke aktive** — casene kører i dag med syntetisk varmelast; at gøre dem aktive ville
-  ændre eksisterende scenarier).
+  casen læser den selv, så udfaldet er uændret) og den målte varmelast, som **modelrepoets egen kommando for
+  netop den case** bruger (casens hoved / README's referencetabel, `fjv/modelkoersel.py`; runde 8 — før tog et
+  regulært udtryk filen fra enhver kommentar, også en nedarvet kommando for en anden casefil). Serien er **ikke
+  aktiv**; appens standardkørsel vælger den, når modelrepoet kører casen med den (Spor B, Billund i dag, Billund
+  rullende år).
 - **Værksark** (`fjv_importer_vaerksark`, parameter `import_id`): modelrepoets `scripts/vaerksark_til_yaml.py`
   køres uændret; værk (kilde `app`, revision 1), aktive tidsserier (kilde `vaerksark`) og importens status skrives
   i én transaktion. Solvarmens profilsti gemmes som markøren. Bruger ikke solver-låsen.

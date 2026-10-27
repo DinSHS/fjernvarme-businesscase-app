@@ -29,7 +29,7 @@ PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
 sys.path.insert(0, str(HER))
 sys.path.insert(0, str(PRODUKT / "fabric"))
 import yaml  # noqa: E402
-from byg_nyt_vaerk import blade, G_ANDEBY  # noqa: E402
+from byg_nyt_vaerk import blade  # noqa: E402
 from fjv.byg_case import byg, raekker_fra_vaerk  # noqa: E402
 from fjv.flad import afflad, flad, ligner_strengt  # noqa: E402
 
@@ -43,7 +43,7 @@ skabelon = json.loads((VIDEN / "nyt_vaerk_skabelon.json").read_text(encoding="ut
 if [b["sti"] for b in skabelon["blade"]] != [b["sti"] for b in blade()]:
     fejl.append("nyt_vaerk_skabelon.json er ikke bygget af den nuværende byg_nyt_vaerk.py")
 
-for g in (10.0, 50.0, 105.52, 300.0):
+for g in (10.0, 50.0, 100.0, 105.52, 300.0):
     bl = blade(g)
     params = [{"sti": b["sti"], "vaerdi_json": b["vaerdi_json"]} for b in bl]
     stier = [b["sti"] for b in bl]

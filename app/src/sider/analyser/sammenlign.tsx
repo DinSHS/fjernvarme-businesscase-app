@@ -11,7 +11,7 @@ import { useVaerkParametre, type Hentet } from "@/lib/data/hooks";
 import { tal } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
 import {
-    absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceKolonner, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, produktionsvarians,
+    absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceMetode, balanceKolonner, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, produktionsvarians,
     relativAfvigelse, sammenlignelighed, sammenligningsBudskab, spor, type Profil,
 } from "./beregn";
 import { tilSide, usePakke, type Pakke } from "./data";
@@ -244,13 +244,14 @@ function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
 
 /** Vandfaldet (spec v1): hvad forklarer ΔRef på driftsomkostningen. */
 export function Vandfald({ a, b }: { a: Pakke; b: Pakke }) {
-    const bro = omkostningsBro(a.samlet, b.samlet, objektiv(a), objektiv(b));
+    const legacy = [a, b].some((p) => (p.samlet.balance != null) && balanceMetode(p.input) === "legacy");
+    const bro = omkostningsBro(a.samlet, b.samlet, objektiv(a), objektiv(b), legacy);
     const største = bro ? [...bro.steps].sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta))[0] : undefined;
     const budskab = !bro || !største ? "Mindst én af kørslerne mangler et objektiv."
         : `Største post: ${største.label.charAt(0).toLowerCase()}${største.label.slice(1)} ${medFortegn(største.delta / 1000, (v) => dec(v, 1))} t.kr.`;
     return (
         <Kort titel="Hvad forklarer Δ driftsomkostning" afgraensning={`${bro ? vandfaldSkala(bro).enhed : "t.kr."}, Ref → Scen`} budskab={budskab}
-            fod="Trinene er i omkostningsfortegn (op = dyrere = rød). Elsalg og balanceindtægt er indtægter, så mindre salg tæller som en omkostning. 'Brændsel, D&V, start m.m.' er resten: ΔRef minus de poster, kørslerne gemmer hver for sig — brændsel gemmes ikke pr. kørsel. Mangler en post i den ene kørsel, fordeles den ikke: den står i resten med navn og '(ukendt)'.">
+            fod="Trinene er i omkostningsfortegn (op = dyrere = rød). Elsalg og balanceindtægt er indtægter, så mindre salg tæller som en omkostning. 'Brændsel, CO₂-kvoter, D&V, start m.m.' er resten: ΔRef minus de poster, kørslerne gemmer hver for sig — brændsel og CO₂-kvoter gemmes ikke pr. kørsel (de indgår i modellens objektiv, src/model.py:93-110). Ved balanceringsmetoden legacy er modellens brutto = netto; den sparede tarif og afgift står da i resten. Mangler en post i den ene kørsel, fordeles den ikke: den står i resten med navn og '(ukendt)'.">
             {bro && <OmkostningsVandfald bro={bro} />}
         </Kort>
     );

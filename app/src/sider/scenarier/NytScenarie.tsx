@@ -16,6 +16,7 @@ import { erAktiv } from "@/lib/data/koersel-status";
 import { opdaterAlt } from "@/lib/data/opdatering";
 import { visVaerdi } from "@/lib/data/vaerdi";
 import { modelDato, tal, tidspunkt } from "@/lib/format";
+import { koerselskilde, modelKoersel, type Modelkoersel } from "@/lib/modelspejl";
 import { rutehref } from "@/lib/rute";
 import { GRAENSER } from "../../../rayfin/data/fjv.constants";
 import type { Koersel } from "../../../rayfin/data/Koersel";
@@ -23,8 +24,8 @@ import type { OmraadeProps } from "../typer";
 import { Felt, Fundliste } from "./faelles";
 import { enhedAf, gabProcent, rodKode, stiEtiket, useBlade, useVaerketsTidsserier } from "./hjaelp";
 import {
-    anvendVarmelast, læsVarmelast, maalteMuligheder, maaltVarmelastMulig, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst,
-    type TidsserieInfo,
+    aktivSerie, anvendVarmelast, læsVarmelast, maalteMuligheder, standardVarmelastvalg, maaltVarmelastMulig, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst,
+    type TidsserieInfo, type Varmelastvalg,
 } from "./varmelast";
 import {
     bygPar, erTil, forventetFrosset, forventetInput, forventetVarighed, frosset, knapStatus, pinsAf, pinsPasser, knapStyrerBalancering, knapStyrerVarmelast,
@@ -35,7 +36,7 @@ import { saetningFørKørsel } from "./historie";
 import { periodeFelter, periodeFraRute, type Periodevalg } from "./nyt-rute";
 import { opretOgBestilPar, type ParTilstand } from "./par";
 import type { Knap as KnapT } from "./viden";
-import { FASTE_VINDUER, KNAPPER } from "./viden.data";
+import { ANBEFALET_GAB, FASTE_VINDUER, KNAPPER } from "./viden.data";
 
 const MAKS_KANDIDATER = 6;
 const INGEN_SERIER: readonly TidsserieInfo[] = [];
@@ -109,7 +110,8 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
     const [værdier, setVærdier] = useState<Record<string, string>>({});
     const [rutePeriode] = useState(() => startPeriode(sti[3]));
     const [periode, setPeriode] = useState<Periodevalg>(rutePeriode.valg);
-    const [medBal, setMedBal] = useState(false);
+    /** Brugerens valg; undefined = modelrepoets kørsel af casen (runde 8: modelrepoet er standarden). */
+    const [medBal, setMedBal] = useState<boolean | undefined>(undefined);
     /** Varmelast for begge kørsler (nøgle fra varmelast.ts; "" = standarden: aktiv serie eller syntetisk). */
     const [varmelast, setVarmelast] = useState<string>("");
     /** "Målt varmelast"-knappens målte serie/fil for scenariet ("" = den første mulighed). */
@@ -148,13 +150,18 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
     const værdierEff = useMemo(() => Object.fromEntries(felter.map((f) => [f.pladsholder, værdier[f.pladsholder] ?? f.standard])), [felter, værdier]);
 
     const fællesMul = varmelastMuligheder(serier, rod);
-    const fællesValg = varmelast ? valgFraNøgle(varmelast) : læsVarmelast([], null, serier);
+    // Standarden følger modelrepoets kørsel af casen (balancemarked og målt varmelast), medmindre værket har sin egen
+    // aktive tidsserie (et bevidst valg på værket) eller brugeren vælger andet.
+    const mk = modelKoersel(rod);
+    const medBalEff = medBal ?? mk?.med_balancering ?? false;
+    const standardVarmelast = standardVarmelastvalg(mk, serier, fællesMul);
+    const fællesValg = varmelast ? valgFraNøgle(varmelast) : standardVarmelast;
     const maaltMul = maalteMuligheder(serier, rod);
     const maaltValg = valgFraNøgle(maalt && maaltMul.some((x) => x.nøgle === maalt) ? maalt : maaltMul[0]?.nøgle ?? "syntetisk");
     const par = useMemo((): { par?: { reference: Forslag; scenarie: Forslag }; fejl?: string } => {
         if (!knap || !blade) return {};
         try {
-            const p = bygPar(knap, blade, valgEff, værdierEff, medBal);
+            const p = bygPar(knap, blade, valgEff, værdierEff, medBalEff);
             // Varmelasten sættes eksplicit på begge sider (§6d): "målt varmelast" = syntetisk reference mod målt
             // scenarie; alle andre knapper = samme valg på begge sider, så kun knappen er forskellig.
             if (knap.id === "maalt_varmelast") anvendVarmelast(p, { type: "syntetisk" }, maaltValg, serier);
@@ -164,7 +171,7 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
             return { fejl: e instanceof Error ? e.message : String(e) };
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- valgene er afledt af varmelast/maalt/serier, som står her
-    }, [knap, blade, valgEff, værdierEff, medBal, varmelast, maalt, serier]);
+    }, [knap, blade, valgEff, værdierEff, medBalEff, varmelast, maalt, serier]);
 
     const pf = sidensPeriode(periode);
     const fælles = { periode_start: pf.start, periode_slut: pf.slut, ...STRAMT_GAB, tidsgraense_s: null };
@@ -253,7 +260,7 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
                     <DataTilstand h={vaerker}>
                         {(v) => (
                             <Tabel rækker={v} nøgle={(x) => x.id} valgt={vaerk?.id} tom="Ingen værker."
-                                onVælg={(x) => { setVaerkKode(x.kode); setKnapId(undefined); nyt(); }}
+                                onVælg={(x) => { setVaerkKode(x.kode); setKnapId(undefined); setMedBal(undefined); setVarmelast(""); nyt(); }}
                                 kolonner={[{ navn: "Værk", vis: (x) => x.navn }, { navn: "Kode", vis: (x) => <span className="fs-lille">{x.kode}</span> }]} />
                         )}
                     </DataTilstand>
@@ -281,7 +288,7 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
                 <Gitter form="8-4">
                     <Kort titel="3 · Reference og scenarie" afgraensning={knap.gruppe}
                         budskab={par.par ? parSaetning(par.par, fælles, blade, vaerk.navn, serier) : par.fejl}
-                        fod={`Kilde: ${knap.kilde}. Gab: ${gabProcent(STRAMT_GAB.mip_rel_gap)} og højst ${tal(STRAMT_GAB.mip_abs_gap)} kr. — standardgabet (0,5 %) kan være større end selve differensen.`}>
+                        fod={`Kilde: ${knap.kilde}. Gab: ${gabProcent(STRAMT_GAB.mip_rel_gap)} (modelrepoet: --mip-gap 0.0002 til differenser, README.md:152) og højst ${tal(STRAMT_GAB.mip_abs_gap)} kr. — egen antagelse: ${ANBEFALET_GAB.egen_antagelse}`}>
                         <p className="fs-tekst">{knap.forklaring}</p>
                         <div className="fs-felter">
                             {valgtKnap!.st.valg.map((v) => (
@@ -319,14 +326,14 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
                                 </>
                             )}
                             {!knapStyrerBalancering(knap) && (
-                                <Felt etiket="Balancemarked (begge kørsler)" hjælp="aFRR og mFRR. Kun el-forbrugende enheder byder.">
+                                <Felt etiket="Balancemarked (begge kørsler)" hjælp={`aFRR og mFRR. Kun el-forbrugende enheder byder. Standard: ${koerselskilde(rod)}`}>
                                     <label className="fs-afkryds">
-                                        <input type="checkbox" checked={medBal} onChange={(e) => { setMedBal(e.target.checked); nyt(); }} /> Med balancering
+                                        <input type="checkbox" checked={medBalEff} onChange={(e) => { setMedBal(e.target.checked); nyt(); }} /> Med balancering
                                     </label>
                                 </Felt>
                             )}
                             {!knapStyrerVarmelast(knap) && fællesMul.length > 1 && (
-                                <Felt etiket="Varmelast (begge kørsler)" hjælp="Værkets tidsserier uploades under Konfiguration → Tidsserier.">
+                                <Felt etiket="Varmelast (begge kørsler)" hjælp={`Værkets tidsserier uploades under Konfiguration → Tidsserier. Standard: ${aktivSerie(serier) ? "værkets aktive tidsserie." : koerselskilde(rod)}`}>
                                     <select className="fjv-felt" value={valgNøgle(fællesValg)} onChange={(e) => { setVarmelast(e.target.value); nyt(); }}>
                                         {fællesMul.map((x) => <option key={x.nøgle} value={x.nøgle}>{x.etiket}</option>)}
                                     </select>
@@ -340,7 +347,7 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
                                 </Felt>
                             )}
                         </div>
-                        {par.par && <Parforskel par={par.par} blade={blade} serier={serier} />}
+                        {par.par && <Parforskel par={par.par} blade={blade} serier={serier} mk={mk} standardVarmelast={standardVarmelast} />}
                         <Fundliste fund={fund} />
                         {knap.advarsler?.length ? (
                             <div className="fs-blok">
@@ -398,16 +405,17 @@ function parSaetning(par: { reference: Forslag; scenarie: Forslag }, fælles: Pi
 }
 
 /** Tabel: hvad er forskelligt — værkets værdi, referencens og scenariets. */
-function Parforskel({ par, blade, serier }: { par: { reference: Forslag; scenarie: Forslag }; blade: Blade; serier: readonly TidsserieInfo[] }) {
+function Parforskel({ par, blade, serier, mk, standardVarmelast }: { par: { reference: Forslag; scenarie: Forslag }; blade: Blade; serier: readonly TidsserieInfo[]; mk: Modelkoersel | undefined; standardVarmelast: Varmelastvalg }) {
     type Række = { hvad: string; vaerk: string; ref: string; scen: string };
     const rækker: Række[] = [];
     const bal = (b: boolean) => (b ? "Med" : "Uden");
-    rækker.push({ hvad: "Balancemarked", vaerk: "Uden", ref: bal(par.reference.felter.med_balancering), scen: bal(par.scenarie.felter.med_balancering) });
+    // "Værket"-kolonnen er standarden: modelrepoets kørsel af casen, ellers appens egen antagelse (uden).
+    rækker.push({ hvad: "Balancemarked", vaerk: mk ? `${bal(mk.med_balancering)} (modelrepoet)` : "Uden (egen antagelse)", ref: bal(par.reference.felter.med_balancering), scen: bal(par.scenarie.felter.med_balancering) });
     if (par.reference.felter.balancing_method || par.scenarie.felter.balancing_method) {
         rækker.push({ hvad: "Indtægtsmetode", vaerk: visVaerdi(blade.get("balancing.method")), ref: par.reference.felter.balancing_method ?? "værkets", scen: par.scenarie.felter.balancing_method ?? "værkets" });
     }
     const vl = (f: Forslag) => varmelastTekst(læsVarmelast(f.aendringer, f.felter.heat_csv, serier), serier);
-    const vVl = varmelastTekst(læsVarmelast([], null, serier), serier);
+    const vVl = varmelastTekst(standardVarmelast, serier);
     if (vl(par.reference) !== vVl || vl(par.scenarie) !== vVl) rækker.push({ hvad: "Varmelast", vaerk: vVl, ref: vl(par.reference), scen: vl(par.scenarie) });
     if (par.scenarie.felter.ekstra_flag || par.reference.felter.ekstra_flag) {
         rækker.push({ hvad: "Ekstra flag", vaerk: "–", ref: par.reference.felter.ekstra_flag ?? "–", scen: par.scenarie.felter.ekstra_flag ?? "–" });

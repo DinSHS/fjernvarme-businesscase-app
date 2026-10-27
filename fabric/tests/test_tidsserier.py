@@ -436,14 +436,18 @@ class TestRepoTidsserier(unittest.TestCase):
         for f in sorted(cases.iterdir()):
             if f.suffix == ".yaml" and not f.name.startswith("heat_load"):
                 t = f.read_text(encoding="utf-8")
-                fund[f.stem] = [(x["rolle"], x["fil"], x["aktiv"]) for x in TDB.repo_tidsserier(t, flad(t))]
+                readme = (REPO_DATA.parent / "README.md").read_text(encoding="utf-8")
+                fund[f.stem] = [(x["rolle"], x["fil"], x["aktiv"]) for x in TDB.repo_tidsserier(t, flad(t), f.name, readme)]
         self.assertEqual(fund["andeby"], [("solprofil", "solar_andeby_dmi_karup.csv", True)])
-        self.assertEqual(fund["billund_sporB"],
-                         [("varmelast", "billund_abvaerk_hourly_splejset_jun2026.csv", False)])
-        self.assertEqual(fund["billund_sporA"], [("varmelast", "billund_abvaerk_hourly.csv", False)])
-        for k, v in fund.items():
-            if k.startswith("billund"):
-                self.assertEqual(len(v), 1, k)
+        # Kun den fil, modelrepoet selv kører casen med (casens hoved / README), aldrig en nedarvet kommentar
+        # for en anden casefil (runde 8): Spor A kører syntetisk (README.md:176), de rullende med splejset fil.
+        splejset = [("varmelast", "billund_abvaerk_hourly_splejset_jun2026.csv", False)]
+        self.assertEqual(fund["billund_sporB"], splejset)
+        self.assertEqual(fund["billund_idag"], splejset)
+        self.assertEqual(fund["billund_sporA_rullende"], splejset)
+        self.assertEqual(fund["billund_sporA"], [])
+        self.assertEqual(fund["billund_sporA_rullende_bud"], [])
+        self.assertEqual(fund["billund_sporB_rullende"], [])
 
     def test_indsaet_er_idempotent_og_hoejst_en_aktiv(self):
         tmp = Path(tempfile.mkdtemp())
@@ -526,6 +530,10 @@ class TestVaerksark(unittest.TestCase):
         self.assertEqual(roller["varmelast"]["res"].antal_raekker, 8760)
         self.assertEqual(roller["varmelast"]["res"].start, "2025-07-01T00:00:00Z")
         self.assertIn("syntetisk", roller["solprofil"]["navn"])
+        # Runde 8 (V8): oraklets fund om den syntetiske profil siges at gælde modellens profil, ikke arket.
+        sol = [a for a in k.advarsler if a.startswith("solprofil")]
+        for a in sol:
+            self.assertTrue(a.startswith("solprofil (modellens syntetiske profil, ikke jeres data): "), a)
         # Casen kan bygges med begge frosne serier og ingen markør tilbage.
         params = [p.dict() for p in k.params]
         rk = raekker_fra_vaerk(params, (), {
@@ -535,6 +543,24 @@ class TestVaerksark(unittest.TestCase):
         plan = byg(rk)
         self.assertNotIn(TS.MARKOER_SOLPROFIL, plan.case_yaml)
         self.assertIn("--heat-csv", plan.cli)
+
+    def test_maalt_solprofil_faar_solvarme_arkets_tidszone(self):
+        # Runde 8 (V7): en målt solprofil kommer fra arket Solvarme, som har sin egen B2. Metadata skal være dens,
+        # ikke Timedata's. (Talværdierne er scriptets og uændrede; kun Tidsserie.tidszone afhang af fejlen.)
+        ud = self.tmp / "maalt"
+        shutil.copytree(self.tmp / "ud", ud)
+        case = next((ud / "cases").iterdir())
+        prof = next(json.loads(p.vaerdi_json) for p in flad(case.read_text(encoding="utf-8"))
+                    if p.sti.endswith(".production_profile_path"))
+        syn = ud / "data" / Path(prof).name
+        maalt = syn.with_name(syn.stem + "_maalt.csv")
+        syn.rename(maalt)
+        case.write_text(case.read_text(encoding="utf-8").replace(syn.name, maalt.name), encoding="utf-8")
+        sol = lambda k: next(t for t in k.tidsserier if t["rolle"] == "solprofil")  # noqa: E731
+        k = VS.konverter_output(ud, "UTC", False, "Europe/Copenhagen")
+        self.assertIn("målt", sol(k)["navn"])
+        self.assertEqual(sol(k)["tidszone"], "Europe/Copenhagen")       # Solvarme!B2, ikke Timedata!B2 (UTC)
+        self.assertEqual(sol(VS.konverter_output(ud, "UTC", False))["tidszone"], "UTC")   # uden: som før
 
     def test_fejl_fra_scriptet_er_laesbar(self):
         log = "Læser x.xlsx\n\nArket kan ikke bruges endnu:\n  Timedata har kun 8 timer. Det ligner\n  eksempelrækkerne.\n\n"

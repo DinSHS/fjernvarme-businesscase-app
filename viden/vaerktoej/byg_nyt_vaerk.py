@@ -1,13 +1,15 @@
-"""Bygger viden/nyt_vaerk_skabelon.json: et minimalt gyldigt værk som blade.
+"""Bygger viden/nyt_vaerk_skabelon.json: et minimalt gyldigt værk som blade (guiden "Nyt værk fra bunden").
 
-Ét gaskedel-værk uden lager, med varmelast skaleret fra et årligt varmebehov G
-(GWh). Varmelastsyntesen er lineær i grundprofil, rumvarme- og nettabshældning
-(src/data_loader.py:632-661), så parametrene skaleres eksakt fra Andebys:
+Runde 8 (fv-trofast): skabelonen tager sine tal fra modelrepoet ved den pinnede commit, via
+``viden/modelspejl.json`` (genereret af ``byg_modelspejl.py``), og hvert blad bærer sin kilde:
 
-    faktor = G / G_ANDEBY,  G_ANDEBY = 105,52 GWh (målt, karup, jul 2025–jun 2026)
-
-Gaskedlens effekt skal dække spidslasten: Andeby 40,02 MW ved 105,52 GWh
-(0,379 MW pr. GWh) -> p_max = rund(0,5 × G) MW giver ca. 30 % luft.
+* Varmelasten skaleres med **modelrepoets egen regel** for et årsbehov G (GWh), den samme som værksarket
+  bruger: ``f = round(G / 100, 4)`` × Andebys grundtal, gaf/nettab afrundet til 4 og døgnprofilen til
+  3 decimaler (``scripts/vaerksark_til_yaml.py:1581-1592``). Før runde 8 brugte guiden G/105,52 (en egen
+  måling), som gav 5,2 % anden last end arket for samme G.
+* Priser, tarif, klima, tidsblok, solver og gaskedlens egenskaber er **Andebys** (``cases/andeby.yaml``).
+* Kun to ting er appens egne antagelser og mærket sådan: standardårsbehovet (50 GWh) og gaskedlens
+  størrelse ``round(0,5 × G)`` MW (spidslasten er ca. 0,40 × G MW med modellens skalering).
 
 Kør:  python byg_nyt_vaerk.py            (standard G = 50 GWh)
 Kun standardbiblioteket.
@@ -21,115 +23,114 @@ from pathlib import Path
 sys.stdout.reconfigure(errors="replace")
 VIDEN = Path(__file__).resolve().parent.parent
 
-G_ANDEBY = 105.52          # GWh, målt på D11 (fv-ekspert.md)
-SPIDS_PR_GWH = 40.02 / G_ANDEBY
-ANDEBY = {
-    "gaf_mw_per_k": 0.7653,
-    "nettab_slope_mw_per_k": 0.4768,
-    "baseline_profile_mw": [4.437, 4.500, 4.602, 4.767, 4.822, 5.112, 5.590, 5.606, 5.355, 4.955, 4.775, 4.696,
-                            4.563, 4.469, 4.414, 4.359, 4.430, 4.602, 4.728, 4.767, 4.735, 4.728, 4.610, 4.390],
-}
-G_STANDARD = 50.0
+SPEJL = json.loads((VIDEN / "modelspejl.json").read_text(encoding="utf-8"))
+PIN7 = SPEJL["model_commit"][:7]
+ANDEBY = SPEJL["cases"]["andeby"]
+SKAL = SPEJL["varmelast_skalering"]
+G_STANDARD = 50.0                   # egen antagelse: et mellemstort værk
+GASKEDEL_PR_GWH = 0.5               # egen antagelse: ca. 25 % luft over spidslasten
+#: Andebys spidslast 40,02 MW med f = 1 (egen måling D11, karup-vejr jul 2025–jun 2026, eef950a); med modellens
+#: skalering er spidslasten derfor ca. 40,02 × G/100 MW.
+SPIDS_PR_GWH = round(40.02 / SKAL["divisor_gwh"], 2)
+
+
+def andeby(sti: str):
+    """(værdi, kilde) for et blad i Andeby ved den pinnede commit."""
+    v, linje = ANDEBY["blade"][sti]
+    return json.loads(v), f"{ANDEBY['fil']}:{linje} @ {PIN7}"
+
+
+def faktor(g_gwh: float) -> float:
+    """Modelrepoets faktor (scripts/vaerksark_til_yaml.py): round(G / divisor, afrunding); G ≤ 1 giver 1,0."""
+    return round(g_gwh / SKAL["divisor_gwh"], SKAL["afrunding"]) if g_gwh > 1 else 1.0
 
 
 def varmelast(g_gwh: float) -> dict:
-    f = g_gwh / G_ANDEBY
+    f = faktor(g_gwh)
     return {
-        "gaf_mw_per_k": round(ANDEBY["gaf_mw_per_k"] * f, 4),
-        "t_ref": 15.0,
-        "thermal_inertia_hours": 24,
-        "nettab_slope_mw_per_k": round(ANDEBY["nettab_slope_mw_per_k"] * f, 4),
-        "t_net": 12.0,
-        "baseline_profile_mw": [round(x * f, 3) for x in ANDEBY["baseline_profile_mw"]],
-        "weekly_dip": 0.02,
+        "gaf_mw_per_k": round(SKAL["gaf_mw_per_k"] * f, 4),
+        "nettab_slope_mw_per_k": round(SKAL["nettab_slope_mw_per_k"] * f, 4),
+        "baseline_profile_mw": [round(x * f, SKAL["profil_afrunding"]) for x in SKAL["baseline_profile_mw"]],
     }
 
 
-def gaskedel_effekt(g_gwh: float) -> float:
-    return float(max(1, round(0.5 * g_gwh)))
-
-
 def blade(g_gwh: float = G_STANDARD, kode: str = "nyt_vaerk", navn: str = "Nyt værk") -> list[dict]:
-    """Bladliste (sti, vaerdi, bekraeft, obligatorisk, trin, kommentar) for et værk på G GWh/år."""
-    hl = varmelast(g_gwh)
+    """Bladliste (sti, vaerdi, bekraeft, obligatorisk, trin, kommentar, kilde) for et værk på G GWh/år."""
     B: list[dict] = []
+    skal_kilde = f"{SKAL['kilde']} @ {PIN7} (modelrepoets skalering af Andeby til et årsbehov)"
 
-    def b(sti, v, trin, bekraeft=False, obligatorisk=True, kommentar=None):
+    def b(sti, v, trin, bekraeft=False, obligatorisk=True, kommentar=None, kilde=None):
+        tekst = " ".join(x for x in (kommentar, f"Kilde: {kilde}." if kilde else None) if x) or None
         B.append({"sti": sti, "vaerdi_json": json.dumps(v, ensure_ascii=False, separators=(",", ":")),
-                  "bekraeft": bekraeft, "obligatorisk": obligatorisk, "trin": trin, "kommentar": kommentar})
+                  "bekraeft": bekraeft, "obligatorisk": obligatorisk, "trin": trin, "kommentar": tekst,
+                  "kilde": kilde})
+
+    def a(sti, trin, andeby_sti=None, **kw):
+        v, k = andeby(andeby_sti or sti)
+        b(sti, v, trin, kilde=f"Andeby, {k}", **kw)
 
     # 1 navn
     b("meta.case_name", kode, "navn", kommentar="Værkets kode; bruges i outputfilernes navn.")
     b("meta.titel", navn, "navn", obligatorisk=False)
     b("meta.description", f"Oprettet fra skabelon: én gaskedel, intet lager, {g_gwh:g} GWh/år.", "navn", obligatorisk=False)
-    b("meta.timezone_internal", "UTC", "navn", obligatorisk=False, kommentar="Dokumentation; læses ikke af modellen.")
-    b("meta.timezone_reporting", "Europe/Copenhagen", "navn", obligatorisk=False)
-    b("meta.discount_rate_real", 0.035, "navn", bekraeft=True, obligatorisk=False,
-      kommentar="Real kalkulationsrente til annuitet; læses ikke af modellen (som Andeby).")
+    a("meta.timezone_internal", "navn", obligatorisk=False, kommentar="Dokumentation; læses ikke af modellen.")
+    a("meta.timezone_reporting", "navn", obligatorisk=False)
+    a("meta.discount_rate_real", "navn", bekraeft=True, obligatorisk=False,
+      kommentar="Real kalkulationsrente til annuitet; læses ikke af modellen.")
     # 2 klima og priszone
-    b("data.dmi_area", "karup", "klima", bekraeft=True, kommentar="Vælg efter beliggenhed: vestkyst, karup, fyn, ringsted.")
-    b("data.price_zone", "DK1", "klima", bekraeft=True, kommentar="DK1 vest for Storebælt, DK2 øst for.")
-    b("electricity.spot_area", "DK1", "klima", bekraeft=True, kommentar="Skal være lig data.price_zone.")
+    a("data.dmi_area", "klima", bekraeft=True, kommentar="Vælg efter beliggenhed: vestkyst, karup, fyn, ringsted.")
+    a("data.price_zone", "klima", bekraeft=True, kommentar="DK1 vest for Storebælt, DK2 øst for.")
+    a("electricity.spot_area", "klima", bekraeft=True, kommentar="Skal være lig data.price_zone.")
     # tid og solver (faste)
-    b("time.start", "2025-07-01T00:00:00Z", "tid", kommentar="Rullende år; dækket af df-data.")
-    b("time.end", "2026-06-30T23:00:00Z", "tid")
-    b("time.resolution", "1h", "tid", kommentar="Version 1 kører kun 1h (KONTRAKT §6c).")
-    b("solver.mip_rel_gap", 0.001, "tid", obligatorisk=False, kommentar="Som Andeby.")
-    b("solver.mip_abs_gap", 1000.0, "tid", obligatorisk=False)
-    b("solver.time_limit", 3600.0, "tid", obligatorisk=False)
-    # 3 varmebehov
-    for k, v in hl.items():
-        b(f"heat_load_params.{k}", v, "varmebehov", bekraeft=k in ("gaf_mw_per_k", "nettab_slope_mw_per_k", "baseline_profile_mw"),
-          obligatorisk=(k == "gaf_mw_per_k"),
-          kommentar=(f"Skaleret fra Andeby × {g_gwh:g}/{G_ANDEBY}" if k in ("gaf_mw_per_k", "nettab_slope_mw_per_k", "baseline_profile_mw") else None))
-    b("heat_load_params._source", f"Skabelon: Andeby × {g_gwh:g}/{G_ANDEBY} GWh", "varmebehov", obligatorisk=False)
-    # 4 enheder: én gaskedel
-    u = "units.gaskedel."
+    a("time.start", "tid", kommentar="Rullende år; dækket af df-data.")
+    a("time.end", "tid")
+    a("time.resolution", "tid", kommentar="Version 1 kører kun 1h (KONTRAKT §6c).")
+    a("solver.mip_rel_gap", "tid", obligatorisk=False)
+    a("solver.mip_abs_gap", "tid", obligatorisk=False)
+    a("solver.time_limit", "tid", obligatorisk=False)
+    # 3 varmebehov: modelrepoets skalering (som værksarket); de uskalerede parametre er Andebys
+    hl = varmelast(g_gwh)
+    for k in ("gaf_mw_per_k", "t_ref", "thermal_inertia_hours", "nettab_slope_mw_per_k", "t_net", "baseline_profile_mw", "weekly_dip"):
+        sti = f"heat_load_params.{k}"
+        if k in hl:
+            b(sti, hl[k], "varmebehov", bekraeft=True, obligatorisk=(k == "gaf_mw_per_k"),
+              kommentar=f"Andeby × f, f = round({g_gwh:g}/{SKAL['divisor_gwh']:g}, {SKAL['afrunding']}) = {faktor(g_gwh):g}.",
+              kilde=skal_kilde)
+        else:
+            a(sti, "varmebehov", obligatorisk=False)
+    b("heat_load_params._source", f"Skabelon: Andeby × round({g_gwh:g}/{SKAL['divisor_gwh']:g}, {SKAL['afrunding']}) "
+      f"(modelrepoets skalering, {SKAL['kilde']})", "varmebehov", obligatorisk=False)
+    # 4 enheder: én gaskedel med Andebys gaskedels egenskaber; kun størrelsen er appens antagelse
+    u, ua = "units.gaskedel.", "units.gaskedel_agg."
     b(u + "enabled", True, "enheder")
-    b(u + "type", "gas_boiler", "enheder")
-    b(u + "p_max_heat", gaskedel_effekt(g_gwh), "enheder", bekraeft=True,
-      kommentar=f"Skal dække spidslasten (ca. {SPIDS_PR_GWH * g_gwh:.1f} MW ved {g_gwh:g} GWh); 0,5 MW pr. GWh giver luft.")
-    b(u + "p_min_heat", 0.0, "enheder")
-    b(u + "alpha", 0.0, "enheder")
-    b(u + "fuel", "natural_gas", "enheder")
-    b(u + "eta_fuel_to_heat", 0.95, "enheder", bekraeft=True)
-    b(u + "var_om", 30.0, "enheder", bekraeft=True, obligatorisk=False)
-    b(u + "start_cost", 0.0, "enheder", obligatorisk=False)
-    b(u + "min_uptime", 1, "enheder", obligatorisk=False)
-    b(u + "min_downtime", 1, "enheder", obligatorisk=False)
-    b(u + "uc_enabled", False, "enheder", obligatorisk=False)
-    b(u + "co2_emissions_per_mwh_fuel", 0.2, "enheder", obligatorisk=False, kommentar="Naturgas ca. 0,2 t CO₂/MWh brændsel.")
-    b(u + "ancillary.afrr_qualified", False, "enheder", obligatorisk=False)
-    b(u + "ancillary.mfrr_qualified", False, "enheder", obligatorisk=False)
-    b(u + "ancillary.fcr_qualified", False, "enheder", obligatorisk=False)
+    a(u + "type", "enheder", ua + "type")
+    b(u + "p_max_heat", float(max(1, round(GASKEDEL_PR_GWH * g_gwh))), "enheder", bekraeft=True,
+      kommentar=f"Skal dække spidslasten (ca. {SPIDS_PR_GWH * g_gwh:.1f} MW ved {g_gwh:g} GWh).",
+      kilde=f"egen antagelse: round({GASKEDEL_PR_GWH:g} × G) MW; spidslasten ca. {SPIDS_PR_GWH:g} × G MW "
+            f"(egen måling: Andeby 40,02 MW med f = 1, D11 ved {PIN7})")
+    for k in ("p_min_heat", "alpha", "fuel", "eta_fuel_to_heat", "var_om", "start_cost", "min_uptime",
+              "min_downtime", "uc_enabled", "co2_emissions_per_mwh_fuel"):
+        a(u + k, "enheder", ua + k, bekraeft=k in ("eta_fuel_to_heat", "var_om"),
+          obligatorisk=k in ("p_min_heat", "alpha", "fuel", "eta_fuel_to_heat"))
+    for k in ("afrr_qualified", "mfrr_qualified", "fcr_qualified"):
+        a(u + f"ancillary.{k}", "enheder", ua + f"ancillary.{k}", obligatorisk=False)
     # 5 lager: intet (tom blok er et blad, KONTRAKT §3.2)
     b("storage", {}, "lager", kommentar="Intet lager. Blokken skal findes (config.py læser raw['storage']).")
-    # 6 priser og tarif
-    b("prices.natural_gas.value", 606.0, "priser", bekraeft=True, kommentar="Andebys gaspris; ekskl. moms pr. MWh brændsel.")
-    b("prices.natural_gas.unit", "DKK/MWh_fuel", "priser", obligatorisk=False)
-    b("prices.co2_eua.value", 600.0, "priser", bekraeft=True, kommentar="Kr. pr. ton CO₂; 0 hvis gasprisen indeholder CO₂-afgiften.")
-    b("prices.co2_eua.unit", "DKK/t_CO2", "priser", obligatorisk=False)
-    b("electricity.tariff_consumption_flat", 125.0, "priser", bekraeft=True)
-    b("electricity.tariff_production_flat", 4.1, "priser", bekraeft=True)
-    b("electricity.electricity_tax", 4.0, "priser", bekraeft=True, kommentar="Skal være lig fixed_components.elafgift_net.")
+    # 6 priser og tarif: Andebys
+    a("prices.natural_gas.value", "priser", bekraeft=True, kommentar="Ekskl. moms pr. MWh brændsel.")
+    a("prices.natural_gas.unit", "priser", obligatorisk=False)
+    a("prices.co2_eua.value", "priser", bekraeft=True, kommentar="Kr. pr. ton CO₂; 0 hvis gasprisen indeholder CO₂-afgiften.")
+    a("prices.co2_eua.unit", "priser", obligatorisk=False)
+    a("electricity.tariff_consumption_flat", "priser", bekraeft=True)
+    a("electricity.tariff_production_flat", "priser", bekraeft=True)
+    a("electricity.electricity_tax", "priser", bekraeft=True, kommentar="Skal være lig fixed_components.elafgift_net.")
     T = "electricity.tariff_consumption."
-    b(T + "unit", "kr_per_mwh", "priser")
+    a(T + "unit", "priser")
     b(T + "source", "Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad", "priser", obligatorisk=False)
-    for k, v in (("energinet", 115.0), ("dv", 0.0), ("elafgift_net", 4.0)):
-        b(T + f"fixed_components.{k}", v, "priser", bekraeft=True, obligatorisk=False)
-    for k, v in (("lav", 7.4), ("hoej", 14.8), ("spids", 29.5)):
-        b(T + f"net_tariff.bands.{k}", v, "priser", bekraeft=True)
-    S = T + "net_tariff.seasons."
-    b(S + "vinter.months", [10, 11, 12, 1, 2, 3], "priser", bekraeft=True)
-    for k, v in (("00-06", "lav"), ("06-21", "spids"), ("21-24", "hoej")):
-        b(S + f"vinter.weekday.{k}", v, "priser", bekraeft=True)
-    for k, v in (("00-06", "lav"), ("06-21", "hoej"), ("21-24", "hoej")):
-        b(S + f"vinter.weekend.{k}", v, "priser", bekraeft=True)
-    b(S + "sommer.months", [4, 5, 6, 7, 8, 9], "priser", bekraeft=True)
-    for k, v in (("00-06", "lav"), ("06-24", "hoej")):
-        b(S + f"sommer.weekday.{k}", v, "priser", bekraeft=True)
-    for k, v in (("00-06", "lav"), ("06-24", "lav")):
-        b(S + f"sommer.weekend.{k}", v, "priser", bekraeft=True)
+    for sti in sorted(s for s in ANDEBY["blade"] if s.startswith(T + "fixed_components.")):
+        a(sti, "priser", bekraeft=True, obligatorisk=False)
+    for sti in [s for s in ANDEBY["blade"] if s.startswith(T + "net_tariff.")]:
+        a(sti, "priser", bekraeft=True, obligatorisk=sti.startswith(T + "net_tariff.bands."))
     return B
 
 
@@ -137,29 +138,49 @@ def main() -> None:
     bl = blade()
     ud = {
         "_om": ("Minimalt gyldigt værk som blade (KONTRAKT §3.2): én gaskedel, intet lager, varmelast skaleret fra et årligt "
-                "varmebehov. Genereres af viden/vaerktoej/byg_nyt_vaerk.py; valideret af vaerktoej/tjek_nyt_vaerk.py "
-                "(afflad -> modellens load_case -> 2-døgns kørsel). bekraeft = skønnet værdi, som skal rettes."),
-        "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+                "varmebehov med modelrepoets egen regel. Genereres af viden/vaerktoej/byg_nyt_vaerk.py fra viden/modelspejl.json; "
+                "valideret af vaerktoej/tjek_nyt_vaerk.py (afflad -> modellens load_case -> 2-døgns kørsel) og "
+                "tjek_trofasthed.py. 'kilde' pr. blad: modelrepoet (fil:linje @ commit) eller 'egen antagelse'. "
+                "bekraeft = skønnet værdi, som skal rettes."),
+        "model_commit": SPEJL["model_commit"],
         "standard_varmebehov_gwh": G_STANDARD,
         "skalering": {
-            "g_andeby_gwh": G_ANDEBY,
-            "kilde": "Målt: Andebys heat_load_params giver 105,52 GWh på jul 2025–jun 2026 med karup-vejr, spidslast 40,02 MW ved −18,25 °C (D11, udviklingsrapport). Rapport v4 §9 siger 'ca. 105 GWh'.",
-            "formel": {
-                "faktor": "f = G / 105,52",
-                "heat_load_params.gaf_mw_per_k": "0,7653 × f",
-                "heat_load_params.nettab_slope_mw_per_k": "0,4768 × f",
-                "heat_load_params.baseline_profile_mw": "Andebys 24 værdier × f (cases/andeby.yaml:158-162)",
-                "uændret": "t_ref 15, thermal_inertia_hours 24, t_net 12, weekly_dip 0,02",
-                "units.gaskedel.p_max_heat": "rund(0,5 × G) MW (spidslast ≈ 0,38 × G MW)"
+            "divisor_gwh": SKAL["divisor_gwh"],
+            "afrunding": SKAL["afrunding"],
+            "profil_afrunding": SKAL["profil_afrunding"],
+            "grundtal": {
+                "heat_load_params.gaf_mw_per_k": SKAL["gaf_mw_per_k"],
+                "heat_load_params.nettab_slope_mw_per_k": SKAL["nettab_slope_mw_per_k"],
+                "heat_load_params.baseline_profile_mw": SKAL["baseline_profile_mw"],
             },
-            "hvorfor_eksakt": "Syntesen er grundprofil + gaf × max(0, t_ref − glidende T) + nettab × max(0, t_net − T), og weekend-faktoren ganges på; alle tre led er lineære i de skalerede parametre, så årsenergien skalerer med f for samme vejr (src/data_loader.py:632-661; src/data_loader.py:712-729).",
-            "forbehold": "Faktoren gælder karup-vejret i det rullende år. Et andet DMI-område giver nogle procent andet årsbehov (README.md:235-237); har værket målt varmelast, er den bedre."
+            "decimaler": {"heat_load_params.gaf_mw_per_k": 4, "heat_load_params.nettab_slope_mw_per_k": 4,
+                          "heat_load_params.baseline_profile_mw": SKAL["profil_afrunding"]},
+            "kilde": f"{SKAL['kilde']} @ {PIN7} (grundtal {SKAL['kilde_grundtal']})",
+            "formel": {
+                "faktor": f"f = round(G / {SKAL['divisor_gwh']:g}, {SKAL['afrunding']})",
+                "heat_load_params.gaf_mw_per_k": f"round({SKAL['gaf_mw_per_k']} × f, 4)",
+                "heat_load_params.nettab_slope_mw_per_k": f"round({SKAL['nettab_slope_mw_per_k']} × f, 4)",
+                "heat_load_params.baseline_profile_mw": f"Andebys 24 værdier × f, {SKAL['profil_afrunding']} decimaler",
+                "uændret": "t_ref, thermal_inertia_hours, t_net og weekly_dip som Andeby",
+                "units.gaskedel.p_max_heat": (f"rund({str(GASKEDEL_PR_GWH).replace('.', ',')} × G) MW "
+                                              f"(spidslast ≈ {str(SPIDS_PR_GWH).replace('.', ',')} × G MW) — egen antagelse"),
+            },
+            "hvorfor": ("Samme regel som modelrepoets værksark (scripts/vaerksark_til_yaml.py), så samme årsbehov giver samme "
+                        "varmelast, uanset om værket kommer fra arket eller guiden. Reglen hviler på 'Andebys ~100 GWh'; Andebys "
+                        "parametre giver 105,52 GWh på karup-vejret jul 2025–jun 2026 (egen måling, D11) — den syntetiske last "
+                        "bliver altså ca. 5,5 % over G. Det er modelrepoets valg, og appen følger det."),
+            "forbehold": "Har værket målt varmelast, er den bedre end syntesen (doc/VARMELAST_OG_NETTAB.md).",
         },
+        "egne_antagelser": [
+            f"Standardårsbehov {G_STANDARD:g} GWh (et mellemstort værk; brugeren skriver sit eget).",
+            f"Gaskedlens størrelse round({GASKEDEL_PR_GWH:g} × G) MW, så den dækker spidslasten (ca. {SPIDS_PR_GWH:g} × G MW).",
+            "Kun én gaskedel og intet lager: det mindste værk, modellen kan løse.",
+        ],
         "guide_trin": [
             {"id": "navn", "titel": "Navn og kode", "felter": ["meta.case_name", "meta.titel"], "regel": "kode: små bogstaver, tal og _ (KONTRAKT §3.1); unik."},
             {"id": "klima", "titel": "Klima og priszone", "felter": ["data.dmi_area", "data.price_zone", "electricity.spot_area"], "regel": "spot_area sættes lig price_zone automatisk."},
-            {"id": "varmebehov", "titel": "Varmebehov", "felter": ["heat_load_params.*"], "regel": "Årligt varmebehov ab værk i GWh → parametrene efter formlen. 'Jeg har timedata': kun filer i modelrepoets data/ i denne version; heat_load_params skal stadig findes (run_case.py:377)."},
-            {"id": "enheder", "titel": "Enheder", "felter": ["units.*"], "regel": "Mindst én aktiv enhed; tilsammen skal de kunne dække spidslasten (ca. 0,38 MW pr. GWh/år). Tilføj fra enhedstyper.json; skabelonens gaskedel kan beholdes som spids/reserve."},
+            {"id": "varmebehov", "titel": "Varmebehov", "felter": ["heat_load_params.*"], "regel": "Årligt varmebehov ab værk i GWh → parametrene med modelrepoets skalering (som værksarket). 'Jeg har timedata': kun filer i modelrepoets data/ i denne version; heat_load_params skal stadig findes (run_case.py:377)."},
+            {"id": "enheder", "titel": "Enheder", "felter": ["units.*"], "regel": f"Mindst én aktiv enhed; tilsammen skal de kunne dække spidslasten (ca. {str(SPIDS_PR_GWH).replace('.', ',')} MW pr. GWh/år). Tilføj fra enhedstyper.json; skabelonens gaskedel kan beholdes som spids/reserve."},
             {"id": "lager", "titel": "Lager (valgfrit)", "felter": ["storage.*"], "regel": "Tom = intet lager. Et lager har volumen, ΔT, startindhold og lade-/afladeeffekt."},
             {"id": "priser", "titel": "Priser og tarif", "felter": ["prices.*", "electricity.*"], "regel": "Forudfyldt med Andebys tal og markeret [BEKRÆFT]. Pris skal findes for hvert brændsel, en aktiv enhed bruger; elafgift = elafgift_net."},
             {"id": "gennemse", "titel": "Gennemse og opret", "felter": [], "regel": "Kør klientvalideringen (validering.md) på hele bladlisten; vis antal [BEKRÆFT]."},
@@ -179,9 +200,10 @@ def main() -> None:
         },
         "blade": bl,
     }
-    (VIDEN / "nyt_vaerk_skabelon.json").write_text(json.dumps(ud, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (VIDEN / "nyt_vaerk_skabelon.json").write_text(json.dumps(ud, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(f"nyt_vaerk_skabelon.json: {len(bl)} blade, {sum(x['bekraeft'] for x in bl)} [BEKRÆFT], "
-          f"{sum(x['obligatorisk'] for x in bl)} obligatoriske")
+          f"{sum(x['obligatorisk'] for x in bl)} obligatoriske, "
+          f"{sum(1 for x in bl if (x['kilde'] or '').startswith('egen antagelse'))} egne antagelser")
 
 
 if __name__ == "__main__":

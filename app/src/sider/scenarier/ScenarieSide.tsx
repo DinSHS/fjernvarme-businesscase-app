@@ -14,6 +14,7 @@ import { kodVaerdi, visVaerdi } from "@/lib/data/vaerdi";
 import { modelDato, tal, tidspunkt } from "@/lib/format";
 import { tkr } from "../analyser/ibcs-grafer";
 import { periodeTekst as periodeKort } from "../analyser/fmt";
+import { modelKoersel, type Modelkoersel } from "@/lib/modelspejl";
 import { rutehref } from "@/lib/rute";
 import { GRAENSER, MAKS, TILLADTE_FLAG } from "../../../rayfin/data/fjv.constants";
 import type { Koersel } from "../../../rayfin/data/Koersel";
@@ -300,7 +301,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                         <Felt etiket="Relativt gab" hjælp={`Værket: ${gabProcent(Number(blade.get("solver.mip_rel_gap") ?? "0.005"))}; differenser: ${gabProcent(ANBEFALET_GAB.mip_rel_gap)} (skriv ${talTilFelt(ANBEFALET_GAB.mip_rel_gap)}).`}>
                             <input className="fjv-felt" inputMode="decimal" value={k.rel} placeholder="værkets" onChange={(e) => sæt({ rel: e.target.value })} />
                         </Felt>
-                        <Felt etiket="Absolut gab (kr.)" hjælp={`Værket: ${tekstTal(blade.get("solver.mip_abs_gap") ?? "5000", "kr.")}; differenser: højst ${tal(ANBEFALET_GAB.mip_abs_gap)} kr.`}>
+                        <Felt etiket="Absolut gab (kr.)" hjælp={`Værket: ${tekstTal(blade.get("solver.mip_abs_gap") ?? "5000", "kr.")}; differenser: højst ${tal(ANBEFALET_GAB.mip_abs_gap)} kr. (egen antagelse; modelrepoet sætter kun det relative gab ned).`}>
                             <input className="fjv-felt" inputMode="decimal" value={k.abs} placeholder="værkets" onChange={(e) => sæt({ abs: e.target.value })} />
                         </Felt>
                         <Felt etiket="Tidsgrænse (s)" hjælp={`Højst ${GRAENSER.maksTidsgraenseS.toLocaleString("da-DK")}. Nås den, gemmes bedste løsning.`}>
@@ -369,9 +370,9 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                     <SætListe rækker={k.sæt} blade={blade} onChange={(r) => sæt({ sæt: r })} />
                 </Kort>
                 <Kort titel="Forhåndsvisning" afgraensning="værkets værdi → scenariets"
-                    budskab={`${forhåndsrækker(k, fSvar.felter, æSvar.ændringer, blade, serier).filter((r) => r.ændret).length} værdier afviger fra værket i den kørsel, scenariet vil bestille.`}
+                    budskab={`${forhåndsrækker(k, fSvar.felter, æSvar.ændringer, blade, serier, modelKoersel(rod)).filter((r) => r.ændret).length} værdier afviger fra værket i den kørsel, scenariet vil bestille.`}
                     fod="Det effektive input fryses ved bestilling (værkets revision + scenariets ændringer); en senere værksændring rører ikke en bestilt kørsel.">
-                    <Tabel rækker={forhåndsrækker(k, fSvar.felter, æSvar.ændringer, blade, serier)} nøgle={(r) => r.hvad}
+                    <Tabel rækker={forhåndsrækker(k, fSvar.felter, æSvar.ændringer, blade, serier, modelKoersel(rod))} nøgle={(r) => r.hvad}
                         kolonner={[
                             { navn: "Hvad", vis: (r) => r.hvad },
                             { navn: "Værket", vis: (r) => <span className="fs-gammel">{r.vaerk}</span> },
@@ -495,7 +496,7 @@ function SætListe({ rækker, blade, onChange }: { rækker: readonly SætRække[
 interface Forhåndsrække { hvad: string; vaerk: string; scen: string; ændret: boolean }
 
 /** Det effektive input: scenariefelterne og hver ændring, værkets værdi mod scenariets. */
-function forhåndsrækker(k: Kladde, f: Scenariefelter, ændringer: readonly Ændring[], blade: Blade, serier: readonly TidsserieInfo[]): Forhåndsrække[] {
+function forhåndsrækker(k: Kladde, f: Scenariefelter, ændringer: readonly Ændring[], blade: Blade, serier: readonly TidsserieInfo[], mk: Modelkoersel | undefined): Forhåndsrække[] {
     const vp = tjekPeriode(null, null, blade, { medBalancering: false });
     const vPeriode = vp.start ? `${modelDato(vp.start)} – ${modelDato(vp.slut)}` : "–";
     const sPeriode = f.periode_start && f.periode_slut ? `${modelDato(f.periode_start)} – ${modelDato(f.periode_slut)}` : vPeriode;
@@ -504,7 +505,8 @@ function forhåndsrækker(k: Kladde, f: Scenariefelter, ændringer: readonly Æn
     const vAbs = tekstTal(blade.get("solver.mip_abs_gap") ?? "5000", "kr.");
     const r: Forhåndsrække[] = [
         { hvad: "Periode", vaerk: vPeriode, scen: sPeriode, ændret: sPeriode !== vPeriode },
-        { hvad: "Balancemarked", vaerk: "uden", scen: f.med_balancering ? "med" : "uden", ændret: f.med_balancering },
+        // "Værket" = standarden: modelrepoets kørsel af casen (runde 8), ellers appens egen antagelse (uden).
+        { hvad: "Balancemarked", vaerk: mk ? `${mk.med_balancering ? "med" : "uden"} (modelrepoet)` : "uden (egen antagelse)", scen: f.med_balancering ? "med" : "uden", ændret: f.med_balancering !== (mk?.med_balancering ?? false) },
         { hvad: "Indtægtsmetode", vaerk: visVaerdi(blade.get("balancing.method")), scen: f.balancing_method ?? visVaerdi(blade.get("balancing.method")), ændret: !!f.balancing_method && JSON.stringify(f.balancing_method) !== blade.get("balancing.method") },
         { hvad: "Relativt gab", vaerk: vRel, scen: f.mip_rel_gap != null ? rel(f.mip_rel_gap) : vRel, ændret: f.mip_rel_gap != null },
         { hvad: "Absolut gab", vaerk: vAbs, scen: f.mip_abs_gap != null ? `${tal(f.mip_abs_gap)} kr.` : vAbs, ændret: f.mip_abs_gap != null },

@@ -158,11 +158,13 @@ def koer_script(kode: Path, py: str, ark: Path, ud: Path, timeslut: bool,
     return r.returncode, log
 
 
-def kildens_tidszone(kode: Path, py: str, ark: Path) -> str:
-    """Arkets egen erklæring (Timedata!B2) læst med scriptets egen funktion."""
+def kildens_tidszone(kode: Path, py: str, ark: Path, fane: str = "Timedata") -> str:
+    """Arkets egen erklæring (``<fane>!B2``) læst med scriptets egen funktion (``laes_tidszone(sti, ark)``).
+    Solvarme-arket har sin egen B2 (scripts/vaerksark_til_yaml.py læser den for den målte solprofil);
+    runde 8 rettede, at den målte solprofil fik Timedata's tidszone som metadata."""
     prog = ("import sys; from pathlib import Path; sys.path.insert(0, 'scripts'); "
-            "import vaerksark_til_yaml as v; print(v.laes_tidszone(Path(sys.argv[1])))")
-    r = subprocess.run([py, "-c", prog, str(ark)], cwd=str(kode), env=R.underproces_miljoe(),
+            "import vaerksark_til_yaml as v; print(v.laes_tidszone(Path(sys.argv[1]), sys.argv[2]))")
+    r = subprocess.run([py, "-c", prog, str(ark), fane], cwd=str(kode), env=R.underproces_miljoe(),
                        capture_output=True, text=True, encoding="utf-8", errors="replace",
                        timeout=120, preexec_fn=begraens_proces())
     linjer = (r.stdout or "").strip().splitlines()
@@ -181,8 +183,9 @@ def fejl_fra_log(log: str, rc: int) -> str:
     return f"Konverteringen stoppede med kode {rc}: " + " | ".join(hale)
 
 
-def konverter_output(ud: Path, tidszone: str, timeslut: bool) -> Konvertering:
-    """Scriptets output → blade (med markør) + normaliserede tidsserier."""
+def konverter_output(ud: Path, tidszone: str, timeslut: bool, sol_tidszone: str | None = None) -> Konvertering:
+    """Scriptets output → blade (med markør) + normaliserede tidsserier. ``tidszone`` er Timedata-arkets
+    erklæring, ``sol_tidszone`` Solvarme-arkets (metadata for en målt solprofil; uden den bruges ``tidszone``)."""
     cases = sorted(p for p in (ud / "cases").iterdir() if p.suffix == ".yaml") \
         if (ud / "cases").is_dir() else []
     if len(cases) != 1:
@@ -238,13 +241,16 @@ def konverter_output(ud: Path, tidszone: str, timeslut: bool) -> Konvertering:
         k.tidsserier.append({
             "rolle": "solprofil",
             "navn": f"Værksark: {'målt' if maalt else 'syntetisk'} solprofil ({enhed})"[:200],
-            "filnavn": fil.name, "res": res, "tidsstempel": stempel if maalt else "start",
-            "tidszone": tidszone if maalt else "UTC"})
+            "filnavn": fil.name, "res": res, "tidsstempel": stempel if maalt else "start", "maalt": maalt,
+            "tidszone": (sol_tidszone or tidszone) if maalt else "UTC"})
         p.vaerdi_json = json.dumps(TS.MARKOER_SOLPROFIL)
     for t in k.tidsserier:
         if t["res"].status != "gyldig":
             raise ArkFejl(f"{t['navn']}: " + "; ".join(t["res"].validering.get("fejl") or []))
-        k.advarsler += [f"{t['rolle']}: {a}" for a in t["res"].validering.get("advarsler") or []]
+        # Runde 8 (V8): en syntetisk solprofil er MODELLENS (scripts/vaerksark_til_yaml.py), ikke brugerens data;
+        # oraklets fund ("forskudt en time", "produktion om natten") må ikke lyde som en fejl i arket.
+        hvis = "solprofil (modellens syntetiske profil, ikke jeres data)" if t.get("maalt") is False else t["rolle"]
+        k.advarsler += [f"{hvis}: {a}" for a in t["res"].validering.get("advarsler") or []]
     return k
 
 
@@ -426,7 +432,7 @@ def importer_et(db, imp: dict, model_sha: str, timeslut: bool, rap,
         if rc != 0:
             raise ArkFejl(fejl_fra_log(log, rc))
         tz = kildens_tidszone(kode, py, ark)
-        k = konverter_output(arbejde / "ud", tz, timeslut)
+        k = konverter_output(arbejde / "ud", tz, timeslut, kildens_tidszone(kode, py, ark, "Solvarme"))
         res = lager.gem_vaerk(imp, k, model_sha, log, files=files)
         res.update(status="faerdig", sekunder=round(time.time() - t0, 1), advarsler=k.advarsler)
         rap.trin("faerdig", {x: res[x] for x in ("vaerk_id", "kode", "parametre", "tidsserier")})

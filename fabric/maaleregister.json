@@ -25,7 +25,7 @@
    "felt": "objektiv_dkk",
    "definition": "result.attrs.objective_value, uafrundet. Ved ex post-afregning (trin 2) er det trin 2's objektiv.",
    "etiket": "Samlet driftsomkostning (objektiv)",
-   "forklaring": "Det tal, optimeringen minimerer: brændsel, el, tariffer, afgifter, D&V og starter minus elsalg og balanceindtægt (brutto) for hele perioden. Afrundet til hele kr. i manifestet; brug det præcise tal fra løsningen til differenser.",
+   "forklaring": "Det tal, optimeringen minimerer: brændsel, CO₂-kvoter (src/model.py:96-100), el, tariffer, afgifter, D&V og starter minus elsalg og balanceindtægt (brutto) for hele perioden. Afrundet til hele kr. i manifestet; brug det præcise tal fra løsningen til differenser.",
    "etiket_kilde": "fv-ekspert",
    "etiket_ref": "manifest_noegletal:objektiv_dkk"
   },
@@ -80,7 +80,7 @@
    "kilde": "manifest",
    "felt": "noegletal.co2_ton",
    "etiket": "CO₂-udledning",
-   "forklaring": "Brændsel × udledningsfaktor for enheder med co2_emissions_per_mwh_fuel > 0. Biomasse regnes CO₂-neutral.",
+   "forklaring": "Brændsel × udledningsfaktor for enheder med co2_emissions_per_mwh_fuel > 0. Biomasse regnes CO₂-neutral, og elforbrug (varmepumper, elkedler) regnes uden CO₂ — modellens definition (src/manifest.py:128-145). Et skift fra gas til el sænker derfor tallet fuldt ud.",
    "etiket_kilde": "fv-ekspert",
    "etiket_ref": "manifest_noegletal:co2_ton"
   },

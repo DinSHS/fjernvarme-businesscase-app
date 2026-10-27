@@ -16,14 +16,28 @@ import { kladde, nyEnhed, NAVN_MOENSTER, tjekNavn } from "./redigering";
 import { validerVaerk, type Fund } from "./validering";
 
 /** Et blad i skabelonen eller i det færdige værk. */
-export interface NytBlad { sti: string; vaerdi_json: string; bekraeft: boolean; kommentar?: string | null }
+export interface NytBlad {
+    sti: string; vaerdi_json: string; bekraeft: boolean; kommentar?: string | null;
+    /** Hvor værdien kommer fra: modelrepoet ("Andeby, cases/andeby.yaml:184 @ eef950a") eller "egen antagelse: …". */
+    kilde?: string | null;
+}
 
-/** Hvordan varmelasten skaleres fra et årligt varmebehov (fv-eksperts formel). */
+/**
+ * Hvordan varmelasten skaleres fra et årligt varmebehov: modelrepoets egen regel (scripts/vaerksark_til_yaml.py),
+ * f = round(G / divisor_gwh, afrunding), værdi = round(grundtal × f, decimaler) — som værksarket (runde 8).
+ */
 export interface VarmelastFormel {
-    /** Det årlige varmebehov (GWh), skabelonens heat_load_params svarer til. */
+    /** Det årlige varmebehov (GWh), skabelonens heat_load_params står ved. */
     reference_gwh: number;
-    /** Stier, der skaleres lineært med gwh / reference_gwh (lister elementvis). */
+    /** Stier, der skaleres (lister elementvis). */
     skaleres: readonly string[];
+    divisor_gwh?: number;
+    afrunding?: number;
+    /** Andebys uskalerede tal pr. sti (fra modelrepoet). */
+    grundtal?: Readonly<Record<string, number | readonly number[]>>;
+    decimaler?: Readonly<Record<string, number>>;
+    /** fil:linje @ commit for reglen. */
+    kilde?: string;
     /** Formlen i ord, til guiden. */
     tekst: string;
     /** Skabelonens forbehold for formlen (fx at den gælder karup-vejr). */
@@ -43,6 +57,8 @@ export interface NytVaerkSkabelon {
     gaskedelPrGwh?: number;
     /** Spidslasten er ca. spidslastPrGwh × G MW; de styrbare enheder skal tilsammen dække den. */
     spidslastPrGwh?: number;
+    /** Appens egne antagelser i skabelonen (ikke fra modelrepoet), vist i guiden. */
+    egneAntagelser?: readonly string[];
     /** Skabelonens liste over obligatoriske felter (vises i "Gennemse"). */
     obligatoriske?: Readonly<Record<string, string | readonly string[]>>;
 }
@@ -237,15 +253,37 @@ export function manglendePriser(u: Udkast, s: NytVaerkSkabelon): string[] {
 
 // ------------------------------------------------------------------ sammensætning
 
-/** Skalerer skabelonens varmelast til `gwh` efter formlen (lister elementvis). Bladene bliver [BEKRÆFT]. */
+/** Pythons round(x, n) for de tal, skaleringen giver (toFixed runder den binære værdi som Python). */
+const rund = (x: number, n: number) => Number(x.toFixed(n));
+
+/** Modelrepoets faktor for et årsbehov: round(G / divisor, afrunding); G ≤ 1 giver 1 (scripts/vaerksark_til_yaml.py). */
+export function varmelastFaktor(formel: VarmelastFormel, gwh: number): number {
+    return gwh > 1 ? rund(gwh / (formel.divisor_gwh ?? formel.reference_gwh), formel.afrunding ?? 4) : 1;
+}
+
+/**
+ * Skalerer varmelasten til `gwh`. Med modelrepoets regel (grundtal + divisor i formlen) regnes hver værdi som
+ * værksarket gør det: round(grundtal × f, decimaler). Uden (ældre skabelon) lineært fra skabelonen. Bladene bliver [BEKRÆFT].
+ */
 export function skalerVarmelast(blade: readonly NytBlad[], formel: VarmelastFormel, gwh: number): NytBlad[] {
+    const f = varmelastFaktor(formel, gwh);
     const k = gwh / formel.reference_gwh;
     return blade.map((b) => {
         if (!formel.skaleres.includes(b.sti)) return b;
-        const v = JSON.parse(b.vaerdi_json) as unknown;
-        const ny = Array.isArray(v) ? `[${v.map((x) => (typeof x === "number" ? somDecimal(x * k) : JSON.stringify(x))).join(",")}]`
-            : typeof v === "number" ? somDecimal(v * k) : b.vaerdi_json;
-        return { ...b, vaerdi_json: ny, bekraeft: true, kommentar: `Skaleret fra skabelonen til ${String(gwh).replace(".", ",")} GWh/år (${formel.tekst}).` };
+        const grund = formel.grundtal?.[b.sti];
+        const dec = formel.decimaler?.[b.sti] ?? 4;
+        let ny: string;
+        if (grund !== undefined) {
+            ny = Array.isArray(grund) ? `[${(grund as readonly number[]).map((x) => somDecimal(rund(x * f, dec))).join(",")}]` : somDecimal(rund((grund as number) * f, dec));
+        } else {
+            const v = JSON.parse(b.vaerdi_json) as unknown;
+            ny = Array.isArray(v) ? `[${v.map((x) => (typeof x === "number" ? somDecimal(x * k) : JSON.stringify(x))).join(",")}]`
+                : typeof v === "number" ? somDecimal(v * k) : b.vaerdi_json;
+        }
+        const tekst = grund !== undefined
+            ? `Andeby × f, f = round(${String(gwh).replace(".", ",")}/${formel.divisor_gwh}, ${formel.afrunding}) = ${String(f).replace(".", ",")} (modelrepoets skalering, som værksarket).`
+            : `Skaleret fra skabelonen til ${String(gwh).replace(".", ",")} GWh/år (${formel.tekst}).`;
+        return { ...b, vaerdi_json: ny, bekraeft: true, kommentar: formel.kilde ? `${tekst} Kilde: ${formel.kilde}.` : tekst };
     });
 }
 

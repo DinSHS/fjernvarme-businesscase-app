@@ -52,7 +52,7 @@ describe("F5: vandfaldet gør ikke en ukendt post til et kendt trin", () => {
     it("kendt brutto i begge kørsler giver et balancetrin (normaltilfældet er uændret)", () => {
         const bro = omkostningsBro(samlet({ balance: balance(50_000) }), samlet({ balance: balance(70_000) }), 100_000, 90_000)!;
         expect(bro.steps.find((s) => s.label === "Balanceindtægt")?.delta).toBe(-20_000);
-        expect(bro.steps.at(-1)!.label).toBe("Brændsel, D&V, start m.m.");
+        expect(bro.steps.at(-1)!.label).toBe("Brændsel, CO₂-kvoter, D&V, start m.m.");
     });
     it("ukendt brutto i referencen: intet balancetrin, og resten siger, at den rummer den ukendte post", () => {
         const bro = omkostningsBro(samlet({ balance: balance(null) }), samlet({ balance: balance(50_000) }), 100_000, 90_000)!;
@@ -64,7 +64,7 @@ describe("F5: vandfaldet gør ikke en ukendt post til et kendt trin", () => {
     });
     it("uden balancemarked i begge kørsler er balancen dokumenteret nul: intet trin og ingen 'ukendt' i resten", () => {
         const bro = omkostningsBro(samlet(), samlet(), 100_000, 90_000)!;
-        expect(bro.steps.map((s) => s.label)).toEqual(["Elkøb", "Elsalg netto", "Brændsel, D&V, start m.m."]);
+        expect(bro.steps.map((s) => s.label)).toEqual(["Elkøb", "Elsalg netto", "Brændsel, CO₂-kvoter, D&V, start m.m."]);
     });
     it("elkøb kendt i kun den ene kørsel: intet elkøbstrin, resten navngiver elkøb", () => {
         const bro = omkostningsBro(samlet({ el_omkostning_dkk: null }), samlet(), 100_000, 90_000)!;

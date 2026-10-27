@@ -221,7 +221,9 @@ print(f"[4] Stjerne-tjek: {len(fejl.get('stjerne', []))} fejl")
 KILDE = re.compile(
     r"(\b[\w./-]+\.(md|py|yaml|csv|json)(:\d+(-\d+)?)?\b)"
     r"|(rapport v4 §\s?\d)|(rapport v4, (afsnit|tabel|bilag) )"
-    r"|(KONTRAKT §\d)")
+    r"|(KONTRAKT §\d)"
+    # Runde 8: en erklæret egen måling (dato og modelversion) er en kilde — den står ikke i modelrepoet, og det siges.
+    r"|(egen måling \()")
 TAL = re.compile(r"\d")
 
 

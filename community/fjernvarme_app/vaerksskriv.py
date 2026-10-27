@@ -91,3 +91,41 @@ def indsaet_tidsserie(db: Database, cn, vaerk_id: str, kode: str, rolle: str, na
         validering_json=kompakt_validering(res.validering), aktiv=bool(aktiv and gyldig),
         uploadet_af=hvem[:200], uploadet=nu()))
     return tid, "oprettet"
+
+
+def opdater_repo_vaerk(db: Database, cn, *, kode: str, navn: str, beskrivelse: str | None, blade: list[dict],
+                       hvem: str, kilde_fil: str, repo_commit: str) -> dict:
+    """Bring et repo-værk op til casefilen ved den pinnede commit — samme regler som Fabric's ``fjv.importer``.
+
+    Runde 8 (fv-trofast): før blev et eksisterende værk aldrig rørt af ``--demo``, så en database fra en ældre
+    modelversion beholdt de gamle værdier efter en pin-ændring. Nu: uændrede blade (værdi og metadata) -> intet;
+    et værk med ``kilde != 'repo'`` eller ``revision > 1`` (rettet i appen) -> ``beskyttet``; ellers erstattes
+    bladene, hver forskel logges, og revisionen øges (som ``importer_et``).
+    """
+    v, p = db.t("Vaerk"), db.t("VaerkParameter")
+    r = cn.execute(db.laas_raekke(select(v.c.id, v.c.kilde, v.c.revision).where(v.c.kode == kode))).first()
+    if r is None:
+        return {"kode": kode, "udfald": "findes ikke"}
+    vid, kilde, rev = r
+    gamle = {x.sti: x for x in cn.execute(select(p).where(p.c.vaerk_id == vid)).fetchall()}
+    nye = {b["sti"]: b for b in blade}
+    aendr = [(s, "opret", None, b["vaerdi_json"]) for s, b in nye.items() if s not in gamle]
+    aendr += [(s, "ret", gamle[s].vaerdi_json, b["vaerdi_json"]) for s, b in nye.items()
+              if s in gamle and gamle[s].vaerdi_json != b["vaerdi_json"]]
+    aendr += [(s, "slet", g.vaerdi_json, None) for s, g in gamle.items() if s not in nye]
+    meta = all((gamle[s].kommentar or None) == (b.get("kommentar") or None) and bool(gamle[s].bekraeft) == bool(b.get("bekraeft"))
+               and int(gamle[s].raekkefoelge) == int(b["raekkefoelge"]) for s, b in nye.items() if s in gamle)
+    if not aendr and meta:
+        return {"kode": kode, "udfald": "uaendret", "revision": rev}
+    if kilde != "repo" or rev > 1:
+        return {"kode": kode, "udfald": "beskyttet", "revision": rev, "afvigelser": len(aendr),
+                "besked": "rettet i appen (revision > 1 eller kilde=app) - røres ikke"}
+    cn.execute(p.delete().where(p.c.vaerk_id == vid))
+    skriv_blade(db, cn, vid, blade, hvem)
+    skriv_log(db, cn, vid, rev + 1, aendr, hvem)
+    n = cn.execute(v.update().where(and_(v.c.id == vid, v.c.revision == rev)).values(
+        navn=navn[:200], beskrivelse=beskrivelse, kilde_fil=kilde_fil, repo_commit=repo_commit,
+        revision=rev + 1, aendret_af=hvem, aendret=nu())).rowcount
+    if n != 1:
+        raise RuntimeError(f"{kode}: revisionen ændrede sig under importen")
+    return {"kode": kode, "udfald": "opdateret", "revision": rev + 1, "aendringer": len(aendr)}
