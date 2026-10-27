@@ -1,0 +1,20 @@
+👀 Found Rayfin project root: C:\repo\app
+[rayfin] license: Checking user license
+[rayfin] dependencies: Inspecting project dependencies
+[rayfin] workspace: Resolving workspace
+[rayfin] item: Resolving Rayfin item
+[rayfin] target: Resolving workload endpoint
+[rayfin] settings: Applying runtime settings
+[rayfin] data: Applying database configuration
+[rayfin] persist: Recording deployment
+[rayfin] static: Deploying static content
+[rayfin] functions: Deploying functions
+
+❌ Deployment failed: Cannot deploy: C:\repo\app\rayfin\functions is not deploy-ready.
+
+Fix each of the following before retrying:
+
+  • Required file missing: host.json — host.json is required by the Azure Functions host; the worker will not start without it.
+    ↳ Run `rayfin functions init` to scaffold a default host.json
+
+   Diagnostic log: C:\Brugere\bruger\.rayfin\logs\up.log

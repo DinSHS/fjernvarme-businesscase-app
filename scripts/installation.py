@@ -34,6 +34,20 @@ KONSTANTER = [
     ("ARBEJDER_NOTEBOOK_ID", ("notebooks", "koer_scenarie"), False),
     ("IMPORTER_NOTEBOOK_ID", ("notebooks", "importer_vaerksark"), False),
 ]
+#: Filer, `rayfin up` kraever, og som derfor er committet (runde 7c: host.json var git-ignoreret, saa en frisk klon
+#: udrullede den statiske app og stoppede ved functions - med exitkode 0, se RAYFIN_FEJL).
+PAAKRAEVEDE_FILER = ("app/rayfin/functions/host.json",)
+#: Fejlsignaturer i `rayfin up`'s output (ordlyden fra rayfin-cli dist/commands/up/up.js). CLI'en returnerer 0 efter flere af dem:
+#: en fejlet DAB-apply er ikke-fatal (frontenden udrulles alligevel), og 2026-10-27 sluttede "Deployment failed" ogsaa med 0.
+RAYFIN_FEJL = (
+    "Deployment failed",
+    "Database apply failed",
+    "Database configuration failed",
+    "Failed to generate DAB configuration",
+    "Destructive schema changes detected",
+    "Runtime settings failed",
+    "Connector apply step failed",
+)
 GUID = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 
@@ -174,6 +188,19 @@ def vis(sti: Path) -> int:
     return 0
 
 
+def rayfin_fejl(output: str) -> list:
+    """Linjerne i `rayfin up`'s output, der melder en fejl (RAYFIN_FEJL eller en linje, der begynder med X-maerket)."""
+    return [l.strip() for l in output.splitlines()
+            if l.strip() and (any(s in l for s in RAYFIN_FEJL) or l.lstrip().startswith("❌"))]
+
+
+def tjek_filer() -> None:
+    mangler = [rel for rel in PAAKRAEVEDE_FILER if not (REPO / rel).is_file()]
+    if mangler:
+        raise Stop(f"mangler {', '.join(mangler)} - filen er committet i repoet; hent den med `git checkout -- {mangler[0]}`. "
+                   "Uden den udruller `rayfin up` den statiske app og stopper ved functions.")
+
+
 def npx(args: list, tor: bool) -> int:
     txt = "npx " + " ".join(args)
     print(txt)
@@ -183,7 +210,22 @@ def npx(args: list, tor: bool) -> int:
     exe = shutil.which("npx") or shutil.which("npx.cmd")
     if not exe:
         raise Stop("npx findes ikke paa PATH (installer Node.js)")
-    return subprocess.run([exe, *args], cwd=REPO / "app").returncode
+    # Outputtet vises loebende OG gemmes: CLI'ens exitkode alene siger ikke, om udrulningen lykkedes (RAYFIN_FEJL).
+    p = subprocess.Popen([exe, *args], cwd=REPO / "app", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    opsamlet = []
+    for linje in iter(p.stdout.readline, b""):
+        t = linje.decode("utf-8", errors="replace")
+        opsamlet.append(t)
+        sys.stdout.write(t)
+        sys.stdout.flush()
+    rc = p.wait()
+    fejl = rayfin_fejl("".join(opsamlet))
+    if fejl:
+        print(f"FEJL: `{txt}` meldte en fejl (CLI'ens exitkode {rc}); udrulningen er ikke komplet:", file=sys.stderr)
+        for f in fejl[:10]:
+            print(f"  {f}", file=sys.stderr)
+        return rc or 1
+    return rc
 
 
 def main(argv=None) -> int:
@@ -208,6 +250,7 @@ def main(argv=None) -> int:
         d = laes(sti)
         if a.kommando == "rayfin-up":
             kraev(d, [s for _n, s, p in KONSTANTER if p])
+            tjek_filer()
             if a.tor:
                 print("[TOER] ville foerst paafoere konfig.ts og rayfin.yml (python scripts/installation.py paafoer)")
             else:

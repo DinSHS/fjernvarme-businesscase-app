@@ -4,7 +4,10 @@
 `paafoer` skriver installationens vaerdier ind LOKALT og saetter git `skip-worktree`, saa de aldrig kan committes ved en fejl;
 `fjern` ruller tilbage. Gaten (scripts/tjek.py) er bagstopperen, hvis nogen alligevel gaar uden om det.
 """
+import importlib.util
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -23,6 +26,8 @@ INST = {"workspace_navn": "Testens Workspace", "workspace_id": WS, "lakehouse_na
         "app": {"redirect_uris": ["https://" + "min-test-app-b46947b23b." + "webapp.fabricapps.net"]}}
 KONFIG = "app/rayfin/functions/src/konfig.ts"
 YML = "app/rayfin/rayfin.yml"
+HOST = "app/rayfin/functions/host.json"
+DATA = Path(__file__).resolve().parent / "data"
 
 
 def git(rod, *a, check=True):
@@ -37,7 +42,7 @@ class Installation(unittest.TestCase):
         self._t = tempfile.TemporaryDirectory()
         self.addCleanup(self._t.cleanup)
         self.rod = Path(self._t.name) / "repo"
-        for rel in (KONFIG, YML, "config/installation.eksempel.json", "scripts/installation.py"):
+        for rel in (KONFIG, YML, HOST, "config/installation.eksempel.json", "scripts/installation.py"):
             d = self.rod / rel
             d.parent.mkdir(parents=True, exist_ok=True)
             d.write_bytes((ROD / rel).read_bytes().replace(b"\r\n", b"\n"))
@@ -49,9 +54,9 @@ class Installation(unittest.TestCase):
             git(self.rod, "add", "-A")
             git(self.rod, "-c", "user.name=t", "-c", "user.email=t@example.com", "commit", "-q", "-m", "start")
 
-    def kor(self, *args):
+    def kor(self, *args, env=None):
         return subprocess.run([sys.executable, "-I", str(self.rod / "scripts" / "installation.py"), *args], capture_output=True,
-                              text=True, encoding="utf-8", errors="replace", timeout=120, cwd=self._t.name)
+                              text=True, encoding="utf-8", errors="replace", timeout=120, cwd=self._t.name, env=env)
 
     def konfig(self):
         return (self.rod / KONFIG).read_text(encoding="utf-8")
@@ -147,6 +152,93 @@ class Installation(unittest.TestCase):
 
     def test_ukendt_kommando_er_en_brugsfejl(self):
         self.assertEqual(self.kor("noget-andet").returncode, 2)
+
+    # ---------------------------------------------------------------- runde 7c, rettelse 3: host.json i en frisk klon
+
+    def test_rayfin_up_uden_host_json_stopper_foer_noget_sker(self):
+        (self.rod / HOST).unlink()
+        r = self.kor("rayfin-up", "--tor")
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("host.json", r.stderr)
+        self.assertNotIn("npx rayfin up", r.stdout)
+
+    # ---------------------------------------------------------------- runde 7c, rettelse 2: CLI'ens exitkode 0 er ikke nok
+
+    def falsk_npx(self, optagelse: str, rc: int = 0) -> dict:
+        """En `npx` forrest i PATH, der skriver en optaget `rayfin up`-udskrift og slutter med `rc`."""
+        bin_ = Path(self._t.name) / "bin"
+        bin_.mkdir(exist_ok=True)
+        (bin_ / "falsk_npx.py").write_text(
+            "import sys\n"
+            f"sys.stdout.buffer.write(open({str(DATA / optagelse)!r}, 'rb').read())\n"
+            f"sys.exit({rc})\n", encoding="utf-8")
+        if os.name == "nt":
+            (bin_ / "npx.cmd").write_text(f'@"{sys.executable}" "%~dp0falsk_npx.py" %*\r\n', encoding="utf-8")
+        else:
+            sti = bin_ / "npx"
+            sti.write_text(f'#!/bin/sh\nexec "{sys.executable}" "$(dirname "$0")/falsk_npx.py" "$@"\n', encoding="utf-8")
+            sti.chmod(0o755)
+        env = dict(os.environ)
+        env["PATH"] = str(bin_) + os.pathsep + env.get("PATH", "")
+        env["PYTHONUTF8"] = "1"
+        return env
+
+    def test_deployment_failed_med_exitkode_0_giver_fejl(self):
+        r = self.kor("rayfin-db-apply", env=self.falsk_npx("rayfin_up_functions_fejl.txt"))
+        self.assertNotEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("Deployment failed", r.stderr)
+        self.assertIn("Found Rayfin project root", r.stdout, "outputtet skal stadig vises")
+
+    def test_fejlet_dab_apply_med_exitkode_0_giver_fejl(self):
+        r = self.kor("rayfin-db-apply", env=self.falsk_npx("rayfin_up_dab_fejl.txt"))
+        self.assertNotEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("Database apply failed", r.stderr)
+
+    def test_fuldfoert_deploy_giver_0(self):
+        r = self.kor("rayfin-db-apply", env=self.falsk_npx("rayfin_up_ok.txt"))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_cli_ens_egen_fejlkode_bevares(self):
+        self.assertEqual(self.kor("rayfin-db-apply", env=self.falsk_npx("rayfin_up_ok.txt", rc=3)).returncode, 3)
+
+
+class RayfinFejlSignaturer(unittest.TestCase):
+    """`installation.rayfin_fejl` på de optagede udskrifter (offentlig/tests/data/README.md)."""
+
+    @classmethod
+    def setUpClass(cls):
+        spec = importlib.util.spec_from_file_location("installation_r7c", SCRIPT)
+        cls.m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.m)
+
+    def laes(self, navn):
+        return (DATA / navn).read_text(encoding="utf-8")
+
+    def test_functions_fejlen_fra_2026_10_27(self):
+        f = self.m.rayfin_fejl(self.laes("rayfin_up_functions_fejl.txt"))
+        self.assertEqual(len(f), 1, f)
+        self.assertIn("Deployment failed", f[0])
+
+    def test_fejlet_dab_apply(self):
+        self.assertTrue(any("Database apply failed" in x for x in self.m.rayfin_fejl(self.laes("rayfin_up_dab_fejl.txt"))))
+
+    def test_fuldfoert_deploy_har_ingen_fejl(self):
+        self.assertEqual(self.m.rayfin_fejl(self.laes("rayfin_up_ok.txt")), [])
+
+
+class HostJsonICommittetRepo(unittest.TestCase):
+    """Runde 7c, rettelse 3: en frisk klon har host.json (git-sporet, ikke ignoreret) - og den er CLI'ens neutrale standard."""
+
+    @unittest.skipUnless(GIT and (ROD / ".git").exists(), "kræver git-arbejdskopien")
+    def test_host_json_er_sporet_og_ikke_ignoreret(self):
+        self.assertEqual(git(ROD, "ls-files", HOST), HOST)
+        self.assertNotEqual(subprocess.run(["git", "-C", str(ROD), "check-ignore", "-q", HOST]).returncode, 0)
+
+    def test_host_json_indeholder_intet_organisationsspecifikt(self):
+        d = json.loads((ROD / HOST).read_text(encoding="utf-8"))
+        self.assertEqual(set(d), {"version", "logging", "extensionBundle", "watchDirectories"})
+        self.assertEqual(d["version"], "2.0")
+        self.assertTrue(d["extensionBundle"]["id"].startswith("Microsoft.Azure.Functions.ExtensionBundle"))
 
 
 if __name__ == "__main__":

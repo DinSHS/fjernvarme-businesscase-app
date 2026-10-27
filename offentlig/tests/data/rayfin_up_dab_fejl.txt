@@ -1,0 +1,10 @@
+👀 Found Rayfin project root: C:\repo\app
+[rayfin] settings: Applying runtime settings
+
+🗄️  Applying database configuration...
+✔ Database configuration generated: C:\repo\app\rayfin\dab-config.json
+✖ Database apply failed: DAB server responded with error: 500
+💡 You can manually run 'rayfin up db apply' after the workload is ready
+[rayfin] static: Deploying static content
+[rayfin] functions: Deploying functions
+🎉 Project "fjernvarme-businesscase" is now deployed to Fabric!

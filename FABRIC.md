@@ -46,7 +46,8 @@ Læg mærke til, at **appens SQL-database først findes efter appens første udr
 1. **Workspace og lakehouse.** Opret et workspace på din kapacitet og et lakehouse `fjv_lakehouse` i det (portalen, eller `fab mkdir`; se `fab mkdir -h`).
    Skriv `workspace_navn`, `workspace_id` og `lakehouse_id` i `config/installation.json`.
 2. **Motorkoden til lakehouset.** `python fabric/deploy.py kode` lægger `fjv/*.py`, måleregistret og tidsserie-reglerne i `Files/fjv/motor/`.
-   Koden er **én delt kopi** for alle notebooks.
+   Koden er **én delt kopi** for alle notebooks. Bagefter skriver `kode` motorens pins (model- og df-data-SHA) i appens `dbo.Motors`, som
+   appens bestillinger fryser dem fra; findes databasen ikke endnu (første installation), springes det over, og trin 5 gør det.
 3. **Notebooks.** `python fabric/deploy.py notebook` bygger og importerer de fire notebooks (`fjv_koer_scenarie`, `fjv_importer_vaerker`,
    `fjv_importer_vaerksark`, `fjv_selvtest`) bundet til lakehouset. Skriv deres id'er i `notebooks.*` (`fab get "<workspace>.Workspace/<navn>.Notebook" -q id`).
 4. **Appen (to omgange).**
@@ -61,7 +62,8 @@ Læg mærke til, at **appens SQL-database først findes efter appens første udr
    ```
    `rayfin-up` kalder først `paafoer`, som skriver værdierne ind i `app/rayfin/functions/src/konfig.ts` og `app/rayfin/rayfin.yml` **lokalt** og sætter
    `git update-index --skip-worktree`, så de to filer ikke kan committes med dine værdier. `python scripts/installation.py fjern` ruller tilbage (gør det før `git pull`).
-5. **Databasebindingen til notebooks.** `python fabric/deploy.py db` skriver `Files/fjv/konfig/db.json` fra `sql_server`/`sql_database`.
+5. **Databasebindingen til notebooks.** `python fabric/deploy.py db` skriver `Files/fjv/konfig/db.json` fra `sql_server`/`sql_database`
+   og motorens pins i `dbo.Motors` (`python fabric/deploy.py pins` gør kun det sidste; kræver `az login`).
 6. **Værkerne.** `python fabric/deploy.py koer fjv_importer_vaerker` importerer modelrepoets værker i databasen.
 7. **Kontrol.** `python fabric/deploy.py koer fjv_selvtest` og `python fabric/deploy.py rapport fjv_selvtest` (modelrepoets egen testsuite i Fabric), og åbn appen i portalen.
 
@@ -73,7 +75,10 @@ Hver kommando kan prøves **tørt** uden at røre Fabric: `python fabric/deploy.
 * **Kør Rayfin fra `app/`** (CLI'en finder projektet ud fra den aktuelle mappe). Giv altid `--workspace-id` — `scripts/installation.py rayfin-up` gør det.
 * **Én solver ad gangen** og **kun appens egen kø**: notebooken tager en global SQL-lås; en anden arbejder afslutter uden at røre noget.
 * En kørsel gemmer de fulde pinnede commits (model og df-data), den brugte. Skift pins bevidst (`fabric/fjv/konstanter.py`, `CREDITS.md`, `app/src/sider/dokumentation/kilde.ts`
-  — `scripts/tjek.py` fejler, hvis de ikke er ens).
+  — `scripts/tjek.py` fejler, hvis de ikke er ens), og deploy med `deploy.py kode`, så `dbo.Motors` følger med. Arbejderen **afviser** (status `fejl`) en
+  kørsel, hvis frosne pins ikke er den motor, der kører den — fx en bestilling lagt, mens `dbo.Motors` stadig stod på den forrige motor. Bestil den igen.
+* `installation.py rayfin-up`/`rayfin-db-apply` læser Rayfin-CLI'ens output og slutter med **exitkode 1**, hvis den melder `Deployment failed`, en fejlet
+  database-apply o.l. — CLI'en selv slutter med 0 i de tilfælde (en halv udrulning: frontenden er ude, resten ikke).
 * `fab job run` melder kun Completed/Failed; hver notebook skriver sin egen rapport til `Files/_run/<navn>.json` (`deploy.py rapport <navn>`).
 
 ## Hvad ligger hvor
@@ -86,6 +91,7 @@ Hver kommando kan prøves **tørt** uden at røre Fabric: `python fabric/deploy.
 | `app/src/styles/temaer/privat/` | **nej** | dit eget tema (se `app/TEMAER.md`) |
 | `app/rayfin/.deployments.json`, `app/rayfin/.env`, `app/.env.local` | **nej** | Rayfins egen udrulningstilstand |
 | `app/rayfin/functions/src/konfig.ts`, `app/rayfin/rayfin.yml` | ja — **med tomme værdier** | `paafoer` fylder dem lokalt (skip-worktree) |
+| `app/rayfin/functions/host.json` | ja | Azure Functions-værtens standard (Rayfin-CLI'ens skabelon); uden den udruller `rayfin up` ikke functions |
 
 ## Fejlfinding
 
@@ -95,5 +101,7 @@ Hver kommando kan prøves **tørt** uden at røre Fabric: `python fabric/deploy.
 | `… mangler eller har pladsholdere i: …` | et påkrævet felt er tomt eller stadig `<…>` |
 | `fab: kommando findes ikke` | `fab` er ikke på PATH — sæt `FJV_FAB` til den fulde sti |
 | Appen starter, men en kørsel bliver stående i `koe` | `notebooks.koer_scenarie` er tom eller forkert i `konfig.ts` — kør `paafoer` + `rayfin-up` igen |
-| *The field `x` does not exist on the type `Query`* efter et deploy | databaseskemaet blev ikke anvendt — kør `rayfin-db-apply` (en fejlet `db apply` inde i `rayfin up` er ikke fatal og melder exit 0) |
+| *The field `x` does not exist on the type `Query`* efter et deploy | databaseskemaet blev ikke anvendt — kør `rayfin-db-apply` (en fejlet `db apply` inde i `rayfin up` er ikke fatal for CLI'en; `installation.py` melder den nu med exit 1) |
+| `rayfin-up`: *mangler app/rayfin/functions/host.json* | filen er committet; hent den med `git checkout -- app/rayfin/functions/host.json` |
+| En kørsel ender i `fejl`: *bestilt med andre versioner end den motor, der skal regne den* | bestillingen frøs den forrige motors pins — kør `deploy.py pins` (hvis `dbo.Motors` ikke er opdateret) og bestil igen |
 | `git pull` brokker sig over `konfig.ts`/`rayfin.yml` | kør `python scripts/installation.py fjern`, pull, og `paafoer` igen |
