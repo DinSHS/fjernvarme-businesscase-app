@@ -1,7 +1,7 @@
 // Helsidesskærmbilleder af konfigurationens ruter (harness, fixture-data):
 //   npx vite build --config vite.skaerm.config.ts && node src/sider/konfiguration/_byg/skaermbilleder.mjs <udmappe> [rute …]
 // Ruter UDEN "#/" (Git Bash omskriver et argument der starter med "/"). Bredder 1440 og 500 px; mørkt tema
-// for ruter i MOERK. Samme CDP-mønster som skaermbilleder/layout.mjs (fundamentet), men med hele sidens højde.
+// for ruter, hvor moerk() er sand. Samme CDP-mønster som skaermbilleder/layout.mjs (fundamentet), men med hele sidens højde.
 import { createServer } from "node:http";
 import { readFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
@@ -26,7 +26,9 @@ const RUTER = ruteArg.length ? ruteArg : [
     "konfiguration/andeby/tid", "konfiguration/andeby/meta", "konfiguration/andeby/log", "konfiguration/andeby/aendringer",
     "konfiguration/andeby/kilde", "konfiguration/andeby/ny-enhed", "konfiguration/billund_spora/el", "konfiguration/findes_ikke",
 ];
-const MOERK = new Set(["konfiguration/billund_sporb/tidsserier/f80cbaf0-7960-44a7-9096-5d98a779a685", "konfiguration/andeby", "konfiguration/andeby/el", "konfiguration/andeby/varmelast"]);
+// Mørkt tema: disse ruter og enhver tidsseries detaljeside (id'et er fixturens egen række — Codex K9 F3).
+const MOERK_RUTER = new Set(["konfiguration/andeby", "konfiguration/andeby/el", "konfiguration/andeby/varmelast"]);
+const moerk = (r) => MOERK_RUTER.has(r) || /^konfiguration\/[^/]+\/tidsserier\/[^/]+$/.test(r);
 
 const server = createServer((req, res) => {
     const sti = decodeURIComponent((req.url ?? "/").split("?")[0]);
@@ -55,7 +57,7 @@ const send = (method, params = {}, sessionId) => new Promise((r) => { const i = 
 
 for (const rute of RUTER) {
     for (const b of [1440, 500]) {
-        for (const tema of b === 1440 && MOERK.has(rute) ? ["lys", "moerk"] : ["lys"]) {
+        for (const tema of b === 1440 && moerk(rute) ? ["lys", "moerk"] : ["lys"]) {
             const { result: { targetId } } = await send("Target.createTarget", { url: "about:blank" });
             const { result: { sessionId } } = await send("Target.attachToTarget", { targetId, flatten: true });
             await send("Emulation.setDeviceMetricsOverride", { width: b, height: 1000, deviceScaleFactor: 1, mobile: false }, sessionId);

@@ -31,7 +31,7 @@ bruger, medmindre de vælger en anden. Fanen viser også serien: profil over tid
 huller og — for varmelast — målt mod den syntetiske. Markeds- og vejrdata (spotpris, aFRR, mFRR, DMI) kommer fra
 datarepoet og uploades aldrig. (Kilde: KONTRAKT §6d)
 
-**Nyt værk fra regneark:** under *Nyt værk* kan du i stedet uploade modellens regneark `vaerksdata_skabelon.xlsx`.
+**Nyt værk fra regneark:** under *Upload værksark* kan du i stedet uploade modellens regneark `vaerksdata_skabelon.xlsx`.
 Et værk og en tidsserie oprettes af arket, og importen viser sin status og log. Hvad der skal stå hvor, står i
 *Information → Hvilke data skal med?*. (Kilde: KONTRAKT §6d)
 

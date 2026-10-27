@@ -11,6 +11,9 @@ venv/
 __pycache__/
 *.pyc
 .pytest_cache/
+*.egg-info/
+build/
+.coverage
 
 # Lokal tilstand og hemmeligheder: org-specifikke værdier hører til i config/installation.json (lokal), ALDRIG i repoet
 config/installation.json
@@ -43,3 +46,5 @@ app/skaermbilleder/billeder/
 app/skaermbilleder/.byg/
 .idea/
 *.swp
+.DS_Store
+Thumbs.db

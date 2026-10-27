@@ -1,12 +1,12 @@
 // Live-beviser for K2/§6c på Functions-siden — mod den DEPLOYEDE app, som en almindelig bruger (Entra-token).
-//   node scripts/k2_live.mjs <tokenfil> kvote [værkskode]     4 samtidige bestillinger -> 3 i kø + 1 afvist; ingen jobstart
+//   node scripts/bestilling_live.mjs <tokenfil> kvote [værkskode]     4 samtidige bestillinger -> 3 i kø + 1 afvist; ingen jobstart
 //                                                              mens en arbejder holder fjv_solver; pins + modtaget frosset
-//   node scripts/k2_live.mjs <tokenfil> samtidig [værkskode]  2 samtidige bestillinger med låsen FRI -> præcis ét POST
-//   node scripts/k2_live.mjs <tokenfil> status <id …>          status/fase/modtaget/startet for kørsler + Motor
-//   node scripts/k2_live.mjs <tokenfil> annuller <id>          annullerKoersel
-//   node scripts/k2_live.mjs <tokenfil> en <værkskode> [navn]    én kørsel (FJV_PERIODE, FJV_BALANCERING)
-//   node scripts/k2_live.mjs <tokenfil> arkiver                 arkivér egne "Test K2 (…)"-scenarier
-//   node scripts/k2_live.mjs <tokenfil> vagt-foerste <id …>    annullér den FØRSTE af kørslerne, der ses i `koerer`
+//   node scripts/bestilling_live.mjs <tokenfil> samtidig [værkskode]  2 samtidige bestillinger med låsen FRI -> præcis ét POST
+//   node scripts/bestilling_live.mjs <tokenfil> status <id …>          status/fase/modtaget/startet for kørsler + Motor
+//   node scripts/bestilling_live.mjs <tokenfil> annuller <id>          annullerKoersel
+//   node scripts/bestilling_live.mjs <tokenfil> en <værkskode> [navn]    én kørsel (FJV_PERIODE, FJV_BALANCERING)
+//   node scripts/bestilling_live.mjs <tokenfil> arkiver                 arkivér egne "Test K2 (…)"-scenarier
+//   node scripts/bestilling_live.mjs <tokenfil> vagt-foerste <id …>    annullér den FØRSTE af kørslerne, der ses i `koerer`
 //                                                              (kun én: ingen annulleres, hvis én allerede er det)
 // FJV_BALANCERING=1: med balancering (MILP, minutter i stedet for sekunder — giver et sikkert `koerer`-vindue).
 // Periode: FJV_PERIODE=2026-01-01:2026-01-31 (standard 5.-6. jan.) — længere periode = længere `koerer`-vindue.

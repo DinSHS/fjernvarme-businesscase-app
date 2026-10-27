@@ -27,7 +27,7 @@ profil), så læg det som en fil `src/styles/temaer/privat/<id>.json` i din egen
 1. Filen følger formatet nedenfor. Giv den `standard: 100`, hvis den skal være standard i Fabric-installationen.
 2. Mappen `privat/` er **git-ignoreret**: temaet kommer ikke i repoet, og `scripts/tjek.py` afviser en fil dér, hvis nogen
    alligevel tvinger den ind (`git add -f`). Navnet på din organisation hører til i `config/forbud.lokal.json` (også lokal), så gaten
-   også stopper navnet i tekst og kode (se SYNKRONISERING.md).
+   også stopper navnet i tekst og kode (se doc/SYNKRONISERING.md).
 3. Er temaet efter en *anden* organisations offentlige profil, skal det være `uofficielt: true` med `maerke` og `kilder` (se tabellen),
    og må ikke bære organisationens navn eller logo i sidehovedet. Vis det aldrig offentligt uden organisationens lov.
 4. Tjek kontrasten, før temaet tages i brug (afsnittet *Tjek et tema* nedenfor).
@@ -89,6 +89,7 @@ Et tema behøver kun det, der adskiller det: **mangler en nøgle, arves den fra 
 | `fokus` | fokusring | ≥ 3:1 mod flader |
 | `pos`, `neg`, `advarsel` | statustekst og -mærker | ≥ 4,5:1; pos/neg skal kunne skelnes ved farveblindhed |
 | `ac`, `py`, `pl` | IBCS faktisk / forrige år / plan | ≥ 3:1; AC og PY tydeligt forskellige |
+| `heatmap_op`, `heatmap_ned` | tabellernes farvevalg (`IBCS.md` §8): Retning-farven for mere/mindre end referencen og den kraftigste heatmap-celle (blå / orange i de neutrale temaer). Heatmappets 5 trin pr. rampe (op, ned, god, dårlig og niveau = stærkeste `sekventiel`-trin) blandes over `flade`, og deres tekstfarve regnes af `heatRamper()` | ≥ 4,5:1 på `flade`; op/ned kan skelnes ved farveblindhed; hver celles tekst ≥ 4,5:1 på sin egen baggrund, og trinene bliver stærkere mod fladen |
 | `delta_pos`, `delta_neg`, `delta_neutral` | IBCS-virkning af en afvigelse: **god**, **dårlig**, **neutral** (ikke fortegn — se `IBCS.md` §2). Blågrøn / rød / blå i de neutrale temaer | ≥ 4,5:1 på `flade` (mærker *og* farvede tal); alle tre par kan skelnes ved farveblindhed |
 | `serie` (8) | kategoriske serier, fast rækkefølge (aldrig cyklet) | hver ≥ 3:1 — også ved 85 % opacitet (analysernes lagdelte flader); **alle par** (ikke kun naboer) ΔE ≥ 6 (mål 8) under protan/deutan og ≥ 15 normalt: hver enhed i et værk har sin plads, og alle står i samme graf |
 | `serie_oevrige` | 9.+ kategori ("øvrige") | ≥ 3:1 (også ved 85 %); mod hver serie samme afstandskrav som serierne |

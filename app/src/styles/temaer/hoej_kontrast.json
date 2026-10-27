@@ -5,6 +5,8 @@
   "standard": 1,
   "form": { "radius_kort": 4, "radius_felt": 3 },
   "lys": {
+    "heatmap_op": "#1d3fbf",
+    "heatmap_ned": "#7f4500",
     "baggrund": "#ffffff",
     "flade": "#ffffff",
     "flade_haevet": "#f0f0f0",
@@ -35,6 +37,8 @@
     "signatur": ["#000000"]
   },
   "moerk": {
+    "heatmap_op": "#a5b4ff",
+    "heatmap_ned": "#ffb366",
     "baggrund": "#000000",
     "flade": "#0a0a0a",
     "flade_haevet": "#1a1a1a",

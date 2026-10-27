@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------
 
 import type { ReactNode } from "react";
+import type { Farvning } from "@/lib/tabelfarve";
 import { CircleAlert, Inbox, RefreshCw } from "lucide-react";
 import type { Hentet } from "@/lib/data/hooks";
 import { STATUS_TEKST, STATUS_TONE } from "@/lib/data/koersel-status";
@@ -13,6 +14,7 @@ import type { KoerselStatus } from "../../../rayfin/data/fjv.constants";
 // Temaet anvendes, så snart layoutet importeres (src/styles/tema.ts kører ved import).
 export { TemaVaelger } from "./TemaVaelger";
 export { Sidefod } from "./Sidefod";
+export { FarveValg, HeatSkalaProvider, useHeatMaks, useVisning } from "./Tabelfarve";
 
 /**
  * IBCS-titlen i tre linjer (UN 2.2, app/IBCS.md §4): hvem (værk + alle afgrænsninger), **hvad** (mål i fed + enhed),
@@ -80,6 +82,8 @@ export interface Kolonne<T> {
     vis: (r: T) => ReactNode;
     /** Højrestillet tal-kolonne. */
     tal?: boolean;
+    /** Cellens farve efter tabellens farvevalg (src/lib/tabelfarve.ts); tom = som før. */
+    farve?: (r: T) => Farvning;
 }
 
 export function Tabel<T>({ rækker, kolonner, nøgle, valgt, onVælg, tom = "Ingen rækker." }: {
@@ -104,7 +108,13 @@ export function Tabel<T>({ rækker, kolonner, nøgle, valgt, onVælg, tom = "Ing
                                 onKeyDown={onVælg ? (e) => {
                                     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onVælg(r); }
                                 } : undefined}>
-                                {kolonner.map((k) => <td key={k.navn} className={k.tal ? "fjv-h" : undefined}>{k.vis(r)}</td>)}
+                                {kolonner.map((k) => {
+                                    const f = k.farve?.(r);
+                                    return (
+                                        <td key={k.navn} className={k.tal ? "fjv-h" : undefined} data-heat={f?.heat}
+                                            style={f?.baggrund || f?.tekst ? { background: f.baggrund, color: f.tekst } : undefined}>{k.vis(r)}</td>
+                                    );
+                                })}
                             </tr>
                         );
                     })}

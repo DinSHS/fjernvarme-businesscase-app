@@ -880,17 +880,28 @@ export function relativAfvigelse(ref: number | null | undefined, scen: number | 
     return (scen - ref) / ref;
 }
 
-export interface EnhedVarians { navn: string; a: number; b: number; delta: number; relativ: number | null }
+/** `null` = ukendt: enheden findes i kørslen, men dens produktion mangler (Codex K9 F1). */
+export interface EnhedVarians { navn: string; a: number | null; b: number | null; delta: number | null; relativ: number | null }
 
-/** Produktion pr. enhed a vs b (MWh). Enheder der kun findes i én kørsel tæller som 0 i den anden. */
+/** Typevagt: varianser med kendt Δ (til budskaber og fremhævning). */
+export const kendtDelta = (v: EnhedVarians): v is EnhedVarians & { delta: number } => v.delta != null;
+
+/** Rækkefølge: scenariets produktion, så referencens, største først; ukendt sidst. */
+export const varianseOrden = (x: EnhedVarians, y: EnhedVarians) =>
+    (y.b ?? -Infinity) - (x.b ?? -Infinity) || (y.a ?? -Infinity) - (x.a ?? -Infinity) || x.navn.localeCompare(y.navn);
+
+/**
+ * Produktion pr. enhed a vs b (MWh). Enheder der kun findes i én kørsel tæller som 0 i den anden. En enhed, kørslen
+ * har, men uden produktionstal er ukendt (null) — aldrig 0 — og så er Δ og Δ% også ukendte (Codex K9 F1).
+ */
 export function produktionsvarians(a: readonly EnhedTal[], b: readonly EnhedTal[]): EnhedVarians[] {
-    const ma = new Map(a.map((e) => [e.navn, e.produktion_mwh ?? 0]));
-    const mb = new Map(b.map((e) => [e.navn, e.produktion_mwh ?? 0]));
+    const ma = new Map(a.map((e) => [e.navn, e.produktion_mwh])), mb = new Map(b.map((e) => [e.navn, e.produktion_mwh]));
     const navne = [...new Set([...ma.keys(), ...mb.keys()])];
+    const maks = (v: EnhedVarians) => Math.max(v.a ?? 0, v.b ?? 0);
     return navne.map((navn) => {
-        const va = ma.get(navn) ?? 0, vb = mb.get(navn) ?? 0;
-        return { navn, a: va, b: vb, delta: vb - va, relativ: relativAfvigelse(va, vb) };
-    }).sort((x, y) => Math.max(y.a, y.b) - Math.max(x.a, x.b) || x.navn.localeCompare(y.navn));
+        const va = ma.has(navn) ? ma.get(navn)! : 0, vb = mb.has(navn) ? mb.get(navn)! : 0;
+        return { navn, a: va, b: vb, delta: va == null || vb == null ? null : vb - va, relativ: relativAfvigelse(va, vb) };
+    }).sort((x, y) => maks(y) - maks(x) || x.navn.localeCompare(y.navn));
 }
 
 /**
@@ -898,8 +909,9 @@ export function produktionsvarians(a: readonly EnhedTal[], b: readonly EnhedTal[
  * halmkedlen), og driften bliver 89.000 kr. dyrere".
  */
 export function sammenligningsBudskab(varians: readonly EnhedVarians[], d: Difference | null, energiTekst: (mwh: number) => string): string {
-    const op = [...varians].sort((x, y) => y.delta - x.delta)[0];
-    const ned = [...varians].sort((x, y) => x.delta - y.delta)[0];
+    const kendt = varians.filter(kendtDelta);
+    const op = [...kendt].sort((x, y) => y.delta - x.delta)[0];
+    const ned = [...kendt].sort((x, y) => x.delta - y.delta)[0];
     const dele: string[] = [];
     if (op && ned && op.delta > 0.5 && ned.delta < -0.5) dele.push(`I scenariet overtager ${op.navn} ${energiTekst(op.delta)} (mest fra ${ned.navn})`);
     else if (op && op.delta > 0.5) dele.push(`I scenariet producerer ${op.navn} ${energiTekst(op.delta)} mere`);

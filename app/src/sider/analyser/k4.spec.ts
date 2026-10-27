@@ -78,9 +78,10 @@ describe("K4 F5: prisretning og omkostningsretning hver for sig", () => {
         expect(v.saetning).toMatch(/^Naturgas 20 % billigere gør driften 200\.000 kr\. billigere i perioden/);
         expect(v.saetning).not.toMatch(/dyrere/);
     });
+    // Δ = 265.776 kr. → "ca. 266.000 kr." (kr.-reglen med afrundingsmarkør, Codex K9 F4).
     it("prisstigning og dyrere drift: '20 % dyrere … dyrere'", () => {
         const v = vurder(ordnPar(ref(), side("scen", 30_265_776, [ind("aendring", "prices.natural_gas.value", "727.2")])));
-        expect(v.saetning).toMatch(/^Naturgas 20 % dyrere gør driften 266\.000 kr\. dyrere i perioden/);
+        expect(v.saetning).toMatch(/^Naturgas 20 % dyrere gør driften ca\. 266\.000 kr\. dyrere i perioden/);
     });
     it("prisstigning men lavere omkostning ud over tolerancen: fortegnet kan ikke passe → neutral, ingen 'dyrere drift'", () => {
         const v = vurder(ordnPar(ref(), side("scen", 29_800_000, [ind("aendring", "prices.natural_gas.value", "727.2")])));

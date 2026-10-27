@@ -1,5 +1,5 @@
 {
-  "_om": "Skabelon for en installation. Kopier til config/installation.json (git-ignoreret) og udfyld; se FABRIC.md, afsnittet 'Din installation'. Nøgler, der begynder med _, er kommentarer. Alt, du skriver i installation.json, bliver aldrig committet: scripts/tjek.py stopper det.",
+  "_om": "Skabelon for en installation. Kopier til config/installation.json (git-ignoreret) og udfyld; se doc/FABRIC.md, afsnittet 'Din installation'. Nøgler, der begynder med _, er kommentarer. Alt, du skriver i installation.json, bliver aldrig committet: scripts/tjek.py stopper det.",
   "workspace_navn": "<DIT-WORKSPACE-NAVN>",
   "workspace_id": "<DIT-WORKSPACE-ID>",
   "lakehouse_navn": "fjv_lakehouse",

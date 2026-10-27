@@ -6,6 +6,8 @@
   "skrift": { "base": "'Sitka Text', Charter, 'Bitstream Charter', Cambria, Georgia, serif" },
   "form": { "radius_kort": 4, "radius_felt": 3 },
   "lys": {
+    "heatmap_op": "#3b5bdb",
+    "heatmap_ned": "#b05a00",
     "baggrund": "#ffffff",
     "flade": "#ffffff",
     "flade_haevet": "#f5f5f4",
@@ -29,6 +31,8 @@
     "signatur": ["#1a1a1a"]
   },
   "moerk": {
+    "heatmap_op": "#8ea2ff",
+    "heatmap_ned": "#e8a25a",
     "baggrund": "#161616",
     "flade": "#1e1e1e",
     "flade_haevet": "#262626",

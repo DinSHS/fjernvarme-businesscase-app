@@ -25,6 +25,7 @@ export const FARVER = [
     "primaer", "primaer_tekst", "accent", "accent_2", "fokus",
     "pos", "neg", "advarsel",
     "serie_oevrige", "ac", "py", "pl", "delta_pos", "delta_neg", "delta_neutral",
+    "heatmap_op", "heatmap_ned",
 ] as const;
 export type Farve = (typeof FARVER)[number];
 
@@ -184,6 +185,8 @@ export const CSS_VARIABLER: Record<Farve, readonly string[]> = {
     delta_pos: ["--fjv-delta-pos"],
     delta_neg: ["--fjv-delta-neg"],
     delta_neutral: ["--fjv-delta-neutral"],
+    heatmap_op: ["--fjv-heat-op"],
+    heatmap_ned: ["--fjv-heat-ned"],
 };
 
 /** Signaturstriben øverst: farverne i forholdet 4-1-1 (to farver: 4-2, én farve: hel). */
@@ -235,6 +238,46 @@ const AFLEDTE_VARIABLER: Record<keyof Afledte, string> = {
     fejl_bg: "--fjv-fejl-bg", fejl_kant: "--fjv-fejl-kant", knap_hover: "--fjv-knap-hover", knap_aktiv: "--fjv-knap-aktiv",
 };
 
+// ---------------------------------------------------------------------------
+// Tabellernes heatmap (runde 9, app/IBCS.md §8): fem trin pr. rampe, baggrund + den tekstfarve, der holder AA på
+// netop den baggrund. Ramperne regnes her og skrives som tokens (--fjv-heat-op-3, --fjv-heat-op-3-tekst …), så
+// skærmen og kontrastscriptet bruger samme hex — ingen color-mix bag tekst.
+// ---------------------------------------------------------------------------
+
+/** Rampernes navne: neutral op/ned (divergerende), virkning god/dårlig (IBCS-polaritet) og niveau (sekventiel). */
+export const HEAT_RAMPER = ["op", "ned", "god", "daarlig", "niveau"] as const;
+export type HeatRampe = (typeof HEAT_RAMPER)[number];
+/**
+ * Polens andel over fladen pr. trin (trin 5 = polen selv = Retning-farven). Valgt så lysheden (OKLab L) falder i næsten
+ * lige store skridt, og trin 1 står med ≥ 1,35:1 mod fladen (ikke til at forveksle med en ufarvet celle). Første udgave
+ * (0,14 … 0,70 → 1) havde sit største spring mellem trin 4 og 5 (IBCS-review runde 9, fund 4–5).
+ */
+export const HEAT_ANDEL = [0.22, 0.4, 0.58, 0.78, 1] as const;
+export const HEAT_TRIN = HEAT_ANDEL.length;
+
+export interface HeatCelle { bg: string; tekst: string }
+
+/**
+ * Den første af `tekst`, `flade`, sort og hvid, der står med ≥ 4,5:1 på baggrunden. Sort eller hvid består altid
+ * (mindst 4,58:1 mod enhver farve), så en celle aldrig kan få en ulæselig tekst — uanset tema.
+ */
+export function laesbarTekst(bg: string, v: Pick<ModusTokens, "tekst" | "flade">): string {
+    const kand = [v.tekst, v.flade, "#000000", "#ffffff"];
+    return kand.find((c) => kontrast(c, bg) >= TEKST) ?? kand.sort((a, b) => kontrast(b, bg) - kontrast(a, bg))[0];
+}
+
+/**
+ * Alle fem ramper blandes af én pol over fladen, så intensiteten er monoton pr. konstruktion. Niveau-polen er temaets
+ * stærkeste `sekventiel`-trin; selve `sekventiel`-trinene bruges ikke, fordi et tema kan have en mættet mellemtone og
+ * en bleg yderpol (DIN mørk: trin 3 #0163d1 så kraftigere ud end trin 5 #b8d8fb — review fund 6).
+ */
+export function heatRamper(v: ModusTokens): Record<HeatRampe, HeatCelle[]> {
+    const pol: Record<HeatRampe, string> = { op: v.heatmap_op, ned: v.heatmap_ned, god: v.delta_pos, daarlig: v.delta_neg, niveau: v.sekventiel[4] };
+    const ud = {} as Record<HeatRampe, HeatCelle[]>;
+    for (const r of HEAT_RAMPER) ud[r] = HEAT_ANDEL.map((a) => { const bg = bland(pol[r], v.flade, a); return { bg, tekst: laesbarTekst(bg, v) }; });
+    return ud;
+}
+
 /** Erklæringerne for ét tema i én modus (uden selektor). */
 export function cssErklaeringer(t: Tema, m: Modus): string[] {
     const v = t[m];
@@ -245,6 +288,9 @@ export function cssErklaeringer(t: Tema, m: Modus): string[] {
     v.serie.forEach((c, i) => ud.push(`--fjv-serie-${i + 1}: ${c}`));
     v.sekventiel.forEach((c, i) => ud.push(`--fjv-sek-${i + 1}: ${c}`));
     v.divergerende.forEach((c, i) => ud.push(`--fjv-div-${i + 1}: ${c}`));
+    for (const [r, trin] of Object.entries(heatRamper(v))) {
+        trin.forEach((c, i) => ud.push(`--fjv-heat-${r}-${i + 1}: ${c.bg}`, `--fjv-heat-${r}-${i + 1}-tekst: ${c.tekst}`));
+    }
     ud.push(`--fjv-signatur: ${signaturGradient(v.signatur)}`);
     ud.push(`--fjv-skygge-kort: ${v.skygge_kort}`);
     if (t.skrift?.base) ud.push(`--font-base: ${t.skrift.base}`, `--font-heading: ${t.skrift.base}`);
@@ -292,6 +338,9 @@ export const KONTRASTKRAV: readonly (readonly [Farve | `serie.${number}` | `dive
     ["delta_pos", ["flade"], TEKST, "IBCS god virkning (mærke og tal)"],
     ["delta_neg", ["flade"], TEKST, "IBCS dårlig virkning (mærke og tal)"],
     ["delta_neutral", ["flade"], TEKST, "IBCS neutral virkning (mærke og tal)"],
+    // Tabellernes farvevalg (IBCS.md §8): Retning farver tallet med polen, Heatmap har polen som mørkeste celle.
+    ["heatmap_op", ["flade"], TEKST, "tabelfarve: mere end referencen (tal og mørkeste celle)"],
+    ["heatmap_ned", ["flade"], TEKST, "tabelfarve: mindre end referencen (tal og mørkeste celle)"],
     ...Array.from({ length: 8 }, (_, i) => [`serie.${i}`, ["flade"], GRAFIK, `kategorisk serie ${i + 1}`] as const),
     ["divergerende.0", ["flade"], GRAFIK, "divergerende yderpunkt"],
     ["divergerende.4", ["flade"], GRAFIK, "divergerende yderpunkt"],
@@ -379,6 +428,20 @@ export function maal(t: Tema): Fund[] {
         if (midt > 0.04) fund("divergerende", "midtpunktet skal være neutralt (OKLCH C ≤ 0,04)", midt, 0.04);
         const d = v.divergerende.map((c) => kontrast(c, v.flade));
         if (!(d[0] > d[1] && d[4] > d[3])) fund("divergerende", "armene skal blive stærkere mod yderpunkterne", Math.min(d[0] - d[1], d[4] - d[3]), 0);
+        // Heatmap (IBCS.md §8): hver celles tekst ≥ 4,5:1 på sin egen baggrund, trinene stærkere og stærkere mod fladen,
+        // og op/ned (blå/orange) kan skelnes af farveblinde — fortegnet i tallet er den anden kodning.
+        for (const [r, trin] of Object.entries(heatRamper(v))) {
+            trin.forEach((c, i) => {
+                const k = kontrast(c.tekst, c.bg);
+                if (k < TEKST) fund("kontrast", `heatmap ${r} trin ${i + 1}: tekst ${c.tekst} på ${c.bg}`, k, TEKST);
+            });
+            const mod = trin.map((c) => kontrast(c.bg, v.flade));
+            for (let i = 0; i + 1 < mod.length; i++) {
+                if (!(mod[i + 1] > mod[i])) fund("heatmap", `${r}: trin ${i + 1}→${i + 2} bliver ikke stærkere mod fladen`, mod[i + 1], mod[i]);
+            }
+        }
+        const opNed = Math.min(afstand(v.heatmap_op, v.heatmap_ned, "protan"), afstand(v.heatmap_op, v.heatmap_ned, "deutan"));
+        if (opNed < CVD_GULV) fund("farveblind", "heatmap op/ned under protan/deutan", opNed, CVD_GULV);
     }
     return ud;
 }

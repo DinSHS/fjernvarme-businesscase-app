@@ -3,7 +3,7 @@
   "description": "Fjernvarme Businesscase — Fabric App (preview): dokumentation, metode, konfiguration af værker, analyser og scenarier for den åbne MILP-driftsmodel. Modellen kører i en Fabric Python-notebook; appen læser og skriver kun sin egen SQL-database.",
   "license": "MIT",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.3.1",
   "type": "module",
   "scripts": {
     "predev": "rayfin env --framework vite",

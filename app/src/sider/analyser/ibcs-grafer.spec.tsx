@@ -4,7 +4,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { formatDelta, formatPercentDelta, formatValue, impactFill, impactKey, impactText, layoutStructureBars, tokens, type Mark } from "@/ibcs";
-import { aendringTekst, type EnhedVarians, type Samlet } from "./beregn";
+import { aendringTekst, relativAfvigelse, type EnhedVarians, type Samlet } from "./beregn";
 import { DeltaTal, KODER, TKR, energiSkala, omkostningsBro, tkr } from "./ibcs-grafer";
 
 const rect = (m: Mark) => (m.kind === "rect" ? m : null)!;
@@ -46,7 +46,7 @@ describe("Ref og Scen pr. enhed (spec analyser-sammenlign v2)", () => {
         { navn: "elkedel_ny", a: 472, b: 410, delta: -62, relativ: -62 / 472 },
         { navn: "ny_enhed", a: 0, b: 12, delta: 12, relativ: null },
     ];
-    const rækker = v.map((x) => ({ category: x.navn, AC: x.b, PL: x.a, delta: x.delta, deltaPct: x.a > 0 ? x.delta / x.a : null }));
+    const rækker = v.map((x) => ({ category: x.navn, AC: x.b, PL: x.a, delta: x.delta, deltaPct: relativAfvigelse(x.a, x.b) }));
     const l = layoutStructureBars(rækker, { width: 900, reference: "PL", referenceStyle: "bar", ppu: 0.1, scale: { factor: 1, prefix: "", decimals: 0 }, polarity: 0, codes: KODER });
 
     it("ΔRef-bjælkerne har samme px pr. MWh som produktionsbjælkerne (E5)", () => {
