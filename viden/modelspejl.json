@@ -15,7 +15,14 @@
      "start": null,
      "slut": null,
      "balancing_method": null,
-     "ekstra": []
+     "data_source": "github",
+     "ekstra": [],
+     "flag": [
+      [
+       "--data-source",
+       "github"
+      ]
+     ]
     },
     {
      "kilde": "cases/andeby.yaml:13-14",
@@ -25,7 +32,22 @@
      "start": "2026-01-05",
      "slut": "2026-01-16",
      "balancing_method": null,
-     "ekstra": []
+     "data_source": "github",
+     "ekstra": [],
+     "flag": [
+      [
+       "--data-source",
+       "github"
+      ],
+      [
+       "--start",
+       "2026-01-05"
+      ],
+      [
+       "--end",
+       "2026-01-16"
+      ]
+     ]
     },
     {
      "kilde": "README.md:179",
@@ -35,7 +57,18 @@
      "start": null,
      "slut": null,
      "balancing_method": null,
+     "data_source": "github",
      "ekstra": [],
+     "flag": [
+      [
+       "--data-source",
+       "github"
+      ],
+      [
+       "--with-balancing",
+       null
+      ]
+     ],
      "navn": "Andeby helår, med balancering",
      "objektiv_dkk": 24188471
     },
@@ -47,7 +80,14 @@
      "start": null,
      "slut": null,
      "balancing_method": null,
+     "data_source": "github",
      "ekstra": [],
+     "flag": [
+      [
+       "--data-source",
+       "github"
+      ]
+     ],
      "navn": "Andeby helår, uden balancering",
      "objektiv_dkk": 30431535
     }
@@ -60,7 +100,14 @@
     "start": null,
     "slut": null,
     "balancing_method": null,
-    "ekstra": []
+    "data_source": "github",
+    "ekstra": [],
+    "flag": [
+     [
+      "--data-source",
+      "github"
+     ]
+    ]
    },
    "blade": {
     "meta.case_name": [
@@ -1005,7 +1052,22 @@
      "start": null,
      "slut": null,
      "balancing_method": null,
-     "ekstra": []
+     "data_source": "github",
+     "ekstra": [],
+     "flag": [
+      [
+       "--data-source",
+       "github"
+      ],
+      [
+       "--with-balancing",
+       null
+      ],
+      [
+       "--heat-csv",
+       "data/billund_abvaerk_hourly_splejset_jun2026.csv"
+      ]
+     ]
     },
     {
      "kilde": "cases/billund_idag.yaml:28-30",
@@ -1015,8 +1077,27 @@
      "start": null,
      "slut": null,
      "balancing_method": null,
+     "data_source": "github",
      "ekstra": [
-      "--df-data-cache"
+      "--df-data-cache data/df-data-2026niveau"
+     ],
+     "flag": [
+      [
+       "--data-source",
+       "github"
+      ],
+      [
+       "--with-balancing",
+       null
+      ],
+      [
+       "--df-data-cache",
+       "data/df-data-2026niveau"
+      ],
+      [
+       "--heat-csv",
+       "data/billund_abvaerk_hourly_splejset_jun2026.csv"
+      ]
      ]
     }
    ],
@@ -1028,7 +1109,22 @@
     "start": null,
     "slut": null,
     "balancing_method": null,
-    "ekstra": []
+    "data_source": "github",
+    "ekstra": [],
+    "flag": [
+     [
+      "--data-source",
+      "github"
+     ],
+     [
+      "--with-balancing",
+      null
+     ],
+     [
+      "--heat-csv",
+      "data/billund_abvaerk_hourly_splejset_jun2026.csv"
+     ]
+    ]
    },
    "blade": {
     "meta.case_name": [
@@ -1817,7 +1913,18 @@
      "start": null,
      "slut": null,
      "balancing_method": null,
+     "data_source": "github",
      "ekstra": [],
+     "flag": [
+      [
+       "--data-source",
+       "github"
+      ],
+      [
+       "--with-balancing",
+       null
+      ]
+     ],
      "navn": "Spor A-anker",
      "objektiv_dkk": 5069729
     }
@@ -1830,7 +1937,18 @@
     "start": null,
     "slut": null,
     "balancing_method": null,
+    "data_source": "github",
     "ekstra": [],
+    "flag": [
+     [
+      "--data-source",
+      "github"
+     ],
+     [
+      "--with-balancing",
+      null
+     ]
+    ],
     "navn": "Spor A-anker",
     "objektiv_dkk": 5069729
    },
@@ -2609,7 +2727,22 @@
      "start": null,
      "slut": null,
      "balancing_method": null,
+     "data_source": "github",
      "ekstra": [],
+     "flag": [
+      [
+       "--data-source",
+       "github"
+      ],
+      [
+       "--with-balancing",
+       null
+      ],
+      [
+       "--heat-csv",
+       "data/billund_abvaerk_hourly_splejset_jun2026.csv"
+      ]
+     ],
      "navn": "Billund rullende år",
      "objektiv_dkk": 21773827
     }
@@ -2622,7 +2755,22 @@
     "start": null,
     "slut": null,
     "balancing_method": null,
+    "data_source": "github",
     "ekstra": [],
+    "flag": [
+     [
+      "--data-source",
+      "github"
+     ],
+     [
+      "--with-balancing",
+      null
+     ],
+     [
+      "--heat-csv",
+      "data/billund_abvaerk_hourly_splejset_jun2026.csv"
+     ]
+    ],
     "navn": "Billund rullende år",
     "objektiv_dkk": 21773827
    },
@@ -4193,7 +4341,22 @@
      "start": null,
      "slut": null,
      "balancing_method": null,
-     "ekstra": []
+     "data_source": "github",
+     "ekstra": [],
+     "flag": [
+      [
+       "--data-source",
+       "github"
+      ],
+      [
+       "--with-balancing",
+       null
+      ],
+      [
+       "--heat-csv",
+       "data/billund_abvaerk_hourly_splejset_jun2026.csv"
+      ]
+     ]
     },
     {
      "kilde": "README.md:177",
@@ -4203,7 +4366,22 @@
      "start": null,
      "slut": null,
      "balancing_method": null,
+     "data_source": "github",
      "ekstra": [],
+     "flag": [
+      [
+       "--data-source",
+       "github"
+      ],
+      [
+       "--with-balancing",
+       null
+      ],
+      [
+       "--heat-csv",
+       "data/billund_abvaerk_hourly_splejset_jun2026.csv"
+      ]
+     ],
      "navn": "Spor B",
      "objektiv_dkk": 4204128
     }
@@ -4216,7 +4394,22 @@
     "start": null,
     "slut": null,
     "balancing_method": null,
-    "ekstra": []
+    "data_source": "github",
+    "ekstra": [],
+    "flag": [
+     [
+      "--data-source",
+      "github"
+     ],
+     [
+      "--with-balancing",
+      null
+     ],
+     [
+      "--heat-csv",
+      "data/billund_abvaerk_hourly_splejset_jun2026.csv"
+     ]
+    ]
    },
    "blade": {
     "meta.case_name": [
@@ -6569,7 +6762,44 @@
   "requests": ">=2.34",
   "openpyxl": ">=3.1"
  },
+ "run_case_flag": {
+  "--dummy": 0,
+  "--external": 0,
+  "--data-path": 1,
+  "--dmi-area": 1,
+  "--dmi-temp-shortname": 1,
+  "--price-zone": 1,
+  "--eur-dkk": 1,
+  "--cache-dir": 1,
+  "--force-refresh": 0,
+  "--data-source": 1,
+  "--df-data-url": 1,
+  "--df-data-cache": 1,
+  "--year": 1,
+  "--start": 1,
+  "--end": 1,
+  "--heat-params": 1,
+  "--heat-csv": 1,
+  "--heat-csv-column": 1,
+  "--heat-csv-tz": 1,
+  "--solver": 1,
+  "--mip-gap": 1,
+  "--mip-abs-gap": 1,
+  "--days": 1,
+  "--out-dir": 1,
+  "--enable": 1,
+  "--disable": 1,
+  "--balancing-method": 1,
+  "--with-balancing": 0,
+  "--legacy-nettab": 0,
+  "--set": 1
+ },
  "varmelast_skalering": {
+  "betingelse": {
+   "op": ">",
+   "graense": 1.0
+  },
+  "ellers": 1.0,
   "divisor_gwh": 100.0,
   "afrunding": 4,
   "kilde": "scripts/vaerksark_til_yaml.py:1581",
@@ -6601,7 +6831,19 @@
    4.61,
    4.39
   ],
-  "kilde_grundtal": "scripts/vaerksark_til_yaml.py:1582-1590",
-  "profil_afrunding": 3
+  "decimaler": {
+   "heat_load_params.gaf_mw_per_k": 4,
+   "heat_load_params.nettab_slope_mw_per_k": 4,
+   "heat_load_params.baseline_profile_mw": 3
+  },
+  "profil_afrunding": 3,
+  "faste": {
+   "t_ref": 15.0,
+   "thermal_inertia_hours": 24,
+   "t_net": 12.0,
+   "weekly_dip": 0.02
+  },
+  "kilde_grundtal": "scripts/vaerksark_til_yaml.py:1582-1598",
+  "kilde_tekst": "f = round(aarsvolumen / 100.0, 4) if aarsvolumen > 1 else 1.0\nandeby_profil = [4.437, 4.500, 4.602, 4.767, 4.822, 5.112,\n                     5.590, 5.606, 5.355, 4.955, 4.775, 4.696,\n                     4.563, 4.469, 4.414, 4.359, 4.430, 4.602,\n                     4.728, 4.767, 4.735, 4.728, 4.610, 4.390]\nheat_params = {\n        \"gaf_mw_per_k\": round(0.7653 * f, 4),\n        \"t_ref\": 15.0,\n        \"thermal_inertia_hours\": 24,\n        \"nettab_slope_mw_per_k\": round(0.4768 * f, 4),\n        \"t_net\": 12.0,\n        \"baseline_profile_mw\": [round(v * f, 3) for v in andeby_profil],\n        \"weekly_dip\": 0.02,\n        \"_source\": (f\"Andeby-kalibrering skaleret med {f} til {aarsvolumen:.1f} GWh/år. \"\n                    \"BEMÆRK: en skaleret døgnprofil, ikke en kalibrering på jeres \"\n                    \"egne data. Bruges kun ved kørsel uden --heat-csv. Vil I have \"\n                    \"rigtige parametre, så kør scripts/calibrate_heat_load.py.\"),\n    }"
  }
 }

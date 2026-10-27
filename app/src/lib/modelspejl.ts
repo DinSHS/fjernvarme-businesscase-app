@@ -17,6 +17,10 @@ export interface Modelkoersel {
     start: string | null;
     slut: string | null;
     balancing_method: string | null;
+    /** --data-source-værdien (modelrepoet: altid github). */
+    data_source?: string | null;
+    /** Fortolkede flag, appens standardkørsel IKKE oversætter (K8 F5). Skal være tomt for en standardkommando. */
+    ekstra?: string[];
 }
 
 export interface Spejlcase {
@@ -75,8 +79,9 @@ export interface Afdrift {
 }
 
 /**
- * Afdrift mellem et værk fra modelrepoet og casefilen ved den pinnede commit. Kun for `kilde = "repo"` og
- * revision 1 (et rettet værk er en bevidst ændring, som Historik viser). undefined = intet at sammenligne.
+ * Afdrift mellem et værk fra modelrepoet og casefilen ved den pinnede commit, for `kilde = "repo"` — UANSET revision
+ * (K8 F3: et rettet værk sammenlignes også; at det beskyttes mod genimport er et andet spørgsmål).
+ * undefined = intet at sammenligne (ikke et repoværk, eller casen findes ikke i spejlet).
  */
 export function afdrift(vaerk: { kode: string; kilde: string; revision: number; repo_commit?: string | null },
     blade: ReadonlyMap<string, string> | undefined): Afdrift | undefined {
@@ -84,7 +89,6 @@ export function afdrift(vaerk: { kode: string; kilde: string; revision: number; 
     const c = MODELSPEJL.cases[vaerk.kode];
     if (!c) return undefined;
     const gammelCommit = !!vaerk.repo_commit && !SPEJL_COMMIT.startsWith(vaerk.repo_commit) && !vaerk.repo_commit.startsWith(SPEJL_COMMIT);
-    if (vaerk.revision > 1) return { gammelCommit, afviger: [], mangler: [], ekstra: [] };
     const afviger: Afdrift["afviger"] = [];
     const mangler: string[] = [];
     for (const [sti, [v, linje]] of Object.entries(c.blade)) {

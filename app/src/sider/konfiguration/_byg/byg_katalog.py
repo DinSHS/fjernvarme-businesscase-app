@@ -110,6 +110,8 @@ def byg_nyt_vaerk(katalog: dict) -> None:
             "skaleres": skaleres,
             "divisor_gwh": s["skalering"]["divisor_gwh"],
             "afrunding": s["skalering"]["afrunding"],
+            "betingelse": s["skalering"]["betingelse"],
+            "ellers": s["skalering"]["ellers"],
             "grundtal": s["skalering"]["grundtal"],
             "decimaler": s["skalering"]["decimaler"],
             "kilde": s["skalering"]["kilde"],
@@ -122,8 +124,9 @@ def byg_nyt_vaerk(katalog: dict) -> None:
         "kilde": f"viden/nyt_vaerk_skabelon.json @ {s['model_commit'][:7]}",
         "trinRegler": regler,
         # Tallene står i skabelonens tekst; de udtrækkes her, så guiden altid følger fv-eksperts skabelon.
-        "gaskedelPrGwh": tal_i(formel["units.gaskedel.p_max_heat"], r"rund\(\s*([\d,\.]+)\s*×\s*G\)", "gaskedlens MW pr. GWh"),
-        "spidslastPrGwh": tal_i(formel["units.gaskedel.p_max_heat"], r"spidslast\s*≈\s*([\d,\.]+)\s*×\s*G", "spidslast pr. GWh"),
+        # K8 F2: kedel og spidslast følger den FAKTISK genererede faktor f (ikke G), også ved modellens særregel G ≤ 1.
+        "gaskedelVedF1": tal_i(formel["units.gaskedel.p_max_heat"], r"rund\(\s*([\d,\.]+)\s*×\s*f\)", "gaskedlens MW ved f = 1"),
+        "spidslastVedF1": tal_i(formel["units.gaskedel.p_max_heat"], r"spidslast\s*≈\s*([\d,\.]+)\s*×\s*f", "spidslast ved f = 1"),
         "obligatoriske": s["obligatoriske_felter"],
     }
     tekst = (
@@ -135,7 +138,7 @@ def byg_nyt_vaerk(katalog: dict) -> None:
         f"export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {json.dumps(data, ensure_ascii=False, indent=1)};\n"
     )
     ud.write_bytes(tekst.encode("utf-8"))
-    print(f"skrevet {ud.name}: {len(data['blade'])} blade, skalerer {len(skaleres)} stier, gaskedel {data['gaskedelPrGwh']} MW/GWh, spidslast {data['spidslastPrGwh']} MW/GWh")
+    print(f"skrevet {ud.name}: {len(data['blade'])} blade, skalerer {len(skaleres)} stier, gaskedel {data['gaskedelVedF1']} MW × f, spidslast {data['spidslastVedF1']} MW × f")
 
 
 if __name__ == "__main__":

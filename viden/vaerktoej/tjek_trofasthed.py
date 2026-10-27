@@ -4,17 +4,18 @@ Modelrepoet er sandheden. Testen fejler, hvis en modelopdatering ændrer en anta
 lade den glide igennem:
 
   [1] pins       viden/modelspejl.json, konstanter.py og hver viden/*.json's model_commit er den samme commit.
-  [2] spejl      modelspejl.json og app/src/lib/modelspejl.data.ts er præcis, hvad modelrepoet giver ved commit'en
-                 (cases som blade, kørselskommandoer, kodens standarder, solver, vinduer, requirements, skalering).
+  [2] spejl      modelspejl.json, app/src/lib/modelspejl.data.ts og skalering.vektorer.json er præcis, hvad modelrepoet
+                 giver ved commit'en (cases som blade, kørselskommandoer læst STRENGT, kodens standarder, solver, vinduer,
+                 requirements, HELE skaleringsreglen med kildetekst, og orakelvektorer fra modellens egne linjer).
   [3] ordre      for HVER case i cases/*.yaml: appens bestillingsvej (flad -> raekker_fra_vaerk -> byg) med
-                 modelrepoets egen kommando for casen giver casen typestrengt uændret og samme flag
-                 (--with-balancing, --heat-csv) som kommandoen.
+                 modelrepoets egen kommando for casen giver casen typestrengt uændret og PRÆCIS kommandoens flag; og
+                 standardkommandoen har intet, appens standardkørsel ikke sætter (K8 F5).
   [4] katalog    feltkatalogets standardværdier = kodens (navn, værdi, fil, ±15 linjer).
   [5] typer      enhedstypernes standardværdier = src/config.py's.
   [6] reference  referencetal.json's README-gruppe = README's tabel (kommando, objektiv, flag) og casens gab.
   [7] vinduer    knapper.json's faste vinduer = README's vinter-/sommervindue og Andebys tidsblok.
   [8] nyt værk   skabelonens Andeby-blade = cases/andeby.yaml; varmelasten = modelrepoets skalering.
-  [9] pakker     PINNEDE_PAKKER og community/pyproject.toml [model] = requirements.txt.
+  [9] pakker     PINNEDE_PAKKER og community/pyproject.toml (TOML; [model] skal findes) dækker requirements.txt.
  [10] tidsserier repoets varmelastfiler pr. case = filerne i modelrepoets kommandoer for casen.
  [11] kilder     ingen kildehenvisning til en fil, der ikke findes ("udviklingsrapport").
 
@@ -90,14 +91,23 @@ print(f"[1] pins: {K.MODEL_COMMIT[:7]} / df-data {K.DF_DATA_SHA[:7]}, {len(fejl.
 # --- [2] spejlet er modelrepoet -----------------------------------------------------------------------------
 tekster: dict[str, str] = {}
 if kilde is not None:
-    ny = BM.byg(kilde)
-    if BM.tekst_af(ny) != (VIDEN / "modelspejl.json").read_text(encoding="utf-8"):
+    try:
+        ny = BM.byg(kilde)
+    except SystemExit as e:          # BM.RegelFejl: reglen eller en kommando kan ikke længere læses (K8 F4/F5)
+        meld("spejl", f"modelspejlet kan ikke bygges fra modelrepoet ({kilde.beskriv()}): {e}")
+        ny = None
+    if ny is not None and BM.tekst_af(ny) != (VIDEN / "modelspejl.json").read_text(encoding="utf-8"):
         aendret = sorted(k for k in set(ny) | set(SPEJL) if ny.get(k) != SPEJL.get(k))
         cases = sorted(k for k in set(ny["cases"]) | set(CASES) if ny["cases"].get(k) != CASES.get(k))
         meld("spejl", f"modelspejl.json er ikke, hvad modelrepoet giver ({kilde.beskriv()}): {', '.join(aendret)}"
                       + (f"; cases: {', '.join(cases)}" if cases else "") + " - kør byg_modelspejl.py og gennemgå")
-    if BM.ts_af(ny) != (BM.UD_TS.read_text(encoding="utf-8") if BM.UD_TS.exists() else ""):
+    if ny is not None and BM.ts_af(ny) != (BM.UD_TS.read_text(encoding="utf-8") if BM.UD_TS.exists() else ""):
         meld("spejl", "app/src/lib/modelspejl.data.ts er ikke genereret fra modelspejlet - kør byg_modelspejl.py")
+    try:
+        if BM.vektorer_af(kilde) != (BM.UD_VEK.read_text(encoding="utf-8") if BM.UD_VEK.exists() else ""):
+            meld("spejl", "skalering.vektorer.json er ikke modelrepoets egne skaleringslinjer udført for G - kør byg_modelspejl.py")
+    except SystemExit as e:
+        meld("spejl", f"varmelast_skalering: {e}")
     for kode, c in CASES.items():
         tekster[kode] = kilde.tekst(c["fil"])
     print(f"[2] spejl: {len(CASES)} cases, {sum(len(c['blade']) for c in CASES.values())} blade mod {kilde.beskriv()}, "
@@ -107,7 +117,20 @@ if kilde is not None:
 for kode, tekst in tekster.items():
     c = CASES[kode]
     st = c["standard"]
+    # K8 F5: hele kommandoens betydning. (a) Appens STANDARDKØRSEL sætter kun balancemarked og varmelast — alt
+    # andet i modelrepoets standardkommando ville blive tabt og er en fejl. (b) Bestillingsvejen med alt det, appen
+    # kan udtrykke, skal give præcis kommandoens flag (uden betydningsløse som --out-dir).
+    for x in MK.ikke_oversat(st):
+        meld("ordre", f"{c['fil']}: modelrepoets standardkommando ({st['kilde']}) har {x}, som appens standardkørsel "
+                      "ikke sætter - tabt flag")
     scen = {"med_balancering": bool(st and st["med_balancering"]), "heat_csv": (st or {}).get("heat_csv")}
+    if st:
+        if st.get("start") or st.get("slut"):
+            scen.update(periode_start=st.get("start"), periode_slut=st.get("slut"))
+        if st.get("balancing_method"):
+            scen["balancing_method"] = st["balancing_method"]
+        if any(x == "--legacy-nettab" for x in st.get("ekstra") or []):
+            scen["ekstra_flag"] = "--legacy-nettab"
     try:
         plan = byg(raekker_fra_vaerk(flad(tekst), [], scen))
     except Exception as e:  # noqa: BLE001
@@ -121,6 +144,13 @@ for kode, tekst in tekster.items():
     heat = plan.cli[plan.cli.index("--heat-csv") + 1] if "--heat-csv" in plan.cli else None
     if heat != (f"data/{scen['heat_csv']}" if scen["heat_csv"] else None):
         meld("ordre", f"{c['fil']}: --heat-csv {heat} ≠ modelrepoets {scen['heat_csv']}")
+    if st:
+        tab = SPEJL.get("run_case_flag") or {}
+        par = lambda argv: sorted(tuple(x) for x in MK._flag(argv, "app", tab)["flag"] if x[0] not in MK.UDEN_BETYDNING)  # noqa: E731
+        forventet = sorted(tuple(x) for x in st["flag"] if x[0] not in MK.UDEN_BETYDNING)
+        faktisk = par(plan.cli)
+        if forventet != faktisk:
+            meld("ordre", f"{c['fil']}: appens argv {faktisk} ≠ modelrepoets kommando {forventet} ({st['kilde']})")
 if tekster:
     print(f"[3] ordre: {len(tekster)} cases gennem flad -> raekker_fra_vaerk -> byg med modelrepoets kommando, "
           f"{len(fejl.get('ordre', []))} fejl")
@@ -202,17 +232,24 @@ pr_linje: dict[int, list] = {}
 for _sti, (_v, _ln) in ab.items():
     pr_linje.setdefault(_ln, []).append((_sti, _v))
 sk = nyt["skalering"]
-for felt in ("divisor_gwh", "afrunding", "profil_afrunding"):
-    if not ens(sk[felt], S[felt]):
+for felt in ("divisor_gwh", "afrunding", "profil_afrunding", "betingelse", "ellers", "decimaler"):
+    if felt not in sk or not ens(sk[felt], S[felt]):
         meld("nyt", f"skalering.{felt} {sk[felt]} ≠ modelrepoets {S[felt]} ({S['kilde']})")
 for sti, v in sk["grundtal"].items():
     if not ens(v, S[sti.split(".")[-1]]):
         meld("nyt", f"skalering.grundtal.{sti} ≠ modelrepoets ({S['kilde_grundtal']})")
 G = float(nyt["standard_varmebehov_gwh"])
-f = round(G / S["divisor_gwh"], S["afrunding"]) if G > 1 else 1.0
-skaleret = {"heat_load_params.gaf_mw_per_k": round(S["gaf_mw_per_k"] * f, 4),
-            "heat_load_params.nettab_slope_mw_per_k": round(S["nettab_slope_mw_per_k"] * f, 4),
-            "heat_load_params.baseline_profile_mw": [round(x * f, S["profil_afrunding"]) for x in S["baseline_profile_mw"]]}
+# Hele reglen fra spejlet (K8 F4): betingelse, else-værdi, divisor og decimaler pr. nøgle.
+_b = S["betingelse"]
+f = round(G / S["divisor_gwh"], S["afrunding"]) if (G > _b["graense"] if _b["op"] == ">" else G >= _b["graense"]) else S["ellers"]
+_d = S["decimaler"]
+skaleret = {"heat_load_params.gaf_mw_per_k": round(S["gaf_mw_per_k"] * f, _d["heat_load_params.gaf_mw_per_k"]),
+            "heat_load_params.nettab_slope_mw_per_k": round(S["nettab_slope_mw_per_k"] * f, _d["heat_load_params.nettab_slope_mw_per_k"]),
+            "heat_load_params.baseline_profile_mw": [round(x * f, _d["heat_load_params.baseline_profile_mw"]) for x in S["baseline_profile_mw"]]}
+for _k, _v in S["faste"].items():          # de uskalerede tal: guiden og værksarket skal give det samme
+    _b2 = next((b for b in nyt["blade"] if b["sti"] == f"heat_load_params.{_k}"), None)
+    if _b2 is None or not ens(json.loads(_b2["vaerdi_json"]), _v):
+        meld("nyt", f"heat_load_params.{_k}: skabelonen har {_b2 and _b2['vaerdi_json']}, værksarkets regel {_v} ({S['kilde_grundtal']})")
 n8 = 0
 for b in nyt["blade"]:
     k = b.get("kilde") or ""
@@ -239,12 +276,39 @@ krav = SPEJL["krav"]
 for navn, ver in K.PINNEDE_PAKKER.items():
     if krav.get(navn.lower()) != f"=={ver}":
         meld("pakker", f"PINNEDE_PAKKER[{navn}] = {ver}, requirements.txt: {krav.get(navn.lower())}")
-pyproject = (ROD / "community" / "pyproject.toml").read_text(encoding="utf-8")
-blok = re.search(r"^model = \[(.*?)^\]", pyproject, re.S | re.M)
-for linje in re.findall(r'"([^"]+)"', blok.group(1) if blok else ""):
-    m = re.match(r"([A-Za-z0-9_.\-]+)\s*(.*)$", linje)
-    if krav.get(m.group(1).lower()) != m.group(2).strip():
-        meld("pakker", f"community [model] {linje!r} ≠ requirements.txt {krav.get(m.group(1).lower())!r}")
+# K8 F7: pyproject.toml læses strukturelt; sektionen SKAL findes, og modelrepoets krav skal være dækket — enten i
+# [model] eller (de dokumenterede undtagelser) i hovedafhængighederne / bevidst udeladt. "Intet at kontrollere" er en fejl.
+import tomllib  # noqa: E402
+UNDTAGELSER = {"pytest": "kun modelrepoets egne tests; appen kører dem ikke",
+               "pyyaml": "står i hovedafhængighederne (dependencies)",
+               "openpyxl": "står i hovedafhængighederne (dependencies)"}
+try:
+    _proj = tomllib.loads((ROD / "community" / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+except Exception as e:  # noqa: BLE001
+    _proj = {}
+    meld("pakker", f"community/pyproject.toml kan ikke læses: {type(e).__name__}: {e}")
+def _krav_af(liste):
+    ud = {}
+    for linje in liste or []:
+        m = re.match(r"([A-Za-z0-9_.\-]+)\s*(.*)$", linje)
+        ud[m.group(1).lower()] = m.group(2).strip()
+    return ud
+_model = (_proj.get("optional-dependencies") or {}).get("model")
+if not _model:
+    meld("pakker", "community/pyproject.toml: [project.optional-dependencies] model mangler eller er tom - intet at kontrollere er en fejl")
+_m, _hoved = _krav_af(_model), _krav_af(_proj.get("dependencies"))
+for navn, spec in krav.items():
+    if navn in _m:
+        if _m[navn] != spec:
+            meld("pakker", f"community [model] {navn}{_m[navn]} ≠ requirements.txt {navn}{spec}")
+    elif navn in UNDTAGELSER:
+        if UNDTAGELSER[navn].startswith("står i hoved") and _hoved.get(navn) != spec:
+            meld("pakker", f"community dependencies {navn}{_hoved.get(navn)} ≠ requirements.txt {navn}{spec}")
+    elif _model:
+        meld("pakker", f"community [model] mangler {navn}{spec} fra requirements.txt")
+for navn in _m:
+    if navn not in krav:
+        meld("pakker", f"community [model] har {navn}, som requirements.txt ikke har")
 print(f"[9] pakker: {len(K.PINNEDE_PAKKER)} pins + community [model], {len(fejl.get('pakker', []))} fejl")
 
 # --- [10] repoets tidsserier pr. case -----------------------------------------------------------------------

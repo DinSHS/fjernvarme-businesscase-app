@@ -10,6 +10,7 @@
 //-----------------------------------------------------------------------
 
 import { MAKS } from "../../../rayfin/data/fjv.constants";
+import { pyRound } from "@/lib/pyround";
 import { ENHEDSTYPER, findFelt } from "./katalog";
 import { KWH_PR_M3_K, objektnavne } from "./gruppering";
 import { kladde, nyEnhed, NAVN_MOENSTER, tjekNavn } from "./redigering";
@@ -33,6 +34,9 @@ export interface VarmelastFormel {
     skaleres: readonly string[];
     divisor_gwh?: number;
     afrunding?: number;
+    /** Hvornår G/divisor bruges (i dag G > 1); ellers `ellers` (i dag 1) — hele reglen fra modelrepoet (K8 F4). */
+    betingelse?: { op: string; graense: number };
+    ellers?: number;
     /** Andebys uskalerede tal pr. sti (fra modelrepoet). */
     grundtal?: Readonly<Record<string, number | readonly number[]>>;
     decimaler?: Readonly<Record<string, number>>;
@@ -53,10 +57,10 @@ export interface NytVaerkSkabelon {
     kilde: string;
     /** Skabelonens regel pr. trin (guide_trin[].regel), vist som trinnets fodnote. */
     trinRegler?: Readonly<Record<string, string>>;
-    /** Skabelonens gaskedel dimensioneres rund(gaskedelPrGwh × G) MW, når brugeren ikke selv sætter den. */
-    gaskedelPrGwh?: number;
-    /** Spidslasten er ca. spidslastPrGwh × G MW; de styrbare enheder skal tilsammen dække den. */
-    spidslastPrGwh?: number;
+    /** Skabelonens gaskedel dimensioneres rund(gaskedelVedF1 × f) MW, når brugeren ikke selv sætter den (f = modelrepoets faktor). */
+    gaskedelVedF1?: number;
+    /** Spidslasten er ca. spidslastVedF1 × f MW (Andebys med f = 1); de styrbare enheder skal tilsammen dække den (K8 F2). */
+    spidslastVedF1?: number;
     /** Appens egne antagelser i skabelonen (ikke fra modelrepoet), vist i guiden. */
     egneAntagelser?: readonly string[];
     /** Skabelonens liste over obligatoriske felter (vises i "Gennemse"). */
@@ -80,7 +84,7 @@ export interface NyEnhedUdkast {
     /** Brugerens egne indtastninger (relativ sti -> tekst). Kun de gør et felt "ikke skøn". */
     værdier: Map<string, string>;
     /** Skabelonens værdier for en enhed, den selv har med (relativ sti -> JSON + [BEKRÆFT]). */
-    forvalg?: Map<string, { json: string; bekraeft: boolean }>;
+    forvalg?: Map<string, { json: string; bekraeft: boolean; kilde?: string | null; kommentar?: string | null }>;
 }
 export interface NytLagerUdkast { navn: string; volumen: string; deltaT: string; pLad: string; pAflad: string }
 
@@ -109,7 +113,8 @@ export function startUdkast(s: NytVaerkSkabelon): Udkast {
         varme: { kilde: "gwh", gwh: String(s.varmelast.reference_gwh).replace(".", ",") },
         enheder: [...navne].map((navn) => ({
             type: tekstAf(læs(s.blade, `units.${navn}.type`)), navn, værdier: new Map(),
-            forvalg: new Map(s.blade.filter((b) => b.sti.startsWith(`units.${navn}.`)).map((b) => [b.sti.slice(`units.${navn}.`.length), { json: b.vaerdi_json, bekraeft: b.bekraeft }])),
+            forvalg: new Map(s.blade.filter((b) => b.sti.startsWith(`units.${navn}.`)).map((b) => [b.sti.slice(`units.${navn}.`.length),
+                { json: b.vaerdi_json, bekraeft: b.bekraeft, kilde: b.kilde ?? null, kommentar: b.kommentar ?? null }])),
         })),
         lagre: [],
         priser: new Map(),
@@ -177,6 +182,11 @@ export function tjekTrin(trin: TrinId, u: Udkast, s: NytVaerkSkabelon, ctx: Trin
             if (g === null) f.push("Skriv det årlige varmebehov som et tal i GWh (fx 45 eller 12,5).");
             else if (g <= 0) f.push("Varmebehovet skal være større end 0 GWh.");
             else if (g > 5000) f.push("Over 5.000 GWh om året er ikke et fjernvarmeværk — tjek enheden (GWh, ikke MWh).");
+            else if (!brugerDivisor(s.varmelast, g)) {
+                // K8 F2: modelrepoets særregel ved små årsbehov — vis den i stedet for at regne videre på en forkert størrelse.
+                const b = s.varmelast.betingelse ?? { op: ">", graense: 1 };
+                f.push(`Ved G ${b.op === ">" ? "≤" : "<"} ${String(b.graense).replace(".", ",")} GWh bruger modelrepoets skalering f = ${String(s.varmelast.ellers ?? 1).replace(".", ",")} — hele Andebys last (ca. 105 GWh), ikke ${String(g).replace(".", ",")} GWh (${s.varmelast.kilde ?? "scripts/vaerksark_til_yaml.py"}). Skriv et større årsbehov, eller brug timedata.`);
+            }
             break;
         }
         case "enheder": {
@@ -186,7 +196,7 @@ export function tjekTrin(trin: TrinId, u: Udkast, s: NytVaerkSkabelon, ctx: Trin
             // fil, og guiden knytter ingen fil til værket eller til prøvekørslen (Codex K4-F2: 1 MW + timedata gav en
             // infeasible prøve). Et radiovalg er ikke dokumentation for en anden last.
             if (k.spidslast !== null && u.enheder.length && k.styrbar < k.spidslast) {
-                f.push(`Enhederne yder ${String(Math.round(k.styrbar * 10) / 10).replace(".", ",")} MW, men spidslasten er ca. ${String(Math.round(k.spidslast * 10) / 10).replace(".", ",")} MW (${String(s.spidslastPrGwh).replace(".", ",")} MW pr. GWh/år) — tilføj eller forstør en enhed.`);
+                f.push(`Enhederne yder ${String(Math.round(k.styrbar * 10) / 10).replace(".", ",")} MW, men spidslasten er ca. ${String(Math.round(k.spidslast * 10) / 10).replace(".", ",")} MW (${String(s.spidslastVedF1).replace(".", ",")} MW × modelrepoets faktor f = ${String(k.faktor).replace(".", ",")}) — tilføj eller forstør en enhed.`);
             }
             const set = new Set<string>();
             for (const e of u.enheder) {
@@ -254,11 +264,18 @@ export function manglendePriser(u: Udkast, s: NytVaerkSkabelon): string[] {
 // ------------------------------------------------------------------ sammensætning
 
 /** Pythons round(x, n) for de tal, skaleringen giver (toFixed runder den binære værdi som Python). */
-const rund = (x: number, n: number) => Number(x.toFixed(n));
+/** Pythons round(x, n) — samme tal som modelrepoets værksark, også i halvtilfælde (K8 F1). */
+const rund = pyRound;
 
-/** Modelrepoets faktor for et årsbehov: round(G / divisor, afrunding); G ≤ 1 giver 1 (scripts/vaerksark_til_yaml.py). */
+/** Gælder modelrepoets G/divisor-gren for dette årsbehov (i dag G > 1)? Ellers bruges `ellers` (i dag f = 1). */
+export function brugerDivisor(formel: VarmelastFormel, gwh: number): boolean {
+    const b = formel.betingelse ?? { op: ">", graense: 1 };
+    return b.op === ">" ? gwh > b.graense : gwh >= b.graense;
+}
+
+/** Modelrepoets faktor for et årsbehov — hele reglen fra scripts/vaerksark_til_yaml.py (via modelspejlet). */
 export function varmelastFaktor(formel: VarmelastFormel, gwh: number): number {
-    return gwh > 1 ? rund(gwh / (formel.divisor_gwh ?? formel.reference_gwh), formel.afrunding ?? 4) : 1;
+    return brugerDivisor(formel, gwh) ? rund(gwh / (formel.divisor_gwh ?? formel.reference_gwh), formel.afrunding ?? 4) : (formel.ellers ?? 1);
 }
 
 /**
@@ -341,7 +358,12 @@ export function bygVaerk(u: Udkast, s: NytVaerkSkabelon): NytVaerk {
             const bruger = e.værdier.has(rel);
             const fv = e.forvalg?.get(rel);
             const fast = rel === "type" || rel === "enabled";
-            blade.push({ sti: `${pre}${rel}`, vaerdi_json: json, bekraeft: !bruger && !fast && (fv ? fv.bekraeft : true) });
+            // K8 F6: proveniens følger bladet ind i værket — brugerens tal, skabelonens kilde (Andeby i modelrepoet / egen
+            // antagelse) eller enhedstypens pladsholder (appens egen antagelse).
+            const kommentar = bruger ? "Brugerens eget valg i guiden 'Nyt værk'."
+                : fv ? (fv.kommentar ?? (fv.kilde ? `Kilde: ${fv.kilde}.` : null))
+                    : fast ? null : `Egen antagelse: enhedstypens pladsholder (viden/enhedstyper.json, ${e.type}).`;
+            blade.push({ sti: `${pre}${rel}`, vaerdi_json: json, bekraeft: !bruger && !fast && (fv ? fv.bekraeft : true), ...(kommentar ? { kommentar } : {}) });
         }
     }
 
@@ -386,8 +408,9 @@ export function manglendeObligatoriske(blade: readonly NytBlad[], s: NytVaerkSka
 /** Gaskedlens dimensionering fra varmebehovet (kun skabelonens egen gaskedel, kun når brugeren ikke har sat effekten). */
 export function autoEffekt(e: NyEnhedUdkast, u: Udkast, s: NytVaerkSkabelon): number | null {
     const g = talAf(u.varme.gwh);
-    if (!s.gaskedelPrGwh || g === null || g <= 0 || !e.forvalg || e.type !== "gas_boiler" || e.værdier.has("p_max_heat")) return null;
-    return Math.round(s.gaskedelPrGwh * g);
+    if (!s.gaskedelVedF1 || g === null || g <= 0 || !e.forvalg || e.type !== "gas_boiler" || e.værdier.has("p_max_heat")) return null;
+    // Som byg_nyt_vaerk.py: max(1, round(50 × f)) med den faktisk genererede faktor (K8 F2) og Pythons afrunding.
+    return Math.max(1, pyRound(s.gaskedelVedF1 * varmelastFaktor(s.varmelast, g), 0));
 }
 
 /** Enhedens effekt som guiden regner med: brugerens tal, skabelonens autodimensionering, ellers skabelonværdien. */
@@ -401,16 +424,18 @@ export function effektAf(e: NyEnhedUdkast, u: Udkast, s: NytVaerkSkabelon): numb
 }
 
 /**
- * Kan enhederne dække spidslasten (ca. spidslastPrGwh × G MW, skabelonens guide_trin "enheder")?
+ * Kan enhederne dække spidslasten (ca. spidslastVedF1 × f MW, skabelonens guide_trin "enheder")?
  * Solvarme og andre profilbundne enheder tæller ikke — deres loft er profilen, ikke p_max_heat (fagligt review K4).
  */
-export function kapacitet(u: Udkast, s: NytVaerkSkabelon): { styrbar: number; spidslast: number | null } {
+export function kapacitet(u: Udkast, s: NytVaerkSkabelon): { styrbar: number; spidslast: number | null; faktor: number | null } {
     const g = talAf(u.varme.gwh);
     const styrbar = u.enheder.filter((e) => {
         const fuel = e.værdier.get("fuel") ?? tekstAf(enhedsværdi(e, "fuel"));
         return e.type !== "solar_thermal" && fuel !== "solar";
     }).reduce((x, e) => x + effektAf(e, u, s), 0);
-    return { styrbar, spidslast: s.spidslastPrGwh && g !== null && g > 0 ? s.spidslastPrGwh * g : null };
+    // K8 F2: spidslasten følger den faktor, varmelasten FAKTISK genereres med (ved G ≤ 1 er f = 1: hele Andeby-lasten).
+    const faktor = g !== null && g > 0 ? varmelastFaktor(s.varmelast, g) : null;
+    return { styrbar, spidslast: s.spidslastVedF1 && faktor !== null ? s.spidslastVedF1 * faktor : null, faktor };
 }
 
 /** Felter markeret [BEKRÆFT] i et værk — det, brugeren bør rette efter oprettelsen. */

@@ -6,6 +6,11 @@
     "divisor_gwh": 100.0,
     "afrunding": 4,
     "profil_afrunding": 3,
+    "betingelse": {
+      "op": ">",
+      "graense": 1.0
+    },
+    "ellers": 1.0,
     "grundtal": {
       "heat_load_params.gaf_mw_per_k": 0.7653,
       "heat_load_params.nettab_slope_mw_per_k": 0.4768,
@@ -41,21 +46,21 @@
       "heat_load_params.nettab_slope_mw_per_k": 4,
       "heat_load_params.baseline_profile_mw": 3
     },
-    "kilde": "scripts/vaerksark_til_yaml.py:1581 @ eef950a (grundtal scripts/vaerksark_til_yaml.py:1582-1590)",
+    "kilde": "scripts/vaerksark_til_yaml.py:1581 @ eef950a (grundtal scripts/vaerksark_til_yaml.py:1582-1598)",
     "formel": {
-      "faktor": "f = round(G / 100, 4)",
+      "faktor": "f = round(G / 100, 4) når G > 1, ellers f = 1",
       "heat_load_params.gaf_mw_per_k": "round(0.7653 × f, 4)",
       "heat_load_params.nettab_slope_mw_per_k": "round(0.4768 × f, 4)",
       "heat_load_params.baseline_profile_mw": "Andebys 24 værdier × f, 3 decimaler",
       "uændret": "t_ref, thermal_inertia_hours, t_net og weekly_dip som Andeby",
-      "units.gaskedel.p_max_heat": "rund(0,5 × G) MW (spidslast ≈ 0,4 × G MW) — egen antagelse"
+      "units.gaskedel.p_max_heat": "rund(50 × f) MW (spidslast ≈ 40,02 × f MW) — egen antagelse"
     },
     "hvorfor": "Samme regel som modelrepoets værksark (scripts/vaerksark_til_yaml.py), så samme årsbehov giver samme varmelast, uanset om værket kommer fra arket eller guiden. Reglen hviler på 'Andebys ~100 GWh'; Andebys parametre giver 105,52 GWh på karup-vejret jul 2025–jun 2026 (egen måling, D11) — den syntetiske last bliver altså ca. 5,5 % over G. Det er modelrepoets valg, og appen følger det.",
     "forbehold": "Har værket målt varmelast, er den bedre end syntesen (doc/VARMELAST_OG_NETTAB.md)."
   },
   "egne_antagelser": [
     "Standardårsbehov 50 GWh (et mellemstort værk; brugeren skriver sit eget).",
-    "Gaskedlens størrelse round(0.5 × G) MW, så den dækker spidslasten (ca. 0.4 × G MW).",
+    "Gaskedlens størrelse round(50 × f) MW, så den dækker spidslasten (ca. 40.02 × f MW; f er modelrepoets faktor, G/100 over 1 GWh og 1 derunder).",
     "Kun én gaskedel og intet lager: det mindste værk, modellen kan løse."
   ],
   "guide_trin": [
@@ -92,7 +97,7 @@
       "felter": [
         "units.*"
       ],
-      "regel": "Mindst én aktiv enhed; tilsammen skal de kunne dække spidslasten (ca. 0,4 MW pr. GWh/år). Tilføj fra enhedstyper.json; skabelonens gaskedel kan beholdes som spids/reserve."
+      "regel": "Mindst én aktiv enhed; tilsammen skal de kunne dække spidslasten (ca. 40,02 MW × f). Tilføj fra enhedstyper.json; skabelonens gaskedel kan beholdes som spids/reserve."
     },
     {
       "id": "lager",
@@ -401,8 +406,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "enheder",
-      "kommentar": "Skal dække spidslasten (ca. 20.0 MW ved 50 GWh). Kilde: egen antagelse: round(0.5 × G) MW; spidslasten ca. 0.4 × G MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved eef950a).",
-      "kilde": "egen antagelse: round(0.5 × G) MW; spidslasten ca. 0.4 × G MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved eef950a)"
+      "kommentar": "Skal dække spidslasten (ca. 20.0 MW ved 50 GWh, f = 0.5). Kilde: egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved eef950a).",
+      "kilde": "egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved eef950a)"
     },
     {
       "sti": "units.gaskedel.p_min_heat",

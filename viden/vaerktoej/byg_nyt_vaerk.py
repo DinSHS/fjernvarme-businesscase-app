@@ -28,10 +28,10 @@ PIN7 = SPEJL["model_commit"][:7]
 ANDEBY = SPEJL["cases"]["andeby"]
 SKAL = SPEJL["varmelast_skalering"]
 G_STANDARD = 50.0                   # egen antagelse: et mellemstort værk
-GASKEDEL_PR_GWH = 0.5               # egen antagelse: ca. 25 % luft over spidslasten
-#: Andebys spidslast 40,02 MW med f = 1 (egen måling D11, karup-vejr jul 2025–jun 2026, eef950a); med modellens
-#: skalering er spidslasten derfor ca. 40,02 × G/100 MW.
-SPIDS_PR_GWH = round(40.02 / SKAL["divisor_gwh"], 2)
+#: Andebys spidslast med f = 1 (egen måling D11, karup-vejr jul 2025–jun 2026, eef950a). Den syntetiske last er
+#: Andebys × f, så spidslasten er ca. 40,02 × f MW — med den FAKTISK genererede f (K8 F2: ved G ≤ 1 er f = 1).
+SPIDS_VED_F1 = 40.02
+GASKEDEL_VED_F1 = 50.0              # egen antagelse: kedlen = round(50 × f) MW, ca. 25 % luft over spidslasten
 
 
 def andeby(sti: str):
@@ -41,16 +41,19 @@ def andeby(sti: str):
 
 
 def faktor(g_gwh: float) -> float:
-    """Modelrepoets faktor (scripts/vaerksark_til_yaml.py): round(G / divisor, afrunding); G ≤ 1 giver 1,0."""
-    return round(g_gwh / SKAL["divisor_gwh"], SKAL["afrunding"]) if g_gwh > 1 else 1.0
+    """Modelrepoets faktor (scripts/vaerksark_til_yaml.py), hele reglen fra spejlet: round(G / divisor, afrunding),
+    når betingelsen holder (i dag G > 1), ellers else-værdien (i dag 1,0)."""
+    b = SKAL["betingelse"]
+    holder = g_gwh > b["graense"] if b["op"] == ">" else g_gwh >= b["graense"]
+    return round(g_gwh / SKAL["divisor_gwh"], SKAL["afrunding"]) if holder else SKAL["ellers"]
 
 
 def varmelast(g_gwh: float) -> dict:
-    f = faktor(g_gwh)
+    f, d = faktor(g_gwh), SKAL["decimaler"]
     return {
-        "gaf_mw_per_k": round(SKAL["gaf_mw_per_k"] * f, 4),
-        "nettab_slope_mw_per_k": round(SKAL["nettab_slope_mw_per_k"] * f, 4),
-        "baseline_profile_mw": [round(x * f, SKAL["profil_afrunding"]) for x in SKAL["baseline_profile_mw"]],
+        "gaf_mw_per_k": round(SKAL["gaf_mw_per_k"] * f, d["heat_load_params.gaf_mw_per_k"]),
+        "nettab_slope_mw_per_k": round(SKAL["nettab_slope_mw_per_k"] * f, d["heat_load_params.nettab_slope_mw_per_k"]),
+        "baseline_profile_mw": [round(x * f, d["heat_load_params.baseline_profile_mw"]) for x in SKAL["baseline_profile_mw"]],
     }
 
 
@@ -104,9 +107,10 @@ def blade(g_gwh: float = G_STANDARD, kode: str = "nyt_vaerk", navn: str = "Nyt v
     u, ua = "units.gaskedel.", "units.gaskedel_agg."
     b(u + "enabled", True, "enheder")
     a(u + "type", "enheder", ua + "type")
-    b(u + "p_max_heat", float(max(1, round(GASKEDEL_PR_GWH * g_gwh))), "enheder", bekraeft=True,
-      kommentar=f"Skal dække spidslasten (ca. {SPIDS_PR_GWH * g_gwh:.1f} MW ved {g_gwh:g} GWh).",
-      kilde=f"egen antagelse: round({GASKEDEL_PR_GWH:g} × G) MW; spidslasten ca. {SPIDS_PR_GWH:g} × G MW "
+    f = faktor(g_gwh)
+    b(u + "p_max_heat", float(max(1, round(GASKEDEL_VED_F1 * f))), "enheder", bekraeft=True,
+      kommentar=f"Skal dække spidslasten (ca. {SPIDS_VED_F1 * f:.1f} MW ved {g_gwh:g} GWh, f = {f:g}).",
+      kilde=f"egen antagelse: round({GASKEDEL_VED_F1:g} × f) MW; spidslasten ca. {SPIDS_VED_F1:g} × f MW "
             f"(egen måling: Andeby 40,02 MW med f = 1, D11 ved {PIN7})")
     for k in ("p_min_heat", "alpha", "fuel", "eta_fuel_to_heat", "var_om", "start_cost", "min_uptime",
               "min_downtime", "uc_enabled", "co2_emissions_per_mwh_fuel"):
@@ -148,22 +152,24 @@ def main() -> None:
             "divisor_gwh": SKAL["divisor_gwh"],
             "afrunding": SKAL["afrunding"],
             "profil_afrunding": SKAL["profil_afrunding"],
+            "betingelse": SKAL["betingelse"],
+            "ellers": SKAL["ellers"],
             "grundtal": {
                 "heat_load_params.gaf_mw_per_k": SKAL["gaf_mw_per_k"],
                 "heat_load_params.nettab_slope_mw_per_k": SKAL["nettab_slope_mw_per_k"],
                 "heat_load_params.baseline_profile_mw": SKAL["baseline_profile_mw"],
             },
-            "decimaler": {"heat_load_params.gaf_mw_per_k": 4, "heat_load_params.nettab_slope_mw_per_k": 4,
-                          "heat_load_params.baseline_profile_mw": SKAL["profil_afrunding"]},
+            "decimaler": SKAL["decimaler"],
             "kilde": f"{SKAL['kilde']} @ {PIN7} (grundtal {SKAL['kilde_grundtal']})",
             "formel": {
-                "faktor": f"f = round(G / {SKAL['divisor_gwh']:g}, {SKAL['afrunding']})",
+                "faktor": (f"f = round(G / {SKAL['divisor_gwh']:g}, {SKAL['afrunding']}) når G {SKAL['betingelse']['op']} "
+                           f"{SKAL['betingelse']['graense']:g}, ellers f = {SKAL['ellers']:g}"),
                 "heat_load_params.gaf_mw_per_k": f"round({SKAL['gaf_mw_per_k']} × f, 4)",
                 "heat_load_params.nettab_slope_mw_per_k": f"round({SKAL['nettab_slope_mw_per_k']} × f, 4)",
                 "heat_load_params.baseline_profile_mw": f"Andebys 24 værdier × f, {SKAL['profil_afrunding']} decimaler",
                 "uændret": "t_ref, thermal_inertia_hours, t_net og weekly_dip som Andeby",
-                "units.gaskedel.p_max_heat": (f"rund({str(GASKEDEL_PR_GWH).replace('.', ',')} × G) MW "
-                                              f"(spidslast ≈ {str(SPIDS_PR_GWH).replace('.', ',')} × G MW) — egen antagelse"),
+                "units.gaskedel.p_max_heat": (f"rund({GASKEDEL_VED_F1:g} × f) MW "
+                                              f"(spidslast ≈ {str(SPIDS_VED_F1).replace('.', ',')} × f MW) — egen antagelse"),
             },
             "hvorfor": ("Samme regel som modelrepoets værksark (scripts/vaerksark_til_yaml.py), så samme årsbehov giver samme "
                         "varmelast, uanset om værket kommer fra arket eller guiden. Reglen hviler på 'Andebys ~100 GWh'; Andebys "
@@ -173,14 +179,15 @@ def main() -> None:
         },
         "egne_antagelser": [
             f"Standardårsbehov {G_STANDARD:g} GWh (et mellemstort værk; brugeren skriver sit eget).",
-            f"Gaskedlens størrelse round({GASKEDEL_PR_GWH:g} × G) MW, så den dækker spidslasten (ca. {SPIDS_PR_GWH:g} × G MW).",
+            f"Gaskedlens størrelse round({GASKEDEL_VED_F1:g} × f) MW, så den dækker spidslasten (ca. {SPIDS_VED_F1:g} × f MW; "
+            "f er modelrepoets faktor, G/100 over 1 GWh og 1 derunder).",
             "Kun én gaskedel og intet lager: det mindste værk, modellen kan løse.",
         ],
         "guide_trin": [
             {"id": "navn", "titel": "Navn og kode", "felter": ["meta.case_name", "meta.titel"], "regel": "kode: små bogstaver, tal og _ (KONTRAKT §3.1); unik."},
             {"id": "klima", "titel": "Klima og priszone", "felter": ["data.dmi_area", "data.price_zone", "electricity.spot_area"], "regel": "spot_area sættes lig price_zone automatisk."},
             {"id": "varmebehov", "titel": "Varmebehov", "felter": ["heat_load_params.*"], "regel": "Årligt varmebehov ab værk i GWh → parametrene med modelrepoets skalering (som værksarket). 'Jeg har timedata': kun filer i modelrepoets data/ i denne version; heat_load_params skal stadig findes (run_case.py:377)."},
-            {"id": "enheder", "titel": "Enheder", "felter": ["units.*"], "regel": f"Mindst én aktiv enhed; tilsammen skal de kunne dække spidslasten (ca. {str(SPIDS_PR_GWH).replace('.', ',')} MW pr. GWh/år). Tilføj fra enhedstyper.json; skabelonens gaskedel kan beholdes som spids/reserve."},
+            {"id": "enheder", "titel": "Enheder", "felter": ["units.*"], "regel": f"Mindst én aktiv enhed; tilsammen skal de kunne dække spidslasten (ca. {str(SPIDS_VED_F1).replace('.', ',')} MW × f). Tilføj fra enhedstyper.json; skabelonens gaskedel kan beholdes som spids/reserve."},
             {"id": "lager", "titel": "Lager (valgfrit)", "felter": ["storage.*"], "regel": "Tom = intet lager. Et lager har volumen, ΔT, startindhold og lade-/afladeeffekt."},
             {"id": "priser", "titel": "Priser og tarif", "felter": ["prices.*", "electricity.*"], "regel": "Forudfyldt med Andebys tal og markeret [BEKRÆFT]. Pris skal findes for hvert brændsel, en aktiv enhed bruger; elafgift = elafgift_net."},
             {"id": "gennemse", "titel": "Gennemse og opret", "felter": [], "regel": "Kør klientvalideringen (validering.md) på hele bladlisten; vis antal [BEKRÆFT]."},

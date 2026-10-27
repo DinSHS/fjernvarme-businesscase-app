@@ -186,8 +186,8 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
    "sti": "units.gaskedel.p_max_heat",
    "vaerdi_json": "25.0",
    "bekraeft": true,
-   "kommentar": "Skal dække spidslasten (ca. 20.0 MW ved 50 GWh). Kilde: egen antagelse: round(0.5 × G) MW; spidslasten ca. 0.4 × G MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved eef950a).",
-   "kilde": "egen antagelse: round(0.5 × G) MW; spidslasten ca. 0.4 × G MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved eef950a)"
+   "kommentar": "Skal dække spidslasten (ca. 20.0 MW ved 50 GWh, f = 0.5). Kilde: egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved eef950a).",
+   "kilde": "egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved eef950a)"
   },
   {
    "sti": "units.gaskedel.p_min_heat",
@@ -486,6 +486,11 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
   ],
   "divisor_gwh": 100.0,
   "afrunding": 4,
+  "betingelse": {
+   "op": ">",
+   "graense": 1.0
+  },
+  "ellers": 1.0,
   "grundtal": {
    "heat_load_params.gaf_mw_per_k": 0.7653,
    "heat_load_params.nettab_slope_mw_per_k": 0.4768,
@@ -521,13 +526,13 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
    "heat_load_params.nettab_slope_mw_per_k": 4,
    "heat_load_params.baseline_profile_mw": 3
   },
-  "kilde": "scripts/vaerksark_til_yaml.py:1581 @ eef950a (grundtal scripts/vaerksark_til_yaml.py:1582-1590)",
-  "tekst": "f = round(G / 100, 4); gaf_mw_per_k = round(0.7653 × f, 4), nettab_slope_mw_per_k = round(0.4768 × f, 4), baseline_profile_mw = Andebys 24 værdier × f, 3 decimaler; uændret: t_ref, thermal_inertia_hours, t_net og weekly_dip som Andeby",
+  "kilde": "scripts/vaerksark_til_yaml.py:1581 @ eef950a (grundtal scripts/vaerksark_til_yaml.py:1582-1598)",
+  "tekst": "f = round(G / 100, 4) når G > 1, ellers f = 1; gaf_mw_per_k = round(0.7653 × f, 4), nettab_slope_mw_per_k = round(0.4768 × f, 4), baseline_profile_mw = Andebys 24 værdier × f, 3 decimaler; uændret: t_ref, thermal_inertia_hours, t_net og weekly_dip som Andeby",
   "forbehold": "Har værket målt varmelast, er den bedre end syntesen (doc/VARMELAST_OG_NETTAB.md)."
  },
  "egneAntagelser": [
   "Standardårsbehov 50 GWh (et mellemstort værk; brugeren skriver sit eget).",
-  "Gaskedlens størrelse round(0.5 × G) MW, så den dækker spidslasten (ca. 0.4 × G MW).",
+  "Gaskedlens størrelse round(50 × f) MW, så den dækker spidslasten (ca. 40.02 × f MW; f er modelrepoets faktor, G/100 over 1 GWh og 1 derunder).",
   "Kun én gaskedel og intet lager: det mindste værk, modellen kan løse."
  ],
  "dmi": [
@@ -545,14 +550,14 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
   "navn": "kode: små bogstaver, tal og _ (KONTRAKT §3.1); unik.",
   "klima": "spot_area sættes lig price_zone automatisk.",
   "varmebehov": "Årligt varmebehov ab værk i GWh → parametrene med modelrepoets skalering (som værksarket). 'Jeg har timedata': kun filer i modelrepoets data/ i denne version; heat_load_params skal stadig findes (run_case.py:377).",
-  "enheder": "Mindst én aktiv enhed; tilsammen skal de kunne dække spidslasten (ca. 0,4 MW pr. GWh/år). Tilføj fra enhedstyper.json; skabelonens gaskedel kan beholdes som spids/reserve.",
+  "enheder": "Mindst én aktiv enhed; tilsammen skal de kunne dække spidslasten (ca. 40,02 MW × f). Tilføj fra enhedstyper.json; skabelonens gaskedel kan beholdes som spids/reserve.",
   "lager": "Tom = intet lager. Et lager har volumen, ΔT, startindhold og lade-/afladeeffekt.",
   "priser": "Forudfyldt med Andebys tal og markeret [BEKRÆFT]. Pris skal findes for hvert brændsel, en aktiv enhed bruger; elafgift = elafgift_net.",
   "gennemse": "Kør klientvalideringen (validering.md) på hele bladlisten; vis antal [BEKRÆFT].",
   "efter": "Liste over [BEKRÆFT]-felter + 'Bestil en prøvekørsel (2 døgn)': 5.–6. januar 2026 uden balancemarked, gab 0,0002/100 kr."
  },
- "gaskedelPrGwh": 0.5,
- "spidslastPrGwh": 0.4,
+ "gaskedelVedF1": 50.0,
+ "spidslastVedF1": 40.02,
  "obligatoriske": {
   "_om": "Uden disse afviser modellen værket (validering.md). 'enabled' og ancillary er ikke strengt påkrævet (standarder), men skrives altid, så til/fra virker i scenarier (K3-N5).",
   "altid": [

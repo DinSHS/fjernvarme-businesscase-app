@@ -18,6 +18,8 @@ const trin = [
     ["bundle rayfin", "node", ["scripts/tjek_bundle.mjs", "rayfin"]],
     ["bundle rest", "node", ["scripts/tjek_bundle.mjs", "rest"]],
     ["trofasthed", process.env.FJV_PYTHON ?? "python", ["../viden/vaerktoej/tjek_trofasthed.py"], { PYTHONUTF8: "1" }],
+    // Codex K8: modprøverne (ændrede antagelser i en kopi af modelrepoet) skal gøre gaten rød — ellers er en grøn gate intet bevis.
+    ["trofasthed modprøver", process.env.FJV_PYTHON ?? "python", ["../viden/vaerktoej/test_trofasthed.py"], { PYTHONUTF8: "1" }],
 ];
 
 const resultat = [];
@@ -27,7 +29,7 @@ for (const [navn, cmd, args, env = {}] of trin) {
     const ud = `${r.stdout ?? ""}${r.stderr ?? ""}`;
     const ok = r.status === 0;
     const tests = ud.match(/Tests\s+(.+)/)?.[1]?.replace(/\x1b\[[0-9;]*m/g, "").trim();
-    const note = tests ?? ud.match(/^TROFASTHED .+$/m)?.[0];
+    const note = tests ?? ud.match(/^TROFASTHED .+$/m)?.[0] ?? ud.match(/^Ran \d+ tests? in .+$/m)?.[0];
     resultat.push({ navn, ok, s: Math.round((Date.now() - t0) / 1000), note: note ?? "" });
     console.log(`${ok ? "OK  " : "FEJL"} ${navn} (${resultat.at(-1).s} s)${note ? ` — ${note}` : ""}`);
     if (!ok) console.log(ud.split("\n").slice(-40).join("\n"));

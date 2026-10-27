@@ -44,6 +44,8 @@ PIN = K.MODEL_COMMIT
 UD = VIDEN / "modelspejl.json"
 #: Appens kopi (genereret af samme kørsel): kørselskommandoer og blade pr. case til Konfiguration og Scenarier.
 UD_TS = ROD / "app" / "src" / "lib" / "modelspejl.data.ts"
+#: Orakelvektorer for skaleringen (K8 F1): modelrepoets egne linjer udført i Python; vitest prøver nyt-vaerk.ts mod dem.
+UD_VEK = ROD / "app" / "src" / "sider" / "konfiguration" / "skalering.vektorer.json"
 STANDARD_FILER = ("src/config.py", "src/data_loader.py", "src/tariff.py", "src/nettab.py", "src/balancing.py")
 
 
@@ -143,41 +145,156 @@ def krav(tekst: str) -> dict:
     return ud
 
 
+SK = "scripts/vaerksark_til_yaml.py"
+
+
+class RegelFejl(SystemExit):
+    pass
+
+
+def _skalering_noder(tekst: str):
+    """De tre tildelinger, der ER skaleringsreglen: ``f = …aarsvolumen…``, ``andeby_profil = [...]``, ``heat_params = {...}``."""
+    trae = ast.parse(tekst)
+    ud = []
+    for navn in ("f", "andeby_profil", "heat_params"):
+        valg = [n for n in ast.walk(trae) if isinstance(n, ast.Assign)
+                and any(isinstance(t, ast.Name) and t.id == navn for t in n.targets)]
+        if navn == "f":
+            valg = [n for n in valg if "aarsvolumen" in ast.unparse(n.value)]
+        if len(valg) != 1:
+            raise RegelFejl(f"FEJL: skaleringsreglen i {SK}: fandt {len(valg)} tildelinger til {navn!r} (forventet 1) - gennemgå")
+        ud.append(valg[0])
+    return ud
+
+
+def _form(betingelse: bool, hvad: str) -> None:
+    if not betingelse:
+        raise RegelFejl(f"FEJL: skaleringsreglen i {SK} har ændret form ({hvad}) - appen (nyt-vaerk.ts, byg_nyt_vaerk.py) "
+                        "kopierer reglen og skal gennemgås, før spejlet bygges igen")
+
+
+def _round_af(node, inder):
+    """``round(<inder>, <heltal>)`` -> decimaler; ellers formfejl."""
+    _form(isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "round"
+          and len(node.args) == 2 and isinstance(node.args[1], ast.Constant) and isinstance(node.args[1].value, int),
+          f"{ast.unparse(node)} er ikke round(…, n)")
+    inder(node.args[0])
+    return node.args[1].value
+
+
 def varmelast_skalering(tekst: str) -> dict:
-    linjer = tekst.splitlines()
+    """HELE skaleringsreglen (K8 F4): betingelse, else-værdi, divisor og alle afrundinger, læst af AST'en. En anden form
+    end den, appen kan gengive, stopper genbygningen; kildeteksten gemmes, så enhver ændring gør [2] rød."""
+    nf, np_, nh = _skalering_noder(tekst)
+    v = nf.value
+    _form(isinstance(v, ast.IfExp), "f er ikke 'round(…) if … else …'")
+    t = v.test
+    _form(isinstance(t, ast.Compare) and isinstance(t.left, ast.Name) and t.left.id == "aarsvolumen" and len(t.ops) == 1
+          and isinstance(t.ops[0], (ast.Gt, ast.GtE)) and isinstance(t.comparators[0], ast.Constant), "betingelsen")
+    _form(isinstance(v.orelse, ast.Constant) and isinstance(v.orelse.value, (int, float)), "else-værdien")
+    div = {}
 
-    def find(m):
-        for i, l in enumerate(linjer, 1):
-            if re.search(m, l):
-                return i, l
-        raise SystemExit(f"FEJL: {m!r} findes ikke i scripts/vaerksark_til_yaml.py")
+    def kvotient(n):
+        _form(isinstance(n, ast.BinOp) and isinstance(n.op, ast.Div) and isinstance(n.left, ast.Name)
+              and n.left.id == "aarsvolumen" and isinstance(n.right, ast.Constant), "aarsvolumen / divisor")
+        div["v"] = float(n.right.value)
+    afr = _round_af(v.body, kvotient)
+    _form(isinstance(np_.value, ast.List), "andeby_profil er ikke en liste")
+    profil = [float(x) for x in ast.literal_eval(np_.value)]
+    _form(isinstance(nh.value, ast.Dict), "heat_params er ikke en dict")
+    grund, dec, faste = {}, {}, {}
+    for k, val in zip(nh.value.keys, nh.value.values):
+        navn = k.value
+        if navn.startswith("_"):
+            continue
+        if isinstance(val, ast.Constant):
+            faste[navn] = val.value
+        elif isinstance(val, ast.ListComp):
+            _form(navn == "baseline_profile_mw" and len(val.generators) == 1
+                  and isinstance(val.generators[0].iter, ast.Name) and val.generators[0].iter.id == "andeby_profil",
+                  f"{navn} er ikke [round(v * f, n) for v in andeby_profil]")
+            var = val.generators[0].target.id
 
-    nr, l = find(r"f = round\(aarsvolumen / [\d.]+, \d+\)")
-    m = re.search(r"round\(aarsvolumen / ([\d.]+), (\d+)\)", l)
-    nr_p, _ = find(r"andeby_profil = \[")
-    blok = "\n".join(linjer[nr_p - 1:nr_p + 4])
-    profil = ast.literal_eval(blok[blok.index("["):blok.index("]") + 1])
-    nr_g, lg = find(r'"gaf_mw_per_k": round\([\d.]+ \* f, 4\)')
-    nr_n, ln = find(r'"nettab_slope_mw_per_k": round\([\d.]+ \* f, 4\)')
+            def vf(n, var=var, navn=navn):
+                _form(isinstance(n, ast.BinOp) and isinstance(n.op, ast.Mult)
+                      and {getattr(n.left, "id", None), getattr(n.right, "id", None)} == {var, "f"}, f"{navn}: v * f")
+            dec[navn] = _round_af(val.elt, vf)
+            grund[navn] = profil
+        else:
+            tal = {}
+
+            def cf(n, tal=tal, navn=navn):
+                _form(isinstance(n, ast.BinOp) and isinstance(n.op, ast.Mult) and isinstance(n.left, ast.Constant)
+                      and isinstance(n.right, ast.Name) and n.right.id == "f", f"{navn}: tal * f")
+                tal["v"] = float(n.left.value)
+            dec[navn] = _round_af(val, cf)
+            grund[navn] = tal["v"]
+    _form(set(grund) == {"gaf_mw_per_k", "nettab_slope_mw_per_k", "baseline_profile_mw"},
+          f"de skalerede nøgler er {sorted(grund)}")
     return {
-        "divisor_gwh": float(m.group(1)), "afrunding": int(m.group(2)),
-        "kilde": f"scripts/vaerksark_til_yaml.py:{nr}",
-        "gaf_mw_per_k": float(re.search(r"round\(([\d.]+) \* f", lg).group(1)),
-        "nettab_slope_mw_per_k": float(re.search(r"round\(([\d.]+) \* f", ln).group(1)),
-        "baseline_profile_mw": profil,
-        "kilde_grundtal": f"scripts/vaerksark_til_yaml.py:{nr_p}-{nr_n}",
-        "profil_afrunding": 3,
+        "betingelse": {"op": ">" if isinstance(t.ops[0], ast.Gt) else ">=", "graense": float(t.comparators[0].value)},
+        "ellers": float(v.orelse.value),
+        "divisor_gwh": div["v"], "afrunding": afr,
+        "kilde": f"{SK}:{nf.lineno}",
+        "gaf_mw_per_k": grund["gaf_mw_per_k"], "nettab_slope_mw_per_k": grund["nettab_slope_mw_per_k"],
+        "baseline_profile_mw": grund["baseline_profile_mw"],
+        "decimaler": {f"heat_load_params.{k}": d for k, d in dec.items()},
+        "profil_afrunding": dec["baseline_profile_mw"],
+        "faste": faste,
+        "kilde_grundtal": f"{SK}:{np_.lineno}-{nh.end_lineno}",
+        "kilde_tekst": "\n".join(ast.get_source_segment(tekst, n) for n in (nf, np_, nh)),
     }
+
+
+#: G-værdier, orakelvektorerne altid har (inkl. Codex K8's halvtilfælde 12,5 og 103,125 og grænsen omkring 1).
+VEKTOR_G = [0.5, 0.8, 1, 1.0001, 1.01, 1.25, 6.25, 10, 12.5, 37.37, 50, 100, 103.125, 105.52, 312.5, 5000]
+
+
+def _halv(x: float, n: int) -> bool:
+    """Er x (den binære værdi, eksakt) et halvtilfælde for round(x, n)?"""
+    from decimal import Decimal
+    return (abs(Decimal(x)) * (Decimal(10) ** n)) % 1 == Decimal("0.5")
+
+
+def skalering_vektorer(tekst: str) -> list[dict]:
+    """Orakel (K8 F1): modelrepoets EGNE tre tildelinger udført uændret i Python for udvalgte G — de faste, plus hver
+    hundrededel i 1,01-500, der rammer et halvtilfælde i f, gaf, nettab eller profilen, plus hver 499. Appens
+    TypeScript (nyt-vaerk.ts) prøves mod dem i vitest; [2] sikrer, at filen er det, modelrepoet giver."""
+    kode = compile(ast.Module(body=_skalering_noder(tekst), type_ignores=[]), f"eef950a:{SK}", "exec")
+    regel = varmelast_skalering(tekst)
+    d = regel["decimaler"]
+
+    def koer(g):
+        rum = {"aarsvolumen": g}
+        exec(kode, rum)
+        h = rum["heat_params"]
+        return {"g": g, "f": rum["f"], "gaf": h["gaf_mw_per_k"], "nettab": h["nettab_slope_mw_per_k"],
+                "profil": h["baseline_profile_mw"]}
+    ud = [koer(g) for g in VEKTOR_G]
+    for i in range(101, 50001):
+        g = i / 100
+        r = koer(g)
+        halv = (_halv(g / regel["divisor_gwh"], regel["afrunding"])
+                or _halv(regel["gaf_mw_per_k"] * r["f"], d["heat_load_params.gaf_mw_per_k"])
+                or _halv(regel["nettab_slope_mw_per_k"] * r["f"], d["heat_load_params.nettab_slope_mw_per_k"])
+                or any(_halv(v * r["f"], d["heat_load_params.baseline_profile_mw"]) for v in regel["baseline_profile_mw"]))
+        if (halv or i % 499 == 0) and g not in VEKTOR_G:
+            ud.append({**r, "halv": bool(halv)})
+    return ud
 
 
 def byg(kilde: Kilde) -> dict:
     readme = kilde.tekst("README.md")
+    tabel = MK.flagtabel(kilde.tekst("run_case.py"))
     cases = {}
     for fil in kilde.filer("cases"):
         if not fil.endswith(".yaml") or fil.startswith("heat_load_params"):
             continue
         tekst = kilde.tekst(f"cases/{fil}")
-        ks = MK.kommandoer(fil, tekst, readme)
+        try:
+            ks = MK.kommandoer(fil, tekst, readme, streng=True, tabel=tabel)
+        except MK.KommandoFejl as e:
+            raise RegelFejl(f"FEJL: {e} - kommandoerne skal kunne fortolkes fuldt, før spejlet bygges (K8 F5)")
         cases[kode_af(fil)] = {
             "fil": f"cases/{fil}",
             "sha256": hashlib.sha256(tekst.replace("\r\n", "\n").encode("utf-8")).hexdigest(),
@@ -197,7 +314,8 @@ def byg(kilde: Kilde) -> dict:
         "standarder": standarder(kilde),
         "vinduer": vinduer(readme),
         "krav": krav(kilde.tekst("requirements.txt")),
-        "varmelast_skalering": varmelast_skalering(kilde.tekst("scripts/vaerksark_til_yaml.py")),
+        "run_case_flag": tabel,
+        "varmelast_skalering": varmelast_skalering(kilde.tekst(SK)),
     }
 
 
@@ -209,7 +327,7 @@ def ts_af(spejl: dict) -> str:
     """Appens del af spejlet: pr. case filen, modelrepoets kørsler og bladene (sti -> [vaerdi_json, linje])."""
     def k(x):
         return None if x is None else {f: x.get(f) for f in ("kilde", "kommando", "med_balancering", "heat_csv",
-                                                               "start", "slut", "balancing_method")}
+                                                               "start", "slut", "balancing_method", "data_source", "ekstra")}
     cases = {kode: {"fil": c["fil"], "standard": k(c["standard"]), "kommandoer": [k(x) for x in c["kommandoer"]],
                     "blade": c["blade"]} for kode, c in spejl["cases"].items()}
     data = json.dumps({"model_commit": spejl["model_commit"], "cases": cases}, ensure_ascii=False, indent=1)
@@ -221,23 +339,31 @@ def ts_af(spejl: dict) -> str:
             f"export const MODELSPEJL: Modelspejl = {data};\n")
 
 
+def vektorer_af(kilde: "Kilde") -> str:
+    v = skalering_vektorer(kilde.tekst(SK))
+    return json.dumps({"_om": f"GENERERET af viden/vaerktoej/byg_modelspejl.py: {SK} @ {PIN[:7]}'s egne tildelinger (f, "
+                              "andeby_profil, heat_params) udført i Python for hvert G. Ret ikke i hånden.",
+                       "model_commit": PIN, "vektorer": v}, ensure_ascii=False) + "\n"
+
+
 def main(argv: list[str]) -> int:
     kilde = Kilde.find()
     if kilde is None:
         print(f"FEJL: modelrepoet ved {PIN[:7]} findes ikke (sæt FJV_MODELREPO eller FJV_MODELMAPPE)")
         return 2
     spejl = byg(kilde)
-    ny, ny_ts = tekst_af(spejl), ts_af(spejl)
+    ny, ny_ts, ny_vek = tekst_af(spejl), ts_af(spejl), vektorer_af(kilde)
     if "--tjek" in argv:
-        fejl = [f.name for f, t in ((UD, ny), (UD_TS, ny_ts))
+        fejl = [f.name for f, t in ((UD, ny), (UD_TS, ny_ts), (UD_VEK, ny_vek))
                 if (f.read_text(encoding="utf-8") if f.exists() else "") != t]
         if fejl:
             print(f"FEJL: {', '.join(fejl)} er ikke, hvad modelrepoet ({kilde.beskriv()}) giver - kør byg_modelspejl.py")
             return 1
-        print(f"OK: {UD.name} og {UD_TS.name} = modelrepoet ({kilde.beskriv()})")
+        print(f"OK: {UD.name}, {UD_TS.name} og {UD_VEK.name} = modelrepoet ({kilde.beskriv()})")
         return 0
     UD.write_text(ny, encoding="utf-8", newline="\n")
     UD_TS.write_text(ny_ts, encoding="utf-8", newline="\n")
+    UD_VEK.write_text(ny_vek, encoding="utf-8", newline="\n")
     s = json.loads(ny)
     print(f"{UD.name}: {len(s['cases'])} cases, {sum(len(c['blade']) for c in s['cases'].values())} blade, "
           f"{len(s['standarder'])} standarder ({kilde.beskriv()})")

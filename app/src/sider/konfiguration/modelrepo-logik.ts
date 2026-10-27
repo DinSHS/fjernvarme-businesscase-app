@@ -26,11 +26,18 @@ export function modelrepoBudskab(vaerk: { kode: string; kilde: string; revision:
     if (vaerk.kilde !== "repo" || !c) {
         return c ? `Kopi af ${c.fil}; værdierne er værkets egne. ${koerselskilde(rod)}` : koerselskilde(rod);
     }
-    if (!a || !harAfdrift(a)) {
-        const gl = a?.gammelCommit ? ` (importeret ved ${kort(vaerk.repo_commit)}; værdierne er de samme)` : "";
+    // K8 F3: en lighedserklæring kræver en gennemført sammenligning; uden den siges det.
+    if (!a) return `Værket kunne ikke sammenlignes med ${c.fil} @ ${kort(SPEJL_COMMIT)} (værdierne er ikke hentet). ${koerselskilde(rod)}`;
+    const antal = a.afviger.length + a.mangler.length + a.ekstra.length;
+    if (vaerk.revision > 1) {
+        return `Værket er rettet i appen (revision ${vaerk.revision}): ${antal === 0 ? `alle felter er stadig ens med ${c.fil} @ ${kort(SPEJL_COMMIT)}`
+            : `${antal} ${antal === 1 ? "felt afviger" : "felter afviger"} fra ${c.fil} @ ${kort(SPEJL_COMMIT)}`}; rettelser beskyttes mod genimport, `
+            + `se revisionsloggen. ${koerselskilde(rod)}`;
+    }
+    if (!harAfdrift(a)) {
+        const gl = a.gammelCommit ? ` (importeret ved ${kort(vaerk.repo_commit)}; værdierne er de samme)` : "";
         return `Værket er ${c.fil} ved den pinnede modelversion ${kort(SPEJL_COMMIT)}, felt for felt${gl}. ${koerselskilde(rod)}`;
     }
-    if (vaerk.revision > 1) return `Værket er rettet i appen (revision ${vaerk.revision}); se revisionsloggen for afvigelser fra ${c.fil}. ${koerselskilde(rod)}`;
     const dele = [
         a.gammelCommit ? `importeret ved ${kort(vaerk.repo_commit)}, men appen kører modelversion ${kort(SPEJL_COMMIT)}` : undefined,
         a.afviger.length ? `${a.afviger.length} ${a.afviger.length === 1 ? "felt afviger" : "felter afviger"} fra ${c.fil} @ ${kort(SPEJL_COMMIT)}` : undefined,

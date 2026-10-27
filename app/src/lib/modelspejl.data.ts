@@ -17,7 +17,9 @@ export const MODELSPEJL: Modelspejl = {
     "heat_csv": null,
     "start": null,
     "slut": null,
-    "balancing_method": null
+    "balancing_method": null,
+    "data_source": "github",
+    "ekstra": []
    },
    "kommandoer": [
     {
@@ -27,7 +29,9 @@ export const MODELSPEJL: Modelspejl = {
      "heat_csv": null,
      "start": null,
      "slut": null,
-     "balancing_method": null
+     "balancing_method": null,
+     "data_source": "github",
+     "ekstra": []
     },
     {
      "kilde": "cases/andeby.yaml:13-14",
@@ -36,7 +40,9 @@ export const MODELSPEJL: Modelspejl = {
      "heat_csv": null,
      "start": "2026-01-05",
      "slut": "2026-01-16",
-     "balancing_method": null
+     "balancing_method": null,
+     "data_source": "github",
+     "ekstra": []
     },
     {
      "kilde": "README.md:179",
@@ -45,7 +51,9 @@ export const MODELSPEJL: Modelspejl = {
      "heat_csv": null,
      "start": null,
      "slut": null,
-     "balancing_method": null
+     "balancing_method": null,
+     "data_source": "github",
+     "ekstra": []
     },
     {
      "kilde": "README.md:180",
@@ -54,7 +62,9 @@ export const MODELSPEJL: Modelspejl = {
      "heat_csv": null,
      "start": null,
      "slut": null,
-     "balancing_method": null
+     "balancing_method": null,
+     "data_source": "github",
+     "ekstra": []
     }
    ],
    "blade": {
@@ -997,7 +1007,9 @@ export const MODELSPEJL: Modelspejl = {
     "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
     "start": null,
     "slut": null,
-    "balancing_method": null
+    "balancing_method": null,
+    "data_source": "github",
+    "ekstra": []
    },
    "kommandoer": [
     {
@@ -1007,7 +1019,9 @@ export const MODELSPEJL: Modelspejl = {
      "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
      "start": null,
      "slut": null,
-     "balancing_method": null
+     "balancing_method": null,
+     "data_source": "github",
+     "ekstra": []
     },
     {
      "kilde": "cases/billund_idag.yaml:28-30",
@@ -1016,7 +1030,11 @@ export const MODELSPEJL: Modelspejl = {
      "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
      "start": null,
      "slut": null,
-     "balancing_method": null
+     "balancing_method": null,
+     "data_source": "github",
+     "ekstra": [
+      "--df-data-cache data/df-data-2026niveau"
+     ]
     }
    ],
    "blade": {
@@ -1803,7 +1821,9 @@ export const MODELSPEJL: Modelspejl = {
     "heat_csv": null,
     "start": null,
     "slut": null,
-    "balancing_method": null
+    "balancing_method": null,
+    "data_source": "github",
+    "ekstra": []
    },
    "kommandoer": [
     {
@@ -1813,7 +1833,9 @@ export const MODELSPEJL: Modelspejl = {
      "heat_csv": null,
      "start": null,
      "slut": null,
-     "balancing_method": null
+     "balancing_method": null,
+     "data_source": "github",
+     "ekstra": []
     }
    ],
    "blade": {
@@ -2588,7 +2610,9 @@ export const MODELSPEJL: Modelspejl = {
     "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
     "start": null,
     "slut": null,
-    "balancing_method": null
+    "balancing_method": null,
+    "data_source": "github",
+    "ekstra": []
    },
    "kommandoer": [
     {
@@ -2598,7 +2622,9 @@ export const MODELSPEJL: Modelspejl = {
      "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
      "start": null,
      "slut": null,
-     "balancing_method": null
+     "balancing_method": null,
+     "data_source": "github",
+     "ekstra": []
     }
    ],
    "blade": {
@@ -4164,7 +4190,9 @@ export const MODELSPEJL: Modelspejl = {
     "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
     "start": null,
     "slut": null,
-    "balancing_method": null
+    "balancing_method": null,
+    "data_source": "github",
+    "ekstra": []
    },
    "kommandoer": [
     {
@@ -4174,7 +4202,9 @@ export const MODELSPEJL: Modelspejl = {
      "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
      "start": null,
      "slut": null,
-     "balancing_method": null
+     "balancing_method": null,
+     "data_source": "github",
+     "ekstra": []
     },
     {
      "kilde": "README.md:177",
@@ -4183,7 +4213,9 @@ export const MODELSPEJL: Modelspejl = {
      "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
      "start": null,
      "slut": null,
-     "balancing_method": null
+     "balancing_method": null,
+     "data_source": "github",
+     "ekstra": []
     }
    ],
    "blade": {
