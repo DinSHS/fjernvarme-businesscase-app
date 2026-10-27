@@ -14,7 +14,7 @@
 import { effektivtInput, KOERSEL_PRAEFIKS, type InputRække } from "@/lib/data/afflad";
 import { tal } from "@/lib/format";
 import {
-    absolutGab, feltInfo, inputDiff, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, visJson,
+    absolutGab, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, visJson,
     type InputForskel, type Koersel, type Profil, type Samlet,
 } from "./beregn";
 import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, SKALERING_TEKST, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
@@ -37,13 +37,25 @@ export type Kategori = "anbefalet" | "fraraades" | "kan_ikke_afgoeres" | "unders
 
 // ================================================================= afrunding (historie.afrunding)
 
-/** < 10.000: nærmeste 100 kr.; < 1 mio.: nærmeste 1.000 kr.; ≥ 1 mio.: én decimal og "mio. kr.". Uden fortegn. */
-export function krRund(v: number): string {
+/**
+ * < 10.000: nærmeste 100 kr.; < 1 mio.: nærmeste 1.000 kr.; ≥ 1 mio.: én decimal og "mio. kr.". Uden fortegn.
+ * Codex K9 F4: er det afrundede beløb ikke beløbet i hele kroner, står "ca." foran ("ca. 200 kr." for 170,18 kr.), så
+ * fortællingen ikke ser uenig ud med overskriftens præcise "170 kr."; et beløb, der afrundes til 0, er "under 100 kr.".
+ * `ca = false`, hvor teksten selv siger "ca." (skaleringen), og til nultjekket (`krNul`).
+ */
+export function krRund(v: number, ca = true): string {
     const a = Math.abs(v);
-    if (a >= 1_000_000) return `${dec(a / 1_000_000, 1)} mio. kr.`;
-    if (a >= 10_000) return `${tal(Math.round(a / 1000) * 1000)} kr.`;
-    return `${tal(Math.round(a / 100) * 100)} kr.`;
+    const r = a >= 1_000_000 ? Math.round(a / 100_000) * 100_000 : a >= 10_000 ? Math.round(a / 1000) * 1000 : Math.round(a / 100) * 100;
+    const tekst = a >= 1_000_000 ? `${dec(a / 1_000_000, 1)} mio. kr.` : `${tal(r)} kr.`;
+    if (!ca || r === Math.round(a)) return tekst;
+    return r === 0 ? "under 100 kr." : `ca. ${tekst}`;
 }
+
+/** Bliver beløbet 0 kr. efter kr.-reglen? */
+export const krNul = (v: number) => krRund(v, false) === "0 kr.";
+
+/** Beløbet til en skabelon, der selv skriver "kr." efter pladsholderen ("{delta} kr. dyrere"). */
+const krUdenEnhed = (v: number) => krRund(v).replace(/ kr\.$/, "");
 
 /** < 100 MWh: hele MWh; < 1.000 MWh: nærmeste 10 MWh; ≥ 1.000 MWh: GWh med én decimal. Uden fortegn. */
 export function energiRund(mwh: number): string {
@@ -313,7 +325,7 @@ function knapSaetning(p: Par, delta: number, skaleret: string): string {
  * "gennemfør" eller en påstået besparelse. Nul har ingen retning.
  */
 export function neutralSaetning(delta: number, indenTolerance: boolean): string {
-    if (krRund(delta) === "0 kr.") return delta === 0
+    if (krNul(delta)) return delta === 0
         ? "Scenariet og referencen har samme driftsomkostning i perioden."
         : "Scenariet og referencen har samme driftsomkostning i perioden (forskellen er under 100 kr.).";
     const målt = `Den målte forskel er ${krRund(delta)} ${delta < 0 ? "billigere" : "dyrere"} for scenariet i perioden`;
@@ -340,7 +352,7 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     const V = ref.k.objektiv_dkk != null ? Math.max(1000, 0.001 * Math.abs(ref.k.objektiv_dkk)) : null;
     const n = delta !== null && T !== null && T > 0 ? Math.floor(Math.abs(delta) / T) : null;
     const aarligt = delta !== null && d !== null && d >= 7 && d < 365 ? (delta * 365) / d : null;
-    const skaleret = aarligt !== null ? ` (skaleret til et år ca. ${krRund(aarligt)})` : "";
+    const skaleret = aarligt !== null ? ` (skaleret til et år ca. ${krRund(aarligt, false)})` : "";
     const investering = p.knap && INVESTERING.knapper.includes(p.knap) ? INVESTERING.tekst : null;
     const indenTol = delta !== null && T !== null && (Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V));
     const svar = (kategori: Kategori, begrundelse: string, saetning?: string): Vurdering => ({
@@ -349,7 +361,7 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
             : kategori === "kan_ikke_afgoeres" || (kategori === "foelsomhed" && indenTol) ? neutralSaetning(delta, indenTol)
                 : knapSaetning(p, delta, skaleret)),
         begrundelse, forbehold: nedgrader, noter, naesteSkridt: næste, investering,
-        skalering: aarligt !== null ? udfyld(SKALERING_TEKST, { aarligt: krRund(aarligt) }) : null,
+        skalering: aarligt !== null ? udfyld(SKALERING_TEKST, { aarligt: krRund(aarligt, false) }) : null,
         delta, tolerance: T, vaesentlighed: V, n, doegn: d, knap: p.knap,
     });
 
@@ -390,11 +402,11 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     const begge = nedgrader.filter((x) => x.virkning === "nedgrader_begge");
     if (begge.length) return svar("undersoeg_naermere", begge.map((x) => x.tekst).join(" "));
     // 7. Dyrere
-    if (delta > 0) return svar("fraraades", udfyld(TRIN["7"], { delta: krRund(delta), n: nTekst }));
+    if (delta > 0) return svar("fraraades", udfyld(TRIN["7"], { delta: krUdenEnhed(delta), n: nTekst }));
     // 8. Billigere med forbehold
-    if (nedgrader.length) return svar("undersoeg_naermere", udfyld(TRIN["8"], { delta: krRund(delta), forbehold: nedgrader.map((x) => x.tekst).join(" ") }));
+    if (nedgrader.length) return svar("undersoeg_naermere", udfyld(TRIN["8"], { delta: krUdenEnhed(delta), forbehold: nedgrader.map((x) => x.tekst).join(" ") }));
     // 9. Anbefalet
-    return svar("anbefalet", udfyld(TRIN["9"], { delta: krRund(delta), n: nTekst }));
+    return svar("anbefalet", udfyld(TRIN["9"], { delta: krUdenEnhed(delta), n: nTekst }));
 }
 
 // ================================================================= historie (A2)
@@ -462,7 +474,7 @@ export function konsekvenser(p: Par, delta: number): string[] {
     const { ref, scen } = p;
     const ud: string[] = [];
     const behov = ref.samlet.varmebehov_mwh ?? 0;
-    const v = produktionsvarians(ref.samlet.enheder, scen.samlet.enheder);
+    const v = produktionsvarians(ref.samlet.enheder, scen.samlet.enheder).filter(kendtDelta);   // ukendt Δ siges ikke (Codex K9 F1)
     const op = [...v].sort((x, y) => y.delta - x.delta)[0], ned = [...v].sort((x, y) => x.delta - y.delta)[0];
     let flytVæsentlig = false;
     if (op && ned && op.delta > 0 && ned.delta < 0) {
@@ -492,7 +504,7 @@ export function konsekvenser(p: Par, delta: number): string[] {
         ud.push(`${eb > ea ? "øger" : "sænker"} elforbruget med ${energiRund(eb - ea)}`);
     }
     const periode = periodeTekst(scen.profil.periode_start, scen.profil.periode_slut);
-    ud.push(krRund(delta) === "0 kr."
+    ud.push(krNul(delta)
         ? `ændrer ikke driftsomkostningen i perioden (${periode})${delta === 0 ? "" : " — forskellen er under 100 kr."}`
         : `gør driften ${krRund(delta)} ${delta < 0 ? "billigere" : "dyrere"} i perioden (${periode})`);
     return ud;

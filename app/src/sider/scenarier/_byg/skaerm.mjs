@@ -6,6 +6,7 @@ import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
+import { laesFixtures, vaelger } from "../../../../skaermbilleder/fixturevalg.mjs";
 
 const byg = resolve(process.argv[2]);
 const ud = resolve(process.argv[3]);
@@ -23,6 +24,9 @@ const server = createServer((req, res) => {
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const port = server.address().port;
 
+// Scenarierne findes i harnessens fixture ud fra indhold (Codex K9 F3), ikke på én installations række-id'er.
+const v = vaelger(laesFixtures());
+const side = (s) => `#/scenarier/${s.id}`;
 const RUTER = [
     ["oversigt", "#/scenarier"],
     ["nyt", "#/scenarier/nyt"],
@@ -31,16 +35,16 @@ const RUTER = [
     // K4-F8: "Bestil helårskørsel" fra Analyser — perioden skal være helåret.
     ["nyt-andeby-tank-helaar", "#/scenarier/nyt/andeby/tankens_vaerdi/helaar"],
     ["nyt-ukendt-periode", "#/scenarier/nyt/andeby/tankens_vaerdi/helår-2027"],
-    ["scenarie-faerdig", "#/scenarier/dff3d4bc-caa5-4cab-ac6d-36d1a79fb922"],
-    ["scenarie-fejl", "#/scenarier/ef9b88d8-655d-4ab1-8ad3-2c9b758d6151"],
-    ["scenarie-spora", "#/scenarier/ed3924a7-e0f1-4e29-8b5f-d7dd86564228"],
+    ["scenarie-faerdig", side(v.scenarie("intet færdigt Andeby-scenarie med balancemarked", (s) => s.vaerk === "andeby" && s.med_balancering && !s.arkiveret && s.status.includes("faerdig")))],
+    ["scenarie-fejl", side(v.scenarie("intet scenarie med balancemarked, hvis kørsel fejlede", (s) => s.med_balancering && s.status.includes("fejl")))],
+    ["scenarie-spora", side(v.scenarie("intet færdigt scenarie på Billund Spor A", (s) => s.vaerk === "billund_spora" && !s.arkiveret && s.status.includes("faerdig")))],
     // Historie (A2) — kræver at demo-parrene har reference_scenarie_id (midlertidig harness, se rapporten).
-    ["historie-tank", "#/scenarier/fa1606df-9c71-4921-bcbc-c7e3bb5b2d8e"],
-    ["historie-gaspris", "#/scenarier/febfd12b-3a82-4783-825b-69972423bc9b"],
-    ["historie-sporb-balance", "#/scenarier/8a1f432d-b6a6-4fd8-b0f3-e28c63fa54ea"],
+    ["historie-tank", side(v.demo("D02"))],
+    ["historie-gaspris", side(v.demo("D04"))],
+    ["historie-sporb-balance", side(v.demo("D09"))],
     // Brief 18: varmelast-valget (kræver tidsserier i fixturen — scratch-kopi, se rapporten).
-    ["varmelast-sporb-aktiv", "#/scenarier/5ba728ed-43cd-4622-927d-e3f89ae6b6c2"],
-    ["varmelast-andeby-daekning", "#/scenarier/3b4bdc3c-dcef-4c3c-9635-c8265ba47127"],
+    ["varmelast-sporb-aktiv", side(v.demo("D10"))],
+    ["varmelast-andeby-daekning", side(v.demo("D01"))],
     ["varmelast-nyt-maalt", "#/scenarier/nyt/billund_sporb/maalt_varmelast"],
 ];
 const BREDDER = [1440, 500];

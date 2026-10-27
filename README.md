@@ -43,7 +43,7 @@ regnet med. Graferne følger IBCS® Standards.
 
 ## Kom i gang — lokal udgave (5–20 minutter)
 
-**Du skal have:** Python **3.11–3.13**, Node.js **20 eller nyere** (kun til at bygge brugerfladen én gang), git og
+**Du skal have:** Python **3.11–3.13**, Node.js **20.19 eller nyere i 20-serien, eller 22.12 eller nyere** (Vites krav `^20.19.0 || >=22.12.0`; kun til at bygge brugerfladen én gang), git og
 netværk til GitHub. Windows, macOS eller Linux, og mindst 4 GB fri hukommelse. Det meste af tiden går med at hente
 pakker (`npm ci` og `pip install`): fem minutter på en hurtig forbindelse, op til tyve på en travl maskine.
 

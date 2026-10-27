@@ -119,6 +119,10 @@ Tabeller med Δ eller niveauer pr. enhed × måned/periode har en lille segmente
   niveau- og Δ-tabeller. `farvning()` kræver derfor cellens viste skala (faktor og decimaler), så farve og tal ikke kan
   være uenige (`r9_nul.spec.tsx` tester det på kørslens og sammenligningens månedstabeller). Tomme celler: ingen farve.
   Fortegnet står altid i tallet (farve er aldrig eneste bærer).
+- **Ukendt er ikke 0** (Codex K9 F1): mangler en måling for et objekt, kørslen HAR (en enhed eller et lager med en
+  tom værdi, et tomt varmebehov), er Δ ukendt — `–`, ingen farve, uden for skalaens maksimum, og uden for budskab og
+  fremhævning. Kun et objekt, kørslen ikke har (lager "slået fra", en enhed der ikke findes), tæller 0 over for den
+  anden kørsels tal. Gælder måneds-, lager- og produktionstabellen og produktionsgrafen (`k9_ukendt.spec.tsx`).
 - **Knappen vises kun, hvor der er noget at farve** (fx ikke på balancekortet, når kun den ene kørsel har balancemarked).
 - **Én skala pr. tabel**: 100 % = største \|værdi\| i månedscellerne; totalen (`Hele perioden`, `I alt`) har sin egen skala,
   så den ikke vasker månederne ud. **Samme størrelse og enhed på samme side = samme skala** (`HeatSkalaProvider`, som

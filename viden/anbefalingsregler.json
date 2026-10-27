@@ -151,7 +151,7 @@
       "n_tekst": "n ≥ 2: 'Forskellen er {n} gange solverens tolerance'; T = 0: 'Begge kørsler er løst til optimum'; n > 100: 'mere end 100 gange'."
     },
     "afrunding": {
-      "kr": "< 10.000: nærmeste 100 kr.; < 1 mio.: nærmeste 1.000 kr. (89.000 kr.); ≥ 1 mio.: én decimal og 'mio. kr.' (2,5 mio. kr.).",
+      "kr": "< 10.000: nærmeste 100 kr.; < 1 mio.: nærmeste 1.000 kr. (89.000 kr.); ≥ 1 mio.: én decimal og 'mio. kr.' (2,5 mio. kr.). Er det afrundede beløb ikke beløbet i hele kroner, står 'ca.' foran (170,18 kr. → 'ca. 200 kr.'), så teksten ikke ser uenig ud med sidens præcise tal; et beløb, der afrundes til 0, er 'under 100 kr.' (Codex K9 F4).",
       "energi": "< 100 MWh: hele MWh; < 1.000 MWh: nærmeste 10 MWh; ≥ 1.000 MWh: GWh med én decimal (1,2 GWh).",
       "co2": "Hele ton.",
       "procent": "Én decimal under 10 %, ellers hele procent.",
@@ -160,7 +160,7 @@
     },
     "eksempel": {
       "par": "P1 (D01 → D02, Andeby vinter uden tankene)",
-      "tekst": "I dette scenarie slår vi begge tanke fra — ellers som Andeby vinter (reference). Det flytter ca. 87 MWh til gaskedlen (mest fra elkedlen), øger CO₂-udledningen med 17 t og gør driften 22.000 kr. dyrere i perioden 5.–16. januar 2026. Begge kørsler er løst til optimum; perioden er kun 12 døgn, så tallet viser retningen, ikke årets størrelse.",
+      "tekst": "I dette scenarie slår vi begge tanke fra — ellers som Andeby vinter (reference). Det flytter ca. 87 MWh til gaskedlen (mest fra elkedlen), øger CO₂-udledningen med 17 t og gør driften ca. 22.000 kr. dyrere i perioden 5.–16. januar 2026. Begge kørsler er løst til optimum; perioden er kun 12 døgn, så tallet viser retningen, ikke årets størrelse.",
       "kategori": "fraraades",
       "beregnet_af": "D01/D02 ved eef950a (målt 2026-10-26): gaskedel +87,0 MWh, elkedel −65,6 MWh, varmepumpe −18,2 MWh; CO₂ 479,3 → 496,7 t; Δ 21.915,92 kr. Ved b49aeb0 var Δ 44.219,87 kr., og t0_lager gjorde udfaldet 'undersøg nærmere'."
     }

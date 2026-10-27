@@ -11,7 +11,7 @@ import {
     KpiCard, MarksSvg, formatDelta, formatValue, impactKey, impactText, layoutStructureBars, layoutVarianceWaterfall, roundsToZero, structureExtents, useScale,
     type Bridge, type KpiVariance, type Layout, type NumberScale, type ScaleRequest, type StructureRow,
 } from "@/ibcs";
-import { relativAfvigelse, type EnhedTal, type EnhedVarians, type Samlet } from "./beregn";
+import { relativAfvigelse, varianseOrden, type EnhedTal, type EnhedVarians, type Samlet } from "./beregn";
 import { useBredde } from "./graf-hjaelp";
 
 /** Scenariekoderne i grafernes legender, tooltips og skjulte tabeller (IBCS.md §1). */
@@ -134,9 +134,11 @@ export function ProduktionPrEnhed({ enheder }: { enheder: readonly EnhedTal[] })
 
 /** A-23 + A-25 + A-26: Ref som omrids bagved, Scen fyldt foran, ΔRef på samme skala, ΔRef% som pins. Polaritet 0 → blå. */
 export function ProduktionMod({ varians, fremhaev }: { varians: readonly EnhedVarians[]; fremhaev?: string }) {
+    // Codex K9 F1: ukendt Scen tegnes ikke — biblioteket tegner en manglende AC som 0, når Ref findes (udgået enhed), så
+    // Ref udelades også; ukendt Ref tegner kun Scen. Δ og Δ% er da ukendte (ingen bjælke, N/A).
     const rækker: StructureRow[] = [...varians]
-        .sort((x, y) => y.b - x.b || y.a - x.a || x.navn.localeCompare(y.navn))
-        .map((v) => ({ category: v.navn, AC: v.b, PL: v.a, delta: v.delta, deltaPct: relativAfvigelse(v.a, v.b) }));
+        .sort(varianseOrden)
+        .map((v) => ({ category: v.navn, AC: v.b, PL: v.b == null ? null : v.a, delta: v.delta, deltaPct: relativAfvigelse(v.a, v.b) }));
     const { skala, enhed } = energiSkala(rækker.flatMap((r) => [r.AC, r.PL]));
     return (
         <IbcsFigur titel={`Varmeproduktion i ${enhed}, pr. enhed — Ref og Scen, ΔRef og ΔRef%`}

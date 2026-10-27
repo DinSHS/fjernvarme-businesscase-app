@@ -588,20 +588,6 @@
   },
   "koersel_status_b49aeb0": {
     "maalt": "2026-10-16 08:45 (D01–D11) og 10:16 UTC (D12), Fabric (fjv_koer_scenarie, 2 vCPU), data_commit 392992c, model_commit b49aeb0",
-    "koersels_id": {
-      "D01": "87eac214-8da3-4cea-b867-b9c89e9c4983",
-      "D02": "770072d0-10fa-4074-b525-74b68f71d769",
-      "D03": "129041ed-3ef0-4caf-9382-07e4384212e0",
-      "D04": "087fde50-daca-4fe8-818e-847fe18d8af4",
-      "D05": "48c07316-ae55-45d7-9e04-754aba9dd11e",
-      "D06": "e623dd12-c50f-4501-ab33-c815767f84e9",
-      "D07": "192c7207-a950-4780-b24d-ea3808d3e050",
-      "D08": "d48dc028-0bd4-49f9-bdb2-02f765ec9f5f",
-      "D09": "ee0bfffd-7b68-40ec-be4c-0c26692fcc57",
-      "D10": "013d3427-5e89-4d21-8144-dcb0d80d8c34",
-      "D11": "9c6a054c-0d5f-4713-bcbf-8004feb0a27e",
-      "D12": "70b0f577-3114-4d65-9a26-1e21cb3eea62"
-    },
     "objektiv_dkk": {
       "D01": 3424407.96,
       "D02": 3468627.83,
@@ -630,6 +616,6 @@
       "D11": 0.000176,
       "D12": 0.00087
     },
-    "note": "Før rettelserne 19/10-2026 (b49aeb0); kan ikke sammenlignes med koersel_status."
+    "note": "Før rettelserne 19/10-2026 (b49aeb0); kan ikke sammenlignes med koersel_status. Kørslerne står under deres demokode (D01–D12); installationens kørsels-id'er er udeladt (Codex K9 F3) — appen genkender en demokørsel på scenariets navn og værk (app/src/sider/analyser/sammensaetning.ts › demoId)."
   }
 }

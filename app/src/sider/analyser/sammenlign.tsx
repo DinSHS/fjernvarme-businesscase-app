@@ -12,7 +12,7 @@ import { useVaerkParametre, type Hentet } from "@/lib/data/hooks";
 import { tal } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
 import {
-    absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceMetode, balanceKolonner, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, produktionsvarians,
+    absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceMetode, balanceKolonner, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, kendtDelta, produktionsvarians, varianseOrden,
     relativAfvigelse, sammenlignelighed, sammenligningsBudskab, spor, type Profil,
 } from "./beregn";
 import { tilSide, usePakke, type Pakke } from "./data";
@@ -300,12 +300,13 @@ function InputForskel({ a, b }: { a: Pakke; b: Pakke }) {
 
 function Produktion({ a, b }: { a: Pakke; b: Pakke }) {
     const v = produktionsvarians(a.samlet.enheder, b.samlet.enheder);
-    const ned = [...v].sort((x, y) => x.delta - y.delta)[0], op = [...v].sort((x, y) => y.delta - x.delta)[0];
+    const kendt = v.filter(kendtDelta);   // Codex K9 F1: en ukendt Δ indgår hverken i budskab eller fremhævning
+    const ned = [...kendt].sort((x, y) => x.delta - y.delta)[0], op = [...kendt].sort((x, y) => y.delta - x.delta)[0];
     const dele = [op && op.delta > 0.5 ? `${op.navn} producerer ${energi(op.delta)} mere` : "", ned && ned.delta < -0.5 ? `${ned.navn} ${energi(-ned.delta)} mindre` : ""].filter(Boolean);
     const budskab = dele.length === 0 ? "Enhedsfordelingen er den samme i begge kørsler." : `I scenariet ${dele.join(" og ")}.`;
     const ea = new Map(a.samlet.enheder.map((e) => [e.navn, e])), eb = new Map(b.samlet.enheder.map((e) => [e.navn, e]));
-    const rækker = [...v].sort((x, y) => y.b - x.b || y.a - x.a || x.navn.localeCompare(y.navn));
-    const fremhaev = [...v].sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta))[0];
+    const rækker = [...v].sort(varianseOrden);
+    const fremhaev = [...kendt].sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta))[0];
     const andelDelta = (x: (typeof v)[number]) => {
         const pa = ea.get(x.navn)?.andel_pct, pb = eb.get(x.navn)?.andel_pct;
         return pa == null || pb == null ? null : pb - pa;
@@ -345,12 +346,17 @@ export function MaanedDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const enheder = [...new Set([...ta.objekter("produktion_gwh"), ...tb.objekter("produktion_gwh")])];
     // Rækkerne i samme rækkefølge som grafen ovenfor (scenariets produktion, største først).
     enheder.sort((x, y) => (tb.periode(y, "produktion_gwh") ?? 0) - (tb.periode(x, "produktion_gwh") ?? 0) || x.localeCompare(y));
+    // Codex K9 F1: en enhed, kørslen ikke har, og en måned uden for kørslens periode er fraværende (undefined) og
+    // tæller 0 over for en kendt værdi. En manglende måling for en enhed, kørslen HAR, er ukendt (null): så er Δ ukendt.
+    const måling = (t: typeof ta, m: string, e: string | null, felt: string): number | null | undefined => {
+        if ((m !== "periode" && !t.maaneder.includes(m)) || (e !== null && !t.objekter(felt).includes(e))) return undefined;
+        return m === "periode" ? t.periode(e, felt) : t.vaerdi(m, e, felt);
+    };
     // MWh som resten af siden (GWh × 1.000): én enhed for varmeproduktion på hele siden.
     const d = (m: string, e: string | null) => {
         const felt = e === null ? "varmebehov_gwh" : "produktion_gwh";
-        const va = m === "periode" ? ta.periode(e, felt) : ta.vaerdi(m, e, felt);
-        const vb = m === "periode" ? tb.periode(e, felt) : tb.vaerdi(m, e, felt);
-        return va == null && vb == null ? null : ((vb ?? 0) - (va ?? 0)) * 1000;
+        const va = måling(ta, m, e, felt), vb = måling(tb, m, e, felt);
+        return va === null || vb === null || (va === undefined && vb === undefined) ? null : ((vb ?? 0) - (va ?? 0)) * 1000;
     };
     const kolonner = [...måneder, "periode"];
     // Ét præfiks for hele tabellen (måneder og 'Hele perioden') og budskabet, højst 4 heltalscifre (IBCS.md §3): GWh,
@@ -442,7 +448,9 @@ export function LagerDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const budskab = navne.length === 0 ? "Ingen af kørslerne har aktive lagre."
         : kunA.length ? `Scenariet kører uden ${kunA.join(" og ")}.` : kunB.length ? `Scenariet har ${kunB.join(" og ")}, som referencen ikke har.`
             : "Samme lagre i begge kørsler.";
-    const dl = (n: string) => (lb.get(n)?.afladet_mwh ?? 0) - (la.get(n)?.afladet_mwh ?? 0);
+    // Codex K9 F1: et lager, kørslen ikke har ("slået fra"), tæller 0; en ukendt afladning for et lager, den har, gør Δ ukendt.
+    const afladet = (m: typeof la, n: string) => (m.has(n) ? m.get(n)!.afladet_mwh : 0);
+    const dl = (n: string) => { const x = afladet(la, n), y = afladet(lb, n); return x == null || y == null ? null : y - x; };
     // Ét præfiks for tabellen, højst 4 heltalscifre (IBCS.md §3): et helårs afladning er > 10.000 MWh.
     const E = energiSkala(navne.flatMap((n) => [la.get(n)?.afladet_mwh, lb.get(n)?.afladet_mwh, dl(n)]), ENERGI_TABEL);
     const en = (v: number) => formatValue(v, E.skala);

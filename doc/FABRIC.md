@@ -17,7 +17,7 @@ værdierne alligevel havner i noget, der committes.
 | Python | 3.11–3.13 (kun standardbibliotek til udrulningsværktøjerne) |
 | `fab` | Fabric CLI **1.7.0 eller nyere** (`pip install --user ms-fabric-cli`; 1.6 kan ikke uploade fra lokal disk). På Windows ligger `fab.exe` i Python-brugerens `Scripts`-mappe, som ikke er på PATH — peg på den med miljøvariablen `FJV_FAB` (fx `…\Python313\Scripts\fab.exe`). |
 | `az` + `sqlcmd` | Azure CLI og **go-sqlcmd** på PATH. `deploy.py db`/`pins` skriver motorens pins i appens SQL-database med dit Entra-login (`az account get-access-token`). |
-| Node.js | ≥ 20 med npm. **Rayfin CLI 1.36.1** installeres af `npm ci` i `app/` (præcis den version; `^` trækker en nyere med manglende afhængighed) |
+| Node.js | `^20.19.0 \|\| >=22.12.0` (Vites krav) med npm. **Rayfin CLI 1.36.1** installeres af `npm ci` i `app/` (præcis den version; `^` trækker en nyere med manglende afhængighed) |
 | Netværk | adgang til GitHub (kørslerne henter modelkoden og df-data på pinnede commits) |
 
 ## Logins — tre forskellige, alle i en rigtig konsol
