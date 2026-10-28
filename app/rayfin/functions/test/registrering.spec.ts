@@ -15,7 +15,11 @@ const metadata = JSON.parse(readFileSync(new URL("../runtimemetadata.json", impo
 
 const TILLADTE = ["startBestilling", "udfoerAendring", "afstem", "annullerKoersel", "hentKildeYaml", "skemaInfo",
     // KONTRAKT §6d (v2.3): værkets tidsserier og værksark.
-    "uploadTidsserie", "hentTidsserie", "uploadVaerksark", "hentDmiTemperatur"].sort();
+    "uploadTidsserie", "hentTidsserie", "uploadVaerksark", "hentDmiTemperatur",
+    // Runde 13: arkivets genimport (scenarier + historiske kørsler; skriver kun nye rækker, aldrig over eksisterende).
+    "importerArkiv",
+    // Runde 13b (K10-F4): rækketal til eksportens fuldstændighedstjek — kun læsning (COUNT).
+    "arkivTal"].sort();
 
 describe("registrerede Functions", () => {
     const iKilde = [...kilde.matchAll(/udf\.func\(\s*'(\w+)'/g)].map((m) => m[1]).sort();

@@ -17,7 +17,7 @@ import { profil, samlNoegletal, type Noegletal, type Scenarie } from "./beregn";
 type Vaerk = FjvSchema["Vaerk"];
 import type { Side } from "./anbefaling";
 import type { Tidsserienavne } from "./datagrundlag";
-import { tidsserieIder, useTidsserienavne } from "./tidsserie-data";
+import { tidsserieIder, tidsserieShas, useTidsserienavne } from "./tidsserie-data";
 
 const BID = 20;
 
@@ -55,7 +55,8 @@ export function useAnbefalingsData(alle = false): Hentet<AnbefalingsData> {
         return { input, noegletal, bekraeft };
     });
     const ider = useMemo(() => tidsserieIder(rækker.data ? [rækker.data.input] : []), [rækker.data]);
-    const navne = useTidsserienavne(ider);
+    const shas = useMemo(() => tidsserieShas(rækker.data ? [rækker.data.input] : []), [rækker.data]);
+    const navne = useTidsserienavne(ider, shas);
     const data = useMemo<AnbefalingsData | undefined>(() => {
         if (!koersler.data || !scenarier.data || !vaerker.data || !rækker.data || !navne.data) return undefined;
         const sc = new Map(scenarier.data.map((s) => [s.id, s]));

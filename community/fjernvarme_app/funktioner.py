@@ -26,6 +26,8 @@ INPUT = {
     "uploadVaerksark": ("anmodningId", "indholdBase64"),
     "hentDmiTemperatur": ("omraade", "fra", "til"),
     "skemaInfo": (),
+    "importerArkiv": ("anmodningId", "del"),          # runde 13: logik/arkiv.py
+    "arkivTal": ("scenarieIder",),                    # runde 13b (K10-F4): rækketal, kun læsning
 }
 
 
@@ -52,6 +54,8 @@ def kald(app, navn: str, inp, bruger: str):
         return t.hent_kilde_yaml(inp["vaerkId"])
     if navn == "hentDmiTemperatur":
         return t.hent_dmi_temperatur(inp["omraade"], inp["fra"], inp["til"], inp.get("kolonne") or "")
+    if navn == "arkivTal":
+        return t.arkiv_tal(inp["scenarieIder"])
     if navn == "hentTidsserie":
         return t.hent_tidsserie(inp["tidsserieId"], inp.get("fra") or "", inp.get("til") or "")
     with betroet_mutex:
@@ -64,5 +68,7 @@ def kald(app, navn: str, inp, bruger: str):
         if navn == "uploadTidsserie":
             return t.upload_tidsserie(inp["anmodningId"], inp["indholdBase64"])
         if navn == "uploadVaerksark":
-            return t.upload_vaerksark(inp["anmodningId"], inp["indholdBase64"])
+            return t.upload_vaerksark(inp["anmodningId"], inp["indholdBase64"], inp.get("basisBase64"))
+        if navn == "importerArkiv":
+            return t.importer_arkiv(inp["anmodningId"], inp["del"])
     raise Fejl(500, "teknisk", f"{navn} er ikke koblet på")

@@ -22,8 +22,43 @@ sammenlignes med tal efter.
 - Farvevalget i et kort gælder nu også kortets variansgraf (ΔRef-søjler og ΔRef%-nåle): Retning og Heatmap tegner dem i
   farvesættets farver; `Ingen` er uændret IBCS (`app/IBCS.md` AF7).
 
+- **Eksportér værksark (.xlsx)** (runde 12): et værk som modelrepoets egen `vaerksdata_skabelon.xlsx` udfyldt i
+  browseren (begge udgaver; fflate 0.8.3, MIT). Listen "ikke med i arket" vises før download. Genupload af arket
+  genkendes (skjult ark `_app`): diff før bekræftelse, og arket gemmes som **ny revision af samme værk** — kun
+  forskellen mellem modelscriptets læsning af appens nye eksport og af arket. Konflikt ved en nyere revision; intet
+  gemmes uden ændringer. Gaten har trinnet *eksport rundtur* (`viden/vaerktoej/tjek_eksport_rundtur.py`).
+- Rettet efter Codex' review K11 (runde 12b), før udgivelse:
+  - Importen binder selv arket til værket i sin transaktion: markeringen (format 2) bærer værkets *grundlag* og de
+    erklærede afvigelser, og basis skal være værkets eksport. Et ark fra et andet værk eller en forfalsket basis afvises.
+  - Objektnavne, modelscriptet normaliserer (`halm__kedel` -> `halm_kedel`), føres tilbage til værkets objekt;
+    sammenfald nægtes ved eksport og afvises ved import. Nye enheds- og tanknavne skal være slug-faste.
+  - En tidsserierettelse via genupload er en revision (Aendringslog `tidsserie.<rolle>`, `forventet_revision`).
+  - Upload-kortet binder fil, bytes og analyse med et valg-id; et sent analysesvar ignoreres.
+  - Felter, genupload ikke gemmer (årsproduktionen i Timedata!B3, værkets navn …), markeres før bekræftelse.
+  - Eksporten oplyser timer, modelscriptet selv udfylder i solprofilen, og nægter kontroltegn og `_xHHHH_`-tekst.
+- **Backup og flytning** (runde 13, `#/scenarier/arkiv`): scenarier og kørsler eksporteres til Excel og genimporteres
+  tabsfrit — som backup og som vejen fra en testinstallation til produktion. Én .xlsx pr. scenariefamilie (et
+  scenarie og dets reference) eller alt som .zip med manifest; ark *Læs mig*, ét ark pr. tabel med danske
+  overskrifter, tid i dansk tid og UTC, skjult `_manifest` med rækketal og sha256 pr. tabel. Genimporten viser en
+  forhåndsvisning, er idempotent på id, viser konflikter uden at overskrive, afviser et rettet arkiv og skriver en
+  kørsel som historisk kørsel (markeret *importeret fra arkiv*). Ny Function `importerArkiv` (Fabric) og samme forløb
+  i den lokale server (`logik/arkiv.py`, bundet af `skema/vektorer/arkiv/`). Ingen skemaændring.
+  Fabric: deploy Functions og frontend (`rayfin up`); ingen `db apply`.
+- Arkivet rettet efter Codex' review K10 (runde 13b, formatversion 2 — arkiver fra før kan ikke læses): et scenarie skrives
+  sammen med sine ændringer; en kørsel skrives først, når dens rækker har arkivets antal og indhold (sha256 pr. undertabel)
+  under en lås pr. kørsel, og en eksisterende kørsel er kun "findes", hvis dens rækker også passer; eksporten tæller hver
+  tabel i databasen (ny Function `arkivTal`) og tjekker `input_hash`; tidsserier matches på rolle og sha256; delene deles
+  efter bytes; afledte kolonner er entydigt kodet. Tal arkiveres med dobbelt præcision (ca. 15–17 betydende cifre), som
+  appen læser dem; har en databaseværdi flere cifre (skrevet udefra med SQL), arkiveres den afrundede værdi (runde 13c).
+  Function'en sender decimaler som ren decimaltekst uden eksponent (`1e-7` -> `0.0000001`), og den lokale udgave stopper
+  ved en fejlet `sp_getapplock` (returkode < 0).
+
 ### Ændret
 - Scenarielisten (`#/scenarier`) har ikke længere farvevalg eller heatmap: ΔRef står som almindeligt tal med fortegn.
+- Navnet på en kørsels tidsserie slås op på sha256, når id'et ikke findes i installationen (importerede kørsler).
+- `uploadVaerksark` tager en valgfri tredje parameter `basisBase64`, og `upload_vaerksark`-anmodningen et valgfrit
+  `basis_sha256` (KONTRAKT §6d). Intet skemaskift. Fabric: `deploy.py kode` (fjv), `deploy.py notebook`
+  (fjv_importer_vaerksark) og `rayfin-up` (Functions + frontend).
 
 ## [0.3.1] — 2026-10-27 — oprydning og dokumentation før offentliggørelse
 

@@ -216,6 +216,14 @@
           "hasDefault": false,
           "position": 2,
           "isFabricParameter": false
+        },
+        {
+          "name": "basisBase64",
+          "type": "string",
+          "optional": true,
+          "hasDefault": false,
+          "position": 3,
+          "isFabricParameter": false
         }
       ],
       "contextAudiences": [
@@ -271,6 +279,62 @@
       "contextAudiences": [
         "Sql",
         "Storage"
+      ]
+    },
+    {
+      "functionName": "importerArkiv",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "anmodningId",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        },
+        {
+          "name": "del",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 2,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "arkivTal",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "scenarieIder",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
       ]
     },
     {

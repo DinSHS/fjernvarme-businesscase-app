@@ -67,7 +67,10 @@ export default function Oversigt({ gåTil, bruger }: OmraadeProps) {
     return (
         <Side omraade="Scenarier" titel="Scenarier og kørsler"
             budskab={rækker ? oversigtsbudskab(rækker, aktive) : undefined}
-            handlinger={<Knap onClick={() => gåTil("scenarier/nyt")}>Nyt scenarie fra et spørgsmål</Knap>}>
+            handlinger={<>
+                <Knap onClick={() => gåTil("scenarier/nyt")}>Nyt scenarie fra et spørgsmål</Knap>
+                <Knap sekundaer onClick={() => gåTil("scenarier/arkiv")} title="Eksportér scenarier og kørsler til Excel, og importér dem igen">Backup og flytning</Knap>
+            </>}>
             <Gitter form="8-4">
                 <Kort titel="Scenarier" afgraensning="pr. værk, nyeste først"
                     budskab={rækker ? (rækker.length ? `${rækker.filter((r) => r.seneste).length} af ${rækker.length} er kørt; vælg et for at redigere, køre og sammenligne.` : "Stil et spørgsmål for at få et reference/scenarie-par.") : undefined}

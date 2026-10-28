@@ -551,6 +551,12 @@ class _VaerksarkDeps:
         with self.lager.transaktion() as tx:
             return tx.vaerksarkimport(id, laas=False)
 
+    def laes_vaerk(self, id):
+        if not _uuid(id):
+            return None
+        with self.lager.transaktion() as tx:
+            return tx.vaerk(id, laas=False)
+
     def skriv_fil(self, sti, data):
         self.filer.skriv_fil(sti, data)
 
@@ -560,8 +566,10 @@ class _VaerksarkDeps:
             if not igen or igen["status"] != "ny":
                 return "allerede_behandlet"
             if not tx.vaerksarkimport(a["id"], laas=True):
+                # Runde 12: en revision bindes til værket fra start.
                 tx.indsaet_import({"id": a["id"], "filnavn": upload["filnavn"], "sti": sti, "status": "koe", "log": log,
-                                   "timeslut": upload["timeslut"], "uploadet_af": a["anmodet_af"]})
+                                   "timeslut": upload["timeslut"], "uploadet_af": a["anmodet_af"],
+                                   "vaerk_id": _lc(a["vaerk_id"]) if upload["basis_sha256"] else None})
             if not tx.saet_anmodning(a["id"], "udfoert", f'Værksarket "{upload["filnavn"]}" er modtaget (import {_lc(a["id"])}).'):
                 raise RuntimeError("Uventet: anmodningen blev ændret samtidig.")
             return "oprettet"
@@ -578,14 +586,19 @@ class _VaerksarkDeps:
         _afvis_anmodning(self.lager, id, tekst)
 
 
-def upload_vaerksark(lager, filer, start_import, anmodning_id: str, indhold_base64: str) -> dict:
-    """xlsx -> ``Files/fjv/uploads/<id>.xlsx`` + Vaerksarkimport(``koe``) + importstart. ``{ok, status, svar, import_id?}``."""
+def upload_vaerksark(lager, filer, start_import, anmodning_id: str, indhold_base64: str,
+                     basis_base64: str | None = None) -> dict:
+    """xlsx -> ``Files/fjv/uploads/<id>.xlsx`` + Vaerksarkimport(``koe``) + importstart. ``{ok, status, svar, import_id?}``.
+    Runde 12: ``basis_base64`` = appens nye eksport af værket ved en genupload som revision (ellers tom)."""
     if not _uuid(anmodning_id):
         return {"ok": False, "status": "afvist", "svar": "Ugyldigt anmodnings-id."}
     if not isinstance(indhold_base64, str) or not indhold_base64:
         return {"ok": False, "status": "afvist", "svar": "Filen er tom."}
+    if basis_base64 is not None and not isinstance(basis_base64, str):
+        return {"ok": False, "status": "afvist", "svar": "Basis-arket er ugyldigt."}
     try:
-        return behandl_vaerksark(_VaerksarkDeps(lager, filer, start_import), anmodning_id, indhold_base64)
+        return behandl_vaerksark(_VaerksarkDeps(lager, filer, start_import), anmodning_id, indhold_base64,
+                                 basis_base64 or "")
     except Exception as e:                                     # noqa: BLE001
         return {"ok": False, "status": "ny", "svar": teknisk_fejl("uploadVaerksark", e) + " Prøv igen."}
 

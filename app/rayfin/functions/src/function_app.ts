@@ -11,8 +11,11 @@
 //   hentKildeYaml(vaerkId)          værkets oprindelige YAML fra lakehouset (kun læsning)
 //   uploadTidsserie(anmodningId, indhold)        CSV -> validering -> normaliseret fil + Tidsserie (KONTRAKT §6d)
 //   hentTidsserie(tidsserieId)                   værdierne kompakt til visning
-//   uploadVaerksark(anmodningId, indholdBase64)  xlsx -> Files/fjv/uploads + Vaerksarkimport + importnotebook
+//   uploadVaerksark(anmodningId, indholdBase64, basisBase64)  xlsx -> Files/fjv/uploads + Vaerksarkimport + importnotebook
+//                                                (basis = runde 12's revision: appens nye eksport af værket)
 //   hentDmiTemperatur(omraade, fra, til, kolonne) DMI-temperatur rå fra df-data (målt mod syntetisk varmelast)
+//   importerArkiv(anmodningId, del)              én del af et arkiv (scenarier + historiske kørsler, runde 13; arkiv.ts)
+//   arkivTal(scenarieIder)                       rækketal (SQL COUNT) til eksportens fuldstændighedstjek (runde 13b; kun læsning)
 //   skemaInfo()                     læs-kun diagnose af databasens faktiske tabeller/kolonner
 //
 // INGEN test- eller oprydningsfunktioner her (K2-F1, KONTRAKT §6c): alt der er registreret med
@@ -48,6 +51,11 @@ import {
     type AktiverTidsserie, type InputRad, type NytBlad, type OpretVaerk, type OpretVaerkDel, type ScenarieAendringRad, type ScenarieRad,
     type TidsserieRad, type UploadTidsserie, type UploadVaerksark,
 } from './logik.js';
+import {
+    decimalTekst, importerDel, kolonner as arkivKolonner, type ArkivLager, type ArkivTx, type ImportTabel, type Importsvar, type InputRad as ArkivInputRad,
+    type Arkivtal, type Kanonisk, type Kolonne as ArkivKolonne, type LogRad,
+} from './arkiv.js';
+import { SKEMA_TABELLER } from './skema.data.js';
 
 const udf = new UserDataFunctions();
 
@@ -748,21 +756,26 @@ udf.func(
 
 
 /**
- * uploadVaerksark(anmodningId, indholdBase64): gemmer `vaerksdata_skabelon.xlsx` i `Files/fjv/uploads/<id>.xlsx`,
+ * uploadVaerksark(anmodningId, indholdBase64, basisBase64): gemmer `vaerksdata_skabelon.xlsx` i `Files/fjv/uploads/<id>.xlsx`,
  * opretter Vaerksarkimport (`koe`) og starter `fjv_importer_vaerksark` med `import_id` (uden solver-låsen).
+ * Runde 12: med `basis_sha256` i anmodningen er uploaden en ny revision af `vaerk_id` — basis gemmes som
+ * `<id>_basis.xlsx`, og importen bindes til værket fra start. `basisBase64` er tom for et nyt værk.
  */
 udf.func(
     'uploadVaerksark',
-    async (ctx: RayfinContext<Skema, AudienceType.Sql | AudienceType.Storage | AudienceType.Fabric>, anmodningId: string, indholdBase64: string): Promise<Uploadsvar> => {
+    async (ctx: RayfinContext<Skema, AudienceType.Sql | AudienceType.Storage | AudienceType.Fabric>, anmodningId: string, indholdBase64: string, basisBase64?: string): Promise<Uploadsvar> => {
         if (!uuid(anmodningId)) return { ok: false, status: 'afvist', svar: 'Ugyldigt anmodnings-id.' };
         if (typeof indholdBase64 !== 'string' || !indholdBase64) return { ok: false, status: 'afvist', svar: 'Filen er tom.' };
+        if (basisBase64 != null && typeof basisBase64 !== 'string') return { ok: false, status: 'afvist', svar: 'Basis-arket er ugyldigt.' };
         const pool = await forbind(ctx.Tokens.Sql);
         // K5-F4: forløbet står i vaerksark.ts (testet mod en falsk database); her er SQL'en.
         const deps: VaerksarkDeps = {
             læsAnmodning: async (id) => (await pool.request().input('a', sql.UniqueIdentifier, id).query(`
-                SELECT id, status, svar, aendringer_json, anmodet_af FROM dbo.Aendringsanmodnings WHERE id = @a`)).recordset[0],
+                SELECT id, status, svar, aendringer_json, anmodet_af, vaerk_id, forventet_revision FROM dbo.Aendringsanmodnings WHERE id = @a`)).recordset[0],
             læsImport: async (id) => (await pool.request().input('i', sql.UniqueIdentifier, id).query(`
                 SELECT id, status, fabric_job_id, log FROM dbo.Vaerksarkimports WHERE id = @i`)).recordset[0],
+            læsVaerk: async (id) => (uuid(id) ? (await pool.request().input('v', sql.UniqueIdentifier, id).query(`
+                SELECT id, kode, revision, arkiveret FROM dbo.Vaerks WHERE id = @v`)).recordset[0] : undefined),
             skrivFil: async (sti, bytes) => { await skrivFil(ctx.Tokens.Storage, sti, bytes); },
             opretImport: (a, upload, sti, log) => iTransaktion(pool, async (req) => {
                 const igen = (await req().input('a', sql.UniqueIdentifier, a.id)
@@ -771,10 +784,12 @@ udf.func(
                 const findes = (await req().input('i', sql.UniqueIdentifier, a.id)
                     .query('SELECT COUNT(*) AS n FROM dbo.Vaerksarkimports WITH (UPDLOCK, HOLDLOCK) WHERE id = @i')).recordset[0].n;
                 if (Number(findes) === 0) {
+                    // Runde 12: en revision bindes til værket fra start (importen viser værket, mens den kører).
                     await req().input('id', sql.UniqueIdentifier, a.id).input('fil', sql.NVarChar(300), upload.filnavn).input('sti', sql.NVarChar(400), sti)
                         .input('log', sql.NVarChar(4000), log).input('af', sql.NVarChar(200), a.anmodet_af).input('ts', sql.Bit, upload.timeslut)
-                        .query(`INSERT INTO dbo.Vaerksarkimports (id, filnavn, sti, status, log, timeslut, uploadet_af, uploadet)
-                                VALUES (@id, @fil, @sti, 'koe', @log, @ts, @af, SYSUTCDATETIME())`);
+                        .input('v', sql.UniqueIdentifier, upload.basis_sha256 ? a.vaerk_id : null)
+                        .query(`INSERT INTO dbo.Vaerksarkimports (id, filnavn, sti, status, log, timeslut, vaerk_id, uploadet_af, uploadet)
+                                VALUES (@id, @fil, @sti, 'koe', @log, @ts, @v, @af, SYSUTCDATETIME())`);
                 }
                 const u = await req().input('a', sql.UniqueIdentifier, a.id).input('svar', sql.NVarChar(2000), `Værksarket "${upload.filnavn}" er modtaget (import ${lc(a.id)}).`)
                     .query(`UPDATE dbo.Aendringsanmodnings SET status = 'udfoert', svar = @svar WHERE id = @a AND status = 'ny'`);
@@ -793,7 +808,7 @@ udf.func(
             afvisAnmodning: (id, tekst) => afvisAnmodning(pool, id, tekst),
         };
         try {
-            return await behandlVaerksark(deps, anmodningId, indholdBase64);
+            return await behandlVaerksark(deps, anmodningId, indholdBase64, basisBase64 ?? '');
         } catch (e) {
             return { ok: false, status: 'ny', svar: tekniskFejl('uploadVaerksark', e) + ' Prøv igen.' };
         } finally {
@@ -855,6 +870,178 @@ udf.func(
             return { ok: true, data_commit: dataCommit, kolonne: kol, tider, vaerdier };
         } catch (e) {
             return { ok: false, fejl: tekniskFejl('hentDmiTemperatur', e) };
+        }
+    },
+    [],
+);
+
+// ------------------------------------------------------------------ importerArkiv (runde 13)
+
+/** mssql-parametertypen for en skemakolonne. */
+function sqlType(k: ArkivKolonne): sql.ISqlType | (() => sql.ISqlType) {
+    switch (k.type) {
+        case 'uuid': return sql.UniqueIdentifier;
+        case 'text': case 'set': return sql.NVarChar(k.max ?? 4000);
+        case 'int': return sql.Int;
+        // K10-F5: en decimal sendes som tekst (JS' korteste cifre, udfoldet uden eksponent — K10b-N2) og CAST'es i SQL —
+        // tedious ganger ellers tallet op med 10^scale i double og kan ramme et nabo-decimaltal; SQL Servers egen
+        // tekst->DECIMAL er eksakt, men tager ikke eksponentnotation.
+        case 'decimal': return sql.NVarChar(64);
+        case 'boolean': return sql.Bit;
+        case 'datetime': return sql.DateTime2(3);
+    }
+}
+
+const sqlVærdi = (k: ArkivKolonne, v: Kanonisk) =>
+    v === null ? null : k.type === 'datetime' ? new Date(v as string) : k.type === 'decimal' ? decimalTekst(v as number) : v;
+
+/** Parameteren i VALUES: decimaler CAST'es fra tekst til kolonnens præcise type. */
+const sqlParam = (k: ArkivKolonne, navn: string) => (k.type === 'decimal' ? `CAST(@${navn} AS DECIMAL(${k.precision ?? 18},${k.scale ?? 0}))` : `@${navn}`);
+
+/** ArkivLager mod appens database som app-ejeren (db.ts). SQL Server tager højst 2100 parametre pr. kald. */
+function sqlArkivLager(pool: sql.ConnectionPool): ArkivLager {
+    const tabelnavn = (t: ImportTabel | 'Vaerk' | 'Tidsserie') => `dbo.${SKEMA_TABELLER[t].tabel}`;
+    const tx = (req: () => sql.Request): ArkivTx => ({
+        låsAnmodning: async (id) => (await req().input('a', sql.UniqueIdentifier, id)
+            .query('SELECT status, svar FROM dbo.Aendringsanmodnings WITH (UPDLOCK, HOLDLOCK) WHERE id = @a')).recordset[0],
+        hent: async (tabel, ider) => {
+            const navne = (SKEMA_TABELLER[tabel].kolonner as readonly { navn: string }[]).map((k) => `[${k.navn}]`).join(', ');
+            const ud: Record<string, unknown>[] = [];
+            for (let i = 0; i < ider.length; i += 1000) {
+                const r = req();
+                const bid = ider.slice(i, i + 1000);
+                bid.forEach((id, j) => r.input(`i${j}`, sql.UniqueIdentifier, id));
+                ud.push(...(await r.query(`SELECT ${navne} FROM ${tabelnavn(tabel)} WHERE id IN (${bid.map((_, j) => `@i${j}`).join(', ')})`)).recordset);
+            }
+            return ud;
+        },
+        indsæt: async (tabel, rækker) => {
+            const ks = arkivKolonner(tabel);
+            const pr = Math.floor(2000 / ks.length);
+            for (let i = 0; i < rækker.length; i += pr) {
+                const r = req();
+                const bid = rækker.slice(i, i + pr);
+                const værdier = bid.map((række, j) => `(${ks.map((k, c) => {
+                    r.input(`p${j}_${c}`, sqlType(k), sqlVærdi(k, række[c]));
+                    return sqlParam(k, `p${j}_${c}`);
+                }).join(', ')})`);
+                await r.query(`INSERT INTO ${tabelnavn(tabel)} (${ks.map((k) => `[${k.navn}]`).join(', ')}) VALUES ${værdier.join(', ')}`);
+            }
+        },
+        låsKørsler: async (ider) => {
+            // K10-F3: én transaktionsejet applock pr. kørsel, i den (sorterede) rækkefølge forløbet giver.
+            for (const id of ider) {
+                const r = await req().input('res', sql.NVarChar(255), `fjv_arkiv:${id.toLowerCase()}`).query(
+                    "DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = @res, @LockMode = N'Exclusive', " +
+                    "@LockOwner = N'Transaction', @LockTimeout = 60000; SELECT @rc AS rc;");
+                if (Number(r.recordset[0]?.rc) < 0) throw new Error(`Kunne ikke få kørselslåsen for ${id} (sp_getapplock = ${r.recordset[0]?.rc}).`);
+            }
+        },
+        børneside: async (koerselId, tabel, fra, antal) => {
+            const navne = (SKEMA_TABELLER[tabel].kolonner as readonly { navn: string }[]).map((k) => `[${k.navn}]`).join(', ');
+            return (await req().input('k', sql.UniqueIdentifier, koerselId).input('fra', sql.Int, fra).input('n', sql.Int, antal)
+                .query(`SELECT ${navne} FROM ${tabelnavn(tabel)} WHERE koersel_id = @k ORDER BY id OFFSET @fra ROWS FETCH NEXT @n ROWS ONLY`)).recordset;
+        },
+        input: async (koerselId) => (await req().input('k', sql.UniqueIdentifier, koerselId)
+            .query('SELECT kilde, sti, vaerdi_json FROM dbo.KoerselInputs WHERE koersel_id = @k')).recordset as ArkivInputRad[],
+        vaerkHistorik: async (vaerkId) => {
+            const v = (await req().input('v', sql.UniqueIdentifier, vaerkId).query('SELECT revision FROM dbo.Vaerks WHERE id = @v')).recordset[0];
+            const blade = (await req().input('v', sql.UniqueIdentifier, vaerkId)
+                .query('SELECT sti, vaerdi_json FROM dbo.VaerkParameters WHERE vaerk_id = @v')).recordset as { sti: string; vaerdi_json: string }[];
+            const log = (await req().input('v', sql.UniqueIdentifier, vaerkId)
+                .query('SELECT revision, sti, handling, gammel_json, ny_json FROM dbo.Aendringslogs WHERE vaerk_id = @v')).recordset as LogRad[];
+            return { revision: Number(v?.revision ?? 0), blade, log };
+        },
+        tidsserier: async (vaerkId) => ((await req().input('v', sql.UniqueIdentifier, vaerkId)
+            .query(`SELECT rolle, sha256 FROM dbo.Tidsseries WHERE vaerk_id = @v AND status = 'gyldig' AND sha256 IS NOT NULL`)).recordset as { rolle: string; sha256: string }[]),
+        udfoer: async (id, svar) => {
+            await req().input('a', sql.UniqueIdentifier, id).input('svar', sql.NVarChar(2000), svar.slice(0, 2000))
+                .query(`UPDATE dbo.Aendringsanmodnings SET status = 'udfoert', svar = @svar WHERE id = @a AND status = 'ny'`);
+        },
+    });
+    return {
+        læsAnmodning: async (id) => {
+            const a = (await pool.request().input('a', sql.UniqueIdentifier, id).query(`
+                SELECT id, vaerk_id, aendringer_json, anmodet_af, status, svar FROM dbo.Aendringsanmodnings WHERE id = @a`)).recordset[0];
+            return a ? { ...a, id: lc(a.id), vaerk_id: lc(a.vaerk_id) } : null;
+        },
+        afvisAnmodning: (id, tekst) => afvisAnmodning(pool, id, tekst),
+        iTransaktion: (fn) => iTransaktion(pool, (req) => fn(tx(req))),
+    };
+}
+
+/**
+ * importerArkiv(anmodningId, del): skriver én del af et arkiv (scenarier og historiske kørsler, runde 13) i én
+ * transaktion — forløbet og alle regler står i arkiv.ts `importerDel` (samme kode som forhåndsvisningen i browseren).
+ * Klienten opretter først en Aendringsanmodning `importer_arkiv` i eget navn (vaerk_id = nil-uuid) med delens
+ * sha256: identiteten (`anmodet_af` er DAB-verificeret) og bindingen til netop denne del. En kørsel skrives først,
+ * når dens rækker er komplette og passer med input_hash; en afbrudt import kan derfor genoptages uden dubletter.
+ */
+udf.func(
+    'importerArkiv',
+    async (ctx: RayfinContext<Skema, AudienceType.Sql>, anmodningId: string, del: string): Promise<Importsvar> => {
+        const pool = await forbind(ctx.Tokens.Sql);
+        try {
+            return await importerDel(sqlArkivLager(pool), anmodningId, del);
+        } catch (e) {
+            if (erUnikBrud(e)) {
+                const tekst = 'Konflikt: en række med samme nøgle blev skrevet samtidig eller findes allerede. Intet i denne del er gemt; importér igen.';
+                await afvisAnmodning(pool, anmodningId, tekst);
+                return { ok: false, status: 'afvist', svar: tekst };
+            }
+            return { ok: false, status: 'ny', svar: tekniskFejl('importerArkiv', e) + ' Intet i denne del er gemt; prøv igen.' };
+        } finally {
+            await pool.close();
+        }
+    },
+    [],
+);
+
+/**
+ * arkivTal(scenarieIder): rækketal fra databasen selv (COUNT(*) som app-ejeren) for scenarierne, deres kørsler og
+ * værker. Eksporten læser rækkerne gennem DAB som brugeren og sammenholder hver tabel med disse tal, så en afkortet
+ * læsning stopper eksporten (K10-F4). Kun læsning; `scenarieIder` er en JSON-liste af uuid'er (højst 200).
+ */
+udf.func(
+    'arkivTal',
+    async (ctx: RayfinContext<Skema, AudienceType.Sql>, scenarieIder: string): Promise<Arkivtal> => {
+        let ider: string[];
+        try { ider = JSON.parse(scenarieIder); } catch { return { ok: false, fejl: 'scenarieIder skal være en JSON-liste.' }; }
+        if (!Array.isArray(ider) || !ider.length || ider.length > 200 || !ider.every((x) => typeof x === 'string' && uuid(x))) {
+            return { ok: false, fejl: 'scenarieIder skal være 1–200 uuid\'er.' };
+        }
+        const pool = await forbind(ctx.Tokens.Sql);
+        try {
+            const r = pool.request();
+            ider.forEach((id, i) => r.input(`s${i}`, sql.UniqueIdentifier, id));
+            const ind = ider.map((_, i) => `@s${i}`).join(', ');
+            const svar = await r.query(`
+                SELECT s.id, (SELECT COUNT(*) FROM dbo.ScenarieAendrings x WHERE x.scenarie_id = s.id) AS ScenarieAendring,
+                       (SELECT COUNT(*) FROM dbo.Bestillings x WHERE x.scenarie_id = s.id) AS Bestilling,
+                       (SELECT COUNT(*) FROM dbo.Koersels x WHERE x.scenarie_id = s.id) AS Koersel
+                FROM dbo.Scenaries s WHERE s.id IN (${ind});
+                SELECT k.id, (SELECT COUNT(*) FROM dbo.KoerselInputs x WHERE x.koersel_id = k.id) AS KoerselInput,
+                       (SELECT COUNT(*) FROM dbo.KoerselNoegletals x WHERE x.koersel_id = k.id) AS KoerselNoegletal,
+                       (SELECT COUNT(*) FROM dbo.KoerselMaaneds x WHERE x.koersel_id = k.id) AS KoerselMaaned,
+                       (SELECT COUNT(*) FROM dbo.KoerselTimes x WHERE x.koersel_id = k.id) AS KoerselTime
+                FROM dbo.Koersels k WHERE k.scenarie_id IN (${ind});
+                SELECT v.id, (SELECT COUNT(*) FROM dbo.Aendringslogs x WHERE x.vaerk_id = v.id) AS Aendringslog,
+                       (SELECT COUNT(*) FROM dbo.Tidsseries x WHERE x.vaerk_id = v.id) AS Tidsserie
+                FROM dbo.Vaerks v WHERE v.id IN (SELECT vaerk_id FROM dbo.Scenaries WHERE id IN (${ind})
+                                                 UNION SELECT vaerk_id FROM dbo.Koersels WHERE scenarie_id IN (${ind}));`);
+            const [sc, ko, va] = svar.recordsets as unknown as Record<string, unknown>[][];
+            const kort = (rækker: Record<string, unknown>[], felter: string[]) => Object.fromEntries(rækker.map((x) =>
+                [lc(x.id), Object.fromEntries(felter.map((f) => [f, Number(x[f])]))]));
+            return {
+                ok: true,
+                scenarier: kort(sc, ['ScenarieAendring', 'Bestilling', 'Koersel']),
+                koersler: kort(ko, ['KoerselInput', 'KoerselNoegletal', 'KoerselMaaned', 'KoerselTime']),
+                vaerker: kort(va, ['Aendringslog', 'Tidsserie']),
+            } as Arkivtal;
+        } catch (e) {
+            return { ok: false, fejl: tekniskFejl('arkivTal', e) };
+        } finally {
+            await pool.close();
         }
     },
     [],

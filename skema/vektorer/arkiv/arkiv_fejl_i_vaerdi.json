@@ -1,0 +1,343 @@
+{
+ "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
+ "kilder": {
+  "app/rayfin/functions/src/arkiv.ts": "403b9a92037d85ac321e5f777a8e3dc2aa688f08e311cf4e4cd666d0ae57f629",
+  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
+ },
+ "tilfaelde": [
+  {
+   "navn": "Koersel.status #0",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "status",
+    "v": "faerdig"
+   },
+   "ud": null
+  },
+  {
+   "navn": "Koersel.status #1",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "status",
+    "v": "FAERDIG"
+   },
+   "ud": "status har en ukendt værdi \"FAERDIG\"."
+  },
+  {
+   "navn": "Koersel.status #2",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "status",
+    "v": null
+   },
+   "ud": "status må ikke være tom."
+  },
+  {
+   "navn": "Koersel.fase #3",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "fase",
+    "v": null
+   },
+   "ud": null
+  },
+  {
+   "navn": "Scenarie.navn #4",
+   "input": {
+    "tabel": "Scenarie",
+    "kolonne": "navn",
+    "v": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   },
+   "ud": null
+  },
+  {
+   "navn": "Scenarie.navn #5",
+   "input": {
+    "tabel": "Scenarie",
+    "kolonne": "navn",
+    "v": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   },
+   "ud": "navn er for lang (201 > 200 tegn)."
+  },
+  {
+   "navn": "Scenarie.navn #6",
+   "input": {
+    "tabel": "Scenarie",
+    "kolonne": "navn",
+    "v": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+   },
+   "ud": null
+  },
+  {
+   "navn": "Scenarie.navn #7",
+   "input": {
+    "tabel": "Scenarie",
+    "kolonne": "navn",
+    "v": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+   },
+   "ud": "navn er for lang (202 > 200 tegn)."
+  },
+  {
+   "navn": "Scenarie.navn #8",
+   "input": {
+    "tabel": "Scenarie",
+    "kolonne": "navn",
+    "v": " "
+   },
+   "ud": "navn er for kort."
+  },
+  {
+   "navn": "Scenarie.navn #9",
+   "input": {
+    "tabel": "Scenarie",
+    "kolonne": "navn",
+    "v": "a "
+   },
+   "ud": null
+  },
+  {
+   "navn": "Scenarie.navn #10",
+   "input": {
+    "tabel": "Scenarie",
+    "kolonne": "navn",
+    "v": 5
+   },
+   "ud": "navn skal være tekst."
+  },
+  {
+   "navn": "Scenarie.periode_start #11",
+   "input": {
+    "tabel": "Scenarie",
+    "kolonne": "periode_start",
+    "v": "2026-01-05"
+   },
+   "ud": null
+  },
+  {
+   "navn": "Scenarie.periode_start #12",
+   "input": {
+    "tabel": "Scenarie",
+    "kolonne": "periode_start",
+    "v": "5-1-2026"
+   },
+   "ud": "periode_start har ikke den forventede form."
+  },
+  {
+   "navn": "KoerselTime.vaerdier_json #13",
+   "input": {
+    "tabel": "KoerselTime",
+    "kolonne": "vaerdier_json",
+    "v": "{\"a\":1}"
+   },
+   "ud": null
+  },
+  {
+   "navn": "KoerselTime.vaerdier_json #14",
+   "input": {
+    "tabel": "KoerselTime",
+    "kolonne": "vaerdier_json",
+    "v": "{NaN}"
+   },
+   "ud": "vaerdier_json er ikke gyldig JSON."
+  },
+  {
+   "navn": "KoerselTime.vaerdier_json #15",
+   "input": {
+    "tabel": "KoerselTime",
+    "kolonne": "vaerdier_json",
+    "v": "{\"a\":NaN}"
+   },
+   "ud": "vaerdier_json er ikke gyldig JSON."
+  },
+  {
+   "navn": "KoerselTime.tid #16",
+   "input": {
+    "tabel": "KoerselTime",
+    "kolonne": "tid",
+    "v": "2026-01-01T00:00:00.000Z"
+   },
+   "ud": null
+  },
+  {
+   "navn": "KoerselTime.tid #17",
+   "input": {
+    "tabel": "KoerselTime",
+    "kolonne": "tid",
+    "v": "2026-01-01T00:00:00Z"
+   },
+   "ud": "tid er ikke et tidspunkt i UTC (ÅÅÅÅ-MM-DDTtt:mm:ss.sssZ)."
+  },
+  {
+   "navn": "KoerselTime.tid #18",
+   "input": {
+    "tabel": "KoerselTime",
+    "kolonne": "tid",
+    "v": "2026-02-30T00:00:00.000Z"
+   },
+   "ud": "tid er ikke et tidspunkt i UTC (ÅÅÅÅ-MM-DDTtt:mm:ss.sssZ)."
+  },
+  {
+   "navn": "Koersel.forsoeg #19",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "forsoeg",
+    "v": 1
+   },
+   "ud": null
+  },
+  {
+   "navn": "Koersel.forsoeg #20",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "forsoeg",
+    "v": 1.5
+   },
+   "ud": "forsoeg skal være et heltal."
+  },
+  {
+   "navn": "Koersel.forsoeg #21",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "forsoeg",
+    "v": 2147483648
+   },
+   "ud": "forsoeg skal være et heltal."
+  },
+  {
+   "navn": "Koersel.forsoeg #22",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "forsoeg",
+    "v": -2147483648
+   },
+   "ud": null
+  },
+  {
+   "navn": "Koersel.objektiv_dkk #23",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "objektiv_dkk",
+    "v": 1e+23
+   },
+   "ud": null
+  },
+  {
+   "navn": "Koersel.objektiv_dkk #24",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "objektiv_dkk",
+    "v": 1e+24
+   },
+   "ud": "objektiv_dkk er for stort til kolonnen."
+  },
+  {
+   "navn": "Koersel.objektiv_dkk #25",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "objektiv_dkk",
+    "v": 867031.23
+   },
+   "ud": null
+  },
+  {
+   "navn": "Koersel.objektiv_dkk #26",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "objektiv_dkk",
+    "v": "867031.23"
+   },
+   "ud": "objektiv_dkk skal være et tal."
+  },
+  {
+   "navn": "Koersel.er_milp #27",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "er_milp",
+    "v": true
+   },
+   "ud": null
+  },
+  {
+   "navn": "Koersel.er_milp #28",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "er_milp",
+    "v": 1
+   },
+   "ud": "er_milp skal være sand eller falsk."
+  },
+  {
+   "navn": "Koersel.id #29",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "id",
+    "v": "AAAAAAAA-0000-4000-8000-000000000001"
+   },
+   "ud": "id er ikke et uuid med små bogstaver."
+  },
+  {
+   "navn": "Koersel.id #30",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "id",
+    "v": "aaaaaaaa-0000-4000-8000-000000000001"
+   },
+   "ud": null
+  },
+  {
+   "navn": "Koersel.input_hash #31",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "input_hash",
+    "v": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+   },
+   "ud": null
+  },
+  {
+   "navn": "Koersel.input_hash #32",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "input_hash",
+    "v": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+   },
+   "ud": "input_hash har ikke den forventede form."
+  },
+  {
+   "navn": "Koersel.model_commit #33",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "model_commit",
+    "v": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+   },
+   "ud": null
+  },
+  {
+   "navn": "Koersel.model_commit #34",
+   "input": {
+    "tabel": "Koersel",
+    "kolonne": "model_commit",
+    "v": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+   },
+   "ud": "model_commit har ikke den forventede form."
+  },
+  {
+   "navn": "KoerselMaaned.maaned #35",
+   "input": {
+    "tabel": "KoerselMaaned",
+    "kolonne": "maaned",
+    "v": "2026-13"
+   },
+   "ud": "maaned har ikke den forventede form."
+  },
+  {
+   "navn": "KoerselMaaned.maaned #36",
+   "input": {
+    "tabel": "KoerselMaaned",
+    "kolonne": "maaned",
+    "v": "periode"
+   },
+   "ud": null
+  }
+ ]
+}

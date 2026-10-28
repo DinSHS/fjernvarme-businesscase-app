@@ -135,3 +135,13 @@
 .kf-slip { position: relative; cursor: pointer; }
 .kf-noegletal strong { overflow-wrap: anywhere; }
 .kf-formular label.kf-kontakt { flex-direction: row; font-weight: 400; }
+
+/* Runde 12: eksport til værksark og genupload som revision. */
+.kf-ikke-med { display: flex; flex-direction: column; gap: 6px; }
+.kf-ikke-med details > summary { cursor: pointer; font-size: var(--t-brod); padding: 2px 0; }
+.kf-ikke-med table, .kf-diff table { width: 100%; border-collapse: collapse; font-size: var(--t-fodnote); margin: 4px 0 8px; table-layout: fixed; }
+.kf-ikke-med th, .kf-ikke-med td, .kf-diff th, .kf-diff td { padding: 3px 8px; border-bottom: 1px solid var(--dash-hairline); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.kf-ikke-med th, .kf-diff th { color: var(--dash-ink-3); font-weight: 600; }
+.kf-ikke-med td .kf-sti { display: block; }
+.kf-diff td[data-tal="true"] { font-variant-numeric: tabular-nums; }
+.kf-diff ins { text-decoration: none; font-weight: 600; }

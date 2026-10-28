@@ -262,6 +262,81 @@ class SqlTransaktion:
             v["log"] = log
         self.cn.execute(i.update().where(and_(i.c.id == id.lower(), i.c.fabric_job_id.like("reserveret:%"))).values(**v))
 
+    # -------------------------------------------------- arkivet (runde 13/13b; logik/arkiv.py importer_del)
+    def arkiv_hent(self, tabel: str, ider) -> list[dict]:
+        t = self.t(tabel)
+        ud: list[dict] = []
+        ider = [i.lower() for i in ider]
+        for a in range(0, len(ider), 500):
+            ud += self._alle(select(t).where(t.c.id.in_(ider[a:a + 500])))
+        return ud
+
+    def arkiv_indsaet(self, tabel: str, raekker: list[dict], kolonner: list[dict]) -> None:
+        # K10-F5: en decimal bindes som Decimal af JS' korteste tekst (præcis den værdi, appen læste) — en float ville
+        # driveren selv konvertere. sqlite gemmer NUMERIC som double; dér er float det samme.
+        if self.db.dialekt != "sqlite":
+            from decimal import Decimal
+            from .logik.arkiv import decimal_tekst
+            dec = [k["navn"] for k in kolonner if k["type"] == "decimal"]
+            raekker = [{**r, **{d: (Decimal(decimal_tekst(r[d])) if r[d] is not None else None) for d in dec}} for r in raekker]
+        for a in range(0, len(raekker), 500):
+            self._indsaet(tabel, raekker[a:a + 500])
+
+    def arkiv_laas_koersler(self, ider) -> None:
+        """K10-F3: en transaktionsejet lås pr. kørsels-id, i den givne (sorterede) orden. sqlite: BEGIN IMMEDIATE har
+        allerede serialiseret alle skrivere."""
+        d = self.db.dialekt
+        for id in ider:
+            if d == "postgresql":
+                self.cn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": "fjv_arkiv:" + id.lower()})
+            elif d == "mssql":
+                # K10b-N1: sp_getapplock melder en fejlet lås i sin RETURKODE (< 0), ikke som en fejl — læs den og
+                # kast inde i transaktionen (rollback), som Fabric-TS gør.
+                rc = self.cn.execute(text("DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
+                                          "@LockOwner = 'Transaction', @LockTimeout = 60000; SELECT @rc AS rc;"),
+                                     {"k": "fjv_arkiv:" + id.lower()}).scalar()
+                if rc is None or int(rc) < 0:
+                    raise RuntimeError(f"Kunne ikke få kørselslåsen for {id} (sp_getapplock = {rc}).")
+
+    def arkiv_boerneside(self, koersel_id: str, tabel: str, fra: int, antal: int) -> list[dict]:
+        t = self.t(tabel)
+        return self._alle(select(t).where(t.c.koersel_id == koersel_id.lower()).order_by(t.c.id).offset(fra).limit(antal))
+
+    def arkiv_input(self, koersel_id: str) -> list[dict]:
+        t = self.t("KoerselInput")
+        return self._alle(select(t.c.kilde, t.c.sti, t.c.vaerdi_json).where(t.c.koersel_id == koersel_id.lower()))
+
+    def arkiv_vaerk_historik(self, vaerk_id: str) -> dict:
+        v, p, log = self.t("Vaerk"), self.t("VaerkParameter"), self.t("Aendringslog")
+        rev = self.cn.execute(select(v.c.revision).where(v.c.id == vaerk_id.lower())).scalar()
+        return {"revision": int(rev or 0),
+                "blade": self._alle(select(p.c.sti, p.c.vaerdi_json).where(p.c.vaerk_id == vaerk_id.lower())),
+                "log": self._alle(select(log.c.revision, log.c.sti, log.c.handling, log.c.gammel_json, log.c.ny_json)
+                                  .where(log.c.vaerk_id == vaerk_id.lower()))}
+
+    def arkiv_tidsserier(self, vaerk_id: str) -> list[dict]:
+        t = self.t("Tidsserie")
+        return self._alle(select(t.c.rolle, t.c.sha256).where(and_(
+            t.c.vaerk_id == vaerk_id.lower(), t.c.status == "gyldig", t.c.sha256.is_not(None))))
+
+    def arkiv_tal(self, scenarie_ider: list[str]) -> dict:
+        """Rækketal (COUNT) for scenarierne, deres kørsler og værker — Function ``arkivTal``."""
+        def tael(tabel, kol, vaerdi):
+            t = self.t(tabel)
+            return self.cn.execute(select(func.count()).select_from(t).where(t.c[kol] == vaerdi)).scalar()
+        s, k = self.t("Scenarie"), self.t("Koersel")
+        scen = self._alle(select(s.c.id, s.c.vaerk_id).where(s.c.id.in_(scenarie_ider)))
+        koer = self._alle(select(k.c.id, k.c.vaerk_id).where(k.c.scenarie_id.in_(scenarie_ider)))
+        vaerker = sorted({str(x["vaerk_id"]).lower() for x in scen + koer})
+        return {
+            "scenarier": {str(x["id"]).lower(): {"ScenarieAendring": tael("ScenarieAendring", "scenarie_id", x["id"]),
+                                                 "Bestilling": tael("Bestilling", "scenarie_id", x["id"]),
+                                                 "Koersel": tael("Koersel", "scenarie_id", x["id"])} for x in scen},
+            "koersler": {str(x["id"]).lower(): {b: tael(b, "koersel_id", x["id"]) for b in
+                                                ("KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime")} for x in koer},
+            "vaerker": {v: {"Aendringslog": tael("Aendringslog", "vaerk_id", v), "Tidsserie": tael("Tidsserie", "vaerk_id", v)}
+                        for v in vaerker},
+        }
 
 
 class SqlBetroetLager:
@@ -332,9 +407,9 @@ class Tjenester:
     def hent_tidsserie(self, tidsserie_id, fra="", til=""):
         return self.T.hent_tidsserie(self.lager, self.filer, tidsserie_id, fra, til)
 
-    def upload_vaerksark(self, anmodning_id, indhold_base64):
+    def upload_vaerksark(self, anmodning_id, indhold_base64, basis_base64=None):
         return self.T.upload_vaerksark(self.lager, self.filer, self.app.motor.start_import, anmodning_id,
-                                       indhold_base64)
+                                       indhold_base64, basis_base64)
 
     def hent_kilde_yaml(self, vaerk_id):
         return self.T.hent_kilde_yaml(self.lager, self.filer, vaerk_id)
@@ -354,6 +429,24 @@ class Tjenester:
 
     def afstem(self):
         return self.T.afstem(self.app.motor.marker_doede, self.app.motor.start_arbejder)
+
+    def arkiv_tal(self, scenarie_ider):
+        """Runde 13b (K10-F4): rækketal til eksportens fuldstændighedstjek (``logik.arkiv.arkiv_tal``). Kun læsning."""
+        from .logik import arkiv as A
+        return A.arkiv_tal(self.lager, scenarie_ider)
+
+    def importer_arkiv(self, anmodning_id, del_):
+        """Runde 13: én del af et arkiv (``logik.arkiv.importer_del``, port af Function ``importerArkiv``)."""
+        from .logik import arkiv as A
+        try:
+            return A.importer_del(self.lager, anmodning_id, del_)
+        except _unik():
+            tekst = "Konflikt: en række med samme nøgle blev skrevet samtidig eller findes allerede. Intet i denne del er gemt; importér igen."
+            with self.lager.transaktion() as tx:
+                tx.saet_anmodning(anmodning_id, "afvist", tekst)
+            return {"ok": False, "status": "afvist", "svar": tekst}
+        except Exception as e:                                     # noqa: BLE001
+            return {"ok": False, "status": "ny", "svar": self.T.teknisk_fejl("importerArkiv", e) + " Intet i denne del er gemt; prøv igen."}
 
 
 import threading as _threading  # noqa: E402

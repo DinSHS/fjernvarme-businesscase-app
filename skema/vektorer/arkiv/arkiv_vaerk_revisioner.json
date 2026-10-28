@@ -1,0 +1,160 @@
+{
+ "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
+ "kilder": {
+  "app/rayfin/functions/src/arkiv.ts": "403b9a92037d85ac321e5f777a8e3dc2aa688f08e311cf4e4cd666d0ae57f629",
+  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
+ },
+ "tilfaelde": [
+  {
+   "navn": "eksempel",
+   "input": {
+    "revision": 3,
+    "blade": [
+     {
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "5.0"
+     },
+     {
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     }
+    ],
+    "log": [
+     {
+      "id": "cccccccc-0000-4000-8000-000000000001",
+      "vaerk_id": "11111111-1111-4111-8111-111111111111",
+      "revision": 2,
+      "sti": "prices.straw.value",
+      "handling": "ret",
+      "gammel_json": "200.0",
+      "ny_json": "250.0",
+      "aendret_af": "a@example.org",
+      "tidspunkt": "2026-10-01T08:00:00.000Z",
+      "anmodning_id": null
+     },
+     {
+      "id": "cccccccc-0000-4000-8000-000000000002",
+      "vaerk_id": "11111111-1111-4111-8111-111111111111",
+      "revision": 3,
+      "sti": "units.halmkedel.p_max",
+      "handling": "ret",
+      "gammel_json": "4.0",
+      "ny_json": "5.0",
+      "aendret_af": "a@example.org",
+      "tidspunkt": "2026-10-01T08:00:00.000Z",
+      "anmodning_id": null
+     }
+    ]
+   },
+   "ud": {
+    "$map": [
+     [
+      "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+      [
+       3
+      ]
+     ],
+     [
+      "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+      [
+       2
+      ]
+     ],
+     [
+      "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+      [
+       1
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "opret og slet",
+   "input": {
+    "revision": 3,
+    "blade": [
+     {
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "5.0"
+     },
+     {
+      "sti": "units.ny.p_max",
+      "vaerdi_json": "1.0"
+     }
+    ],
+    "log": [
+     {
+      "revision": 2,
+      "sti": "units.ny.p_max",
+      "handling": "opret",
+      "gammel_json": null,
+      "ny_json": "1.0"
+     },
+     {
+      "revision": 3,
+      "sti": "prices.straw.value",
+      "handling": "slet",
+      "gammel_json": "250.0",
+      "ny_json": null
+     }
+    ]
+   },
+   "ud": {
+    "$map": [
+     [
+      "d120ecd5598e83eaacf7030c2ecd7b01d6cffe6bbf453a65fdda8fed500595a5",
+      [
+       3
+      ]
+     ],
+     [
+      "77254a67388a093c50d87d46f15e120b0b4707b93fa58169da7fe5014e8dc410",
+      [
+       2
+      ]
+     ],
+     [
+      "d26308bac5bd4929fc87fed8f7b779497f3d860cf07b1e2918e75cd32b7672fd",
+      [
+       1
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "uden log",
+   "input": {
+    "revision": 2,
+    "blade": [
+     {
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "5.0"
+     },
+     {
+      "sti": "units.ny.p_max",
+      "vaerdi_json": "1.0"
+     }
+    ],
+    "log": []
+   },
+   "ud": {
+    "$map": [
+     [
+      "d120ecd5598e83eaacf7030c2ecd7b01d6cffe6bbf453a65fdda8fed500595a5",
+      [
+       2,
+       1
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

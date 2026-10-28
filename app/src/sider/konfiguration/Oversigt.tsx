@@ -57,6 +57,9 @@ export default function Oversigt({ gåTil, bruger }: OmraadeProps) {
                                     { navn: "Enheder", vis: (v) => { const t = tal.get(v.id); return t ? `${t.enhederTil}/${t.enheder}` : "–"; }, tal: true },
                                     { navn: "Lagre", vis: (v) => tal.get(v.id)?.lagre ?? "–", tal: true },
                                     { navn: "Seneste kørsel", vis: (v) => { const k = seneste.get(v.id); return k ? <>{tidspunkt(k.bestilt)} <StatusMaerke status={k.status} /></> : "Ingen"; } },
+                                    // Runde 12: arket hentes fra værkets eksportfane (listen "ikke med i arket" vises først).
+                                    { navn: "Værksark", vis: (v) => <a className="fjv-knap" data-variant="sekundaer" href={rutehref("konfiguration", v.kode, "eksport")}
+                                        onClick={(e) => e.stopPropagation()} aria-label={`Eksportér værksark (.xlsx) for ${v.navn}`}>Eksportér (.xlsx)</a> },
                                 ]} />
                         )}
                     </DataTilstand>

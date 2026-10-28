@@ -40,9 +40,11 @@ længe den regner præcis som modellen. Det er den ene regel, der går forud for
    git clone https://github.com/skj-1964/fjernvarme-businesscase.git ../fjernvarme-businesscase
    ```
    Pinnen læses med `git show <pin>:<fil>`, så klonen kan stå på `main`. En anden placering: `FJV_MODELREPO=<sti>`.
-3. **Test før I sender.** Kræver Node.js ≥ 20, Python 3.11–3.13 med PyYAML (`FJV_PYTHON` vælger fortolkeren).
+3. **Test før I sender.** Kræver Node.js ≥ 20, Python 3.11–3.13 med PyYAML (`FJV_PYTHON` vælger fortolkeren). Gatens
+   *eksport rundtur* kører modelrepoets eget værksark-script og `run_case.py`, så den skal have et Python med
+   modelrepoets `requirements.txt` (`FJV_MODELPYTHON`); df-data ved pinnen hentes første gang til `_lokal/files`.
    ```bash
-   cd app && npm ci && npm run gate && cd ..     # tsc, eslint, vitest og build for begge udgaver, trofasthed + modprøver
+   cd app && npm ci && npm run gate && cd ..     # tsc, eslint, vitest og build for begge udgaver, trofasthed + modprøver, eksport-rundtur
    python scripts/tjek.py                        # intet organisationsspecifikt, kreditten er intakt
    python -m unittest discover -s offentlig/tests -t .                 # gaten og installationen (stdlib)
    cd fabric && python -m unittest discover -s tests -t . && cd ..    # regnemotoren (stdlib, intet netværk)

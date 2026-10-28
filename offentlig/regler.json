@@ -296,6 +296,13 @@
       "grund": "modelforfatterens egen vaerksdata_skabelon.xlsx (kildens indhold, ikke et tema)"
     },
     {
+      "fil": "app/src/sider/konfiguration/eksport/vaerksdata_skabelon.xlsx::xl/sharedStrings.xml",
+      "regler": [
+        "tema"
+      ],
+      "grund": "modelforfatterens egen vaerksdata_skabelon.xlsx, kopieret byte for byte af byg_modelspejl.py til eksporten (runde 12; kildens kontaktlinje, ikke et tema)"
+    },
+    {
       "fil": "fabric/tests/data/*.log",
       "regler": [
         "log"

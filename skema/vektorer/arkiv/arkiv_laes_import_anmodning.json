@@ -1,0 +1,179 @@
+{
+ "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
+ "kilder": {
+  "app/rayfin/functions/src/arkiv.ts": "403b9a92037d85ac321e5f777a8e3dc2aa688f08e311cf4e4cd666d0ae57f629",
+  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
+ },
+ "tilfaelde": [
+  {
+   "navn": "gyldig",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "ud": {
+    "handling": "importer_arkiv",
+    "arkiv": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "tabel": "KoerselTime",
+    "nr": 1,
+    "af": 2,
+    "koersel_ider": [],
+    "filnavn": "x.xlsx"
+   }
+  },
+  {
+   "navn": "ugyldig JSON",
+   "input": {
+    "tekst": "[{"
+   },
+   "afvisning": "Anmodningen er ikke gyldig JSON."
+  },
+  {
+   "navn": "ændringer alene",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"ScenarieAendring\",\"nr\":1,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "Scenariets ændringer sendes sammen med scenariet (samme del)."
+  },
+  {
+   "navn": "ikke en liste",
+   "input": {
+    "tekst": "{}"
+   },
+   "afvisning": "En arkivimport skal være den eneste handling i anmodningen."
+  },
+  {
+   "navn": "to handlinger",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"},{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "En arkivimport skal være den eneste handling i anmodningen."
+  },
+  {
+   "navn": "anden handling",
+   "input": {
+    "tekst": "[{\"handling\":\"upload_vaerksark\"}]"
+   },
+   "afvisning": "Anmodningen er ikke en arkivimport."
+  },
+  {
+   "navn": "arkiv-sha",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"x\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "Arkivets sha256 mangler eller er ugyldig."
+  },
+  {
+   "navn": "del-sha",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "Delens sha256 mangler eller er ugyldig."
+  },
+  {
+   "navn": "ukendt tabel",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"Vaerk\",\"nr\":1,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "Ukendt tabel \"Vaerk\"."
+  },
+  {
+   "navn": "tabel mangler",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}]"
+   },
+   "afvisning": "Ukendt tabel \"undefined\"."
+  },
+  {
+   "navn": "nr > af",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"KoerselTime\",\"nr\":3,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "Delens nummer er ugyldigt."
+  },
+  {
+   "navn": "nr 0",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"KoerselTime\",\"nr\":0,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "Delens nummer er ugyldigt."
+  },
+  {
+   "navn": "nr 1.5",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"KoerselTime\",\"nr\":1.5,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "Delens nummer er ugyldigt."
+  },
+  {
+   "navn": "ider ikke uuid",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":2,\"koersel_ider\":[\"x\"],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "koersel_ider skal være en liste af uuid'er."
+  },
+  {
+   "navn": "Koersel uden ider",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"Koersel\",\"nr\":1,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "koersel_ider skal netop angives for en Koersel-del."
+  },
+  {
+   "navn": "ider uden Koersel",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":2,\"koersel_ider\":[\"55555555-5555-4555-8555-555555555555\"],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "koersel_ider skal netop angives for en Koersel-del."
+  },
+  {
+   "navn": "Koersel med ider",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"Koersel\",\"nr\":1,\"af\":2,\"koersel_ider\":[\"55555555-5555-4555-8555-555555555555\"],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "ud": {
+    "handling": "importer_arkiv",
+    "arkiv": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "tabel": "Koersel",
+    "nr": 1,
+    "af": 2,
+    "koersel_ider": [
+     "55555555-5555-4555-8555-555555555555"
+    ],
+    "filnavn": "x.xlsx"
+   }
+  },
+  {
+   "navn": "61 ider",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"Koersel\",\"nr\":1,\"af\":2,\"koersel_ider\":[\"aaaaaaaa-0000-4000-8000-000000000000\",\"aaaaaaaa-0000-4000-8000-000000000001\",\"aaaaaaaa-0000-4000-8000-000000000002\",\"aaaaaaaa-0000-4000-8000-000000000003\",\"aaaaaaaa-0000-4000-8000-000000000004\",\"aaaaaaaa-0000-4000-8000-000000000005\",\"aaaaaaaa-0000-4000-8000-000000000006\",\"aaaaaaaa-0000-4000-8000-000000000007\",\"aaaaaaaa-0000-4000-8000-000000000008\",\"aaaaaaaa-0000-4000-8000-000000000009\",\"aaaaaaaa-0000-4000-8000-000000000010\",\"aaaaaaaa-0000-4000-8000-000000000011\",\"aaaaaaaa-0000-4000-8000-000000000012\",\"aaaaaaaa-0000-4000-8000-000000000013\",\"aaaaaaaa-0000-4000-8000-000000000014\",\"aaaaaaaa-0000-4000-8000-000000000015\",\"aaaaaaaa-0000-4000-8000-000000000016\",\"aaaaaaaa-0000-4000-8000-000000000017\",\"aaaaaaaa-0000-4000-8000-000000000018\",\"aaaaaaaa-0000-4000-8000-000000000019\",\"aaaaaaaa-0000-4000-8000-000000000020\",\"aaaaaaaa-0000-4000-8000-000000000021\",\"aaaaaaaa-0000-4000-8000-000000000022\",\"aaaaaaaa-0000-4000-8000-000000000023\",\"aaaaaaaa-0000-4000-8000-000000000024\",\"aaaaaaaa-0000-4000-8000-000000000025\",\"aaaaaaaa-0000-4000-8000-000000000026\",\"aaaaaaaa-0000-4000-8000-000000000027\",\"aaaaaaaa-0000-4000-8000-000000000028\",\"aaaaaaaa-0000-4000-8000-000000000029\",\"aaaaaaaa-0000-4000-8000-000000000030\",\"aaaaaaaa-0000-4000-8000-000000000031\",\"aaaaaaaa-0000-4000-8000-000000000032\",\"aaaaaaaa-0000-4000-8000-000000000033\",\"aaaaaaaa-0000-4000-8000-000000000034\",\"aaaaaaaa-0000-4000-8000-000000000035\",\"aaaaaaaa-0000-4000-8000-000000000036\",\"aaaaaaaa-0000-4000-8000-000000000037\",\"aaaaaaaa-0000-4000-8000-000000000038\",\"aaaaaaaa-0000-4000-8000-000000000039\",\"aaaaaaaa-0000-4000-8000-000000000040\",\"aaaaaaaa-0000-4000-8000-000000000041\",\"aaaaaaaa-0000-4000-8000-000000000042\",\"aaaaaaaa-0000-4000-8000-000000000043\",\"aaaaaaaa-0000-4000-8000-000000000044\",\"aaaaaaaa-0000-4000-8000-000000000045\",\"aaaaaaaa-0000-4000-8000-000000000046\",\"aaaaaaaa-0000-4000-8000-000000000047\",\"aaaaaaaa-0000-4000-8000-000000000048\",\"aaaaaaaa-0000-4000-8000-000000000049\",\"aaaaaaaa-0000-4000-8000-000000000050\",\"aaaaaaaa-0000-4000-8000-000000000051\",\"aaaaaaaa-0000-4000-8000-000000000052\",\"aaaaaaaa-0000-4000-8000-000000000053\",\"aaaaaaaa-0000-4000-8000-000000000054\",\"aaaaaaaa-0000-4000-8000-000000000055\",\"aaaaaaaa-0000-4000-8000-000000000056\",\"aaaaaaaa-0000-4000-8000-000000000057\",\"aaaaaaaa-0000-4000-8000-000000000058\",\"aaaaaaaa-0000-4000-8000-000000000059\",\"aaaaaaaa-0000-4000-8000-000000000060\"],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "Højst 60 kørsler pr. del."
+  },
+  {
+   "navn": "langt filnavn",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"}]"
+   },
+   "afvisning": "Filnavnet er for langt."
+  },
+  {
+   "navn": "uden filnavn",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Bestilling\",\"nr\":1,\"af\":1,\"koersel_ider\":[]}]"
+   },
+   "ud": {
+    "handling": "importer_arkiv",
+    "arkiv": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "tabel": "Bestilling",
+    "nr": 1,
+    "af": 1,
+    "koersel_ider": [],
+    "filnavn": ""
+   }
+  }
+ ]
+}

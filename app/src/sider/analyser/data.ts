@@ -12,7 +12,7 @@ import {
 } from "./beregn";
 import type { Side } from "./anbefaling";
 import type { Tidsserienavne } from "./datagrundlag";
-import { tidsserieIder, useTidsserienavne } from "./tidsserie-data";
+import { tidsserieIder, tidsserieShas, useTidsserienavne } from "./tidsserie-data";
 
 /** En pakke som anbefalingens `Side` (anbefaling.ts). */
 export function tilSide(p: Pakke): Side {
@@ -51,7 +51,8 @@ export function usePakke(id: string | undefined): Hentet<Pakke | null> & { koers
     const vh = useVaerk(levende?.vaerk_id);
     const sh = useScenarie(levende?.scenarie_id);
     const ider = useMemo(() => tidsserieIder(ih.data ? [ih.data] : []), [ih.data]);
-    const th = useTidsserienavne(ider);
+    const shas = useMemo(() => tidsserieShas(ih.data ? [ih.data] : []), [ih.data]);
+    const th = useTidsserienavne(ider, shas);
 
     const data = useMemo<Pakke | null | undefined>(() => {
         if (kh.data === null) return null;

@@ -21,8 +21,26 @@ sys.path.insert(0, str(HER))
 import fjv_skema as S  # noqa: E402
 
 
+#: Kolonnefelter, som TS-siden (arkivets validering, runde 13) har brug for.
+_TS_FELTER = ("navn", "type", "nullable", "max", "min", "vaerdier", "moenster", "precision", "scale", "pk", "unik")
+
+
+def ts_skema(skema: dict) -> str:
+    """app/rayfin/functions/src/skema.data.ts: tabellerne og kolonnerne som TS-konstant (browser + Function)."""
+    j = lambda v: json.dumps(v, ensure_ascii=False)  # noqa: E731
+    L = ["// GENERERET af skema/byg.py fra skema/skema.json — ret ikke her.",
+         "// Bruges af arkivet (arkiv.ts) til at validere rækker i browseren og i Function importerArkiv.", "",
+         f"export const SKEMAVERSION = {skema['version']};", "", "export const SKEMA_TABELLER = {"]
+    for t in skema["tabeller"]:
+        L.append(f'    {t["entitet"]}: {{ tabel: {j(t["tabel"])}, kolonner: [')
+        L += [f"        {j({k: c[k] for k in _TS_FELTER if k in c})}," for c in t["kolonner"]]
+        L.append("    ] },")
+    return "\n".join(L + ["} as const;", ""])
+
+
 def afledte(skema: dict) -> dict[Path, str]:
     ud = {HER / "ddl" / f"{d}.sql": S.ddl(d, skema) for d in S.DIALEKTER}
+    ud[HER.parent / "app" / "rayfin" / "functions" / "src" / "skema.data.ts"] = ts_skema(skema)
     # Én migration pr. versionstrin, afledt af de fastfrosne strukturer (aldrig håndskrevet SQL).
     for n in range(2, skema["version"] + 1):
         fra = json.loads((HER / "versioner" / f"{n - 1}.json").read_text(encoding="utf-8"))
@@ -47,11 +65,11 @@ def main(argv: list[str]) -> int:
         if nu == tekst:
             continue
         if tjek:
-            fejl.append(f"{sti.relative_to(HER)} svarer ikke til skema.json - kør python skema/byg.py")
+            fejl.append(f"{sti.relative_to(HER.parent)} svarer ikke til skema.json - kør python skema/byg.py")
         else:
             sti.parent.mkdir(parents=True, exist_ok=True)
             sti.write_bytes(tekst.encode("utf-8"))
-            print(f"skrevet {sti.relative_to(HER)}")
+            print(f"skrevet {sti.relative_to(HER.parent)}")
     vsti, vtekst = versionsfil(skema)
     if not vsti.exists():
         if tjek:

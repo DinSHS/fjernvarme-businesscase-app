@@ -79,3 +79,15 @@ describe("§6d: tidsserier og værksark i vejledningerne", () => {
         expect(bruger).toMatch(/Hvilke data skal med\?/);
     });
 });
+
+// Runde 13 (KONTRAKT §6e): arkivet — backup og flytning — skal kunne læses i brugervejledningen.
+describe("§6e: backup og flytning i vejledningen", () => {
+    const bruger = læs(indhold, "viden", "saadan_bruger_du_appen.md");
+    it("eksport, Læs mig, kontrolsum, forhåndsvisning, historisk kørsel og værksarket først", () => {
+        expect(bruger).toMatch(/## 7\. Backup og flytning/);
+        expect(bruger).toMatch(/\*\*Eksportér arkiv\*\*/);
+        expect(bruger).toMatch(/\*\*Importér arkiv\*\* viser først/);
+        expect(bruger).toMatch(/importeret fra arkiv/);
+        expect(bruger).toMatch(/Upload værksarket først/);
+    });
+});
