@@ -5,9 +5,10 @@
 // anmodninger kan køres — og kontrolprøven uden lås viser, at testen fanger fejlen.
 //-----------------------------------------------------------------------
 
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-    delTekst, importAnmodningJson, importerDel, kanonisk, kolonnenavne, sha256Tekst, tabelSha, type DelTabel, type Kanonisk,
+    decimalTekst, delTekst, importAnmodningJson, importerDel, kanonisk, kolonnenavne, sha256Tekst, tabelSha, type DelTabel, type Kanonisk,
 } from "../src/arkiv";
 import { eksempelDb, forventetFor, hukommelsesLager, ID, opretAnmodning, rækkerFra, tomDb, type Lagervalg, type Tabeller } from "./arkiv-hukommelse";
 
@@ -167,5 +168,34 @@ describe("K10-F6: tidsseriens rolle skal passe", () => {
         const svar = await send(mål, "Koersel", k, { forventet: forventetFor(kilde, k) });
         expect(svar.ok).toBe(false);
         expect(svar.svar).toMatch(/tidsserien \(varmelast\).*som ikke findes her som varmelast/);
+    });
+});
+
+describe("K10b-N2: decimaler til SQL som ren decimaltekst", () => {
+    it("aldrig eksponentnotation — og præcis JS' korteste cifre", () => {
+        expect(String(1e-7)).toBe("1e-7");                                    // det, Codex målte blev sendt
+        expect(decimalTekst(1e-7)).toBe("0.0000001");
+        expect(decimalTekst(1e-10)).toBe("0.0000000001");
+        expect(decimalTekst(-1.5e-8)).toBe("-0.000000015");
+        expect(decimalTekst(-0.000000123)).toBe("-0.000000123");
+        expect(decimalTekst(0.1234567891)).toBe("0.1234567891");              // ti decimaler
+        expect(decimalTekst(867031.2345792934)).toBe("867031.2345792934");
+        expect(decimalTekst(1e21)).toBe("1000000000000000000000");
+        expect(decimalTekst(1.5e22)).toBe("15000000000000000000000");
+        expect(decimalTekst(-2.5e21)).toBe("-2500000000000000000000");
+        expect(decimalTekst(123456789012345680000)).toBe("123456789012345680000");
+        expect(decimalTekst(-0)).toBe("0");
+        expect(decimalTekst(42)).toBe("42");
+        for (const t of [1e-7, 1e-10, -1.5e-8, 0.1234567891, 1e21, -2.5e21, 3.4244079575291085e6]) {
+            expect(decimalTekst(t)).not.toMatch(/e/i);
+            expect(Number(decimalTekst(t))).toBe(t);                          // samme tal tilbage — ingen omvej via float
+        }
+        expect(() => decimalTekst(Number.NaN)).toThrow();
+    });
+    it("Function'en binder decimaler med decimalTekst og CAST'er fra tekst", () => {
+        const kilde = readFileSync(new URL("../src/function_app.ts", import.meta.url), "utf8");
+        expect(kilde).toMatch(/k\.type === 'decimal' \? decimalTekst\(v as number\)/);
+        expect(kilde).toMatch(/CAST\(@\$\{navn\} AS DECIMAL/);
+        expect(kilde).not.toMatch(/k\.type === 'decimal' \? String\(v\)/);
     });
 });

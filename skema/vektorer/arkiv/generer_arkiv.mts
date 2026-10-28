@@ -67,6 +67,12 @@ const værdier: unknown[] = [null, 'AAAAAAAA-0000-4000-8000-000000000001', 'teks
     '2026-10-25T01:30:00.000Z', '2026-10-25T01:30:00', '2026-10-25T03:30:00+02:00', '2026-10-25T01:30:00.1234Z', '2026-10-25', 'ikke en dato', [1], { a: 1 }];
 for (const [t, k] of typer) for (const [i, v] of værdier.entries()) await tilføj('arkiv_kanonisk', `${t} #${i}`, { kolonne: k, v }, () => A.kanonisk(k, v));
 
+// ------------------------------------------------------------------ decimaltekst (K10b-N2)
+
+for (const [i, n] of [1e-7, 1e-10, -1.5e-8, 0.1234567891, 867031.2345792934, 1e21, 1.5e22, -2.5e21, 123456789012345680000, -0, 42, 0.30000000000000004, 5e-324, 1.7976931348623157e308, Number.NaN].entries()) {
+    await tilføj('arkiv_decimal_tekst', `#${i}`, { n }, () => A.decimalTekst(n));
+}
+
 // ------------------------------------------------------------------ validering
 
 const fejlTilfælde: [A.ImportTabel, string, unknown][] = [

@@ -500,7 +500,8 @@ describe("K10: eksporten", () => {
         const e = await eksportérFra(eksempelDb(2));
         const læsmig = [...læsXlsx(e.bytes)[0].celler.values()].map((r) => String(r.get(2) ?? "")).join(" ");
         expect(læsmig).toMatch(/dobbelt præcision/);
-        expect(læsmig).toMatch(/flere cifre, skrevet udefra med SQL, kan ikke bevares og stopper eksporten/);
+        expect(læsmig).toMatch(/arkivet gemmer den afrundede værdi/);
+        expect(læsmig).not.toMatch(/stopper eksporten/);             // K10b: det løfte kunne normaliser.ts ikke holde
     });
 });
 

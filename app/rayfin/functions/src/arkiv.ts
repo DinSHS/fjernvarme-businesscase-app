@@ -12,8 +12,9 @@
 //     tjekker antal OG indhold (sha256 pr. undertabel) og input_hash under en lås pr. kørsel, før den skriver
 //     kørslen — en afbrudt import er derfor usynlig og kan genoptages uden dubletter eller blandede arkiver
 //     (K10-F2, F3). En eksisterende kørsel er kun "findes", hvis dens rækker også passer;
-//   * tal bevares med dobbelt præcision (det, appen og regnemotoren læser og skriver); en decimal med flere
-//     cifre, end et JS-tal kan bære, afvises højt i stedet for at blive afrundet tavst (K10-F5).
+//   * tal arkiveres med dobbelt præcision — det, appen læser (normaliser.ts laver Number(v), før arkivet ser
+//     værdien), og det, regnemotoren skriver. En decimal-TEKST, der når `kanonisk`, og som et JS-tal ikke kan bære,
+//     afvises; decimaler skrives som ren decimaltekst uden eksponent (K10-F5, K10b-N2).
 //
 // Ren logik uden node:-import: browseren (eksport, forhåndsvisning) og Function `importerArkiv` bruger
 // PRÆCIS denne fil. Python-porten er community/fjernvarme_app/logik/arkiv.py, bundet af
@@ -192,6 +193,25 @@ function decimalNormal(s: string): string | null {
 export function decimalBevares(s: string, n: number): boolean {
     const a = decimalNormal(s);
     return a !== null && a === decimalNormal(String(n));
+}
+
+/**
+ * Et JS-tal som ren decimaltekst — JS' korteste cifre (`String(n)`), men uden eksponent: `1e-7` -> `0.0000001`,
+ * `1e+21` -> `1000000000000000000000`. Det er den tekst, Function'en CAST'er til DECIMAL; SQL Servers tekst->decimal
+ * tager ikke eksponentnotation (K10b-N2). Cifrene flyttes kun — ingen omvej via et nyt float.
+ */
+export function decimalTekst(n: number): string {
+    if (!Number.isFinite(n)) throw new ArkivAfvisning(`${String(n)} er ikke et endeligt tal.`);
+    const s = String(Object.is(n, -0) ? 0 : n);
+    const m = /^(-?)(\d+)(?:\.(\d+))?(?:e([+-]\d+))?$/.exec(s);
+    if (!m) throw new ArkivAfvisning(`Uventet talform: ${s}.`);
+    if (!m[4]) return s;
+    const [, fortegn, heltal, brøk = ''] = m;
+    const cifre = heltal + brøk;
+    const punkt = heltal.length + Number(m[4]);
+    if (punkt <= 0) return `${fortegn}0.${'0'.repeat(-punkt)}${cifre}`;
+    if (punkt >= cifre.length) return `${fortegn}${cifre}${'0'.repeat(punkt - cifre.length)}`;
+    return `${fortegn}${cifre.slice(0, punkt)}.${cifre.slice(punkt)}`;
 }
 
 /** Rækken som kanoniske værdier i skemaets kolonnerækkefølge. */

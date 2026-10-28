@@ -26,7 +26,7 @@ from .regler import input_hash
 
 __all__ = ["ArkivAfvisning", "IMPORT_TABELLER", "DEL_TABELLER", "KOERSEL_BOERN", "AFSLUTTEDE_STATUS", "NIL_UUID", "kolonner",
            "kolonnenavne", "kanonisk", "kanonisk_raekke", "raekke_tekst", "raekke_sha", "tabel_sha", "TabelHash", "decimal_bevares",
-           "fejl_i_vaerdi", "fejl_i_raekke", "forskelle", "sammenlign", "vaerk_sha", "vaerk_revisioner", "frosne_tidsserier",
+           "decimal_tekst", "fejl_i_vaerdi", "fejl_i_raekke", "forskelle", "sammenlign", "vaerk_sha", "vaerk_revisioner", "frosne_tidsserier",
            "laes_import_anmodning", "laes_del", "boerneforskel", "tjek_koersel", "importer_del", "boernetilstand",
            "sha256_tekst", "arkiv_tal"]
 
@@ -110,6 +110,27 @@ def decimal_bevares(s: str, n: float) -> bool:
     """TS' ``decimalBevares``: bærer JS-tallet ``n`` præcis de cifre, teksten ``s`` har?"""
     a = _decimal_normal(s)
     return a is not None and a == _decimal_normal(J.js_str(n))
+
+
+def decimal_tekst(n) -> str:
+    """TS' ``decimalTekst``: JS' korteste cifre som ren decimaltekst uden eksponent (K10b-N2)."""
+    x = float(n)
+    if not math.isfinite(x):
+        raise ArkivAfvisning(f"{J.js_str(x)} er ikke et endeligt tal.")
+    s = J.js_str(0.0 if x == 0 else x)
+    m = re.fullmatch(r"(-?)(\d+)(?:\.(\d+))?(?:e([+-]\d+))?", s)
+    if not m:
+        raise ArkivAfvisning(f"Uventet talform: {s}.")
+    if not m.group(4):
+        return s
+    fortegn, heltal, broek = m.group(1), m.group(2), m.group(3) or ""
+    cifre = heltal + broek
+    punkt = len(heltal) + int(m.group(4))
+    if punkt <= 0:
+        return f"{fortegn}0.{'0' * -punkt}{cifre}"
+    if punkt >= len(cifre):
+        return f"{fortegn}{cifre}{'0' * (punkt - len(cifre))}"
+    return f"{fortegn}{cifre[:punkt]}.{cifre[punkt:]}"
 
 
 def kanonisk(k: dict, v):

@@ -51,7 +51,7 @@ import {
     type TidsserieRad, type UploadTidsserie, type UploadVaerksark,
 } from './logik.js';
 import {
-    importerDel, kolonner as arkivKolonner, type ArkivLager, type ArkivTx, type ImportTabel, type Importsvar, type InputRad as ArkivInputRad,
+    decimalTekst, importerDel, kolonner as arkivKolonner, type ArkivLager, type ArkivTx, type ImportTabel, type Importsvar, type InputRad as ArkivInputRad,
     type Arkivtal, type Kanonisk, type Kolonne as ArkivKolonne, type LogRad,
 } from './arkiv.js';
 import { SKEMA_TABELLER } from './skema.data.js';
@@ -875,8 +875,9 @@ function sqlType(k: ArkivKolonne): sql.ISqlType | (() => sql.ISqlType) {
         case 'uuid': return sql.UniqueIdentifier;
         case 'text': case 'set': return sql.NVarChar(k.max ?? 4000);
         case 'int': return sql.Int;
-        // K10-F5: en decimal sendes som tekst (JS' korteste form) og CAST'es i SQL — tedious ganger ellers tallet op med
-        // 10^scale i double og kan ramme et nabo-decimaltal; SQL Servers egen tekst->DECIMAL er eksakt.
+        // K10-F5: en decimal sendes som tekst (JS' korteste cifre, udfoldet uden eksponent — K10b-N2) og CAST'es i SQL —
+        // tedious ganger ellers tallet op med 10^scale i double og kan ramme et nabo-decimaltal; SQL Servers egen
+        // tekst->DECIMAL er eksakt, men tager ikke eksponentnotation.
         case 'decimal': return sql.NVarChar(64);
         case 'boolean': return sql.Bit;
         case 'datetime': return sql.DateTime2(3);
@@ -884,7 +885,7 @@ function sqlType(k: ArkivKolonne): sql.ISqlType | (() => sql.ISqlType) {
 }
 
 const sqlVærdi = (k: ArkivKolonne, v: Kanonisk) =>
-    v === null ? null : k.type === 'datetime' ? new Date(v as string) : k.type === 'decimal' ? String(v) : v;
+    v === null ? null : k.type === 'datetime' ? new Date(v as string) : k.type === 'decimal' ? decimalTekst(v as number) : v;
 
 /** Parameteren i VALUES: decimaler CAST'es fra tekst til kolonnens præcise type. */
 const sqlParam = (k: ArkivKolonne, navn: string) => (k.type === 'decimal' ? `CAST(@${navn} AS DECIMAL(${k.precision ?? 18},${k.scale ?? 0}))` : `@${navn}`);

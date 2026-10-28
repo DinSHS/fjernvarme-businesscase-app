@@ -276,9 +276,9 @@ class SqlTransaktion:
         # driveren selv konvertere. sqlite gemmer NUMERIC som double; dér er float det samme.
         if self.db.dialekt != "sqlite":
             from decimal import Decimal
-            from .logik import jsjson as J
+            from .logik.arkiv import decimal_tekst
             dec = [k["navn"] for k in kolonner if k["type"] == "decimal"]
-            raekker = [{**r, **{d: (Decimal(J.js_str(r[d])) if r[d] is not None else None) for d in dec}} for r in raekker]
+            raekker = [{**r, **{d: (Decimal(decimal_tekst(r[d])) if r[d] is not None else None) for d in dec}} for r in raekker]
         for a in range(0, len(raekker), 500):
             self._indsaet(tabel, raekker[a:a + 500])
 
@@ -290,8 +290,13 @@ class SqlTransaktion:
             if d == "postgresql":
                 self.cn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": "fjv_arkiv:" + id.lower()})
             elif d == "mssql":
-                self.cn.execute(text("EXEC sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
-                                     "@LockOwner = 'Transaction', @LockTimeout = 60000"), {"k": "fjv_arkiv:" + id.lower()})
+                # K10b-N1: sp_getapplock melder en fejlet lås i sin RETURKODE (< 0), ikke som en fejl — læs den og
+                # kast inde i transaktionen (rollback), som Fabric-TS gør.
+                rc = self.cn.execute(text("DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
+                                          "@LockOwner = 'Transaction', @LockTimeout = 60000; SELECT @rc AS rc;"),
+                                     {"k": "fjv_arkiv:" + id.lower()}).scalar()
+                if rc is None or int(rc) < 0:
+                    raise RuntimeError(f"Kunne ikke få kørselslåsen for {id} (sp_getapplock = {rc}).")
 
     def arkiv_boerneside(self, koersel_id: str, tabel: str, fra: int, antal: int) -> list[dict]:
         t = self.t(tabel)

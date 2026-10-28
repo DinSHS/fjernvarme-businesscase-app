@@ -34,8 +34,10 @@ sammenlignes med tal efter.
   sammen med sine ændringer; en kørsel skrives først, når dens rækker har arkivets antal og indhold (sha256 pr. undertabel)
   under en lås pr. kørsel, og en eksisterende kørsel er kun "findes", hvis dens rækker også passer; eksporten tæller hver
   tabel i databasen (ny Function `arkivTal`) og tjekker `input_hash`; tidsserier matches på rolle og sha256; delene deles
-  efter bytes; afledte kolonner er entydigt kodet. Tal bevares med dobbelt præcision (som appen læser dem) — en decimal
-  med flere cifre afvises i stedet for at afrundes.
+  efter bytes; afledte kolonner er entydigt kodet. Tal arkiveres med dobbelt præcision (ca. 15–17 betydende cifre), som
+  appen læser dem; har en databaseværdi flere cifre (skrevet udefra med SQL), arkiveres den afrundede værdi (runde 13c).
+  Function'en sender decimaler som ren decimaltekst uden eksponent (`1e-7` -> `0.0000001`), og den lokale udgave stopper
+  ved en fejlet `sp_getapplock` (returkode < 0).
 
 ### Ændret
 - Scenarielisten (`#/scenarier`) har ikke længere farvevalg eller heatmap: ΔRef står som almindeligt tal med fortegn.

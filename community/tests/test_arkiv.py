@@ -95,6 +95,9 @@ class Vektorer(unittest.TestCase):
     def test_vaerk_revisioner(self):
         self.kør("arkiv_vaerk_revisioner", lambda i: A.vaerk_revisioner(i["revision"], i["blade"], i["log"]))
 
+    def test_decimal_tekst(self):
+        self.kør("arkiv_decimal_tekst", lambda i: A.decimal_tekst(i["n"]))
+
     def test_tjek_koersel(self):
         def f(i):
             A.tjek_koersel({**i, "revisioner": i["revisioner"], "tidsserier": set(i["tidsserier"])})
@@ -129,6 +132,48 @@ class Forloeb(unittest.TestCase):
                     a = {x.id: (x.status, x.svar) for x in cn.execute(app.db.t("Aendringsanmodning").select()).fetchall()}
                 for id, status, svartekst in t["ud"]["anmodninger"]:
                     self.assertEqual(a[id], (status, svartekst), id)
+
+
+class ApplockN1(unittest.TestCase):
+    """K10b-N1: community-MSSQL skal læse sp_getapplock's returkode og kaste ved < 0 (rollback), som Fabric-TS."""
+
+    class _Svar:
+        def __init__(self, rc):
+            self.rc = rc
+
+        def scalar(self):
+            return self.rc
+
+    class _Cn:
+        def __init__(self, rc):
+            self.rc, self.sql = rc, []
+
+        def execute(self, q, params=None):
+            self.sql.append(str(q))
+            return ApplockN1._Svar(self.rc)
+
+    class _Db:
+        dialekt = "mssql"
+
+    def tx(self, rc):
+        from fjernvarme_app.betroet_lager import SqlTransaktion
+        cn = self._Cn(rc)
+        return SqlTransaktion(self._Db(), cn), cn
+
+    def test_negativ_returkode_kaster(self):
+        for rc in (-1, -2, -3, -999, None):
+            tx, cn = self.tx(rc)
+            with self.assertRaises(RuntimeError, msg=f"rc={rc}"):
+                tx.arkiv_laas_koersler(["aaaaaaaa-0000-4000-8000-000000000001"])
+            self.assertIn("EXEC @rc = sp_getapplock", cn.sql[0])
+            self.assertIn("SELECT @rc", cn.sql[0])
+
+    def test_tildelt_laas_gaar_videre_i_fast_orden(self):
+        tx, cn = self.tx(0)
+        tx.arkiv_laas_koersler(["aaaaaaaa-0000-4000-8000-000000000001", "bbbbbbbb-0000-4000-8000-000000000002"])
+        self.assertEqual(len(cn.sql), 2)
+        tx1, _ = self.tx(1)                                # 1 = tildelt efter ventetid
+        tx1.arkiv_laas_koersler(["aaaaaaaa-0000-4000-8000-000000000001"])
 
 
 class ModelLager:
