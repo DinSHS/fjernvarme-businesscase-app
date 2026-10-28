@@ -154,6 +154,19 @@ export function farvning(visning: Visning, v: number | null | undefined, art: Ar
     return { baggrund: `var(--fjv-heat-${r}-${t})`, tekst: `var(--fjv-heat-${r}-${t}-tekst)`, heat: `${r}-${t}` };
 }
 
+/**
+ * Farven på et variansmærke i en graf i samme kort som farvevalget (runde 11, IBCS.md AF7): ΔRef-søjle, ΔRef%-nål og
+ * deres etiketter. Ingen → undefined: grafen beholder IBCS-farven (neutral blå uden polaritet, temaets god/dårlig med).
+ * Retning og Heatmap → farvesættets pol i ét fast trin (søjlelængden bærer allerede størrelsen; ingen gradient i grafer)
+ * — samme farve som tabellens tal under Retning og samme nuance som dens celler under Heatmap. Med polaritet og
+ * farvesættet Neutral er det temaets god/dårlig, altså IBCS-farven (undefined). 0 og ukendt: undefined (intet mærke).
+ */
+export function grafFarve(visning: Visning, art: Art, v: number | null | undefined): string | undefined {
+    if (visning === "ingen" || art.slags === "niveau" || v == null || !Number.isFinite(v) || v === 0) return undefined;
+    const r = rampe(v, art);
+    return r === "god" || r === "daarlig" ? undefined : `var(--fjv-heat-${r})`;
+}
+
 /** Skalaens 100 %: største |værdi| blandt tallene (0, når der ingen er). */
 export function skalaMaks(tal: Iterable<number | null | undefined>): number {
     let m = 0;

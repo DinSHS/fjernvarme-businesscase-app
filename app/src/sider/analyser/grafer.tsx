@@ -69,29 +69,32 @@ function soejleSti(x: number, y0: number, y1: number, b: number): string {
 
 export interface StakSoejle {
     etiket: string;
-    /** Bidrag pr. serie (kan være negative ved Δ). */
-    dele: { navn: string; plads: number; værdi: number }[];
+    /** Bidrag pr. serie (kan være negative ved Δ). `tip` erstatter `formatér` i tooltip (fx MWh og % sammen). */
+    dele: { navn: string; plads: number; værdi: number; tip?: string }[];
     /** Valgfri markør (fx varmebehov) som vandret streg over søjlen. */
     markør?: number | null;
     /** Tekst over søjlen (fx varmebehovet). */
     topEtiket?: string;
+    /** En lodret streg før søjlen skiller den fra de foregående (fx 'Hele perioden' efter månederne). */
+    adskilt?: boolean;
 }
 
 /**
  * `skalagruppe`: grafen deler px pr. enhed med sidens andre grafer i samme enhed (ScaleProvider; IBCS CH 4.1, Codex K7 F6).
  * `faktor` omregner søjlernes enhed til gruppens (GWh → MWh = 1000). Plottets højde er da intervallet × px pr. enhed —
- * højst `maksPlot` px — i stedet for den faste `højde`.
+ * højst `maksPlot` px — i stedet for den faste `højde`. `maks` løfter aksens top (fx små multipler: Ref og Scen med
+ * samme akse og højde, IBCS CH 4.1; eller 100 for andele).
  */
-export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, højde = 220, skalagruppe, maksPlot = 320 }: {
+export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, højde = 220, skalagruppe, maksPlot = 320, maks }: {
     søjler: readonly StakSoejle[]; enhed: string; markørNavn?: string; formatér: (v: number) => string; højde?: number;
-    skalagruppe?: { enhed: string; faktor: number }; maksPlot?: number;
+    skalagruppe?: { enhed: string; faktor: number }; maksPlot?: number; maks?: number;
 }) {
     const [ref, bredde] = useBredde<HTMLDivElement>();
     const [hover, setHover] = useState<number | null>(null);
     const venstre = 44, top = 24, bund = 22;
     const op = søjler.map((s) => Math.max(s.markør ?? 0, s.dele.reduce((a, d) => a + Math.max(0, d.værdi), 0)));
     const ned = søjler.map((s) => s.dele.reduce((a, d) => a + Math.min(0, d.værdi), 0));
-    const ticks = paeneTicks(Math.min(0, ...ned), Math.max(0, ...op));
+    const ticks = paeneTicks(Math.min(0, ...ned), Math.max(0, maks ?? 0, ...op));
     const lo = ticks[0], hi = ticks[ticks.length - 1];
     const ppu = useSkalagruppe(skalagruppe && { enhed: skalagruppe.enhed, min: lo * skalagruppe.faktor, max: hi * skalagruppe.faktor, plads: () => maksPlot }, bredde);
     const plotH = skalagruppe && ppu ? Math.max(1, (hi - lo) * skalagruppe.faktor * ppu) : højde - top - bund;
@@ -101,6 +104,8 @@ export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, høj
     const slot = plotB / Math.max(1, søjler.length);
     const sb = Math.min(24, Math.max(6, slot * 0.6));
     const tynd = søjler.length > 8 && slot < 46;
+    // En adskilt søjle (fx 'Periode') har altid sin etiket; en månedsetiket lige før den udelades, hvis de to ville støde sammen.
+    const naerAdskilt = (i: number) => søjler.some((s, j) => s.adskilt && j > i && (j - i) * slot < 64);
 
     return (
         <div className="fjv-a-graf" ref={ref} onPointerLeave={() => setHover(null)}>
@@ -120,6 +125,7 @@ export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, høj
                         return (
                             <g key={s.etiket} onPointerEnter={() => setHover(i)}>
                                 <rect x={venstre + i * slot} y={top} width={slot} height={plotH} fill="transparent" />
+                                {s.adskilt && <line className="fjv-a-gitter" x1={venstre + i * slot} x2={venstre + i * slot} y1={top - 8} y2={top + plotH} />}
                                 {positive.map((d, j) => {
                                     const y0 = y(opAkk), y1 = y(opAkk + d.værdi);
                                     opAkk += d.værdi;
@@ -136,7 +142,7 @@ export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, høj
                                 {s.topEtiket && !tynd && (
                                     <text className="fjv-a-etiket-svag" x={x + sb / 2} y={y(Math.max(s.markør ?? 0, opAkk)) - 6} textAnchor="middle">{s.topEtiket}</text>
                                 )}
-                                {(!tynd || i % Math.ceil(søjler.length / 6) === 0) && (
+                                {(s.adskilt || ((!tynd || i % Math.ceil(søjler.length / 6) === 0) && !naerAdskilt(i))) && (
                                     <text className="fjv-a-akse" x={x + sb / 2} y={svgH - 6} textAnchor="middle">{s.etiket}</text>
                                 )}
                             </g>
@@ -146,7 +152,7 @@ export function StablededeSoejler({ søjler, enhed, markørNavn, formatér, høj
             )}
             {hover !== null && søjler[hover] && (
                 <Tip x={venstre + hover * slot + slot / 2} bredde={bredde} titel={søjler[hover].etiket} rækker={[
-                    ...søjler[hover].dele.map((d) => ({ navn: d.navn, plads: d.plads, værdi: formatér(d.værdi) })),
+                    ...søjler[hover].dele.map((d) => ({ navn: d.navn, plads: d.plads, værdi: d.tip ?? formatér(d.værdi) })),
                     ...(søjler[hover].markør != null && markørNavn ? [{ navn: markørNavn, streg: true, værdi: formatér(søjler[hover].markør!) }] : []),
                 ]} />
             )}
