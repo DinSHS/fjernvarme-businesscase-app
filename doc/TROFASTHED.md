@@ -143,16 +143,30 @@ FJV_MODELPYTHON=<python med modelrepoets requirements.txt> python viden/vaerktoe
 ```
 
 Gaten kører det som trinnet *eksport rundtur*. For hvert værk i kataloget (de 7 cases, plus `billund_idag_maalt`:
-billund_idag med casens egen målte varmelast aktiv, så Timedata prøves) laver **appens egen kode** eksporten, og
+billund_idag med casens egen målte varmelast aktiv, så Timedata prøves) og tre varianter fra Codex' review K11
+(`andeby_navne`: halmkedlen hedder `halm__kedel`; `andeby_hul`: solprofilen med et dagtimehul og to tomme nattetimer i
+vinduets ende; `billund_idag_maalt_hul`: den målte varmelast med et hul) laver **appens egen kode** eksporten, og
 modelrepoets `scripts/vaerksark_til_yaml.py` køres **uændret** på arket, som importen kører det. Kravene:
+
+* importens `slug()` (`fjv.revision`) = scriptets egen på svære navne;
 
 * scriptet godtager arket, og arket med og uden den skjulte markering `_app` giver præcis samme case og tidsserier;
 * eksportens forudsigelse af scriptet (`app/src/sider/konfiguration/eksport/kort.ts`) = scriptets blade, typestreng;
-* hver forskel mellem værket og scriptets case står på eksportens liste *ikke med i arket*, og listen har intet andet;
-* den målte serie i arket kommer tilbage byte for byte (inden for arkets periode);
+* hver forskel mellem værket og scriptets case (scriptets objektnavne ført tilbage som importen gør) står på
+  eksportens liste *ikke med i arket*, og listen har intet andet; markeringens *afvigelser* er listens ikke-artefakter;
+* den målte serie i arket kommer tilbage byte for byte (inden for arkets periode), og begge mængdeforskelle i
+  tidsaksen er forklaret: timer, scriptet tilføjer, er præcis eksportens *udfyldes* (tidspunkt og værdi med 6
+  decimaler); timer, det fjerner, ligger uden for arket;
 * genupload uden ændringer gemmer intet, og `run_case` giver samme objektiv før og efter (`--koer`);
-* modprøver: én ændret celle (D&V, en brændselspris, én solvarmetime) ændrer præcis det felt; et værk på en nyere
-  revision afviser arket uden at gemme noget.
+* modprøver: én ændret celle (D&V, en brændselspris, én solvarmetime) ændrer præcis det felt; en serierettelse er
+  revision 2 med logrækken `tidsserie.<rolle>`; et værk på en nyere revision, et ark fra et andet værk og en basis, der
+  ikke er værkets eksport (det rettede ark sendt som sin egen basis), afvises uden at gemme noget; kun årsproduktionen
+  i Timedata!B3 ændret gemmer intet og siger hvorfor.
+
+Rundturen sammenligner med regnearkets præcision (15 betydende cifre), ikke bit for bit: en rettelse efter det 15.
+ciffer er usynlig. `run_case` køres på værket før og efter en revision uden ændringer (samme blade) — det beviser
+no-op-revisionen, ikke at en upload som nyt værk regner identisk med originalen; dén forskel er listen *ikke med i
+arket*.
 
 En fejl i forudsigelsen (målt: tankenes selvafladning sat til 0,0006) gør trinnet rødt med fire fund.
 

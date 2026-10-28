@@ -368,11 +368,11 @@ class MinneImportLager:
         return {"vaerk_id": a["vaerk_id"].lower(), "forventet_revision": int(a["forventet_revision"]),
                 "basis_sha256": b} if b else None
 
-    def gem_revision(self, imp: dict, rev: dict, aendr: list, serier: dict, scriptlog: str,
+    def gem_revision(self, imp: dict, rev: dict, laesning: dict, serier: dict, scriptlog: str,
                      files: str | None = None) -> dict:
         """Som ``vaerksark.gem_revision`` (Fabric) - alt eller intet under db'ens lås."""
         from .tidsserie_db import gem_tidsseriefil
-        from .vaerksark import ArkFejl, _log_tekst, forbered_revision
+        from .vaerksark import ArkFejl, _log_tekst, forbered_revision, serielog
         hvem = (imp.get("uploadet_af") or "fjv_importer_vaerksark")[:200]
         with self.db._mutex:
             r = self.db.importer.get(imp["id"])
@@ -380,9 +380,10 @@ class MinneImportLager:
                 raise ArkFejl(f"importen er ikke længere i gang (status {r and r['status']})")
             v = self.db.vaerker.get(rev["vaerk_id"])
             nuv = {b["sti"]: b["vaerdi_json"] for b in (v or {}).get("parametre", [])}
-            aktive = {t["rolle"]: t["sti"] for t in self.db.tidsserier.values()
+            aktive = {t["rolle"]: {"sti": t["sti"], "sha256": t.get("sha256"), "id": t["id"]}
+                      for t in self.db.tidsserier.values()
                       if v and t["vaerk_id"] == v["id"] and t["aktiv"] and t["status"] == "gyldig"}
-            f = forbered_revision(v, rev, nuv, aktive, aendr, serier, files)
+            f = forbered_revision(v, rev, nuv, aktive, laesning, serier, files)
             plan, ny_rev = f["plan"], f["ny_rev"]
             if ny_rev is not None:
                 ny = dict(nuv)
@@ -407,21 +408,24 @@ class MinneImportLager:
                 for t in self.db.tidsserier.values():
                     if t["vaerk_id"] == v["id"] and t["rolle"] == rolle:
                         t["aktiv"] = False
-                if sr["res"] is None:
-                    continue
-                res = sr["res"]
-                tid = str(uuid.uuid4())
-                self.db.tidsserier[tid] = {
-                    "id": tid, "vaerk_id": v["id"], "rolle": rolle, "navn": f"Værksark: {rolle} rettet i arket"[:200],
-                    "sti": gem_tidsseriefil(v["kode"], res.data, res.sha256, files), "sha256": res.sha256,
-                    "kilde": "vaerksark", "status": res.status, "aktiv": True, "tidsstempel": sr["tidsstempel"],
-                    "uploadet_af": hvem, "uploadet": self.db.nu()}
-                ts_id = ts_id or tid
+                res, tid = sr["res"], None
+                if res is not None:
+                    tid = str(uuid.uuid4())
+                    self.db.tidsserier[tid] = {
+                        "id": tid, "vaerk_id": v["id"], "rolle": rolle, "navn": f"Værksark: {rolle} rettet i arket"[:200],
+                        "sti": gem_tidsseriefil(v["kode"], res.data, res.sha256, files), "sha256": res.sha256,
+                        "kilde": "vaerksark", "status": res.status, "aktiv": True, "tidsstempel": sr["tidsstempel"],
+                        "uploadet_af": hvem, "uploadet": self.db.nu()}
+                    ts_id = ts_id or tid
+                sti, handling, g, n = serielog(rolle, aktive.get(rolle), tid, res)
+                v.setdefault("log", []).append({"revision": ny_rev, "sti": sti, "handling": handling, "gammel_json": g,
+                                                "ny_json": n, "aendret_af": hvem, "anmodning_id": imp["id"]})
             loggen = _log_tekst(f["log"], scriptlog)
             r.update(status="faerdig", vaerk_id=v["id"], tidsserie_id=ts_id, log=loggen)
         return {"vaerk_id": v["id"], "kode": v["kode"], "revision": ny_rev, "log": loggen,
                 "aendringer": len(plan["ret"]) + len(plan["slet"]) + len(plan["opret"]),
-                "tidsserier": {r_: (sr["res"].sha256 if sr["res"] else None) for r_, sr in f["serier"].items()}}
+                "tidsserier": {r_: (sr["res"].sha256 if sr["res"] else None) for r_, sr in f["serier"].items()},
+                "ikke_gemt": f["ikke_gemt"]}
 
     def motor_pins(self) -> dict:
         from . import konstanter as K

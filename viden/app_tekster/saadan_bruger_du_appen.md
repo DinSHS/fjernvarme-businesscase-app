@@ -39,8 +39,10 @@ Et værk og en tidsserie oprettes af arket, og importen viser sin status og log.
 modellens egen skabelon med værket og viser først en liste over det, arket *ikke* kan bære — fx balancemarkedet,
 slåede-fra enheder og de værdier, modellens script sætter selv. Ret arket i Excel, og upload det under *Upload
 værksark*: appen genkender det, viser hvert ændret felt (gammel → ny) og timedata som en opsummering, og gemmer det som
-**næste revision af samme værk**. Kun det, du har ændret, ændres; felterne på listen røres ikke. Er værket ændret, siden
-du eksporterede, afvises arket — eksportér igen. Uden appens markering (det skjulte ark `_app`) bliver arket et nyt
+**næste revision af samme værk**. Kun det, du har ændret, ændres; felterne på listen røres ikke. En rettet time i
+timedata eller solvarme er også en ny revision. Felter, der ikke gemmes ved genupload (fx årsproduktionen i Timedata og
+værkets navn), markeres *gemmes ikke*, før du bekræfter. Er værket ændret, siden du eksporterede, afvises arket —
+eksportér igen. Uden appens markering (det skjulte ark `_app`) bliver arket et nyt
 værk som før. (Kilde: KONTRAKT §6d)
 
 **Enheder:** "Ny enhed" laver en enhed ud fra en skabelon for typen; "Fjern enheden" kan kun bruges,

@@ -375,10 +375,11 @@ def gem_vaerk(db, imp: dict, k: Konvertering, model_sha: str, scriptlog: str,
             "log": log}
 
 
-def gem_revision(db, imp: dict, rev: dict, aendr: list, serier: dict, scriptlog: str,
+def gem_revision(db, imp: dict, rev: dict, laesning: dict, serier: dict, scriptlog: str,
                  files: str | None = None) -> dict:
-    """Revisionen i ÉN transaktion: importens status, værkets revision (låst), parametre + Aendringslog (som
-    ``udfoerAendring``, ``anmodning_id`` = importens), nye tidsserieversioner og importens log."""
+    """Revisionen i ÉN transaktion: importens status, værkets revision (låst), bindingen til værket (grundlag, basis),
+    parametre + Aendringslog (som ``udfoerAendring``, ``anmodning_id`` = importens), nye tidsserieversioner (også en
+    revision, K11 F2) og importens log. ``laesning`` = ``{"basis": blade, "arket": blade}`` (scriptets læsning)."""
     from .tidsserie_db import indsaet_tidsserie
 
     hvem = (imp.get("uploadet_af") or "fjv_importer_vaerksark")[:200]
@@ -401,12 +402,12 @@ def gem_revision(db, imp: dict, rev: dict, aendr: list, serier: dict, scriptlog:
             if len(nuv) != len(rk):
                 raise ArkFejl("værket har dobbelte parametre - det skal ryddes op, før det kan ændres")
             naeste = max((int(x[2] or 0) for x in rk), default=0) + 1
-            cur.execute("SELECT rolle, sti FROM dbo.Tidsseries WITH (UPDLOCK, HOLDLOCK) WHERE vaerk_id=? AND aktiv=1 "
-                        "AND status='gyldig'", v["id"])
-            aktive = {x[0]: x[1] for x in cur.fetchall()}
+            cur.execute("SELECT rolle, sti, sha256, CAST(id AS nvarchar(36)) FROM dbo.Tidsseries WITH (UPDLOCK, HOLDLOCK) "
+                        "WHERE vaerk_id=? AND aktiv=1 AND status='gyldig'", v["id"])
+            aktive = {x[0]: {"sti": x[1], "sha256": x[2], "id": x[3].lower()} for x in cur.fetchall()}
         else:
             aktive = {}
-        f = forbered_revision(v, rev, nuv, aktive, aendr, serier, files)
+        f = forbered_revision(v, rev, nuv, aktive, laesning, serier, files)
         plan, ny_rev = f["plan"], f["ny_rev"]
 
         def log(sti, handling, gammel, ny):
@@ -437,15 +438,16 @@ def gem_revision(db, imp: dict, rev: dict, aendr: list, serier: dict, scriptlog:
         ts_id = None
         for rolle, sr in f["serier"].items():
             cur.execute("UPDATE dbo.Tidsseries SET aktiv=0 WHERE vaerk_id=? AND rolle=? AND aktiv=1", v["id"], rolle)
-            if sr["res"] is None:
-                continue
-            tid, udfald = indsaet_tidsserie(cur, v["id"], v["kode"], rolle,
-                                            f"Værksark: {'varmelast' if rolle == 'varmelast' else 'solprofil'} rettet i arket ({imp.get('filnavn') or ''})"[:200],
-                                            imp.get("filnavn") or "vaerksark.xlsx", sr["res"], "vaerksark", True, hvem,
-                                            tidsstempel=sr["tidsstempel"], tidszone="UTC", files=files)
-            if udfald == "uaendret":
-                cur.execute("UPDATE dbo.Tidsseries SET aktiv=1 WHERE id=?", tid)
-            ts_id = ts_id or tid
+            tid = None
+            if sr["res"] is not None:
+                tid, udfald = indsaet_tidsserie(cur, v["id"], v["kode"], rolle,
+                                                f"Værksark: {'varmelast' if rolle == 'varmelast' else 'solprofil'} rettet i arket ({imp.get('filnavn') or ''})"[:200],
+                                                imp.get("filnavn") or "vaerksark.xlsx", sr["res"], "vaerksark", True, hvem,
+                                                tidsstempel=sr["tidsstempel"], tidszone="UTC", files=files)
+                if udfald == "uaendret":
+                    cur.execute("UPDATE dbo.Tidsseries SET aktiv=1 WHERE id=?", tid)
+                ts_id = ts_id or tid
+            log(*serielog(rolle, aktive.get(rolle), tid, sr["res"]))
         loggen = _log_tekst(f["log"], scriptlog)
         cur.execute("UPDATE dbo.Vaerksarkimports SET status='faerdig', vaerk_id=?, tidsserie_id=?, log=? "
                     "WHERE id=? AND status='koerer'", v["id"], ts_id, loggen, imp["id"])
@@ -459,7 +461,8 @@ def gem_revision(db, imp: dict, rev: dict, aendr: list, serier: dict, scriptlog:
         cn.close()
     return {"vaerk_id": v["id"], "kode": v["kode"], "revision": ny_rev, "log": loggen,
             "aendringer": len(plan["ret"]) + len(plan["slet"]) + len(plan["opret"]),
-            "tidsserier": {r: (sr["res"].sha256 if sr["res"] else None) for r, sr in f["serier"].items()}}
+            "tidsserier": {r: (sr["res"].sha256 if sr["res"] else None) for r, sr in f["serier"].items()},
+            "ikke_gemt": f["ikke_gemt"]}
 
 
 def revision_for(db, import_id: str) -> dict | None:
@@ -500,9 +503,9 @@ class SqlImportLager:
     def revision_for(self, import_id: str) -> dict | None:
         return revision_for(self.db, import_id)
 
-    def gem_revision(self, imp: dict, rev: dict, aendr: list, serier: dict, scriptlog: str,
+    def gem_revision(self, imp: dict, rev: dict, laesning: dict, serier: dict, scriptlog: str,
                      files: str | None = None) -> dict:
-        return gem_revision(self.db, imp, rev, aendr, serier, scriptlog, files=files)
+        return gem_revision(self.db, imp, rev, laesning, serier, scriptlog, files=files)
 
     def motor_pins(self) -> dict:
         from . import db as DB
@@ -561,15 +564,25 @@ def ny_serie(rolle: str, gemt: dict, aendr: dict, vaerk: dict | None):
     return res
 
 
-def revisionstekst(plan: dict, serier: dict, v: dict, ny_rev: int | None) -> str:
-    """Importens log for en revision: hvad der blev gemt (eller at intet blev)."""
+def serielog(rolle: str, gammel: dict | None, ny_id: str | None, res) -> tuple:
+    """Revisionslogrækken for en tidsserieændring (K11 F2): sti ``tidsserie.<rolle>``, gammel/ny som id + sha256."""
+    g = json.dumps({"tidsserie_id": gammel["id"], "sha256": gammel["sha256"]}) if gammel else None
+    n = json.dumps({"tidsserie_id": ny_id, "sha256": res.sha256}) if res is not None else None
+    return f"tidsserie.{rolle}", ("slet" if n is None else "opret" if g is None else "ret"), g, n
+
+
+def revisionstekst(plan: dict, serier: dict, v: dict, ny_rev: int | None, ikke_gemt: list | None = None) -> str:
+    """Importens log for en revision: hvad der blev gemt (eller at intet blev) — og hvad der ikke gemmes."""
     n = len(plan["ret"]) + len(plan["slet"]) + len(plan["opret"])
+    ikke = [f"Ikke gemt: {x}." for x in (ikke_gemt or [])]
     if not n and not serier:
+        if ikke:
+            return "\n".join([f"Ingen ændringer, der kan gemmes: arket ændrer kun felter, der ikke gemmes ved genupload. "
+                              f"'{v['kode']}' revision {v['revision']} er uændret.", *ikke])
         return (f"Ingen ændringer: arket giver præcis det samme input til modellen som '{v['kode']}' revision "
                 f"{v['revision']}. Intet er gemt.")
-    linjer = [f"Revision {ny_rev} af '{v['kode']}' er gemt fra arket ({n} parameterændring(er), revision "
-              f"{v['revision']} -> {ny_rev})." if ny_rev is not None else
-              f"Ingen parameterændringer i '{v['kode']}' (revision {v['revision']} er uændret); kun tidsserien er ændret."]
+    linjer = [f"Revision {ny_rev} af '{v['kode']}' er gemt fra arket ({n} parameterændring(er), "
+              f"{len(serier)} tidsserie(r), revision {v['revision']} -> {ny_rev})."]
     vist = 0
     for r in plan["ret"]:
         if vist < 40:
@@ -588,15 +601,17 @@ def revisionstekst(plan: dict, serier: dict, v: dict, ny_rev: int | None) -> str
     for rolle, s in serier.items():
         linjer.append(f"{'Varmelast' if rolle == 'varmelast' else 'Solprofil'}: {s['opsummering']}"
                       + (" - ny version er aktiv." if s.get("res") is not None else " - serien er slået fra."))
-    return "\n".join(linjer)
+    return "\n".join(linjer + ikke)
 
 
-def forbered_revision(v: dict | None, rev: dict, nuvaerende: dict, aktive: dict, aendr: list, serier: dict,
+def forbered_revision(v: dict | None, rev: dict, nuvaerende: dict, aktive: dict, laesning: dict, serier: dict,
                       files: str | None) -> dict:
-    """Fælles for alle lagre, i deres transaktion: kontrol (som ``udfoerAendring``), planen og de nye serier.
+    """Fælles for alle lagre, i deres transaktion: kontrol (som ``udfoerAendring``), bindingen til værket (K11 F4),
+    objektnavnene (F1), planen og de nye serier.
 
-    ``v`` = værkets række (låst), ``nuvaerende`` = dets blade, ``aktive`` = {rolle: sti} for de aktive serier.
-    Returnerer ``{plan, serier, ny_rev, log}``; ``ny_rev`` er None, når intet ændres."""
+    ``v`` = værkets række (låst), ``nuvaerende`` = dets blade, ``aktive`` = {rolle: {id, sti, sha256}} for de aktive
+    serier, ``laesning`` = scriptets læsning af basis og arket. Returnerer ``{plan, serier, ny_rev, log, ikke_gemt}``;
+    ``ny_rev`` er None, når intet ændres."""
     from . import revision as REV
     if not v:
         raise ArkFejl("værket, arket er eksporteret fra, findes ikke længere - upload arket som et nyt værk "
@@ -607,17 +622,33 @@ def forbered_revision(v: dict | None, rev: dict, nuvaerende: dict, aktive: dict,
         raise ArkFejl(f"værket '{v['kode']}' er ændret, siden arket blev eksporteret (revision "
                       f"{rev['forventet_revision']} -> {v['revision']}). Intet er gemt: eksportér værket igen og "
                       "læg dine ændringer ind i det nye ark")
+    m = rev.get("markering") or {}
+    nu = REV.grundlag(nuvaerende, {r: a.get("sha256") for r, a in aktive.items()})
+    if m.get("grundlag") != nu:
+        raise ArkFejl(f"værket '{v['kode']}' er ikke længere det, arket blev eksporteret fra (parametre eller aktive "
+                      "tidsserier er ændret). Intet er gemt: eksportér værket igen")
     try:
-        plan = REV.planlaeg(nuvaerende, aendr)
+        kort = REV.objektkort(nuvaerende, laesning["basis"], laesning["arket"])
+        basis = REV.oversaet(laesning["basis"], kort)
+        arket = REV.oversaet(laesning["arket"], kort)
+        afvig = REV.tjek_basis(nuvaerende, basis, m.get("afvigelser") or [])
+        if afvig:
+            raise REV.RevisionsFejl(
+                f"basis er ikke værkets eksport af revision {v['revision']} ({len(afvig)} felt(er) afviger, fx "
+                f"{', '.join(afvig[:3])}). Intet er gemt: eksportér værket igen")
+        plan = REV.planlaeg(nuvaerende, REV.forskelle(basis, arket))
     except REV.RevisionsFejl as e:
         raise ArkFejl(str(e)) from e
     ud_serier = {}
     for rolle, sr in serier.items():
-        gemt = laes_gemt_serie(files, aktive.get(rolle))
+        gemt = laes_gemt_serie(files, (aktive.get(rolle) or {}).get("sti"))
         ud_serier[rolle] = {**sr, "res": ny_serie(rolle, gemt, sr["aendringer"], None)}
     n = len(plan["ret"]) + len(plan["slet"]) + len(plan["opret"])
-    ny_rev = int(v["revision"]) + 1 if n else None
-    return {"plan": plan, "serier": ud_serier, "ny_rev": ny_rev, "log": revisionstekst(plan, ud_serier, v, ny_rev)}
+    # K11 F2: en tidsserieændring er også en revision (samtidighedskontrol, revisionslog i uploaderens navn).
+    ny_rev = int(v["revision"]) + 1 if (n or ud_serier) else None
+    ikke = REV.ikke_gemt(laesning["basis"], laesning["arket"], tuple(ud_serier))
+    return {"plan": plan, "serier": ud_serier, "ny_rev": ny_rev, "ikke_gemt": ikke,
+            "log": revisionstekst(plan, ud_serier, v, ny_rev, ikke)}
 
 
 def importer_et(db, imp: dict, model_sha: str, timeslut: bool, rap,
@@ -692,17 +723,24 @@ def importer_revision(lager, imp: dict, rev: dict, k, kode: Path, py: str, kilde
     if hashlib.sha256(base64.b64encode(basis.read_bytes())).hexdigest() != rev["basis_sha256"]:
         raise ArkFejl("basis-arket passer ikke med anmodningens sha256 - upload arket igen")
     tjek_zip(basis)
+    # K11 F4: arket og basis skal bære samme markering for netop anmodningens værk og revision; grundlaget
+    # kontrolleres mod databasen i lagerets transaktion (forbered_revision).
+    try:
+        rev = {**rev, "markering": REV.tjek_markeringer(REV.laes_markering(kilde), REV.laes_markering(basis),
+                                                         rev["vaerk_id"], rev["forventet_revision"])}
+    except REV.RevisionsFejl as e:
+        raise ArkFejl(str(e)) from e
     rc, blog = koer_script(kode, py, basis, arbejde / "basis" / "ud", timeslut)
     rap.trin("script_basis", {"rc": rc, "log_hale": blog[-800:]})
     if rc != 0:
         raise ArkFejl("appens eksport af værket kunne ikke læses af modelscriptet: " + fejl_fra_log(blog, rc))
     kb = konverter_output(arbejde / "basis" / "ud", kildens_tidszone(kode, py, basis), timeslut,
                           kildens_tidszone(kode, py, basis, "Solvarme"))
-    aendr = REV.forskelle({p.sti: p.vaerdi_json for p in kb.params}, {p.sti: p.vaerdi_json for p in k.params})
+    laesning = {"basis": {p.sti: p.vaerdi_json for p in kb.params}, "arket": {p.sti: p.vaerdi_json for p in k.params}}
     serier = serieforskelle(kb, k, timeslut)
     rap.trin("revision", {"vaerk_id": rev["vaerk_id"], "forventet_revision": rev["forventet_revision"],
-                          "aendringer": len(aendr), "serier": {r: s["opsummering"] for r, s in serier.items()}})
-    return lager.gem_revision(imp, rev, aendr, serier, log, files=files)
+                          "serier": {r: s["opsummering"] for r, s in serier.items()}})
+    return lager.gem_revision(imp, rev, laesning, serier, log, files=files)
 
 
 def serieforskelle(kb, k, timeslut: bool) -> dict:

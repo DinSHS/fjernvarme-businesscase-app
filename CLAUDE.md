@@ -116,6 +116,13 @@ FJV_MODELPYTHON=<python med modellens pakker> python viden/vaerktoej/tjek_ekspor
 - **Vitest kan tabe en testfil under hukommelsespres og stadig være grøn.** Gaten sammenligner antallet af tests i
   de to udgaver. Kør ikke to tunge ting ad gangen.
 - **Konsollen er cp1252 på Windows.** Scripts kalder `sys.stdout.reconfigure(errors="replace")`.
+- **Værksarkets genupload stoler ikke på klienten** (Codex K11). Importen binder arket til værket i sin transaktion via
+  markeringens `grundlag`, som er defineret to steder: `grundlagstekst` (`eksport/eksporter.ts`) og `grundlag`
+  (`fabric/fjv/revision.py`). Ændres den ene, fejler den delte vektor i `k11.spec.ts` og `test_revision.py`.
+- **Modelscriptets `slug()` er ikke injektiv** (`halm__kedel` og `halm_kedel` giver samme navn). Nye navne skal være
+  slug-faste (`tjekNavn`); importen fører scriptets navne tilbage med `fjv.revision.objektkort` og afviser tvetydighed.
+- **Oraklet udfylder selv små huller i en solprofil**, når en kilde valideres. Et hul i en gemt serie laves derfor i den
+  normaliserede fil, ikke ved at validere en kilde med et hul (`tjek_eksport_rundtur.py`, `andeby_hul`).
 
 ---
 

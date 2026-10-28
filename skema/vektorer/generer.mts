@@ -803,7 +803,7 @@ async function vaerksarkForløb() {
     const b64 = (b: Uint8Array) => Buffer.from(b).toString('base64');
     const A = '44444444-4444-4444-8444-444444444444';
     const anm = (o: Partial<V.AnmodningsRad>, indhold: string, filnavn = 'ark.xlsx', timeslut?: boolean | null, basis?: string) => ({
-        id: A.toUpperCase(), status: 'ny', svar: null, anmodet_af: 'x@y.dk',
+        id: A.toUpperCase(), status: 'ny', svar: null, anmodet_af: 'test@example.org',
         aendringer_json: JSON.stringify([{ handling: 'upload_vaerksark', filnavn, sha256: sha(indhold), ...(timeslut === undefined ? {} : { timeslut }), ...(basis === undefined ? {} : { basis_sha256: sha(basis) }) }]), ...o,
     });
     type Sc = { navn: string; indhold: string; basis?: string; anmodning: V.AnmodningsRad | null; import?: V.ImportRad | null; importEfter?: V.ImportRad | null;

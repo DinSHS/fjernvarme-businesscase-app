@@ -17,6 +17,8 @@
 
 import { pyRound } from "@/lib/pyround";
 import { f, fladPy, i, type PyVærdi } from "./pyjson";
+import { slug } from "./slug";
+import { synligTekst, ulovligtXmlTegn } from "./xlsx";
 
 // ------------------------------------------------------------------ modelscriptets konstanter (ved pinnen)
 
@@ -39,13 +41,7 @@ const TIME = 3_600_000;
 /** Skabelonens plads (rækker med dropdown/indtastningsfelter). */
 export const PLADS = { enheder: { fra: 5, til: 23 }, tanke: { fra: 52, til: 57 }, vp: { fra: 6, til: 23 }, timedata: 6 } as const;
 
-/** slug() i scriptet: æøå -> ae/oe/aa, NFKD uden accenter, [^a-z0-9]+ -> _. */
-export function slug(navn: string): string {
-    let s = navn.normalize("NFKD").replace(/æ/g, "ae").replace(/ø/g, "oe").replace(/å/g, "aa");
-    // .encode("ascii", "ignore"): alt uden for ASCII falder bort.
-    s = [...s].filter((c) => c.charCodeAt(0) < 128).join("").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-    return s;
-}
+export { slug };
 
 // ------------------------------------------------------------------ input og uddata
 
@@ -74,8 +70,14 @@ export interface Eksportplan {
     /** Det, appens import (scriptet + markøren) gemmer som blade ved upload som nyt værk. */
     forventet: Map<string, string>;
     ikkeMed: Tab[];
+    /** Stierne på `ikkeMed`, der ikke er konverteringsartefakter — markeringens `afvigelser` (K11 F4). */
+    afvigelser: string[];
     /** Tidsserier: hvad der er med, og hvad der falder uden for arket. */
     serier: { rolle: "varmelast" | "solprofil"; med: number; udenfor: number; grund?: string }[];
+    /** Timer, modelscriptet selv udfylder i solprofilen ved upload som nyt værk (K11 F6), med den værdi, det skriver. */
+    udfyldes: { rolle: "solprofil"; ms: number; v: number; hvordan: "nat" | "interpolation" }[];
+    /** Timer, modelscriptets %.6f afrunder i solprofilen ved upload som nyt værk (antal og største afrunding i MW). */
+    afrundes: { rolle: "solprofil"; n: number; maks: number }[];
     /** Grunde til, at eksporten ikke kan laves (tom = kan). */
     nægter: string[];
     /** Advarsler, der ikke er tab (fx et skøn i en celle). */
@@ -208,6 +210,19 @@ export function planlæg(k: Eksportkilde): Eksportplan {
     solVindue.slut = Date.UTC(new Date(vindue.slut).getUTCFullYear(), new Date(vindue.slut).getUTCMonth(), new Date(vindue.slut).getUTCDate(), 23);
     const sol = solenheder.length === 1 && k.solprofil ? solserie(k.solprofil, solVindue) : null;
     if (k.solprofil && solenheder.length !== 1) noter.push(`Solprofilen kommer ikke med: arket Solvarme kræver præcis én aktiv solvarmeenhed (værket har ${solenheder.length}).`);
+    // K11 F6: huller og ender i solprofilen udfylder modelscriptet selv (skriv_maalt_solprofil) — sagt før download.
+    const udfyldes: Eksportplan["udfyldes"] = [];
+    const afrundes: Eksportplan["afrundes"] = [];
+    if (sol?.nægt) nægter.push(sol.nægt);
+    else if (sol) {
+        udfyldes.push(...sol.udfyldt.map((u) => ({ rolle: "solprofil" as const, ...u })));
+        const nat = sol.udfyldt.filter((u) => u.hvordan === "nat"), ip = sol.udfyldt.filter((u) => u.hvordan === "interpolation");
+        if (nat.length) noter.push(`Solprofilen mangler ${nat.length} timer i enden af kørselsvinduet (${tidsrum(nat.map((u) => u.ms))}). Solen er nede i dem alle, og modelscriptet sætter dem til 0 MW.`);
+        if (ip.length) noter.push(`Solprofilen har ${ip.length} ${ip.length === 1 ? "tom time" : "tomme timer"} inde i serien. Uploades arket som et nyt værk, udfylder modelscriptet ${ip.length === 1 ? "den" : "dem"} lineært: ${ip.slice(0, 12).map((u) => `${tidspunkt(u.ms)} → ${mw6(u.v)} MW`).join("; ")}${ip.length > 12 ? ` og ${ip.length - 12} timer mere (se listen)` : ""}. Ved genupload som revision forbliver timerne tomme i værkets serie.`);
+        if (sol.afrundet) afrundes.push({ rolle: "solprofil", ...sol.afrundet });
+        if (sol.afrundet) noter.push(`Modelscriptet skriver solprofilen med 6 decimaler: ${sol.afrundet.n} ${sol.afrundet.n === 1 ? "time afrundes" : "timer afrundes"} ved upload som nyt værk (højst ${sol.afrundet.maks.toExponential(1)} MW).`);
+    }
+    if (vl.huller.length) noter.push(`Varmelasten har ${vl.huller.length} ${vl.huller.length === 1 ? "tom time" : "tomme timer"} i perioden (${tidsrum(vl.huller)}). ${vl.huller.length === 1 ? "Den står tom i arket, og modelscriptet beholder den som et hul — modellen udfylder den" : "De står tomme i arket, og modelscriptet beholder dem som huller — modellen udfylder dem"} først ved kørslen (lineært, højst 5 % af vinduet), som for værkets egen serie.`);
 
     const rækkeAf = new Map<string, number>();
     medtagne.forEach((n, idx) => {
@@ -271,6 +286,35 @@ export function planlæg(k: Eksportkilde): Eksportplan {
     });
     for (let r = PLADS.tanke.fra + tanke.length; r <= PLADS.tanke.til; r++) for (const c of "ABCDE") sæt("Anlaeg", `${c}${r}`, null, 10);
 
+    // ---------------------------------------------------------------- objektnavne (Codex K11 F1)
+    // Modelscriptets slug() normaliserer navnene (halm__kedel -> halm_kedel). Ved genupload fører importen scriptets
+    // navn tilbage til værkets objekt (fjv.revision.objektkort); det kræver, at navnet er entydigt blandt ALLE
+    // værkets objekter i sektionen — også dem, der ikke kommer med i arket. Ellers nægter eksporten.
+    const navnekort = new Map<string, string>();            // "units.<scriptnavn>" -> værkets navn
+    let kollision = false;
+    for (const [sek, med, flertal, ental] of [["units", medtagne, "Enhederne", "enheden"], ["storage", tanke, "Tankene", "tanken"]] as const) {
+        const alle = b.objekter(sek);
+        const set = new Set<string>();
+        for (const n of med) {
+            const s = slug(n);
+            const samme = alle.filter((x) => slug(x) === s);
+            if (samme.length > 1) {
+                kollision = true;
+                if (!set.has(s)) nægter.push(`${flertal} ${samme.map((x) => `"${x}"`).join(" og ")} hedder alle "${s}" i modelscriptet, som normaliserer navne — omdøb dem i appen, så de er forskellige efter normaliseringen.`);
+                set.add(s);
+                continue;
+            }
+            navnekort.set(`${sek}.${s}`, n);
+            if (s && s !== n) noter.push(`Navnet "${n}" hedder "${s}" i arket (modelscriptet normaliserer navne). En genupload af arket fører det tilbage til "${n}"; uploades arket som et nyt værk, hedder ${ental} "${s}".`);
+        }
+    }
+    /** En sti i scriptets navne -> samme sti i værkets navne. */
+    const tilVærk = (sti: string) => {
+        const d = sti.split(".");
+        if ((d[0] === "units" || d[0] === "storage") && d.length > 2) d[1] = navnekort.get(`${d[0]}.${d[1]}`) ?? d[1];
+        return d.join(".");
+    };
+
     // ---------------------------------------------------------------- Varmepumpe
     if (vpPunkter.length > PLADS.vp.til - PLADS.vp.fra + 1) nægter.push(`Varmepumperne har ${vpPunkter.length} målepunkter; skabelonen har plads til ${PLADS.vp.til - PLADS.vp.fra + 1}.`);
     vpPunkter.forEach((p, idx) => {
@@ -309,30 +353,72 @@ export function planlæg(k: Eksportkilde): Eksportplan {
     // ---------------------------------------------------------------- forudsigelsen og listen
     let forventet = new Map<string, string>();
     try {
-        forventet = forudsig({ b, k, medtagne, tanke, vpPunkter, priser, elafgift, energinet, dv, prod: tal(b.get("electricity.tariff_production_flat")),
+        if (!kollision) forventet = forudsig({ b, k, medtagne, tanke, vpPunkter, priser, elafgift, energinet, dv, prod: tal(b.get("electricity.tariff_production_flat")),
             bånd: { lavV, højV, spidsV, lavS, højS }, dmi, zone, vl, b3, sol, nægter });
     } catch (e) {
         nægter.push(e instanceof Error ? e.message : String(e));
     }
+    // K11 F7: et tegn, XML 1.0 ikke kan bære (kontroltegn), eller en bogstavelig _xHHHH_-sekvens (som Excel læser
+    // som et kodet tegn, men modelscriptets openpyxl læser bogstaveligt) kan ikke rundture — feltfejl, ikke en fil,
+    // der ikke kan åbnes.
+    for (const c of celler) {
+        if (typeof c.v !== "string") continue;
+        const fejl = ulovligTekst(c.v);
+        if (fejl) nægter.push(`${c.ark}!${c.ref} ("${synlig(c.v)}") ${fejl} Ret navnet eller teksten i appen.`);
+    }
+    // "Ikke med i arket" i værkets egne navne (scriptets navne føres tilbage som ved genupload).
     const ikkeMed: Tab[] = [];
     if (!nægter.length) {
-        const alle = new Set([...b.rå.keys(), ...forventet.keys()]);
+        const iVærk = new Map([...forventet].map(([s, v]) => [tilVærk(s), v] as const));
+        const alle = new Set([...b.rå.keys(), ...iVærk.keys()]);
         for (const sti of [...alle].sort()) {
-            const vv = b.rå.get(sti) ?? null, sv = forventet.get(sti) ?? null;
+            const vv = b.rå.get(sti) ?? null, sv = iVærk.get(sti) ?? null;
             if (vv === sv) continue;
             const grund = [...grunde.entries()].find(([p]) => sti === p || sti.startsWith(`${p}.`))?.[1];
             ikkeMed.push({ sti, værk: vv, script: sv, ...(grund ? { grund } : {}) });
         }
     }
-    return { celler, træpillerRække: harPiller, braendselKolonne: biomasse, solvarmeArk: !!sol, forventet, ikkeMed, serier, nægter, noter };
+    // K11 F4: de stier, hvor modelscriptets læsning af arket ikke er værket. Importen kræver, at basis afviger fra
+    // værket præcis her og ingen andre steder (fjv.revision.tjek_basis). Artefakter sammenlignes aldrig.
+    const afvigelser = ikkeMed.map((t) => t.sti).filter((s) => !erArtefakt(s));
+    return { celler, træpillerRække: harPiller, braendselKolonne: biomasse, solvarmeArk: !!sol, forventet, ikkeMed, afvigelser, serier, udfyldes, afrundes, nægter, noter };
 }
+
+// ------------------------------------------------------------------ tekst, XML og artefakter
+
+/** Konverteringens egne felter (fjv.revision.ARTEFAKT_*): gemmes aldrig ved genupload og sammenlignes ikke. */
+const ARTEFAKT_SEKTIONER = new Set(["meta", "time", "solver", "heat_load_params"]);
+const ARTEFAKT_STIER = new Set(["prices.natural_gas.note", "electricity.tariff_consumption.source"]);
+export function erArtefakt(sti: string): boolean {
+    const d = sti.split(".");
+    return ARTEFAKT_SEKTIONER.has(d[0]) || ARTEFAKT_STIER.has(sti)
+        || ((d[0] === "units" || d[0] === "storage") && (sti.endsWith(".notes") || sti.endsWith(".production_profile_path")));
+}
+
+const KODET_TEGN = /_x[0-9A-Fa-f]{4}_/;
+
+/** Hvorfor teksten ikke kan stå i et regneark, der rundtures — eller null. */
+export function ulovligTekst(s: string): string | null {
+    const c = ulovligtXmlTegn(s);
+    if (c !== null) return `indeholder tegnet U+${c.toString(16).toUpperCase().padStart(4, "0")}, som et regneark (XML 1.0) ikke kan gemme.`;
+    const k = KODET_TEGN.exec(s);
+    if (k) return `indeholder "${k[0]}", som Excel læser som et kodet tegn, men modelscriptet læser bogstaveligt — teksten ville ikke komme uændret tilbage.`;
+    return null;
+}
+
+const synlig = (s: string) => synligTekst(s).slice(0, 80);
 
 // ------------------------------------------------------------------ tidsserier
 
 type Punkter = [number, number | null][];
 
 /** Varmelasten som arkets timer: kun 1. juli 2025 – 30. juni 2026 (UTC, timens start); huller som tomme celler. */
-function timeserie(t: Tidsseriekilde | null, rolle: string): { punkter: Punkter; udenfor: number; grund?: string } {
+function timeserie(t: Tidsseriekilde | null, rolle: string): { punkter: Punkter; udenfor: number; grund?: string; huller: number[] } {
+    const r = timeserieRå(t, rolle);
+    return { ...r, huller: r.punkter.filter((p) => p[1] === null).map((p) => p[0]) };
+}
+
+function timeserieRå(t: Tidsseriekilde | null, rolle: string): { punkter: Punkter; udenfor: number; grund?: string } {
     if (!t) return { punkter: [], udenfor: 0 };
     if (t.serie.oploesning !== "1h") return { punkter: [], udenfor: t.serie.værdier.length, grund: `${rolle}en er i kvarterer; arket tager timeværdier` };
     const alle: Punkter = t.serie.værdier.map((v, idx) => [t.serie.startMs + idx * TIME, v]);
@@ -349,16 +435,98 @@ function timeserie(t: Tidsseriekilde | null, rolle: string): { punkter: Punkter;
     return { punkter, udenfor, ...(udenfor ? { grund: `${udenfor} timer ligger uden for 1. juli 2025 – 30. juni 2026, som arket dækker` } : {}) };
 }
 
-/** Solprofilen i kørselsvinduet [første dag kl. 00, sidste dag kl. 23] (skriv_maalt_solprofil). */
-function solserie(t: Tidsseriekilde, v: { start: number; slut: number }): { punkter: Punkter; udenfor: number; grund?: string } | null {
+interface Solplan {
+    punkter: Punkter;
+    udenfor: number;
+    grund?: string;
+    /** Profilen, som modelscriptet skriver den: hele kørselsvinduet, ender nulfyldt, huller interpoleret. */
+    fyldt: number[];
+    udfyldt: { ms: number; v: number; hvordan: "nat" | "interpolation" }[];
+    /** Antal timer, scriptets %.6f ændrer, og den største ændring. */
+    afrundet?: { n: number; maks: number };
+    /** Scriptets grund til at stoppe (dagtimer i enderne, over 5 % huller). */
+    nægt?: string;
+}
+
+/**
+ * Solprofilen i kørselsvinduet [første dag kl. 00, sidste dag kl. 23] og modelscriptets udfyldning af den
+ * (skriv_maalt_solprofil): tomme ender sættes til 0, hvis solen er nede i dem alle (ellers stopper scriptet);
+ * huller inde i serien interpoleres lineært (pandas interpolate(limit_area="inside") = numpy.interp), højst 5 %.
+ */
+function solserie(t: Tidsseriekilde, v: { start: number; slut: number }): Solplan | null {
     if (t.serie.oploesning !== "1h") return null;
     const alle: Punkter = t.serie.værdier.map((x, idx) => [t.serie.startMs + idx * TIME, x]);
     const inde = alle.filter(([ms]) => ms >= v.start && ms <= v.slut);
     if (!inde.some((p) => p[1] !== null)) return null;
     if (inde.some((p) => p[1] !== null && (p[1] as number) < 0)) return null;
     const udenfor = alle.filter(([ms, x]) => (ms < v.start || ms > v.slut) && x !== null).length;
-    return { punkter: inde, udenfor, ...(udenfor ? { grund: `${udenfor} timer ligger uden for kørselsvinduet, som modelscriptet læser fra arket Solvarme` } : {}) };
+    const kendt = new Map(inde.filter((p) => p[1] !== null).map((p) => [p[0], p[1] as number] as const));
+    const idx: number[] = [];
+    for (let ms = v.start; ms <= v.slut; ms += TIME) idx.push(ms);
+    const s: (number | null)[] = idx.map((ms) => kendt.get(ms) ?? null);
+    const a = s.findIndex((x) => x !== null);
+    let z = s.length - 1;
+    while (s[z] === null) z--;
+    const udfyldt: Solplan["udfyldt"] = [];
+    let nægt: string | undefined;
+    const ender = idx.map((_, j) => j < a || j > z);
+    if (ender.some(Boolean)) {
+        if (idx.some((ms, j) => ender[j] && !solenErNede(ms))) {
+            nægt = `Solprofilen dækker ikke kørselsvinduet: der mangler ${a} timer i starten og ${s.length - 1 - z} i slutningen (serien går fra ${tidspunkt(idx[a])} til ${tidspunkt(idx[z])}), og nogle af dem er dagtimer. Modelscriptet nulfylder ikke solprofilen og ville afvise arket.`;
+        } else {
+            idx.forEach((ms, j) => { if (ender[j]) { s[j] = 0; udfyldt.push({ ms, v: 0, hvordan: "nat" }); } });
+        }
+    }
+    const huller = s.filter((x) => x === null).length;
+    if (!nægt && huller > 0.05 * idx.length) {
+        nægt = `Solprofilen mangler ${huller} timer inde i serien (${(huller / idx.length * 100).toFixed(1)} %). Modelscriptet udfylder højst 5 % og ville afvise arket.`;
+    }
+    if (!nægt && huller) {
+        // numpy.interp mellem nærmeste kendte naboer: slope * (x - x0) + y0.
+        let forrige = -1;
+        for (let j = 0; j < s.length; j++) {
+            if (s[j] !== null) { forrige = j; continue; }
+            let næste = j + 1;
+            while (s[næste] === null) næste++;
+            const y0 = s[forrige] as number, y1 = s[næste] as number;
+            const slope = (y1 - y0) / (næste - forrige);
+            for (let x = j; x < næste; x++) {
+                s[x] = slope * (x - forrige) + y0;
+                udfyldt.push({ ms: idx[x], v: s[x] as number, hvordan: "interpolation" });
+            }
+            j = næste - 1;
+        }
+    }
+    const fyldt = s.map((x) => x ?? 0);
+    // Afrundingen af de GEMTE timer (de udfyldte står allerede i `udfyldt` med den værdi, scriptet skriver).
+    let n = 0, maks = 0;
+    for (const x of kendt.values()) { const d = Math.abs(Number(x.toFixed(6)) - x); if (d > 0) { n++; maks = Math.max(maks, d); } }
+    udfyldt.sort((p, q) => p.ms - q.ms);
+    return {
+        punkter: inde, udenfor, fyldt, udfyldt, ...(n ? { afrundet: { n, maks } } : {}), ...(nægt ? { nægt } : {}),
+        ...(udenfor ? { grund: `${udenfor} timer ligger uden for kørselsvinduet, som modelscriptet læser fra arket Solvarme` } : {}),
+    };
 }
+
+/** _solen_er_nede (vaerksark_til_yaml.py:922): solen mere end 6° under horisonten midt i timen, 56° N, 10,5° Ø. */
+export function solenErNede(ms: number): boolean {
+    const d = new Date(ms);
+    const doy = Math.round((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - Date.UTC(d.getUTCFullYear(), 0, 1)) / 86_400_000) + 1;
+    const soltid = d.getUTCHours() + 0.5 + 10.5 / 15.0;
+    const rad = (g: number) => g * (Math.PI / 180);   // numpy.deg2rad/math.radians: x * (pi/180)
+    const decl = rad(23.45 * Math.sin(rad(360.0 / 365.0 * (doy - 81))));
+    const lat = rad(56.0);
+    const sinH = Math.sin(lat) * Math.sin(decl) + Math.cos(lat) * Math.cos(decl) * Math.cos(rad(15.0 * (soltid - 12.0)));
+    return sinH < Math.sin(rad(-6.0));
+}
+
+const tidspunkt = (ms: number) => {
+    const d = new Date(ms), p = (x: number) => String(x).padStart(2, "0");
+    return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${p(d.getUTCHours())}:00 UTC`;
+};
+const tidsrum = (ms: number[]) => (ms.length === 1 ? tidspunkt(ms[0]) : `${tidspunkt(Math.min(...ms))} – ${tidspunkt(Math.max(...ms))}`);
+/** Værdien, som scriptet skriver den (%.6f), med dansk komma. */
+export const mw6 = (v: number) => v.toFixed(6).replace(".", ",");
 
 function solGwh(sol: { punkter: Punkter } | null, k: Eksportkilde, n: string): number | null {
     void n;
@@ -387,7 +555,7 @@ interface Forudsig {
     b: Blade; k: Eksportkilde; medtagne: string[]; tanke: string[]; vpPunkter: { navn: string; t: number; q: number; e: number }[];
     priser: Record<string, { value: number; unit: string }>; elafgift: number | null; energinet: number | null; dv: number | null; prod: number | null;
     bånd: { lavV: number | null; højV: number | null; spidsV: number | null; lavS: number | null; højS: number | null };
-    dmi: string | null; zone: string | null; vl: { punkter: Punkter }; b3: number | null; sol: { punkter: Punkter } | null; nægter: string[];
+    dmi: string | null; zone: string | null; vl: { punkter: Punkter }; b3: number | null; sol: { punkter: Punkter; fyldt: number[] } | null; nægter: string[];
 }
 
 const hele = (v: number | null) => (v ? Math.max(1, Math.ceil(v)) : 1);
@@ -613,10 +781,10 @@ function pyFloatKort(x: number): string {
     return /[.e]/.test(s) ? s : `${s}.0`;
 }
 
-function solNote(sol: { punkter: Punkter }): string {
-    const v = sol.punkter.map((p) => p[1] ?? 0);
-    const gwh = v.reduce((s, x) => s + x, 0) / 1000;
-    return `${gwh.toFixed(2)} GWh, spids ${Math.max(...v).toFixed(1)} MW`;
+/** Tallene i scriptets note — regnet på profilen EFTER dets udfyldning (K11 F6). */
+function solNote(sol: { fyldt: number[] }): string {
+    const gwh = sol.fyldt.reduce((s, x) => s + x, 0) / 1000;
+    return `${gwh.toFixed(2)} GWh, spids ${Math.max(...sol.fyldt).toFixed(1)} MW`;
 }
 
 /** numpy.interp (ts stigende; udenfor = endepunktet). */

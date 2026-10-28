@@ -7,6 +7,12 @@
 // indsat række ikke ligner en ændring. Forskellen vises før bekræftelse
 // med appens etiketter. Det er en VISNING: den gemte revision er det,
 // modelscriptet selv læser forskelligt i de to ark (fjv.revision).
+//
+// Codex K11 F5: felter, modelscriptet kun bruger til konverteringens egne
+// felter (eller slet ikke), gemmes aldrig ved genupload — fx årsproduktionen
+// i Timedata!B3, der kun skalerer den syntetiske varmelast (heat_load_params).
+// De markeres "gemmes ikke" før bekræftelse, og består ændringen kun af dem,
+// tilbydes ingen revision. Importen siger det samme (fjv.revision.IKKE_GEMT).
 //-----------------------------------------------------------------------
 
 import { findFelt } from "../katalog";
@@ -72,6 +78,8 @@ function tidsserie(c: Celler | undefined, fra: number): Map<number, number> {
 }
 
 /** Arket som modelscriptet læser det (ikke valideret — det gør scriptet ved importen). */
+const AARSPRODUKTION = "Timedata: årsproduktion (GWh)";
+
 export function læsArkmodel(ark: Map<string, Celler>): Arkmodel {
     const m: Arkmodel = { enheder: new Map(), tanke: new Map(), vp: new Map(), poster: new Map(), timedata: new Map(), solvarme: new Map(), felter: new Map() };
     const an = ark.get("Anlaeg") ?? new Map();
@@ -111,7 +119,7 @@ export function læsArkmodel(ark: Map<string, Celler>): Arkmodel {
         if (typeof c === "number") m.poster.set(`${a.trim()} · sommer`, c);
     }
     const td = ark.get("Timedata") ?? new Map();
-    for (const [ref, navn] of [["B2", "Timedata: tidszone"], ["B3", "Timedata: årsproduktion (GWh)"]] as const) {
+    for (const [ref, navn] of [["B2", "Timedata: tidszone"], ["B3", AARSPRODUKTION]] as const) {
         const v = td.get(ref);
         if (v !== undefined) m.felter.set(navn, v);
     }
@@ -126,18 +134,29 @@ export function læsArkmodel(ark: Map<string, Celler>): Arkmodel {
     return m;
 }
 
-export interface Ændring { hvor: string; felt: string; før: string; nu: string }
+export interface Ændring { hvor: string; felt: string; før: string; nu: string; /** Sat, når ændringen ikke gemmes ved genupload (K11 F5). */ gemmesIkke?: string }
 export interface Serieændring { rolle: "varmelast" | "solprofil"; ændret: number; tilføjet: number; fjernet: number; sumFør: number; sumNu: number }
-export interface Forskel { felter: Ændring[]; serier: Serieændring[]; tom: boolean }
+/** `tom` = intet ændret; `gemmes` = antal ændringer, en revision ville gemme (felter, der gemmes, + serier). */
+export interface Forskel { felter: Ændring[]; serier: Serieændring[]; tom: boolean; gemmes: number }
+
+/** Hvorfor et felt i arket ikke gemmes ved genupload — samme semantik som importen (fjv.revision.IKKE_GEMT). */
+export const GEMMES_IKKE = {
+    aarsproduktion: "Årsproduktionen i Timedata!B3 bruger modelscriptet kun til at skalere den syntetiske varmelast (heat_load_params), og den gemmes ikke ved genupload. Ret værkets varmelast i appen, eller upload en målt varmelast under Tidsserier.",
+    navn: "Værkets navn ændres ikke ved genupload — omdøb værket i appen.",
+    solGwh: "Solvarmens årsproduktion i Anlaeg bruges ikke af modelscriptet, når arket Solvarme har timeværdierne. Ret timerne i arket Solvarme i stedet.",
+    cop: "COP ved 0 °C bruges ikke af modelscriptet, når varmepumpen har målepunkter i arket Varmepumpe. Ret målepunkterne i stedet.",
+} as const;
 
 const vis = (v: V | undefined) => (v === undefined ? "–" : typeof v === "number" ? v.toLocaleString("da-DK", { maximumFractionDigits: 6 }) : v);
 
-function sammenlignFelter(hvor: string, a: Map<string, V> | undefined, b: Map<string, V> | undefined, kol: Record<string, { sti?: string; navn: string }>, ud: Ændring[]) {
+function sammenlignFelter(hvor: string, a: Map<string, V> | undefined, b: Map<string, V> | undefined, kol: Record<string, { sti?: string; navn: string }>, ud: Ændring[],
+    gemmesIkke: (kolonne: string) => string | undefined = () => undefined) {
     if (!a && b) { ud.push({ hvor, felt: "enhed/tank", før: "–", nu: "tilføjet" }); return; }
     if (a && !b) { ud.push({ hvor, felt: "enhed/tank", før: "findes", nu: "fjernet" }); return; }
     for (const k of Object.keys(kol)) {
         const x = a!.get(k), y = b!.get(k);
-        if (!lig(x, y)) ud.push({ hvor, felt: etiket(kol[k]), før: vis(x), nu: vis(y) });
+        const g = gemmesIkke(k);
+        if (!lig(x, y)) ud.push({ hvor, felt: etiket(kol[k]), før: vis(x), nu: vis(y), ...(g ? { gemmesIkke: g } : {}) });
     }
 }
 
@@ -153,7 +172,12 @@ function serie(rolle: Serieændring["rolle"], a: Map<number, number>, b: Map<num
 /** Brugerens ændringer: arket mod basis. */
 export function sammenlign(basis: Arkmodel, ark: Arkmodel): Forskel {
     const felter: Ændring[] = [];
-    for (const n of new Set([...basis.enheder.keys(), ...ark.enheder.keys()])) sammenlignFelter(`Enhed ${n}`, basis.enheder.get(n), ark.enheder.get(n), ENHED_KOL, felter);
+    const harSolark = basis.solvarme.size > 0 || ark.solvarme.size > 0;
+    const vpNavne = new Set([...ark.vp.keys()].map((k) => k.slice(0, k.lastIndexOf(" ved "))));
+    for (const n of new Set([...basis.enheder.keys(), ...ark.enheder.keys()])) {
+        sammenlignFelter(`Enhed ${n}`, basis.enheder.get(n), ark.enheder.get(n), ENHED_KOL, felter,
+            (k) => (k === "M" && harSolark ? GEMMES_IKKE.solGwh : k === "F" && vpNavne.has(n) ? GEMMES_IKKE.cop : undefined));
+    }
     for (const n of new Set([...basis.tanke.keys(), ...ark.tanke.keys()])) sammenlignFelter(`Tank ${n}`, basis.tanke.get(n), ark.tanke.get(n), TANK_KOL, felter);
     for (const n of new Set([...basis.vp.keys(), ...ark.vp.keys()])) {
         const x = basis.vp.get(n), y = ark.vp.get(n);
@@ -161,14 +185,15 @@ export function sammenlign(basis: Arkmodel, ark: Arkmodel): Forskel {
     }
     for (const n of new Set([...basis.poster.keys(), ...ark.poster.keys()])) {
         const x = basis.poster.get(n), y = ark.poster.get(n);
-        if (!lig(x, y)) felter.push({ hvor: "Priser", felt: n, før: vis(x), nu: vis(y) });
+        if (!lig(x, y)) felter.push({ hvor: "Priser", felt: n, før: vis(x), nu: vis(y), ...(norm(n) === "værkets navn" ? { gemmesIkke: GEMMES_IKKE.navn } : {}) });
     }
     for (const n of new Set([...basis.felter.keys(), ...ark.felter.keys()])) {
         const x = basis.felter.get(n), y = ark.felter.get(n);
-        if (!lig(x, y)) felter.push({ hvor: "Timedata", felt: n, før: vis(x), nu: vis(y) });
+        if (!lig(x, y)) felter.push({ hvor: "Timedata", felt: n, før: vis(x), nu: vis(y), ...(n === AARSPRODUKTION ? { gemmesIkke: GEMMES_IKKE.aarsproduktion } : {}) });
     }
     const serier = [serie("varmelast", basis.timedata, ark.timedata), serie("solprofil", basis.solvarme, ark.solvarme)].filter((x): x is Serieændring => !!x);
-    return { felter, serier, tom: felter.length === 0 && serier.length === 0 };
+    const gemmes = felter.filter((x) => !x.gemmesIkke).length + serier.length;
+    return { felter, serier, tom: felter.length === 0 && serier.length === 0, gemmes };
 }
 
 export interface Genkendt { markering: Markering | null; model: Arkmodel; celler: Map<string, Celler> }

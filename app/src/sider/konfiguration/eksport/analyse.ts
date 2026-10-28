@@ -7,6 +7,7 @@
 //   * en ny eksport af revisionen != arkets hash      -> lavet af en anden udgave
 //                                                        af eksporten: eksportér igen
 //   * ingen forskel mod basis                          -> intet at gemme
+//   * kun felter, der ikke gemmes (K11 F5)             -> intet at gemme, og hvorfor
 //   * ellers                                           -> revision N+1 (med diff)
 //
 // Basis er appens nye eksport af værkets nuværende revision. Den sendes med
@@ -14,7 +15,7 @@
 //-----------------------------------------------------------------------
 
 import { eksporter } from "./eksporter";
-import { genkend, læsArkmodel, sammenlign, type Forskel } from "./genkend";
+import { genkend, læsArkmodel, sammenlign, type Forskel, type Ændring } from "./genkend";
 import { hentEksportkilde, hentSkabelon, type Vaerkhoved } from "./hent";
 import type { Eksportkilde } from "./kort";
 import { læsCeller } from "./xlsx";
@@ -23,7 +24,7 @@ export type Uploadanalyse =
     | { art: "nyt"; grund?: string }
     | { art: "konflikt"; vaerk: Vaerkhoved; arkRevision: number }
     | { art: "anden_eksport"; vaerk: Vaerkhoved }
-    | { art: "ingen_aendringer"; vaerk: Vaerkhoved }
+    | { art: "ingen_aendringer"; vaerk: Vaerkhoved; ikkeGemt?: Ændring[] }
     | { art: "revision"; vaerk: Vaerkhoved; forskel: Forskel; basis: Uint8Array };
 
 export interface Hentere {
@@ -45,5 +46,6 @@ export async function analyserUpload(bytes: Uint8Array, vaerker: readonly Vaerkh
     if (basis.markering.sha256 !== m.sha256) return { art: "anden_eksport", vaerk: v };
     const forskel = sammenlign(læsArkmodel(læsCeller(basis.bytes)), g.model);
     if (forskel.tom) return { art: "ingen_aendringer", vaerk: v };
+    if (!forskel.gemmes) return { art: "ingen_aendringer", vaerk: v, ikkeGemt: forskel.felter };
     return { art: "revision", vaerk: v, forskel, basis: basis.bytes };
 }

@@ -77,7 +77,7 @@ describe("eksporten af Andeby", () => {
         const m = læsMarkering(læsCeller(a.bytes))!;
         expect(m).toMatchObject({ vaerk_id: ANDEBY_ID, vaerk_kode: "andeby", revision: 1, sha256: a.markering.sha256 });
         expect(b.markering.sha256).toBe(a.markering.sha256);
-        expect(indholdstekst(b.plan)).toBe(indholdstekst(a.plan));
+        expect(indholdstekst(b.plan, b.markering.grundlag)).toBe(indholdstekst(a.plan, a.markering.grundlag));
         const c = await eksporter(andeby(1, { "units.halmkedel.var_om": "31.0" }), skabelon(), NU);
         expect(c.markering.sha256).not.toBe(a.markering.sha256);
     });

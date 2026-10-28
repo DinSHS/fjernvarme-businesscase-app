@@ -13,7 +13,7 @@ const VID = "55555555-5555-4555-8555-555555555555";
 function falsk(a: Partial<AnmodningsRad>, basis: string, vaerk: VaerkRad | undefined) {
     const filer: string[] = [], opret: unknown[] = [], afvist: string[] = [];
     const anm: AnmodningsRad = {
-        id: ID.toUpperCase(), status: "ny", svar: null, anmodet_af: "a@b.dk", vaerk_id: VID.toUpperCase(), forventet_revision: 3,
+        id: ID.toUpperCase(), status: "ny", svar: null, anmodet_af: "test@example.org", vaerk_id: VID.toUpperCase(), forventet_revision: 3,
         aendringer_json: JSON.stringify([{ handling: "upload_vaerksark", filnavn: "andeby_rev3.xlsx", sha256: sha256Hex(ARK), basis_sha256: sha256Hex(basis) }]), ...a,
     };
     const d: VaerksarkDeps = {

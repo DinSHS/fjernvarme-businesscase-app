@@ -10,9 +10,15 @@
 // bekræftelse, og arket gemmes som revision N+1 af samme værk. Er værket
 // ændret siden eksporten, afvises arket (eksportér igen) — ingen tavs
 // overskrivning. Uden markering, eller findes værket ikke: et nyt værk.
+//
+// Codex K11 F3: filvalg, bytes og analyse er ÉN tilstand med et valg-id.
+// Et analysesvar for et tidligere valg ignoreres, send bruger netop de
+// analyserede bytes, og bindingen (værk + revision) kontrolleres igen ved
+// send. Ændres værkslisten (en revision), er analysen forældet: send er
+// spærret, til arket er læst igen.
 //-----------------------------------------------------------------------
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DataTilstand, Knap, Kort, Maerke } from "@/components/layout";
 import { tidspunkt } from "@/lib/format";
 import { opdaterAlt } from "@/lib/data/opdatering";
@@ -22,8 +28,15 @@ import { vaerksarkBudskab } from "./tidsserie-budskaber";
 import { IMPORT_STATUS, tilBase64, vaerksarkFejl } from "./tidsserie-logik";
 import { dk, dkFri } from "./vis";
 import type { Uploadanalyse } from "./eksport/analyse";
+import type { Ændring } from "./eksport/genkend";
 
 type Vaerkrad = { id: string; kode: string; navn: string; revision: number };
+
+/** Ét filvalg: filen, dens bytes og analysen af netop de bytes mod netop den værksliste (`nøgle`). */
+interface Valg { id: number; fil: File; nøgle: string; bytes?: Uint8Array; analyse?: Uploadanalyse; fejl?: string }
+
+/** Værkslistens identitet for analysen: id og revision. */
+const nøgleFor = (v: readonly Vaerkrad[]) => v.map((x) => `${x.id.toLowerCase()}:${x.revision}`).sort().join("|");
 
 /** Analysen af arket — lazy-loadet (xlsx-læseren og eksporten hentes først, når et ark vælges). */
 async function analyser(bytes: Uint8Array, vaerker: readonly Vaerkrad[]): Promise<Uploadanalyse> {
@@ -33,39 +46,77 @@ async function analyser(bytes: Uint8Array, vaerker: readonly Vaerkrad[]): Promis
 
 export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[]; bruger: string | undefined }) {
     const importer = useVaerksarkimporter();
-    const [fil, setFil] = useState<File>();
+    const [valg, setValg] = useState<Valg>();
+    const næsteId = useRef(0);
     const [timeslut, setTimeslut] = useState(false);
     const [sender, setSender] = useState(false);
     const [svar, setSvar] = useState<{ ok: boolean; tekst: string }>();
-    const [analyse, setAnalyse] = useState<Uploadanalyse>();
-    const [analyseFejl, setAnalyseFejl] = useState<string>();
+    const fil = valg?.fil;
+    const analyse = valg?.analyse;
+    const analyseFejl = valg?.fejl;
     const filFejl = fil ? vaerksarkFejl(fil) : null;
+    const forældet = !!valg && valg.nøgle !== nøgleFor(vaerker);
     const læser = !!fil && !filFejl && !analyse && !analyseFejl;
     const revision = analyse?.art === "revision" ? analyse : undefined;
     const blokeret = analyse?.art === "konflikt" || analyse?.art === "anden_eksport" || analyse?.art === "ingen_aendringer";
-    const kan = !!fil && !filFejl && !!analyse && !blokeret && !!bruger && !sender;
+    const kan = !!valg?.bytes && !filFejl && !!analyse && !blokeret && !forældet && !!bruger && !sender;
     const seneste = (importer.data ?? []).slice(0, 4);
     const aktive = seneste.filter((i) => i.status === "koe" || i.status === "koerer").length;
 
-    const vælg = async (f: File | undefined) => {
-        setFil(f); setSvar(undefined); setAnalyse(undefined); setAnalyseFejl(undefined);
-        if (!f || vaerksarkFejl(f)) return;
+    /** Opdatér kun, hvis valget stadig er det aktuelle — et forældet svar ignoreres. */
+    const forValg = (id: number, ændring: Partial<Valg>) => setValg((v) => (v?.id === id ? { ...v, ...ændring } : v));
+
+    const analysér = async (id: number, bytes: Uint8Array, liste: readonly Vaerkrad[]) => {
         try {
-            setAnalyse(await analyser(new Uint8Array(await f.arrayBuffer()), vaerker));
+            const a = await analyser(bytes, liste);
+            forValg(id, { analyse: a });
         } catch (e) {
-            setAnalyseFejl(e instanceof Error ? e.message : String(e));
+            forValg(id, { fejl: e instanceof Error ? e.message : String(e) });
         }
     };
 
+    const vælg = async (f: File | undefined) => {
+        const id = ++næsteId.current;
+        setSvar(undefined);
+        if (!f) { setValg(undefined); return; }
+        const liste = vaerker;
+        setValg({ id, fil: f, nøgle: nøgleFor(liste) });
+        if (vaerksarkFejl(f)) return;
+        let bytes: Uint8Array;
+        try { bytes = new Uint8Array(await f.arrayBuffer()); } catch (e) { forValg(id, { fejl: e instanceof Error ? e.message : String(e) }); return; }
+        forValg(id, { bytes });
+        await analysér(id, bytes, liste);
+    };
+
+    /** Samme fil, ny analyse mod den aktuelle værksliste (efter en ændret revision). */
+    const læsIgen = () => {
+        if (!valg?.bytes) return;
+        const id = ++næsteId.current;
+        setSvar(undefined);
+        setValg({ id, fil: valg.fil, bytes: valg.bytes, nøgle: nøgleFor(vaerker) });
+        void analysér(id, valg.bytes, vaerker);
+    };
+
     const send = async () => {
-        if (!fil) return;
+        const v = valg;
+        if (!v?.bytes || !v.analyse || forældet) return;
+        const a = v.analyse;
+        // Bindingen kontrolleres ved send: analysen hører til netop disse bytes (samme valg), og værket har stadig
+        // den revision, analysen så. Serveren kontrollerer den igen i importens transaktion (K11 F4).
+        if (a.art === "revision") {
+            const nu = vaerker.find((x) => x.id.toLowerCase() === a.vaerk.id.toLowerCase());
+            if (!nu || nu.revision !== a.vaerk.revision) {
+                setSvar({ ok: false, tekst: `${a.vaerk.navn} er ændret, siden arket blev læst. Læs arket igen.` });
+                return;
+            }
+        }
         setSender(true); setSvar(undefined);
         try {
-            const b64 = tilBase64(new Uint8Array(await fil.arrayBuffer()));
+            const b64 = tilBase64(v.bytes);
             // En revision sammenlignes med en eksport, der er stemplet med timens START i UTC — derfor intet --timeslut.
-            const s = revision
-                ? await uploadVaerksark(fil.name, b64, false, bruger, { vaerkId: revision.vaerk.id, revision: revision.vaerk.revision, basisBase64: tilBase64(revision.basis) })
-                : await uploadVaerksark(fil.name, b64, timeslut, bruger);
+            const s = a.art === "revision"
+                ? await uploadVaerksark(v.fil.name, b64, false, bruger, { vaerkId: a.vaerk.id, revision: a.vaerk.revision, basisBase64: tilBase64(a.basis) })
+                : await uploadVaerksark(v.fil.name, b64, timeslut, bruger);
             setSvar({ ok: s.ok, tekst: s.svar });
             if (s.ok) { importer.genindlæs(); opdaterAlt(); }
         } catch (e) {
@@ -91,6 +142,11 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
                 {læser && <p className="kf-kilde" role="status">Læser arket …</p>}
                 {analyseFejl && <p className="kf-svar" data-tone="fejl" role="alert">Arket kunne ikke læses: {analyseFejl}</p>}
                 {analyse && <Analyse a={analyse} />}
+                {analyse && forældet && (
+                    <p className="kf-svar" data-tone="fejl" role="alert" data-tilstand="forældet">
+                        Et værk er ændret, siden arket blev læst — analysen gælder ikke længere. <Knap sekundaer onClick={læsIgen}>Læs arket igen</Knap>
+                    </p>
+                )}
                 {!revision && !blokeret && (
                     <label className="kf-kontakt"><input type="checkbox" checked={timeslut} onChange={(e) => setTimeslut(e.target.checked)} />Tidsstemplerne i arkets timedata er timens slut</label>
                 )}
@@ -136,20 +192,32 @@ function Analyse({ a }: { a: Uploadanalyse }) {
             </p>
         );
     }
+    if (a.art === "ingen_aendringer" && a.ikkeGemt?.length) {
+        return (
+            <div className="kf-diff" data-tilstand="ingen_aendringer">
+                <p className="kf-svar" data-tone="fejl" role="alert">
+                    Arket ændrer kun felter, der ikke gemmes ved genupload. Intet bliver gemt — {a.vaerk.navn} forbliver revision {a.vaerk.revision}.
+                </p>
+                <IkkeGemt felter={a.ikkeGemt} />
+            </div>
+        );
+    }
     if (a.art === "ingen_aendringer") {
         return <p className="kf-svar" data-tone="ok" role="status" data-tilstand="ingen_aendringer">Ingen ændringer: arket er det samme som {a.vaerk.navn} revision {a.vaerk.revision}. Der er intet at gemme.</p>;
     }
     const f = a.forskel;
+    const gemmes = f.felter.filter((x) => !x.gemmesIkke);
+    const ikke = f.felter.filter((x) => x.gemmesIkke);
     return (
         <div className="kf-diff" data-tilstand="revision">
             <p className="kf-svar" role="status">
                 Arket er eksporteret fra <strong>{a.vaerk.navn}</strong> revision {a.vaerk.revision}. Disse ændringer gemmes som revision {a.vaerk.revision + 1} — felter, arket ikke bærer, røres ikke:
             </p>
-            {f.felter.length > 0 && (
+            {gemmes.length > 0 && (
                 <table aria-label="Ændringer i arket">
                     <thead><tr><th>Hvor</th><th>Felt</th><th>Før</th><th>Nu</th></tr></thead>
                     <tbody>
-                        {f.felter.map((x) => (
+                        {gemmes.map((x) => (
                             <tr key={`${x.hvor}|${x.felt}`}><td>{x.hvor}</td><td>{x.felt}</td><td data-tal="true">{x.før}</td><td data-tal="true"><ins>{x.nu}</ins></td></tr>
                         ))}
                     </tbody>
@@ -160,7 +228,22 @@ function Analyse({ a }: { a: Uploadanalyse }) {
                     {s.rolle === "varmelast" ? "Varmelast (Timedata)" : "Solvarme (arket Solvarme)"}: {timer(s.ændret)} ændret, {timer(s.tilføjet)} tilføjet, {timer(s.fjernet)} fjernet; sum i arket {dk(s.sumFør, 3)} → {dk(s.sumNu, 3)} GWh. Værkets {s.rolle} får en ny version med de ændrede timer.
                 </p>
             ))}
+            {ikke.length > 0 && <IkkeGemt felter={ikke} />}
         </div>
+    );
+}
+
+/** Ændringer i arket, som genuploaden ikke gemmer (K11 F5) — med grunden. */
+function IkkeGemt({ felter }: { felter: readonly Ændring[] }) {
+    return (
+        <table aria-label="Ændringer, der ikke gemmes">
+            <thead><tr><th>Hvor</th><th>Felt</th><th>I arket</th><th>Gemmes ikke, fordi</th></tr></thead>
+            <tbody>
+                {felter.map((x) => (
+                    <tr key={`${x.hvor}|${x.felt}`}><td>{x.hvor}</td><td>{x.felt}</td><td data-tal="true">{x.før} → {x.nu}</td><td>{x.gemmesIkke}</td></tr>
+                ))}
+            </tbody>
+        </table>
     );
 }
 

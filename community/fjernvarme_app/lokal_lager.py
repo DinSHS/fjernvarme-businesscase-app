@@ -425,10 +425,10 @@ class LokalImportLager:
         return {"vaerk_id": str(r.vaerk_id).lower(), "forventet_revision": int(r.forventet_revision),
                 "basis_sha256": b} if b else None
 
-    def gem_revision(self, imp: dict, rev: dict, aendr: list, serier: dict, scriptlog: str,
+    def gem_revision(self, imp: dict, rev: dict, laesning: dict, serier: dict, scriptlog: str,
                      files: str | None = None) -> dict:
         """Revisionen i ÉN transaktion — samme regler som ``fjv.vaerksark.gem_revision`` (Fabric)."""
-        from fjv.vaerksark import ArkFejl, _log_tekst, forbered_revision
+        from fjv.vaerksark import ArkFejl, _log_tekst, forbered_revision, serielog
         from . import vaerksskriv as VS
 
         hvem = (imp.get("uploadet_af") or "fjv_importer_vaerksark")[:200]
@@ -448,12 +448,13 @@ class LokalImportLager:
                 if len(nuv) != len(rk):
                     raise ArkFejl("værket har dobbelte parametre - det skal ryddes op, før det kan ændres")
                 naeste = max((int(x.raekkefoelge or 0) for x in rk), default=0) + 1
-                aktive = {x.rolle: x.sti for x in cn.execute(select(ts.c.rolle, ts.c.sti).where(and_(
-                    ts.c.vaerk_id == v["id"], ts.c.aktiv.is_(True), ts.c.status == "gyldig"))).fetchall()}
-            f = forbered_revision(v, rev, nuv, aktive, aendr, serier, files)
+                aktive = {x.rolle: {"sti": x.sti, "sha256": x.sha256, "id": str(x.id).lower()}
+                          for x in cn.execute(select(ts.c.rolle, ts.c.sti, ts.c.sha256, ts.c.id).where(and_(
+                              ts.c.vaerk_id == v["id"], ts.c.aktiv.is_(True), ts.c.status == "gyldig"))).fetchall()}
+            f = forbered_revision(v, rev, nuv, aktive, laesning, serier, files)
             plan, ny_rev = f["plan"], f["ny_rev"]
+            log = []
             if ny_rev is not None:
-                log = []
                 for x in plan["ret"]:
                     n = cn.execute(p_.update().where(and_(p_.c.vaerk_id == v["id"], p_.c.sti == x["sti"]))
                                    .values(vaerdi_json=x["ny_json"], aendret_af=hvem, aendret=nu())).rowcount
@@ -468,7 +469,6 @@ class LokalImportLager:
                                                           "objekt": x["objekt"], "raekkefoelge": naeste}], hvem)
                     naeste += 1
                     log.append((x["sti"], "opret", None, x["ny_json"]))
-                VS.skriv_log(self.db, cn, v["id"], ny_rev, log, hvem, anmodning_id=imp["id"])
                 if cn.execute(v_.update().where(and_(v_.c.id == v["id"], v_.c.revision == v["revision"]))
                               .values(revision=ny_rev, aendret_af=hvem, aendret=nu())).rowcount != 1:
                     raise ArkFejl("værket blev ændret samtidig af en anden - eksportér igen")
@@ -476,22 +476,26 @@ class LokalImportLager:
             for rolle, sr in f["serier"].items():
                 cn.execute(ts.update().where(and_(ts.c.vaerk_id == v["id"], ts.c.rolle == rolle, ts.c.aktiv.is_(True)))
                            .values(aktiv=False))
-                if sr["res"] is None:
-                    continue
-                tid, udfald = VS.indsaet_tidsserie(
-                    self.db, cn, v["id"], v["kode"], rolle,
-                    f"Værksark: {rolle} rettet i arket ({imp.get('filnavn') or ''})", imp.get("filnavn") or "vaerksark.xlsx",
-                    sr["res"], "vaerksark", True, hvem, tidsstempel=sr["tidsstempel"], tidszone="UTC", files=files)
-                if udfald == "uaendret":
-                    cn.execute(ts.update().where(ts.c.id == tid).values(aktiv=True))
-                ts_id = ts_id or tid
+                tid = None
+                if sr["res"] is not None:
+                    tid, udfald = VS.indsaet_tidsserie(
+                        self.db, cn, v["id"], v["kode"], rolle,
+                        f"Værksark: {rolle} rettet i arket ({imp.get('filnavn') or ''})", imp.get("filnavn") or "vaerksark.xlsx",
+                        sr["res"], "vaerksark", True, hvem, tidsstempel=sr["tidsstempel"], tidszone="UTC", files=files)
+                    if udfald == "uaendret":
+                        cn.execute(ts.update().where(ts.c.id == tid).values(aktiv=True))
+                    ts_id = ts_id or tid
+                log.append(serielog(rolle, aktive.get(rolle), tid, sr["res"]))
+            if log:
+                VS.skriv_log(self.db, cn, v["id"], ny_rev, log, hvem, anmodning_id=imp["id"])
             loggen = _log_tekst(f["log"], scriptlog)
             if cn.execute(i.update().where(and_(i.c.id == imp["id"], i.c.status == "koerer"))
                           .values(status="faerdig", vaerk_id=v["id"], tidsserie_id=ts_id, log=loggen)).rowcount != 1:
                 raise ArkFejl("importens status blev ændret under importen")
         return {"vaerk_id": v["id"], "kode": v["kode"], "revision": ny_rev, "log": loggen,
                 "aendringer": len(plan["ret"]) + len(plan["slet"]) + len(plan["opret"]),
-                "tidsserier": {r_: (sr["res"].sha256 if sr["res"] else None) for r_, sr in f["serier"].items()}}
+                "tidsserier": {r_: (sr["res"].sha256 if sr["res"] else None) for r_, sr in f["serier"].items()},
+                "ikke_gemt": f["ikke_gemt"]}
 
     def motor_pins(self) -> dict:
         return motor_pins(self.db)

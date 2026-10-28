@@ -36,7 +36,39 @@ export function kolBogstav(kol: number): string {
 
 export const ref = (kol: number, række: number) => `${kolBogstav(kol)}${række}`;
 
-const xmlTegn = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+/**
+ * Første tegn uden for XML 1.0's Char-produktion — C0-kontroltegn undtagen tab/LF/CR, U+FFFE/U+FFFF og enlige
+ * surrogater — som tegnkode, eller null (Codex K11 F7).
+ */
+export function ulovligtXmlTegn(s: string): number | null {
+    for (let i = 0; i < s.length; i++) {
+        const c = s.charCodeAt(i);
+        if (c < 0x20 && c !== 0x09 && c !== 0x0a && c !== 0x0d) return c;
+        if (c === 0xfffe || c === 0xffff) return c;
+        if (c >= 0xd800 && c <= 0xdbff) {
+            const d = s.charCodeAt(i + 1);
+            if (d >= 0xdc00 && d <= 0xdfff) { i++; continue; }
+            return c;
+        }
+        if (c >= 0xdc00 && c <= 0xdfff) return c;
+    }
+    return null;
+}
+
+/** Teksten med kontroltegn vist som \uXXXX (til fejlbeskeder). */
+export const synligTekst = (s: string) => [...s].map((ch) => {
+    const c = ch.charCodeAt(0);
+    return c < 0x20 || c === 0xfffe || c === 0xffff ? `\\u${c.toString(16).padStart(4, "0")}` : ch;
+}).join("");
+
+/**
+ * Tekst som XML. Tegn uden for XML 1.0 kan ikke skrives (openpyxl afviser filen som "not well-formed", Codex K11 F7):
+ * eksportens plan nægter dem som feltfejl (kort.ts ulovligTekst); her er sidste værn, så en ugyldig fil aldrig bygges.
+ */
+const xmlTegn = (s: string) => {
+    if (ulovligtXmlTegn(s) !== null) throw new Error(`Teksten "${synligTekst(s.slice(0, 40))}" indeholder et tegn, som et regneark (XML 1.0) ikke kan gemme.`);
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+};
 const fraXml = (s: string) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'")
     .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
     .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d))).replace(/&amp;/g, "&");

@@ -7,17 +7,28 @@ For hvert værk i appens katalog (modelspejlets 7 cases, Andeby med) ved den pin
 
   [1] eksport   appens eksport af værket (blade + aktive tidsserier, som repo-importen registrerer dem) laves af appens
                 egen kode (vitest-generatoren ``rundtur.gen.spec.ts``).
+  [0] slug     ``fjv.revision.slug`` (importens navnekort) = scriptets egen ``slug()`` på svære navne (K11 F1).
   [2] script    ``vaerksark_til_yaml.py`` på arket, som importen kører det (``fjv.vaerksark.koer_script`` +
                 ``konverter_output``): exit 0, og arket med og uden den skjulte markering ``_app`` giver PRÆCIS samme
-                case og tidsserier (scriptet ignorerer markeringen).
+                case og tidsserier (scriptet ignorerer markeringen — beviset er resultatligheden, ikke loggen).
   [3] forudsigelse  eksportens forudsigelse (``plan.forventet``) = scriptets blade, felt for felt og typestrengt.
-  [4] tab       værkets blade mod scriptets: hver forskel står på eksportens liste "ikke med i arket", og listen
-                har intet, der ikke er en forskel. Aldrig tavst tab.
+  [4] tab       værkets blade mod scriptets (scriptets objektnavne ført tilbage som importen gør): hver forskel står
+                på eksportens liste "ikke med i arket", og listen har intet, der ikke er en forskel. Aldrig tavst tab.
+                Afvigelserne i markeringen er netop listens ikke-artefakter (K11 F4).
   [5] tidsserier  den målte serie i arket kommer tilbage værdi for værdi; den normaliserede fil er byte for byte
-                den gemte (inden for arkets periode).
+                den gemte (inden for arkets periode). Begge mængdeforskelle i tidsaksen klassificeres (K11 F6): timer,
+                scriptet tilføjer, skal være præcis eksportens ``udfyldes`` (tid og værdi); timer, det fjerner, skal
+                ligge uden for arket.
   [6] revision  genupload uden ændringer (arket = basis) giver INGEN ændringer; værket bygget efter revisionen er
                 identisk med før, og ``run_case`` giver samme objektiv (``--koer``).
-  [7] modprøver  én ændret celle i arket ændrer præcis det forventede felt (og intet andet) i revisionen.
+  [7] modprøver  én ændret celle i arket ændrer præcis det forventede felt (og intet andet) i revisionen; en
+                tidsserierettelse er revision 2 med log (K11 F2); konflikt, ark fra et andet værk og en basis, der ikke
+                er værkets eksport, afvises med intet gemt (K11 F4); kun årsproduktionen ændret gemmer intet og siger
+                hvorfor (K11 F5).
+
+Ud over katalogets værker prøves tre varianter (K11): ``andeby_navne`` (halmkedlen hedder ``halm__kedel``, som
+scriptet normaliserer), ``andeby_hul`` (solprofilen med et dagtimehul og to tomme nattetimer i vinduets ende) og
+``billund_idag_maalt_hul`` (den målte varmelast med et hul).
 
     python viden/vaerktoej/tjek_eksport_rundtur.py [--koer] [--ud <mappe>] [kode ...]
 
@@ -134,7 +145,51 @@ def forbered(kilde: "BM.Kilde", ud: Path, koder: list[str]) -> dict:
                     "varmelast": {"id": vaerks_id(vkode + "varmelast"), "sha256": res.sha256, "serie": serie_af(res.data)}}
             (m / "input.json").write_text(json.dumps(vinp, ensure_ascii=False), encoding="utf-8")
             alle[vkode] = {**alle[kode], "normaliseret": {**normaliseret, "varmelast": res.data}}
+            # K11 F6: samme målte varmelast med et hul (scriptet beholder det som et hul).
+            hkode = f"{vkode}_hul"
+            if not koder or hkode in koder:
+                hul = _uden_timer(res.data, {"2025-11-15T08:00:00Z"})
+                alle[hkode] = variant(ud, hkode, vinp, alle[vkode], "varmelast", hul)
+        if kode == "andeby":
+            # K11 F1: halmkedlen med et navn, scriptets slug() ændrer.
+            nkode = "andeby_navne"
+            if not koder or nkode in koder:
+                nblade = [{**b, "sti": b["sti"].replace("units.halmkedel.", "units.halm__kedel.")} for b in inp["blade"]]
+                ninp = {**inp, "vaerk": {**inp["vaerk"], "id": vaerks_id(nkode), "kode": nkode}, "blade": nblade}
+                _skriv(ud, nkode, ninp)
+                alle[nkode] = {**alle[kode], "blade": {b["sti"]: b["vaerdi_json"] for b in nblade}}
+            # K11 F6: et dagtimehul (Codex' 24/10/2025 kl. 10 UTC) og to tomme nattetimer i vinduets ende.
+            hkode = "andeby_hul"
+            if (not koder or hkode in koder) and "solprofil" in normaliseret:
+                hul = _uden_timer(normaliseret["solprofil"], {"2025-10-24T10:00:00Z", "2026-06-30T22:00:00Z", "2026-06-30T23:00:00Z"})
+                alle[hkode] = variant(ud, hkode, inp, alle[kode], "solprofil", hul)
     return alle
+
+
+def _skriv(ud: Path, kode: str, inp: dict) -> None:
+    m = ud / kode
+    m.mkdir(parents=True, exist_ok=True)
+    for gammel in m.iterdir():
+        if gammel.is_file():
+            gammel.unlink()
+    (m / "input.json").write_text(json.dumps(inp, ensure_ascii=False), encoding="utf-8")
+
+
+def _uden_timer(normaliseret: bytes, timer: set) -> bytes:
+    """Den gemte normaliserede fil med ``timer`` udeladt — formatet har huller som udeladte timer (tidsserie.ts).
+    (Validering af en kilde med et hul er ikke vejen hertil: oraklet udfylder selv små huller i en solprofil.)"""
+    rk = normaliseret.decode("utf-8").strip().split("\n")
+    ud = [rk[0]] + [r for r in rk[1:] if r.split(",")[0] not in timer]
+    if len(ud) != len(rk) - len(timer):
+        raise SystemExit(f"rundturens hul-variant: timerne {sorted(timer)} findes ikke alle i serien")
+    return ("\n".join(ud) + "\n").encode("utf-8")
+
+
+def variant(ud: Path, kode: str, inp: dict, v: dict, rolle: str, data: bytes) -> dict:
+    """En variant af et værk, hvis aktive serie i ``rolle`` er den gemte normaliserede fil ``data``."""
+    _skriv(ud, kode, {**inp, "vaerk": {**inp["vaerk"], "id": vaerks_id(kode), "kode": kode},
+                      rolle: {"id": vaerks_id(kode + rolle), "sha256": hashlib.sha256(data).hexdigest(), "serie": serie_af(data)}})
+    return {**v, "normaliseret": {**v["normaliseret"], rolle: data}}
 
 
 def generer(ud: Path) -> None:
@@ -176,9 +231,11 @@ class _Rapport:
         self.trinliste.append(("fejl", repr(e)))
 
 
-def koer_revision(model: Path, kode: str, v: dict, ark: Path, basis: Path, arbejde: Path, *, revision_i_db: int = 1):
+def koer_revision(model: Path, kode: str, v: dict, ark: Path, basis: Path, arbejde: Path, *, revision_i_db: int = 1,
+                  maal: str | None = None):
     """Genupload som revision gennem importens egen kode (``fjv.vaerksark.importer_revision`` + et ImportLager):
-    værket og dets aktive serier i et hukommelseslager, arket + basis som uploads, modelscriptet på begge."""
+    værket og dets aktive serier i et hukommelseslager, arket + basis som uploads, modelscriptet på begge.
+    ``maal`` = et ANDET værks id (samme blade og serier), som anmodningen fejlagtigt gælder (K11 F4)."""
     import base64
     import uuid
     from datetime import datetime, timezone
@@ -190,7 +247,7 @@ def koer_revision(model: Path, kode: str, v: dict, ark: Path, basis: Path, arbej
     files = arbejde / "files"
     db = LM.MinneDb()
     lager = LM.MinneImportLager(db)
-    vid = vaerks_id(kode)
+    vid = maal or vaerks_id(kode)
     db.vaerker[vid] = {"id": vid, "kode": kode, "navn": kode, "revision": revision_i_db, "arkiveret": False,
                        "parametre": [{"sti": s_, "vaerdi_json": j} for s_, j in v["blade"].items()]}
     for rolle, data in v["normaliseret"].items():
@@ -206,7 +263,7 @@ def koer_revision(model: Path, kode: str, v: dict, ark: Path, basis: Path, arbej
     db.anmodninger[iid] = {"vaerk_id": vid, "forventet_revision": 1, "aendringer_json": json.dumps([{
         "handling": "upload_vaerksark", "filnavn": ark.name, "sha256": "0" * 64,
         "basis_sha256": hashlib.sha256(base64.b64encode(basis.read_bytes())).hexdigest()}])}
-    imp = {"id": iid, "filnavn": ark.name, "sti": f"Files/fjv/uploads/{iid}.xlsx", "uploadet_af": "rundtur@example.dk"}
+    imp = {"id": iid, "filnavn": ark.name, "sti": f"Files/fjv/uploads/{iid}.xlsx", "uploadet_af": "rundtur@example.org"}
     db.importer[iid] = {**imp, "status": "koerer", "uploadet": datetime.now(timezone.utc)}
     k, log = konverter(model, ark, arbejde / "ark")
     if k is None:
@@ -229,6 +286,11 @@ def rediger(eksport: Path, ud: Path, ret) -> Path:
     return ud
 
 
+def _iso(ms: int) -> str:
+    from datetime import datetime, timezone
+    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def blade_af(k) -> dict:
     return {p.sti: p.vaerdi_json for p in k.params}
 
@@ -237,13 +299,20 @@ def serier_af(k) -> dict:
     return {t["rolle"]: t["res"] for t in k.tidsserier}
 
 
-MODPROEVE_VAERKER = ("andeby", "billund_idag", "billund_idag_maalt")
+MODPROEVE_VAERKER = ("andeby", "billund_idag", "billund_idag_maalt", "andeby_navne")
+
+
+def navnekort(blade: dict, script: dict) -> dict:
+    """Scriptets objektnavne -> værkets, som importen fører dem tilbage (``fjv.revision.objektkort``)."""
+    return REV.objektkort(blade, script, script)
 
 
 def modproever(model: Path, kode: str, v: dict, plan: dict, eksport: Path, tmp: Path) -> list[str]:
     """Én ændret celle i arket -> præcis det forventede felt i revisionen; konflikt -> intet gemt."""
     forventet = plan["forventet"]
-    enhed = next(s_.split(".")[1] for s_ in forventet if s_.startswith("units.") and s_.endswith(".var_om"))
+    kort = navnekort(v["blade"], forventet)
+    # Enheden med D&V, i værkets navn (arket bærer værkets navn; scriptet læser sit eget).
+    enhed = kort[("units", next(s_.split(".")[1] for s_ in forventet if s_.startswith("units.") and s_.endswith(".var_om")))]
     ud = []
 
     def proeve(navn, ret, stier: set, serie: str | None = None):
@@ -254,13 +323,17 @@ def modproever(model: Path, kode: str, v: dict, plan: dict, eksport: Path, tmp: 
             return
         log = db.vaerker[vid].get("log", [])
         aendret = {x["sti"] for x in log}
-        if aendret != stier:
-            meld(f"{kode} [7] {navn}: forventede {sorted(stier)}, revisionen ændrede {sorted(aendret)}")
-        if stier and res["revision"] != 2:
+        # K11 F2: en tidsserierettelse er en revision med sin egen logrække.
+        forventet_log = stier | ({f"tidsserie.{serie}"} if serie else set())
+        if aendret != forventet_log:
+            meld(f"{kode} [7] {navn}: forventede {sorted(forventet_log)}, revisionen ændrede {sorted(aendret)}")
+        if forventet_log and res["revision"] != 2:
             meld(f"{kode} [7] {navn}: revisionen blev {res['revision']}, ikke 2")
+        if any(x["aendret_af"] != "rundtur@example.org" for x in log):
+            meld(f"{kode} [7] {navn}: revisionsloggen er ikke i uploaderens navn")
         if set(res["tidsserier"]) != ({serie} if serie else set()):
             meld(f"{kode} [7] {navn}: tidsserier {res['tidsserier']}, forventet {serie}")
-        ud.append(f"{navn}: {', '.join(sorted(stier)) or serie}")
+        ud.append(f"{navn}: {', '.join(sorted(forventet_log))}")
 
     def var_om(wb):
         ws = wb["Anlaeg"]
@@ -290,14 +363,34 @@ def modproever(model: Path, kode: str, v: dict, plan: dict, eksport: Path, tmp: 
             ws.cell(r, 2).value = float(ws.cell(r, 2).value) + 1.25
         proeve("timedata", time_, set(), "varmelast")
 
-    # Samtidighed: værket er ændret, siden arket blev eksporteret -> afvist, intet gemt.
-    db, vid, res = koer_revision(model, kode, v, tmp / "dv.xlsx", eksport, tmp / "konflikt", revision_i_db=2)
-    if "fejl" not in res or "er ændret, siden arket blev eksporteret" not in res["fejl"]:
-        meld(f"{kode} [7] konflikt: forventede afvisning, fik {res}")
-    elif db.vaerker[vid].get("log") or db.vaerker[vid]["revision"] != 2:
-        meld(f"{kode} [7] konflikt: værket blev ændret trods afvisningen")
-    else:
-        ud.append("konflikt: afvist, intet gemt")
+    # Afvisninger: intet må gemmes. Samtidighed (værket er ændret siden eksporten), ark fra et andet værk end det,
+    # anmodningen gælder (K11 F4), og det rettede ark sendt som sin egen basis (K11 F4, Codex' forfalskede basis).
+    for navn, ark, basis, kw, tekst in (
+            ("konflikt", tmp / "dv.xlsx", eksport, {"revision_i_db": 2}, "er ændret, siden arket blev eksporteret"),
+            ("andet værk", tmp / "dv.xlsx", eksport, {"maal": vaerks_id(kode + "_andet")}, "eksporteret fra et andet værk"),
+            ("forfalsket basis", tmp / "dv.xlsx", tmp / "dv.xlsx", {}, "basis er ikke værkets eksport")):
+        db, vid, res = koer_revision(model, kode, v, ark, basis, tmp / f"afvist_{navn.replace(' ', '_')}", **kw)
+        if "fejl" not in res or tekst not in res["fejl"]:
+            meld(f"{kode} [7] {navn}: forventede afvisning ({tekst}), fik {res}")
+        elif db.vaerker[vid].get("log") or db.vaerker[vid]["revision"] != kw.get("revision_i_db", 1):
+            meld(f"{kode} [7] {navn}: værket blev ændret trods afvisningen")
+        else:
+            ud.append(f"{navn}: afvist, intet gemt")
+
+    # K11 F5: kun årsproduktionen (Timedata!B3) ændret, på et værk uden målt varmelast -> intet gemt, og loggen siger hvorfor.
+    if not any(x["rolle"] == "varmelast" and x["med"] for x in plan["serier"]):
+        def b3(wb):
+            ws = wb["Timedata"]
+            ws["B3"].value = float(ws["B3"].value) * 1.2
+        ark = rediger(eksport, tmp / "b3.xlsx", b3)
+        db, vid, res = koer_revision(model, kode, v, ark, eksport, tmp / "mod_b3")
+        if "fejl" in res:
+            meld(f"{kode} [7] årsproduktion: {res['fejl']}")
+        elif res["revision"] is not None or db.vaerker[vid].get("log") or not res["ikke_gemt"] \
+                or not res["log"].startswith("Ingen ændringer, der kan gemmes"):
+            meld(f"{kode} [7] årsproduktion: forventede intet gemt med forklaring, fik {res}")
+        else:
+            ud.append("årsproduktion: intet gemt, siges i loggen")
     return ud
 
 
@@ -330,6 +423,22 @@ def koer_case(model: Path, kode: str, foer: dict, efter: dict, arbejde: Path, o)
     return objektiv
 
 
+SVAERE_NAVNE = ("halm__kedel", "_halm_", "Ærø Fjernvarme A/S", "Tårs Halmværk", "Brønderslev Østerby", "__Café__",
+                "vp_luft_vand", "a\u2014b", "Kedel 2 (ny)")
+
+
+def slug_paritet(model: Path) -> None:
+    """[0] importens slug() (fjv.revision) = scriptets egen, kaldt i modelrepoets Python-modul."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("_vaerksark_til_yaml", model / "scripts" / "vaerksark_til_yaml.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    for n in SVAERE_NAVNE:
+        if REV.slug(n) != m.slug(n):
+            meld(f"[0] slug({n!r}): importen {REV.slug(n)!r}, scriptet {m.slug(n)!r}")
+    print(f"[0] slug: {len(SVAERE_NAVNE)} navne som scriptet", flush=True)
+
+
 def main(argv: list[str]) -> int:
     a = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     a.add_argument("--ud", type=Path, default=ROD / "_lokal" / "rundtur")
@@ -359,6 +468,7 @@ def main(argv: list[str]) -> int:
     ud = o.ud.resolve()
     ud.mkdir(parents=True, exist_ok=True)
     print(f"rundtur: modelrepo {kilde.beskriv()} · ud {ud}", flush=True)
+    slug_paritet(model)
     vaerker = forbered(kilde, ud, o.koder)
     generer(ud)
     tmp = Path(tempfile.gettempdir()) / "fjv_rundtur"
@@ -378,8 +488,7 @@ def main(argv: list[str]) -> int:
         k2, log2 = konverter(model, ud / kode / "uden_app.xlsx", tmp / kode / "uden")
         if k2 is None or blade_af(k2) != blade_af(k) or {r_: s.sha256 for r_, s in serier_af(k2).items()} != {r_: s.sha256 for r_, s in serier_af(k).items()}:
             meld(f"{kode} [2]: markeringen _app ændrer scriptets resultat")
-        if "_app" in log:
-            meld(f"{kode} [2]: scriptets log nævner _app")
+        # (K11: loggen søges ikke for "_app" — det ramte stinavne. Beviset er resultatligheden ovenfor.)
         script = blade_af(k)
         # [3] forudsigelsen
         forventet = plan["forventet"]
@@ -388,10 +497,19 @@ def main(argv: list[str]) -> int:
                 meld(f"{kode} [3]: forudsigelsen siger {sti} = {forventet.get(sti)}, scriptet {script.get(sti)}")
         # [4] tab: hver forskel værk <-> script står på listen, og listen har kun forskelle
         blade = v["blade"]
-        forskel = {sti for sti in set(blade) | set(script) if blade.get(sti) != script.get(sti)}
+        try:
+            script_v = REV.oversaet(script, navnekort(blade, script))
+        except REV.RevisionsFejl as e:
+            meld(f"{kode} [4]: scriptets navne kan ikke føres tilbage til værket: {e}")
+            continue
+        forskel = {sti for sti in set(blade) | set(script_v) if blade.get(sti) != script_v.get(sti)}
         listet = {t["sti"] for t in plan["ikkeMed"]}
+        if plan.get("afvigelser") != sorted(x for x in listet if not REV.er_artefakt(x)):
+            meld(f"{kode} [4]: markeringens afvigelser er ikke listens ikke-artefakter")
+        if plan["markering"].get("afvigelser") != plan.get("afvigelser"):
+            meld(f"{kode} [4]: markeringen bærer andre afvigelser end planen")
         for sti in sorted(forskel - listet):
-            meld(f"{kode} [4]: TAVST TAB {sti}: værk {blade.get(sti)} -> script {script.get(sti)}")
+            meld(f"{kode} [4]: TAVST TAB {sti}: værk {blade.get(sti)} -> script {script_v.get(sti)}")
         for sti in sorted(listet - forskel):
             meld(f"{kode} [4]: listen siger {sti} er tabt, men scriptet giver værkets værdi")
         # [5] tidsserier
@@ -403,11 +521,37 @@ def main(argv: list[str]) -> int:
                 continue
             gemt = {ln.split(",")[0]: ln for ln in data.decode().strip().split("\n")[1:]}
             ny = {ln.split(",")[0]: ln for ln in s.data.decode().strip().split("\n")[1:]}
-            afvig = [t for t in ny if gemt.get(t) != ny[t]]
+            afvig = [t for t in ny if t in gemt and gemt[t] != ny[t]]
+            # Modelscriptet skriver solprofilen med %.6f: en gemt værdi med flere decimaler kommer tilbage afrundet.
+            # Det er ikke et tavst tab, når eksporten oplyser præcis de timer (planens ``afrundes``).
+            afrundet = [t for t in afvig if float(ny[t].split(",")[1]) == float(f"{float(gemt[t].split(',')[1]):.6f}")]
+            oplyst = next((a["n"] for a in plan.get("afrundes", []) if a["rolle"] == rolle), 0)
+            if len(afrundet) != oplyst:
+                meld(f"{kode} [5]: {rolle}: scriptet afrunder {len(afrundet)} timer til 6 decimaler, eksporten oplyser {oplyst}")
+            afvig = [t for t in afvig if t not in afrundet]
             if afvig:
                 meld(f"{kode} [5]: {rolle}: {len(afvig)} timer ikke byte for byte (fx {ny[afvig[0]]} mod {gemt.get(afvig[0])})")
+            if afrundet:
+                r[f"{rolle}_afrundet"] = len(afrundet)
+            # K11 F6: timer, scriptet TILFØJER, skal være præcis eksportens udfyldes (tid og værdien med 6 decimaler) ...
+            udfyldt = {_iso(u["ms"]): u["v"] for u in plan.get("udfyldes", []) if u["rolle"] == rolle}
+            tilfoejet = sorted(set(ny) - set(gemt))
+            for t in tilfoejet:
+                if t not in udfyldt:
+                    meld(f"{kode} [5]: {rolle}: scriptet tilføjer {ny[t]}, som eksporten ikke oplyser")
+                elif float(ny[t].split(",")[1]) != float(f"{udfyldt[t]:.6f}"):
+                    meld(f"{kode} [5]: {rolle}: scriptet udfylder {ny[t]}, eksporten siger {udfyldt[t]:.6f}")
+            for t in sorted(set(udfyldt) - set(ny)):
+                meld(f"{kode} [5]: {rolle}: eksporten siger, at scriptet udfylder {t}, men det gør det ikke")
+            # ... og timer, det FJERNER, skal ligge uden for arket (før første eller efter sidste time i det).
+            fjernet = sorted(set(gemt) - set(ny))
+            inde = [t for t in fjernet if ny and min(ny) <= t <= max(ny)]
+            if inde:
+                meld(f"{kode} [5]: {rolle}: {len(inde)} gemte timer inde i arkets periode mangler (fx {inde[0]})")
             r[f"{rolle}_timer"] = len(ny)
-            r[f"{rolle}_uden_for_arket"] = len(set(gemt) - set(ny))
+            r[f"{rolle}_uden_for_arket"] = len(fjernet)
+            if tilfoejet:
+                r[f"{rolle}_udfyldt"] = {t: ny[t].split(",")[1] for t in tilfoejet}
         # [6] revision uden ændringer: arket = basis -> intet gemt, værket uændret
         eksport = ud / kode / "eksport.xlsx"
         db, vid, res = koer_revision(model, kode, v, eksport, eksport, tmp / kode / "rev0")

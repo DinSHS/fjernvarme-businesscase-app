@@ -74,9 +74,9 @@ describe("skrivehjælperne", () => {
     it("runde 12: en genupload som revision bærer værket, arkets revision og basis-arket bundet med sin sha256", async () => {
         const base64 = Buffer.from("PK\u0003\u0004 det redigerede ark").toString("base64");
         const basis = Buffer.from("PK\u0003\u0004 appens nye eksport").toString("base64");
-        await uploadVaerksark({ navn: "andeby_rev3.xlsx", base64 }, "a@b.dk", { revision: { vaerkId: "v-1", revision: 3, basisBase64: basis } });
+        await uploadVaerksark({ navn: "andeby_rev3.xlsx", base64 }, "test@example.org", { revision: { vaerkId: "v-1", revision: 3, basisBase64: basis } });
         const række = create.mock.calls[0][0] as Record<string, unknown>;
-        expect(række).toMatchObject({ vaerk_id: "v-1", forventet_revision: 3, anmodet_af: "a@b.dk", status: "ny" });
+        expect(række).toMatchObject({ vaerk_id: "v-1", forventet_revision: 3, anmodet_af: "test@example.org", status: "ny" });
         expect(læsAnmodning(række.aendringer_json as string)).toEqual({
             type: "upload_vaerksark", upload: { handling: "upload_vaerksark", filnavn: "andeby_rev3.xlsx", sha256: backendSha(base64), timeslut: null, basis_sha256: backendSha(basis) },
         });

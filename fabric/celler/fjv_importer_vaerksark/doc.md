@@ -16,5 +16,12 @@ appen: scriptet køres også på basis (`<id>_basis.xlsx`, appens nye eksport af
 mellem de to læsninger gemmes på værket (`fjv.revision`) — parametre + revisionslog som `udfoerAendring`,
 `forventet_revision` tjekket i samme transaktion, ændrede timer som en ny aktiv tidsserie. Ingen forskel = intet gemt.
 
+**Bindingen til værket (runde 12b, Codex K11).** Klientens hash beviser ikke, hvor arket kommer fra. Importen kræver
+derfor, at arket og basis bærer samme markering (`_app`, format 2) for anmodningens værk og revision, at markeringens
+*grundlag* (sha256 af værkets parametre og aktive seriers sha256) er værkets nuværende — beregnet fra de låste rækker i
+transaktionen — og at scriptets læsning af basis er værket bortset fra markeringens erklærede *afvigelser*. Scriptets
+objektnavne (`slug()`) føres tilbage til værkets; to kandidater afvises. En tidsserieændring øger også revisionen
+(Aendringslog `tidsserie.<rolle>`).
+
 Uden `import_id` tages alle ventende importer (FIFO). Bruger ikke solver-låsen.
 Rapport: `Files/_run/fjv_importer_vaerksark.json`.

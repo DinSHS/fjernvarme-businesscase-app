@@ -27,7 +27,7 @@ beforeEach(() => { t.revision = 1; t.ret = {}; t.upload.mockReset(); t.upload.mo
 afterEach(cleanup);
 
 async function vælgArk(bytes: Uint8Array, vaerker = [ANDEBY]) {
-    const r = render(<VaerksarkKort vaerker={vaerker} bruger="a@b.dk" />);
+    const r = render(<VaerksarkKort vaerker={vaerker} bruger="test@example.org" />);
     const fil = new File([bytes as BlobPart], "andeby_rev1.xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     await act(async () => { fireEvent.change(screen.getByLabelText("Vælg værksark"), { target: { files: [fil] } }); });
     return r;
@@ -66,7 +66,7 @@ describe("upload-kortet genkender et eksporteret ark", () => {
         expect(tabel.textContent).toMatch(/Enhed halmkedel.*30.*32,5/);
         expect(screen.queryByLabelText(/timens slut/)).toBeNull();          // en revision læses med timens start (som eksporten)
         await act(async () => { fireEvent.click(knap); });
-        expect(t.upload).toHaveBeenCalledWith("andeby_rev1.xlsx", expect.any(String), false, "a@b.dk",
+        expect(t.upload).toHaveBeenCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org",
             { vaerkId: ANDEBY_ID, revision: 1, basisBase64: expect.any(String) });
         await screen.findByText("Værksarket importeres nu.");
     }, 30_000);
@@ -91,6 +91,6 @@ describe("upload-kortet genkender et eksporteret ark", () => {
         await waitFor(() => expect((knap as HTMLButtonElement).disabled).toBe(false));
         expect(screen.getByLabelText(/timens slut/)).toBeTruthy();
         await act(async () => { fireEvent.click(knap); });
-        expect(t.upload).toHaveBeenCalledWith("andeby_rev1.xlsx", expect.any(String), false, "a@b.dk");
+        expect(t.upload).toHaveBeenCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org");
     }, 30_000);
 });

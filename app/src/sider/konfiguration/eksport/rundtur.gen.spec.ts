@@ -27,7 +27,7 @@ describe.skipIf(!MAPPE)("eksport til rundturs-beviset", () => {
                 writeFileSync(join(ud, "uden_app.xlsx"), udenMarkering(e.bytes));
                 writeFileSync(join(ud, "plan.json"), JSON.stringify({
                     filnavn: e.filnavn, markering: e.markering, forventet: Object.fromEntries(e.plan.forventet),
-                    ikkeMed: e.plan.ikkeMed, serier: e.plan.serier, noter: e.plan.noter,
+                    ikkeMed: e.plan.ikkeMed, afvigelser: e.plan.afvigelser, serier: e.plan.serier, udfyldes: e.plan.udfyldes, afrundes: e.plan.afrundes, noter: e.plan.noter,
                 }, null, 1));
             } catch (x) {
                 writeFileSync(join(ud, "plan.json"), JSON.stringify({ fejl: x instanceof Error ? x.message : String(x) }));

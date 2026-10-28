@@ -14,6 +14,7 @@
   "app/rayfin/functions/test/logik.spec.ts": "ccd354607085f5c46df86e5acefa8fa5bcd00653df06f36175854cd4cd505a32",
   "app/rayfin/functions/test/motor.spec.ts": "e7bfdd1bec93c5436bffd76d1847eaf1ef504c2e9700843f8548ffd43800d9b1",
   "app/rayfin/functions/test/opret_vaerk.spec.ts": "bca3d74a7c29d354b956fc00da0283e4030e586fc1932fd9bf30cf91c2160826",
+  "app/rayfin/functions/test/r12_revision.spec.ts": "36cc1a511de8f860b704bcde22a2eb14daffb3cf952da708c98fdd35fe0973b1",
   "app/rayfin/functions/test/registrering.spec.ts": "e0b16e0b11a1aff819d4f4c8ec1efd0bebd1bc3826ba0a2ab4eb24e0435f6b8b",
   "app/rayfin/functions/test/tidsserie.spec.ts": "49048b3d1da5c28742f15232852a301454a0e60486d5521f76432f165bbfa9d4",
   "app/rayfin/functions/test/tidsserie_backend.spec.ts": "6c501d927381a2973a610d97dbb917a3581bf09ba8a26ff9438d0e2dc46a2251"

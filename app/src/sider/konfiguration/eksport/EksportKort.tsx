@@ -74,6 +74,26 @@ export function EksportKort({ vaerk }: { vaerk: Vaerkhoved }) {
                         ))}
                         {!serier.some((s) => s.rolle === "varmelast") && <li><Maerke>syntese</Maerke><span>Ingen aktiv målt varmelast: Timedata er tom, og årsproduktionen (B3) er sat, så modelscriptet skalerer samme varmelastparametre som værket har, hvis de er Andebys × en faktor.</span></li>}
                         {p.noter.map((x) => <li key={x}><Maerke tone="advarsel">bemærk</Maerke><span>{x}</span></li>)}
+                        {p.udfyldes.length > 0 && (
+                            <li>
+                                <Maerke tone="advarsel">udfyldes</Maerke>
+                                <details>
+                                    <summary>{dkFri(p.udfyldes.length, 0)} {p.udfyldes.length === 1 ? "time" : "timer"} i solprofilen, som modelscriptet selv udfylder ved upload som nyt værk</summary>
+                                    <table aria-label="Timer, modelscriptet udfylder">
+                                        <thead><tr><th>Time (UTC, start)</th><th>MW, som scriptet skriver</th><th>Hvordan</th></tr></thead>
+                                        <tbody>
+                                            {p.udfyldes.map((u) => (
+                                                <tr key={u.ms}>
+                                                    <td>{new Date(u.ms).toISOString().slice(0, 16).replace("T", " ")}</td>
+                                                    <td data-tal="true">{u.v.toFixed(6).replace(".", ",")}</td>
+                                                    <td>{u.hvordan === "nat" ? "nattetime i enden: 0" : "lineært mellem nabotimerne"}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </details>
+                            </li>
+                        )}
                     </ul>
                 )}
             </Kort>

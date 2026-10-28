@@ -27,6 +27,15 @@ sammenlignes med tal efter.
   genkendes (skjult ark `_app`): diff før bekræftelse, og arket gemmes som **ny revision af samme værk** — kun
   forskellen mellem modelscriptets læsning af appens nye eksport og af arket. Konflikt ved en nyere revision; intet
   gemmes uden ændringer. Gaten har trinnet *eksport rundtur* (`viden/vaerktoej/tjek_eksport_rundtur.py`).
+- Rettet efter Codex' review K11 (runde 12b), før udgivelse:
+  - Importen binder selv arket til værket i sin transaktion: markeringen (format 2) bærer værkets *grundlag* og de
+    erklærede afvigelser, og basis skal være værkets eksport. Et ark fra et andet værk eller en forfalsket basis afvises.
+  - Objektnavne, modelscriptet normaliserer (`halm__kedel` -> `halm_kedel`), føres tilbage til værkets objekt;
+    sammenfald nægtes ved eksport og afvises ved import. Nye enheds- og tanknavne skal være slug-faste.
+  - En tidsserierettelse via genupload er en revision (Aendringslog `tidsserie.<rolle>`, `forventet_revision`).
+  - Upload-kortet binder fil, bytes og analyse med et valg-id; et sent analysesvar ignoreres.
+  - Felter, genupload ikke gemmer (årsproduktionen i Timedata!B3, værkets navn …), markeres før bekræftelse.
+  - Eksporten oplyser timer, modelscriptet selv udfylder i solprofilen, og nægter kontroltegn og `_xHHHH_`-tekst.
 
 ### Ændret
 - Scenarielisten (`#/scenarier`) har ikke længere farvevalg eller heatmap: ΔRef står som almindeligt tal med fortegn.

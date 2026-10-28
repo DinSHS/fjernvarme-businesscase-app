@@ -23,13 +23,32 @@ time; kun ændrede timer lægges på værkets gemte serie, så timer uden for ar
 
 Skrivningen følger KONTRAKT §3.3b som ``udfoerAendring``: gyldige stier, JSON inden for 4000 tegn, endelige tal,
 intet blad over/under et andet, ``forventet_revision`` = værkets revision i samme transaktion.
+
+**Bindingen til værket (Codex K11 F4).** Klientens basis og hash beviser kun, at filerne er dem, anmodningen nævner —
+ikke at de stammer fra målværkets revision. Derfor bærer markeringen (``_app``, format 2) et **grundlag**: sha256 af
+værkets blade og aktive seriers sha256, som eksporten så dem. Importen beregner grundlaget fra databasen i samme
+transaktion, der skriver, og kræver (1) samme værk, revision og grundlag i arket og basis, (2) grundlag = værkets
+nuværende, og (3) at modelscriptets læsning af basis er værket — bortset fra eksportens erklærede afvigelser (de felter,
+skabelonen ikke kan bære). Et ark fra værk A kan dermed ikke gemmes på værk B, og en basis, der ikke er værkets
+eksport, afvises i stedet for at blive grundlaget for en "ændring".
+
+**Objektnavne (K11 F1).** Scriptets ``slug()`` normaliserer enheds- og lagernavne (``halm__kedel`` -> ``halm_kedel``).
+Scriptets navne føres tilbage til værkets egne objekter; to objekter med samme slug, eller et nyt objekt i arket, hvis
+slug er et eksisterende objekts, er tvetydigt og afvises.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import re
+import unicodedata
+import zipfile
+from pathlib import Path
+
+FORMAT = "fjv-vaerksark-eksport/2"
+SERIEROLLER = ("solprofil", "varmelast")
 
 MAKS_STI = 400
 MAKS_JSON = 4000
@@ -183,6 +202,155 @@ def anvend(nuvaerende: dict, plan: dict) -> dict:
     for r in plan["opret"]:
         ud[r["sti"]] = r["ny_json"]
     return ud
+
+
+# ------------------------------------------------------------------ binding og navne (K11 F1, F4)
+
+def slug(navn: str) -> str:
+    """``slug()`` i scripts/vaerksark_til_yaml.py:101-108 tegn for tegn (NFKD FØR æøå erstattes, så ``å`` -> ``a``
+    og et stort Æ/Ø falder bort). Rundturs-beviset holder den op mod scriptets egen funktion."""
+    s = unicodedata.normalize("NFKD", str(navn))
+    s = s.replace("æ", "ae").replace("ø", "oe").replace("å", "aa")
+    s = s.encode("ascii", "ignore").decode("ascii").lower()
+    return re.sub(r"[^a-z0-9]+", "_", s).strip("_")
+
+
+def grundlag(blade: dict, serier: dict) -> str:
+    """sha256 af værkets tilstand, som eksporten så den: bladene (sti, vaerdi_json) sorteret + de aktive seriers sha256.
+    Samme definition som ``grundlag()`` i app/src/sider/konfiguration/eksport/eksporter.ts."""
+    obj = {"b": sorted([s, v] for s, v in blade.items()), "s": [[r, serier.get(r)] for r in SERIEROLLER]}
+    return hashlib.sha256(json.dumps(obj, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+_NS_R = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+
+
+def _xml_tekst(s: str) -> str:
+    """OOXML's ``_xHHHH_``-kodning tilbage til tegn (``_x005F_`` er et bogstaveligt ``_``)."""
+    return re.sub(r"_x([0-9A-Fa-f]{4})_", lambda m: chr(int(m.group(1), 16)), s)
+
+
+def laes_markering(sti: Path) -> dict | None:
+    """Den skjulte markering ``_app`` i et uploadet ark (kun standardbiblioteket: zip + XML), eller None."""
+    import xml.etree.ElementTree as ET
+    try:
+        with zipfile.ZipFile(sti) as z:
+            wb = ET.fromstring(z.read("xl/workbook.xml"))
+            ark = next((s for s in wb.iter(f"{_NS}sheet") if s.get("name") == "_app"), None)
+            if ark is None:
+                return None
+            rels = ET.fromstring(z.read("xl/_rels/workbook.xml.rels"))
+            mål = next(r.get("Target") for r in rels if r.get("Id") == ark.get(f"{_NS_R}id"))
+            delte: list[str] = []
+            if "xl/sharedStrings.xml" in z.namelist():
+                delte = ["".join(t.text or "" for t in si.iter(f"{_NS}t"))
+                         for si in ET.fromstring(z.read("xl/sharedStrings.xml")).iter(f"{_NS}si")]
+            data = ET.fromstring(z.read("xl/" + mål.lstrip("/").removeprefix("xl/")))
+    except (KeyError, StopIteration, zipfile.BadZipFile, ET.ParseError, OSError):
+        return None
+    celler: dict[str, str] = {}
+    for c in data.iter(f"{_NS}c"):
+        t, v = c.get("t"), c.find(f"{_NS}v")
+        if t == "inlineStr":
+            tekst = "".join(x.text or "" for x in c.iter(f"{_NS}t"))
+        elif t == "s" and v is not None:
+            tekst = delte[int(v.text)]
+        else:
+            tekst = v.text if v is not None else ""
+        celler[c.get("r")] = _xml_tekst(tekst or "")
+    kv = {celler.get(f"A{r}", ""): celler.get(f"B{r}", "") for r in range(1, 41)}
+    try:
+        m = {"format": kv.get("format", ""), "vaerk_id": kv.get("vaerk_id", "").lower(),
+             "revision": int(float(kv.get("revision", "nan"))), "sha256": kv.get("sha256", "").lower(),
+             "grundlag": kv.get("grundlag", "").lower(), "afvigelser": json.loads(kv.get("afvigelser") or "[]")}
+    except (ValueError, TypeError):
+        return None
+    return m if isinstance(m["afvigelser"], list) else None
+
+
+def tjek_markeringer(ark: dict | None, basis: dict | None, vaerk_id: str, revision: int) -> dict:
+    """Arket og basis skal bære samme markering (format 2), for netop dette værk og denne revision."""
+    if not ark or not basis:
+        raise RevisionsFejl("arket eller basis mangler appens markering (det skjulte ark _app) - eksportér værket igen")
+    for m in (ark, basis):
+        if m["format"] != FORMAT or len(m["grundlag"]) != 64:
+            raise RevisionsFejl("arket er eksporteret af en anden udgave af appen - eksportér værket igen")
+    felter = ("vaerk_id", "revision", "sha256", "grundlag", "afvigelser")
+    if any(ark[f] != basis[f] for f in felter):
+        raise RevisionsFejl("arket og basis stammer ikke fra samme eksport - upload arket igen")
+    if ark["vaerk_id"] != vaerk_id.lower():
+        raise RevisionsFejl("arket er eksporteret fra et andet værk end det, uploaden gælder - intet er gemt")
+    if ark["revision"] != int(revision):
+        raise RevisionsFejl(f"arket er fra revision {ark['revision']}, men uploaden gælder revision {revision} - "
+                            "intet er gemt")
+    return ark
+
+
+def objektkort(nuvaerende: dict, basis: dict, arket: dict) -> dict:
+    """{(sektion, scriptnavn): værkets objektnavn} for enheder og lagre. Tvetydighed afvises (K11 F1).
+
+    Et objekt i basis skal svare til præcis ét af værkets objekter med samme slug. Et NYT objekt i arket (ikke i
+    basis) må ikke have et eksisterende objekts slug — det ville overskrive et objekt, arket ikke bar (fx slået fra)."""
+    kort: dict = {}
+    for sek in ("units", "storage"):
+        egne = _objekter(nuvaerende, sek)
+        i_basis = _objekter(basis, sek)
+        for s in sorted(i_basis | _objekter(arket, sek)):
+            kandidater = sorted(o for o in egne if slug(o) == s)
+            if s in i_basis:
+                if len(kandidater) != 1:
+                    raise RevisionsFejl(
+                        f"{sek}.{s} i arket kan ikke føres entydigt tilbage til værket (kandidater: "
+                        f"{', '.join(kandidater) or 'ingen'}); modelscriptet giver flere objekter samme navn - "
+                        "omdøb dem i appen, og eksportér igen")
+                kort[(sek, s)] = kandidater[0]
+            elif kandidater:
+                raise RevisionsFejl(
+                    f"den nye {'enhed' if sek == 'units' else 'tank'} {s!r} i arket har samme navn som værkets "
+                    f"{', '.join(kandidater)}, som ikke står i arket - giv den et andet navn")
+            else:
+                kort[(sek, s)] = s
+    return kort
+
+
+def oversaet(blade: dict, kort: dict) -> dict:
+    """Bladene med scriptets objektnavne skiftet til værkets (``objektkort``)."""
+    ud = {}
+    for sti, v in blade.items():
+        d = sti.split(".")
+        if d[0] in ("units", "storage") and len(d) > 2 and (d[0], d[1]) in kort:
+            d[1] = kort[(d[0], d[1])]
+        ud[".".join(d)] = v
+    return ud
+
+
+def tjek_basis(nuvaerende: dict, basis: dict, afvigelser: list) -> list[str]:
+    """Stier, hvor modelscriptets læsning af basis ikke er værket, og som eksporten ikke har erklæret (K11 F4).
+    Tom liste = basis er værkets eksport."""
+    tilladt = set(afvigelser)
+    return [s for s in sorted(set(nuvaerende) | set(basis))
+            if not er_artefakt(s) and s not in tilladt and not samme_vaerdi(nuvaerende.get(s), basis.get(s))]
+
+
+#: Ændringer i arket, som scriptet omsætter til konverteringens egne felter — og som derfor ikke gemmes (K11 F5).
+IKKE_GEMT = {
+    "heat_load_params": "varmelastens syntese-parametre (heat_load_params), som modelscriptet regner ud fra "
+                        "årsproduktionen i Timedata!B3 eller timedata, gemmes ikke ved genupload",
+    "meta": "værkets navn (Priser, 'værkets navn') ændrer ikke værkets navn eller kode ved genupload",
+}
+
+
+def ikke_gemt(basis: dict, arket: dict, serier: tuple | list | set = ()) -> list[str]:
+    """Det, scriptet læser forskelligt i arket, men som aldrig gemmes — siges højt i importens log (K11 F5).
+
+    Ændres varmelastens timer, regner scriptet også syntese-parametrene om; det er en følge af serieændringen, som
+    gemmes, og siges derfor ikke som en ignoreret ændring."""
+    sektioner = {s.split(".")[0] for s in set(basis) | set(arket)
+                 if (s.startswith("heat_load_params.") or s == "meta.titel") and not samme_vaerdi(basis.get(s), arket.get(s))}
+    if "varmelast" in serier:
+        sektioner.discard("heat_load_params")
+    return [IKKE_GEMT[s] for s in sorted(sektioner)]
 
 
 # ------------------------------------------------------------------ tidsserier
