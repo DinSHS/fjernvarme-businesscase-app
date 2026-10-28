@@ -1,20 +1,42 @@
 {
  "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
  "kilder": {
-  "app/rayfin/functions/src/arkiv.ts": "cf41d66c76997da67405806eac16fa654d82345d127d7f507ef052a3da249926",
+  "app/rayfin/functions/src/arkiv.ts": "7bc6f6492fa379d2a649a03b1e5a35a5460dc15c35ccc72aaa4c641be9530f9c",
   "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
-  "app/rayfin/functions/test/arkiv-hukommelse.ts": "22e04302a065bd632229ae4ec6eb39684ef49ce53120ef60d261761ee20a2f77"
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
  },
  "tilfaelde": [
   {
    "navn": "#0",
+   "input": {
+    "raekker": [
+     [
+      867031.2345792934
+     ]
+    ]
+   },
+   "ud": "a5652a7d2219d09ecc0277d628d0e00f1e4a750bcf51a62853be280a95152d72"
+  },
+  {
+   "navn": "#1",
+   "input": {
+    "raekker": [
+     [
+      867031.2345792935
+     ]
+    ]
+   },
+   "ud": "3535fd1625c719528a33ef09da222a15cabe2240c8ce1cb23b8fe5697d3ab1ea"
+  },
+  {
+   "navn": "#2",
    "input": {
     "raekker": []
    },
    "ud": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
   {
-   "navn": "#1",
+   "navn": "#3",
    "input": {
     "raekker": [
      [
@@ -24,10 +46,10 @@
      ]
     ]
    },
-   "ud": "0ae764bffd3a17b6454c8d9ebf712311d9b92efce67a4e4ea4f095fc05ed0122"
+   "ud": "0c046c1d73a65ea73516acb34ca1320f8167db16cd356f243992454a04fbcae3"
   },
   {
-   "navn": "#2",
+   "navn": "#4",
    "input": {
     "raekker": [
      [
@@ -42,10 +64,10 @@
      ]
     ]
    },
-   "ud": "eb2214da808268e4bbb14ada31243404e7aeedf728f8b2cb40a8359c28937601"
+   "ud": "a57e1d865e39aff24fd72a1462fc2232744eddf3d3a3b7a04a6790d6f6dc57e9"
   },
   {
-   "navn": "#3",
+   "navn": "#5",
    "input": {
     "raekker": [
      [
@@ -60,10 +82,10 @@
      ]
     ]
    },
-   "ud": "81969d669e8adb32648237aa98863cb5cb2edfa95ec1ff8f89bd865759348346"
+   "ud": "750f9f2077ccb0aafa647dfa9220959bb87c3ea2faa6146af0c2079ffd027c81"
   },
   {
-   "navn": "#4",
+   "navn": "#6",
    "input": {
     "raekker": [
      [
@@ -83,10 +105,10 @@
      ]
     ]
    },
-   "ud": "44bf5b482dbbdf0bae1ca5534bb5683aa19165007fffcef88de087818981a3d7"
+   "ud": "abdbdf4e534d687556d90c0820e1605305037c9b6d9576664437c327a4852b4b"
   },
   {
-   "navn": "#5",
+   "navn": "#7",
    "input": {
     "raekker": [
      [
@@ -99,7 +121,7 @@
      ]
     ]
    },
-   "ud": "68757325290bfc4363e63f9b8d36c71b2399901b5e04bddaae987a9908dbf475"
+   "ud": "b4133cb43bf51e682b4a9778552628c36ce4ebd2a161d4489a3b3227fe85635f"
   }
  ]
 }

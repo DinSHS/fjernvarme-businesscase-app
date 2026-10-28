@@ -262,7 +262,7 @@ class SqlTransaktion:
             v["log"] = log
         self.cn.execute(i.update().where(and_(i.c.id == id.lower(), i.c.fabric_job_id.like("reserveret:%"))).values(**v))
 
-    # -------------------------------------------------- arkivet (runde 13; logik/arkiv.py importer_del)
+    # -------------------------------------------------- arkivet (runde 13/13b; logik/arkiv.py importer_del)
     def arkiv_hent(self, tabel: str, ider) -> list[dict]:
         t = self.t(tabel)
         ud: list[dict] = []
@@ -271,16 +271,31 @@ class SqlTransaktion:
             ud += self._alle(select(t).where(t.c.id.in_(ider[a:a + 500])))
         return ud
 
-    def arkiv_indsaet(self, tabel: str, raekker: list[dict]) -> None:
+    def arkiv_indsaet(self, tabel: str, raekker: list[dict], kolonner: list[dict]) -> None:
+        # K10-F5: en decimal bindes som Decimal af JS' korteste tekst (præcis den værdi, appen læste) — en float ville
+        # driveren selv konvertere. sqlite gemmer NUMERIC som double; dér er float det samme.
+        if self.db.dialekt != "sqlite":
+            from decimal import Decimal
+            from .logik import jsjson as J
+            dec = [k["navn"] for k in kolonner if k["type"] == "decimal"]
+            raekker = [{**r, **{d: (Decimal(J.js_str(r[d])) if r[d] is not None else None) for d in dec}} for r in raekker]
         for a in range(0, len(raekker), 500):
             self._indsaet(tabel, raekker[a:a + 500])
 
-    def arkiv_tael_boern(self, koersel_id: str) -> dict:
-        ud = {}
-        for navn in ("KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime"):
-            t = self.t(navn)
-            ud[navn] = self.cn.execute(select(func.count()).select_from(t).where(t.c.koersel_id == koersel_id.lower())).scalar()
-        return ud
+    def arkiv_laas_koersler(self, ider) -> None:
+        """K10-F3: en transaktionsejet lås pr. kørsels-id, i den givne (sorterede) orden. sqlite: BEGIN IMMEDIATE har
+        allerede serialiseret alle skrivere."""
+        d = self.db.dialekt
+        for id in ider:
+            if d == "postgresql":
+                self.cn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": "fjv_arkiv:" + id.lower()})
+            elif d == "mssql":
+                self.cn.execute(text("EXEC sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
+                                     "@LockOwner = 'Transaction', @LockTimeout = 60000"), {"k": "fjv_arkiv:" + id.lower()})
+
+    def arkiv_boerneside(self, koersel_id: str, tabel: str, fra: int, antal: int) -> list[dict]:
+        t = self.t(tabel)
+        return self._alle(select(t).where(t.c.koersel_id == koersel_id.lower()).order_by(t.c.id).offset(fra).limit(antal))
 
     def arkiv_input(self, koersel_id: str) -> list[dict]:
         t = self.t("KoerselInput")
@@ -294,10 +309,29 @@ class SqlTransaktion:
                 "log": self._alle(select(log.c.revision, log.c.sti, log.c.handling, log.c.gammel_json, log.c.ny_json)
                                   .where(log.c.vaerk_id == vaerk_id.lower()))}
 
-    def arkiv_tidsserie_shas(self, vaerk_id: str) -> set:
+    def arkiv_tidsserier(self, vaerk_id: str) -> list[dict]:
         t = self.t("Tidsserie")
-        return {r["sha256"] for r in self._alle(select(t.c.sha256).where(and_(
-            t.c.vaerk_id == vaerk_id.lower(), t.c.status == "gyldig", t.c.sha256.is_not(None))))}
+        return self._alle(select(t.c.rolle, t.c.sha256).where(and_(
+            t.c.vaerk_id == vaerk_id.lower(), t.c.status == "gyldig", t.c.sha256.is_not(None))))
+
+    def arkiv_tal(self, scenarie_ider: list[str]) -> dict:
+        """Rækketal (COUNT) for scenarierne, deres kørsler og værker — Function ``arkivTal``."""
+        def tael(tabel, kol, vaerdi):
+            t = self.t(tabel)
+            return self.cn.execute(select(func.count()).select_from(t).where(t.c[kol] == vaerdi)).scalar()
+        s, k = self.t("Scenarie"), self.t("Koersel")
+        scen = self._alle(select(s.c.id, s.c.vaerk_id).where(s.c.id.in_(scenarie_ider)))
+        koer = self._alle(select(k.c.id, k.c.vaerk_id).where(k.c.scenarie_id.in_(scenarie_ider)))
+        vaerker = sorted({str(x["vaerk_id"]).lower() for x in scen + koer})
+        return {
+            "scenarier": {str(x["id"]).lower(): {"ScenarieAendring": tael("ScenarieAendring", "scenarie_id", x["id"]),
+                                                 "Bestilling": tael("Bestilling", "scenarie_id", x["id"]),
+                                                 "Koersel": tael("Koersel", "scenarie_id", x["id"])} for x in scen},
+            "koersler": {str(x["id"]).lower(): {b: tael(b, "koersel_id", x["id"]) for b in
+                                                ("KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime")} for x in koer},
+            "vaerker": {v: {"Aendringslog": tael("Aendringslog", "vaerk_id", v), "Tidsserie": tael("Tidsserie", "vaerk_id", v)}
+                        for v in vaerker},
+        }
 
 
 class SqlBetroetLager:
@@ -390,6 +424,11 @@ class Tjenester:
 
     def afstem(self):
         return self.T.afstem(self.app.motor.marker_doede, self.app.motor.start_arbejder)
+
+    def arkiv_tal(self, scenarie_ider):
+        """Runde 13b (K10-F4): rækketal til eksportens fuldstændighedstjek (``logik.arkiv.arkiv_tal``). Kun læsning."""
+        from .logik import arkiv as A
+        return A.arkiv_tal(self.lager, scenarie_ider)
 
     def importer_arkiv(self, anmodning_id, del_):
         """Runde 13: én del af et arkiv (``logik.arkiv.importer_del``, port af Function ``importerArkiv``)."""

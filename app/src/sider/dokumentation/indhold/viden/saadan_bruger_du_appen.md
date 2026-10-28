@@ -125,15 +125,19 @@ Arket **Læs mig** forklarer indholdet: app-version, modellens pin, hvem og hvor
 ark med danske overskrifter; tal står som tal, og hver tid står to gange — som Excel-dato i dansk tid og som
 UTC-tekst, der er den, genimporten læser. Arket er en backup, ikke et redigeringsformat: hver tabel har en
 kontrolsum i det skjulte ark `_manifest`, og et arkiv, hvor et tal er rettet, afvises. Åbn det skrivebeskyttet.
-(Kilde: KONTRAKT §6e)
+Eksporten tæller hver tabel i databasen og stopper, hvis en række mangler. Tal bevares med dobbelt præcision
+(ca. 15–17 betydende cifre) — præcis som appen og regnemotoren læser og skriver dem. (Kilde: KONTRAKT §6e)
 
 **Importér arkiv** viser først, hvad der vil ske — oprettes, findes allerede, konflikt eller kan ikke
 importeres og hvorfor — og skriver intet, før du bekræfter. En kørsel importeres som historisk kørsel med
 sit frosne input, sine pins og resultater uændret; den køres ikke om og kan sammenlignes som før. Den er
 markeret *importeret fra arkiv* med dato og hvem. Samme indhold to gange springes over; en række, der
-findes med andet indhold, er en konflikt og overskrives aldrig. Afbrydes en import, så importér igen —
-det, der allerede er skrevet, springes over. (Kilde: KONTRAKT §6e)
+findes med andet indhold, er en konflikt og overskrives aldrig — det gælder også en kørsel, hvis tal er
+ændret, og et scenarie, hvis ændringer er rettet her. Afbrydes en import, så importér igen — det, der
+allerede er skrevet, springes over; en kørsel bliver først synlig, når alle dens rækker er på plads og
+passer med arkivet. (Kilde: KONTRAKT §6e)
 
 Værkerne er ikke med i arkivet. Upload værksarket først (Konfiguration); arkivet finder værket på dets
 kode og tjekker, at værket her har haft præcis de parametre, kørslen bygger på. Det samme gælder en
-varmelast eller solprofil, som kørslen bruger: den skal være uploadet med samme indhold. (Kilde: KONTRAKT §6e)
+varmelast eller solprofil, som kørslen bruger: den skal være uploadet med samme indhold og i samme rolle.
+(Kilde: KONTRAKT §6e)

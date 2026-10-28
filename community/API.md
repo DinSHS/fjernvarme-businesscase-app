@@ -100,6 +100,7 @@ Krop = input-objektet, svar = output — **præcis** `AppFunctionsSchema` i
 | `hentDmiTemperatur` | `{ omraade, fra, til, kolonne }` | henter df-data på Motor-rækkens `data_commit`, hvis den ikke er hentet |
 | `skemaInfo` | `{}` | `login` = `<dialekt>:<bruger>` |
 | `importerArkiv` | `{ anmodningId, del }` | én del af et arkiv (runde 13): anmodning `importer_arkiv` (nil-uuid som værk) med delens sha256; `logik/arkiv.py` |
+| `arkivTal` | `{ scenarieIder }` | JSON-liste af scenarie-id'er -> rækketal (COUNT) pr. scenarie, kørsel og værk; eksportens fuldstændighedstjek (kun læsning) |
 
 Kroppen må højst være 8 MB (uploads er base64 af højst 2,9 MB CSV / 2,5 MB xlsx).
 

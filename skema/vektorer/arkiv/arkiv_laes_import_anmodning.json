@@ -1,9 +1,9 @@
 {
  "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
  "kilder": {
-  "app/rayfin/functions/src/arkiv.ts": "cf41d66c76997da67405806eac16fa654d82345d127d7f507ef052a3da249926",
+  "app/rayfin/functions/src/arkiv.ts": "7bc6f6492fa379d2a649a03b1e5a35a5460dc15c35ccc72aaa4c641be9530f9c",
   "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
-  "app/rayfin/functions/test/arkiv-hukommelse.ts": "22e04302a065bd632229ae4ec6eb39684ef49ce53120ef60d261761ee20a2f77"
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
  },
  "tilfaelde": [
   {
@@ -28,6 +28,13 @@
     "tekst": "[{"
    },
    "afvisning": "Anmodningen er ikke gyldig JSON."
+  },
+  {
+   "navn": "ændringer alene",
+   "input": {
+    "tekst": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"tabel\":\"ScenarieAendring\",\"nr\":1,\"af\":2,\"koersel_ider\":[],\"filnavn\":\"x.xlsx\"}]"
+   },
+   "afvisning": "Scenariets ændringer sendes sammen med scenariet (samme del)."
   },
   {
    "navn": "ikke en liste",

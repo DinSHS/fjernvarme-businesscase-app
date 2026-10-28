@@ -62,6 +62,8 @@ const typer: [string, A.Kolonne][] = [
     ['bool', { navn: 'arkiveret', type: 'boolean', nullable: false }], ['tid', { navn: 'tid', type: 'datetime', nullable: false }],
 ];
 const værdier: unknown[] = [null, 'AAAAAAAA-0000-4000-8000-000000000001', 'tekst', '', ' 12.5 ', '1e3', 'abc', 0, -0, 1, 2.5, 1e21, 0.1 + 0.2, true, false,
+    // K10-F5: decimaler som tekst — bevares eksakt, eller afvises.
+    '10000000.0000000001', '10000000.0000000002', '867031.2300', '867031.2345792934', '-0.000000100', '0.30000000000000004', '00012.5000', '.5', '5.', '1E-7',
     '2026-10-25T01:30:00.000Z', '2026-10-25T01:30:00', '2026-10-25T03:30:00+02:00', '2026-10-25T01:30:00.1234Z', '2026-10-25', 'ikke en dato', [1], { a: 1 }];
 for (const [t, k] of typer) for (const [i, v] of værdier.entries()) await tilføj('arkiv_kanonisk', `${t} #${i}`, { kolonne: k, v }, () => A.kanonisk(k, v));
 
@@ -84,6 +86,7 @@ for (const [i, [t, n, v]] of fejlTilfælde.entries()) await tilføj('arkiv_fejl_
 // ------------------------------------------------------------------ tabellens sha
 
 const shaTilfælde: A.Kanonisk[][][] = [
+    [[867031.2345792934]], [[867031.2345792935]],
     [], [['a', 1, null]], [['b', 1, null], ['a', 2.5, 'x']], [['a', 0.1 + 0.2, 1e21, 1e-7, -5, 123.456, true, false]],
     [['～'], ['😀'], ['æ'], ['Z'], ['"\\\n\u0001']], [['a', 'b'], ['a', 'b']],
 ];
@@ -94,7 +97,7 @@ for (const [i, r] of shaTilfælde.entries()) await tilføj('arkiv_tabel_sha', `#
 const god = { arkiv: ARKIV, sha256: 'd'.repeat(64), tabel: 'KoerselTime', nr: 1, af: 2, koersel_ider: [], filnavn: 'x.xlsx' };
 const anm = (o: Record<string, unknown>) => JSON.stringify([{ handling: 'importer_arkiv', ...god, ...o }]);
 const anmodninger: [string, string][] = [
-    ['gyldig', anm({})], ['ugyldig JSON', '[{'], ['ikke en liste', '{}'], ['to handlinger', `[${anm({}).slice(1, -1)},${anm({}).slice(1, -1)}]`],
+    ['gyldig', anm({})], ['ugyldig JSON', '[{'], ['ændringer alene', anm({ tabel: 'ScenarieAendring' })], ['ikke en liste', '{}'], ['to handlinger', `[${anm({}).slice(1, -1)},${anm({}).slice(1, -1)}]`],
     ['anden handling', JSON.stringify([{ handling: 'upload_vaerksark' }])], ['arkiv-sha', anm({ arkiv: 'x' })], ['del-sha', anm({ sha256: 'A'.repeat(64) })],
     ['ukendt tabel', anm({ tabel: 'Vaerk' })], ['tabel mangler', JSON.stringify([{ handling: 'importer_arkiv', arkiv: ARKIV, sha256: ARKIV }])],
     ['nr > af', anm({ nr: 3, af: 2 })], ['nr 0', anm({ nr: 0 })], ['nr 1.5', anm({ nr: 1.5 })], ['ider ikke uuid', anm({ koersel_ider: ['x'] })],
@@ -110,16 +113,20 @@ for (const [n, t] of anmodninger) await tilføj('arkiv_laes_import_anmodning', n
 const db = H.eksempelDb(3);
 const scen = H.rækkerFra(db, 'Scenarie');
 const koer = H.rækkerFra(db, 'Koersel');
-const forventet = { [H.ID.koersel]: { KoerselInput: 5, KoerselNoegletal: 2, KoerselMaaned: 2, KoerselTime: 3 } };
-const del = (o: Record<string, unknown>) => JSON.stringify({ format: 'fjv-arkiv-del', version: 1, arkiv: ARKIV, tabel: 'Scenarie', kolonner: A.kolonnenavne('Scenarie'), raekker: scen, ...o });
+const forventet = H.forventetFor(db, koer);
+const ændr = H.rækkerFra(db, 'ScenarieAendring');
+const del = (o: Record<string, unknown>) => JSON.stringify({ format: 'fjv-arkiv-del', version: 2, arkiv: ARKIV, tabel: 'Scenarie', kolonner: A.kolonnenavne('Scenarie'), raekker: scen, aendringer: ændr, ...o });
 const dele: [string, string][] = [
-    ['gyldig', del({})], ['ugyldig JSON', '{'], ['format', del({ format: 'x' })], ['version 2', del({ version: 2 })], ['arkiv', del({ arkiv: 'x' })],
+    ['gyldig', del({})], ['ugyldig JSON', '{'], ['format', del({ format: 'x' })], ['version 1', del({ version: 1 })], ['arkiv', del({ arkiv: 'x' })],
+    ['scenarie uden aendringer', del({ aendringer: undefined })], ['aendring til fremmed scenarie', del({ raekker: [scen[0]] })],
+    ['aendringer i en Bestilling-del', del({ tabel: 'Bestilling', kolonner: A.kolonnenavne('Bestilling'), raekker: H.rækkerFra(db, 'Bestilling') })],
+    ['ScenarieAendring-del', del({ tabel: 'ScenarieAendring', kolonner: A.kolonnenavne('ScenarieAendring'), raekker: ændr, aendringer: undefined })],
     ['tabel', del({ tabel: 'Motor' })], ['kolonner', del({ kolonner: A.kolonnenavne('Scenarie').slice(1) })], ['ingen rækker', del({ raekker: [] })],
     ['objekt i celle', del({ raekker: [[...scen[0].slice(0, -1), { a: 1 }]] })], ['for langt navn', del({ raekker: [scen[0].map((v, i) => (i === 2 ? 'x'.repeat(201) : v))] })],
     ['dublet', del({ raekker: [scen[0], scen[0]] })],
-    ['Koersel uden forventet', del({ tabel: 'Koersel', kolonner: A.kolonnenavne('Koersel'), raekker: koer })],
-    ['Koersel forventet mangler barn', del({ tabel: 'Koersel', kolonner: A.kolonnenavne('Koersel'), raekker: koer, forventet: { [H.ID.koersel]: { KoerselInput: 5 } } })],
-    ['Koersel gyldig', del({ tabel: 'Koersel', kolonner: A.kolonnenavne('Koersel'), raekker: koer, forventet })],
+    ['Koersel uden forventet', del({ tabel: 'Koersel', kolonner: A.kolonnenavne('Koersel'), raekker: koer, aendringer: undefined })],
+    ['Koersel forventet uden sha', del({ tabel: 'Koersel', kolonner: A.kolonnenavne('Koersel'), raekker: koer, aendringer: undefined, forventet: { [H.ID.koersel]: { antal: forventet[H.ID.koersel].antal } } })],
+    ['Koersel gyldig', del({ tabel: 'Koersel', kolonner: A.kolonnenavne('Koersel'), raekker: koer, aendringer: undefined, forventet })],
 ];
 for (const [n, t] of dele) await tilføj('arkiv_laes_del', n, { tekst: t }, () => A.læsDel(t));
 
@@ -141,13 +148,16 @@ await tilføj('arkiv_vaerk_revisioner', 'uden log', { revision: 2, blade: blade3
 const input = [...db.KoerselInput.values()].map((r) => ({ kilde: String(r.kilde), sti: String(r.sti), vaerdi_json: String(r.vaerdi_json) }));
 const revisioner = A.vaerkRevisioner(3, blade, log);
 const basis = {
-    koersel: koer[0], antal: forventet[H.ID.koersel], forventet: forventet[H.ID.koersel], input,
-    bestilling: { scenarie_id: H.ID.scenarie }, scenarie: { vaerk_id: H.ID.vaerk }, vaerk: { id: H.ID.vaerk }, revisioner, tidsserier: new Set([H.TIDSSERIE_SHA]),
+    koersel: koer[0], nu: forventet[H.ID.koersel], forventet: forventet[H.ID.koersel], input,
+    bestilling: { scenarie_id: H.ID.scenarie }, scenarie: { vaerk_id: H.ID.vaerk }, vaerk: { id: H.ID.vaerk }, revisioner, tidsserier: new Set([`varmelast:${H.TIDSSERIE_SHA}`]),
 };
+const fv = forventet[H.ID.koersel];
 const kv = (navn: string, v: A.Kanonisk) => koer[0].map((x, i) => (A.kolonnenavne('Koersel')[i] === navn ? v : x));
 const tjek: [string, Partial<typeof basis>][] = [
     ['gyldig', {}], ['i kø', { koersel: kv('status', 'koe') }], ['fejlet', { koersel: kv('status', 'fejl') }],
-    ['mangler timer', { antal: { ...forventet[H.ID.koersel], KoerselTime: 2 } }], ['input rettet', { input: input.map((r, i) => (i === 0 ? { ...r, vaerdi_json: '1.0' } : r)) }],
+    ['mangler timer', { nu: { ...fv, antal: { ...fv.antal, KoerselTime: 2 } } }],
+    ['andet indhold i nøgletal', { nu: { ...fv, sha256: { ...fv.sha256, KoerselNoegletal: 'e'.repeat(64) } } }],
+    ['tidsserie i forkert rolle', { tidsserier: new Set([`solprofil:${H.TIDSSERIE_SHA}`]) }], ['input rettet', { input: input.map((r, i) => (i === 0 ? { ...r, vaerdi_json: '1.0' } : r)) }],
     ['ingen bestilling', { bestilling: null as never }], ['bestilling andet scenarie', { bestilling: { scenarie_id: H.ID.reference } }],
     ['intet scenarie', { scenarie: null as never }], ['scenarie andet værk', { scenarie: { vaerk_id: H.ID.tidsserie } }], ['intet værk', { vaerk: null as never }],
     ['forkert revision', { koersel: kv('vaerk_revision', 3) }], ['ingen revisioner', { revisioner: new Map() }], ['ingen tidsserie', { tidsserier: new Set() }],
@@ -160,16 +170,18 @@ for (const [n, o] of tjek) {
 
 // ------------------------------------------------------------------ forløbet (importerDel) trin for trin
 
-/** Et forløb: start-db, en række (tabel, rækker, forventet?, ødelæg?) der sendes som dele; udfaldet er hvert svar + tabellernes sha bagefter. */
-async function forløb(navn: string, start: H.Tabeller, trin: { tabel: A.ImportTabel; raekker: A.Kanonisk[][]; forventet?: Record<string, A.Børnetal>; sha?: string; anmodningVaerk?: string }[]) {
+/** Et forløb: start-db, en række dele, der sendes; udfaldet er hvert svar + tabellernes sha og anmodningernes status bagefter. */
+type Trin = { tabel: A.DelTabel; raekker: A.Kanonisk[][]; aendringer?: A.Kanonisk[][]; forventet?: Record<string, A.Børnetilstand>; sha?: string; anmodningVaerk?: string; arkiv?: string };
+async function forløb(navn: string, start: H.Tabeller, trin: Trin[]) {
     const mål = H.kopiDb(start);
     const lager = H.hukommelsesLager(mål);
     const startTabeller = Object.fromEntries(Object.entries(start).map(([t, m]) => [t, [...m.values()]]));
     const sendt: unknown[] = [];
     const svar: unknown[] = [];
     for (const [i, t] of trin.entries()) {
-        const tekst = A.delTekst({ arkiv: ARKIV, tabel: t.tabel, raekker: t.raekker, forventet: t.forventet });
-        const aj = A.importAnmodningJson({ arkiv: ARKIV, sha256: t.sha ?? A.sha256Tekst(tekst), tabel: t.tabel, nr: 1, af: 1,
+        const arkiv = t.arkiv ?? ARKIV;
+        const tekst = A.delTekst({ arkiv, tabel: t.tabel, raekker: t.raekker, aendringer: t.aendringer, forventet: t.forventet });
+        const aj = A.importAnmodningJson({ arkiv, sha256: t.sha ?? A.sha256Tekst(tekst), tabel: t.tabel, nr: 1, af: 1,
             koersel_ider: t.tabel === 'Koersel' ? t.raekker.map((r) => r[0] as string) : [], filnavn: 'v.xlsx' });
         const id = `f0000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`;
         mål.Aendringsanmodning.set(id, { id, vaerk_id: t.anmodningVaerk ?? A.NIL_UUID, forventet_revision: 0, aendringer_json: aj, anmodet_af: 'v@example.org', anmodet: '2026-10-28T09:00:00.000Z', status: 'ny', svar: null });
@@ -188,17 +200,38 @@ function målMedVaerk(kilde: H.Tabeller): H.Tabeller {
 }
 const k = H.eksempelDb(4);
 const alle = (t: A.ImportTabel) => H.rækkerFra(k, t);
-const fv = { [H.ID.koersel]: { KoerselInput: 5, KoerselNoegletal: 2, KoerselMaaned: 2, KoerselTime: 4 } };
-const fuld = (A.IMPORT_TABELLER).map((t) => ({ tabel: t, raekker: alle(t), forventet: t === 'Koersel' ? fv : undefined }));
+const scenTrin: Trin = { tabel: 'Scenarie', raekker: alle('Scenarie'), aendringer: alle('ScenarieAendring') };
+const børneTrin: Trin[] = A.KOERSEL_BOERN.map((b) => ({ tabel: b, raekker: alle(b) }));
+const kørselTrin: Trin = { tabel: 'Koersel', raekker: alle('Koersel'), forventet: H.forventetFor(k, alle('Koersel')) };
+const fuld: Trin[] = [scenTrin, { tabel: 'Bestilling', raekker: alle('Bestilling') }, ...børneTrin, kørselTrin];
 await forløb('fuld import og så igen', målMedVaerk(k), [...fuld, ...fuld]);
 await forløb('uden værk', H.tomDb(), fuld.slice(0, 1));
 await forløb('konflikt på scenarie', (() => { const m = målMedVaerk(k); m.Scenarie.set(H.ID.scenarie, { ...k.Scenarie.get(H.ID.scenarie)!, navn: 'Rettet' }); return m; })(), fuld.slice(0, 1));
-await forløb('kørsel før timerne', målMedVaerk(k), [fuld[0], fuld[1], fuld[2], fuld[3], fuld[4], fuld[5], fuld[7]]);
+await forløb('F1: en ugyldig ændring afviser hele scenariedelen', målMedVaerk(k), [{ ...scenTrin, aendringer: [alle('ScenarieAendring')[0], alle('ScenarieAendring')[1].map((v, i) => (i === 3 ? 'x'.repeat(401) : v))] }, scenTrin]);
+await forløb('kørsel før timerne', målMedVaerk(k), [...fuld.slice(0, 5), kørselTrin]);
 await forløb('rækker til en kørsel, der findes', målMedVaerk(k), [...fuld, { tabel: 'KoerselTime', raekker: [alle('KoerselTime')[0].map((v, i) => (i === 0 ? '77777777-1111-4111-8111-111111111111' : v))] }]);
+const fremmed = alle('KoerselNoegletal').map((r, i) => (i === 0 ? r.map((v, j) => (A.kolonnenavne('KoerselNoegletal')[j] === 'vaerdi' ? 123456789 : v)) : r));
+await forløb('F2: rækker fra et andet arkiv', målMedVaerk(k), [fuld[0], fuld[1], fuld[2], { tabel: 'KoerselNoegletal', raekker: fremmed, arkiv: 'd'.repeat(64) }, fuld[4], fuld[5], kørselTrin]);
+await forløb('F2: eksisterende kørsel med ændret barn', (() => {
+    const m = målMedVaerk(k);
+    for (const t of ['Scenarie', 'ScenarieAendring', 'Bestilling', 'Koersel', ...A.KOERSEL_BOERN] as const) m[t] = new Map([...k[t]].map(([i, r]) => [i, { ...r }]));
+    [...m.KoerselNoegletal.values()][0].vaerdi = 999999;
+    return m;
+})(), [kørselTrin]);
+await forløb('F6: tidsserien findes kun som solprofil', (() => {
+    const m = målMedVaerk(k);
+    for (const r of m.Tidsserie.values()) r.rolle = 'solprofil';
+    return m;
+})(), fuld);
+await forløb('F6: scenariets valgte tidsserie i forkert rolle', (() => {
+    const m = målMedVaerk(k);
+    for (const r of m.Tidsserie.values()) r.rolle = 'solprofil';
+    return m;
+})(), [scenTrin]);
 await forløb('sha passer ikke', målMedVaerk(k), [{ ...fuld[0], sha: '0'.repeat(64) }]);
 await forløb('anmodning med værk', målMedVaerk(k), [{ ...fuld[0], anmodningVaerk: H.ID.vaerk }]);
 await forløb('værkets historik mangler', (() => { const m = målMedVaerk(k); m.Aendringslog.clear(); return m; })(), fuld);
-await forløb('referencen i delen efter scenariet', målMedVaerk(k), [{ tabel: 'Scenarie', raekker: [...alle('Scenarie')].reverse() }]);
+await forløb('referencen i delen efter scenariet', målMedVaerk(k), [{ ...scenTrin, raekker: [...alle('Scenarie')].reverse() }]);
 
 // ------------------------------------------------------------------ skriv
 

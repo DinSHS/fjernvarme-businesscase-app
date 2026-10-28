@@ -3,7 +3,9 @@
 //
 // Hvert tabelark: række 1 = danske overskrifter (fed, frosset), række 2 = de tekniske feltnavne (skjult; det er
 // den, genimporten læser), data fra række 3. Kolonnerne er databasens felter i skemaets rækkefølge, med to slags
-// AFLEDTE kolonner, som kun er der for mennesker og genberegnes ved genimport (`~` i det tekniske navn):
+// AFLEDTE kolonner, som kun er der for mennesker og genberegnes ved genimport. Deres tekniske navn er entydigt kodet
+// med et præfiks, som et feltnavn aldrig har (`~dk:<felt>`, `~json:<nøgle>` — nøglen må selv indeholde `~` og `:`),
+// og genimporten kræver PRÆCIS de afledte kolonner, skriveren ville lave af de samme rækker (K10-F8):
 //   * tid: "<felt> (dansk tid)" som Excel-dato ved siden af "<felt> (UTC)" som ISO-tekst. Excels serietal har
 //     ingen tidszone, så det er ISO-teksten, der er data; den danske dato er vægur i Europe/Copenhagen.
 //   * Timer: værdierne i vaerdier_json foldet ud i hver sin kolonne (tal som tal).
@@ -134,12 +136,16 @@ export function tabelshas(i: ArkivIndhold): Record<ArkivTabel, string> {
 
 interface Kolonnespec { teknisk: string; etiket: string; bredde: number; værdi: (r: readonly Kanonisk[]) => Celle }
 
+/** Præfikserne for afledte kolonner i række 2. Et feltnavn er [a-z_]+, så det kan aldrig begynde med "~". */
+export const AFLEDT_DK = "~dk:";
+export const AFLEDT_JSON = "~json:";
+
 function kolonnespecs(t: ArkivTabel, rækker: readonly (readonly Kanonisk[])[]): Kolonnespec[] {
     const ks = arkivKolonner(t);
     const ud: Kolonnespec[] = [];
     ks.forEach((k, i) => {
         if (k.type === "datetime") {
-            ud.push({ teknisk: `${k.navn}~dk`, etiket: `${etiket(k.navn)} (dansk tid)`, bredde: 19, værdi: (r) => (r[i] === null ? null : { dato: danskExcelSerie(r[i] as string) }) });
+            ud.push({ teknisk: `${AFLEDT_DK}${k.navn}`, etiket: `${etiket(k.navn)} (dansk tid)`, bredde: 19, værdi: (r) => (r[i] === null ? null : { dato: danskExcelSerie(r[i] as string) }) });
             ud.push({ teknisk: k.navn, etiket: `${etiket(k.navn)} (UTC)`, bredde: 25, værdi: (r) => r[i] });
         } else {
             const bred = k.type === "uuid" ? 37 : k.navn.endsWith("_json") ? 40 : k.type === "text" ? 22 : 14;
@@ -149,7 +155,7 @@ function kolonnespecs(t: ArkivTabel, rækker: readonly (readonly Kanonisk[])[]):
     if (t === "KoerselTime") {
         const j = ks.findIndex((k) => k.navn === "vaerdier_json");
         for (const nøgle of udfoldedeNøgler(rækker.map((r) => r[j] as string))) {
-            ud.push({ teknisk: `vaerdier_json~${nøgle}`, etiket: nøgle, bredde: 14, værdi: (r) => udfold(r[j] as string, nøgle) });
+            ud.push({ teknisk: `${AFLEDT_JSON}${nøgle}`, etiket: nøgle, bredde: 14, værdi: (r) => udfold(r[j] as string, nøgle) });
         }
     }
     return ud;
@@ -223,7 +229,7 @@ function læsMigArk(i: ArkivIndhold, m: Manifest): Ark {
         ["Brug", "Gem filen som historik, eller flyt historikken til en anden installation: Scenarier › Backup og flytning › Importér arkiv. Værkerne er IKKE med — upload værksarket først (Konfiguration); arkivet henviser til værkerne med kode, revision og en sha256 af parametrene."],
         ["Ret ikke i arket", "Arket er en backup, ikke et redigeringsformat. Hver tabel har en sha256 i det skjulte ark _manifest; genimporten afviser et arkiv, hvor et tal eller en tekst er ændret. Åbn filen skrivebeskyttet, og gem den ikke fra Excel (Excel kan omskrive tal og tekst). Vil du ændre et scenarie, så gør det i appen."],
         ["Tid", "Databasen gemmer tid i UTC. Hver tidskolonne står to gange: \"(dansk tid)\" er en Excel-dato i vægur Europe/Copenhagen (Excel-datoer har ingen tidszone) og \"(UTC)\" er tidspunktet som ISO-tekst — det er den, genimporten læser."],
-        ["Tal", "Tal står som tal med databasens præcision (som appen læser dem). Tomme celler er tomme værdier (ikke 0)."],
+        ["Tal", "Tal står som tal med dobbelt præcision (ca. 15–17 betydende cifre) — præcis som appen og regnemotoren læser og skriver dem. Databasens DECIMAL-kolonner kan rumme flere cifre; en værdi med flere cifre, skrevet udefra med SQL, kan ikke bevares og stopper eksporten i stedet for at blive afrundet. Tomme celler er tomme værdier (ikke 0)."],
         [],
         ["Indhold", `${n("Scenarie")} scenarier, ${n("Koersel")} kørsler, ${n("KoerselTime")} timerækker, ${n("KoerselNoegletal")} nøgletal, ${n("KoerselMaaned")} månedsrækker, ${n("KoerselInput")} inputrækker.`],
         ["Eksporteret", danskTid(meta.eksporteret)],
@@ -303,29 +309,38 @@ function læsTabel(t: ArkivTabel, ark: LæstArk[], m: TabelManifest): Kanonisk[]
         const navne = a.celler.get(2);
         if (!navne) afvis(`Arket ${a.navn}: rækken med feltnavne (række 2) mangler.`);
         const plads = new Map<string, number>();
-        for (const [kol, v] of navne!) if (typeof v === "string") plads.set(v, kol);
+        for (const [kol, v] of navne!) {
+            if (typeof v !== "string") continue;
+            if (plads.has(v)) afvis(`Arket ${a.navn}: kolonnen ${v} står to gange.`);
+            plads.set(v, kol);
+        }
         for (const k of ks) if (!plads.has(k.navn)) afvis(`Arket ${a.navn}: kolonnen ${k.navn} mangler.`);
-        const ekstra = [...plads.keys()].filter((n) => !n.includes("~") && !ks.some((k) => k.navn === n));
-        if (ekstra.length) afvis(`Arket ${a.navn}: ukendte kolonner ${ekstra.join(", ")}.`);
         const sidste = Math.max(2, ...a.celler.keys());
+        const rækker: { r: Kanonisk[]; celler: Map<number, Læst>; hvor: string }[] = [];
         for (let nr = 3; nr <= sidste; nr++) {
             const celler = a.celler.get(nr) ?? new Map<number, Læst>();
             const hvor = `${a.navn} række ${nr}`;
-            const r = ks.map((k) => fraCelle(k, celler.get(plads.get(k.navn)!), hvor));
+            rækker.push({ r: ks.map((k) => fraCelle(k, celler.get(plads.get(k.navn)!), hvor)), celler, hvor });
+        }
+        // Præcis de kolonner, skriveren laver af netop disse rækker — hverken flere eller færre (K10-F8).
+        const specs = kolonnespecs(t, rækker.map((x) => x.r));
+        const forventet = specs.map((x) => x.teknisk);
+        const mangler = forventet.filter((n) => !plads.has(n));
+        if (mangler.length) afvis(`Arket ${a.navn}: kolonnen ${mangler[0]} mangler — arket er rettet.`);
+        const ekstra = [...plads.keys()].filter((n) => !forventet.includes(n));
+        if (ekstra.length) afvis(`Arket ${a.navn}: ukendte kolonner ${ekstra.join(", ")} — arket er rettet.`);
+        for (const { r, celler, hvor } of rækker) {
             // Afledte kolonner skal være præcis det, de er afledt af — ellers er de rettet.
-            for (const [navn, kol] of plads) {
-                if (!navn.includes("~")) continue;
-                const v = celler.get(kol);
-                const [felt, del] = navn.split("~");
-                const i = ks.findIndex((k) => k.navn === felt);
-                if (i < 0) afvis(`Arket ${a.navn}: ukendt afledt kolonne ${navn}.`);
-                if (del === "dk") {
-                    const forventet = r[i] === null ? undefined : danskExcelSerie(r[i] as string);
-                    const ok = forventet === undefined ? v === undefined : typeof v === "number" && Math.abs(v - forventet) < SERIE_TOLERANCE;
-                    if (!ok) afvis(`${hvor}: "${etiket(felt)} (dansk tid)" passer ikke med UTC-tidspunktet — arket er rettet.`);
-                } else {
-                    const forventet = udfold(r[i] as string, del);
-                    if ((forventet ?? undefined) !== v) afvis(`${hvor}: kolonnen ${del} passer ikke med "Øvrige værdier (JSON)" — arket er rettet.`);
+            for (const spec of specs) {
+                if (!spec.teknisk.startsWith("~")) continue;
+                const v = celler.get(plads.get(spec.teknisk)!);
+                const skal = spec.værdi(r);
+                if (spec.teknisk.startsWith(AFLEDT_DK)) {
+                    const fv = skal === null ? undefined : (skal as { dato: number }).dato;
+                    const ok = fv === undefined ? v === undefined : typeof v === "number" && Math.abs(v - fv) < SERIE_TOLERANCE;
+                    if (!ok) afvis(`${hvor}: "${spec.etiket}" passer ikke med UTC-tidspunktet — arket er rettet.`);
+                } else if ((skal ?? undefined) !== v) {
+                    afvis(`${hvor}: kolonnen ${spec.etiket} passer ikke med "Øvrige værdier (JSON)" — arket er rettet.`);
                 }
             }
             ud.push(r);

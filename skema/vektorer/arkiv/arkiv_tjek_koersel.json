@@ -1,9 +1,9 @@
 {
  "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
  "kilder": {
-  "app/rayfin/functions/src/arkiv.ts": "cf41d66c76997da67405806eac16fa654d82345d127d7f507ef052a3da249926",
+  "app/rayfin/functions/src/arkiv.ts": "7bc6f6492fa379d2a649a03b1e5a35a5460dc15c35ccc72aaa4c641be9530f9c",
   "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
-  "app/rayfin/functions/test/arkiv-hukommelse.ts": "22e04302a065bd632229ae4ec6eb39684ef49ce53120ef60d261761ee20a2f77"
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
  },
  "tilfaelde": [
   {
@@ -50,17 +50,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -121,7 +137,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "ud": null
@@ -170,17 +186,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -241,7 +273,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555 har status \"koe\"; kun færdige, fejlede og annullerede kørsler kan genimporteres."
@@ -290,17 +322,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -361,7 +409,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "ud": null
@@ -410,17 +458,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 2
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 2
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -481,10 +545,282 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: KoerselTime har 2 rækker i databasen, arkivet 3 — importen er ufuldstændig; kør den igen."
+  },
+  {
+   "navn": "andet indhold i nøgletal",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
+    },
+    "forventet": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "varmelast:abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: KoerselNoegletal i databasen har andet indhold end arkivets (rækker fra et andet arkiv eller ændret efter importen). Intet er skrevet."
+  },
+  {
+   "navn": "tidsserie i forkert rolle",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
+    },
+    "forventet": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "solprofil:abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555 bygger på tidsserien (varmelast) med sha256 abababababab…, som ikke findes her som varmelast. Upload den først."
   },
   {
    "navn": "input rettet",
@@ -530,17 +866,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -601,7 +953,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: det frosne input passer ikke med input_hash — arkivet er rettet eller beskadiget."
@@ -650,17 +1002,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -719,7 +1087,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: bestillingen findes ikke."
@@ -768,17 +1136,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -839,7 +1223,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: bestillingen hører til et andet scenarie."
@@ -888,17 +1272,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -957,7 +1357,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: scenariet findes ikke."
@@ -1006,17 +1406,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -1077,7 +1493,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: scenariet hører til et andet værk."
@@ -1126,17 +1542,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -1195,7 +1627,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: værket findes ikke. Upload værksarket først."
@@ -1244,17 +1676,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -1315,7 +1763,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555 bygger på en værksrevision (parametre 9ec1eda5da73…), som værket her ikke har haft som revision 3. Upload værksarket for den revision først."
@@ -1364,17 +1812,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -1416,7 +1880,7 @@
      "$map": []
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555 bygger på en værksrevision (parametre 9ec1eda5da73…), som værket her ikke har haft som revision 2. Upload værksarket for den revision først."
@@ -1465,17 +1929,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -1537,7 +2017,7 @@
     },
     "tidsserier": []
    },
-   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555 bygger på tidsserien (varmelast) med sha256 abababababab…, som ikke findes her. Upload den først."
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555 bygger på tidsserien (varmelast) med sha256 abababababab…, som ikke findes her som varmelast. Upload den først."
   },
   {
    "navn": "tidsserie uden sha",
@@ -1583,17 +2063,33 @@
      null,
      "{}"
     ],
-    "antal": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "forventet": {
-     "KoerselInput": 5,
-     "KoerselNoegletal": 2,
-     "KoerselMaaned": 2,
-     "KoerselTime": 3
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+     }
     },
     "input": [
      {
@@ -1654,7 +2150,7 @@
      ]
     },
     "tidsserier": [
-     "abababababababababababababababababababababababababababababababab"
+     "varmelast:abababababababababababababababababababababababababababababababab"
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: det frosne input passer ikke med input_hash — arkivet er rettet eller beskadiget."

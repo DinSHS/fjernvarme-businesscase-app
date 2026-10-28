@@ -1,9 +1,9 @@
 {
  "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
  "kilder": {
-  "app/rayfin/functions/src/arkiv.ts": "cf41d66c76997da67405806eac16fa654d82345d127d7f507ef052a3da249926",
+  "app/rayfin/functions/src/arkiv.ts": "7bc6f6492fa379d2a649a03b1e5a35a5460dc15c35ccc72aaa4c641be9530f9c",
   "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
-  "app/rayfin/functions/test/arkiv-hukommelse.ts": "22e04302a065bd632229ae4ec6eb39684ef49ce53120ef60d261761ee20a2f77"
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
  },
  "tilfaelde": [
   {
@@ -196,12 +196,132 @@
      "type": "uuid",
      "nullable": false
     },
+    "v": "10000000.0000000001"
+   },
+   "ud": "10000000.0000000001"
+  },
+  {
+   "navn": "uuid #16",
+   "input": {
+    "kolonne": {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false
+    },
+    "v": "10000000.0000000002"
+   },
+   "ud": "10000000.0000000002"
+  },
+  {
+   "navn": "uuid #17",
+   "input": {
+    "kolonne": {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false
+    },
+    "v": "867031.2300"
+   },
+   "ud": "867031.2300"
+  },
+  {
+   "navn": "uuid #18",
+   "input": {
+    "kolonne": {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false
+    },
+    "v": "867031.2345792934"
+   },
+   "ud": "867031.2345792934"
+  },
+  {
+   "navn": "uuid #19",
+   "input": {
+    "kolonne": {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false
+    },
+    "v": "-0.000000100"
+   },
+   "ud": "-0.000000100"
+  },
+  {
+   "navn": "uuid #20",
+   "input": {
+    "kolonne": {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false
+    },
+    "v": "0.30000000000000004"
+   },
+   "ud": "0.30000000000000004"
+  },
+  {
+   "navn": "uuid #21",
+   "input": {
+    "kolonne": {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false
+    },
+    "v": "00012.5000"
+   },
+   "ud": "00012.5000"
+  },
+  {
+   "navn": "uuid #22",
+   "input": {
+    "kolonne": {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false
+    },
+    "v": ".5"
+   },
+   "ud": ".5"
+  },
+  {
+   "navn": "uuid #23",
+   "input": {
+    "kolonne": {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false
+    },
+    "v": "5."
+   },
+   "ud": "5."
+  },
+  {
+   "navn": "uuid #24",
+   "input": {
+    "kolonne": {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false
+    },
+    "v": "1E-7"
+   },
+   "ud": "1e-7"
+  },
+  {
+   "navn": "uuid #25",
+   "input": {
+    "kolonne": {
+     "navn": "id",
+     "type": "uuid",
+     "nullable": false
+    },
     "v": "2026-10-25T01:30:00.000Z"
    },
    "ud": "2026-10-25t01:30:00.000z"
   },
   {
-   "navn": "uuid #16",
+   "navn": "uuid #26",
    "input": {
     "kolonne": {
      "navn": "id",
@@ -213,7 +333,7 @@
    "ud": "2026-10-25t01:30:00"
   },
   {
-   "navn": "uuid #17",
+   "navn": "uuid #27",
    "input": {
     "kolonne": {
      "navn": "id",
@@ -225,7 +345,7 @@
    "ud": "2026-10-25t03:30:00+02:00"
   },
   {
-   "navn": "uuid #18",
+   "navn": "uuid #28",
    "input": {
     "kolonne": {
      "navn": "id",
@@ -237,7 +357,7 @@
    "ud": "2026-10-25t01:30:00.1234z"
   },
   {
-   "navn": "uuid #19",
+   "navn": "uuid #29",
    "input": {
     "kolonne": {
      "navn": "id",
@@ -249,7 +369,7 @@
    "ud": "2026-10-25"
   },
   {
-   "navn": "uuid #20",
+   "navn": "uuid #30",
    "input": {
     "kolonne": {
      "navn": "id",
@@ -261,7 +381,7 @@
    "ud": "ikke en dato"
   },
   {
-   "navn": "uuid #21",
+   "navn": "uuid #31",
    "input": {
     "kolonne": {
      "navn": "id",
@@ -275,7 +395,7 @@
    "afvisning": "id: forventede et uuid, fik object."
   },
   {
-   "navn": "uuid #22",
+   "navn": "uuid #32",
    "input": {
     "kolonne": {
      "navn": "id",
@@ -478,12 +598,132 @@
      "type": "text",
      "nullable": true
     },
+    "v": "10000000.0000000001"
+   },
+   "ud": "10000000.0000000001"
+  },
+  {
+   "navn": "tekst #16",
+   "input": {
+    "kolonne": {
+     "navn": "navn",
+     "type": "text",
+     "nullable": true
+    },
+    "v": "10000000.0000000002"
+   },
+   "ud": "10000000.0000000002"
+  },
+  {
+   "navn": "tekst #17",
+   "input": {
+    "kolonne": {
+     "navn": "navn",
+     "type": "text",
+     "nullable": true
+    },
+    "v": "867031.2300"
+   },
+   "ud": "867031.2300"
+  },
+  {
+   "navn": "tekst #18",
+   "input": {
+    "kolonne": {
+     "navn": "navn",
+     "type": "text",
+     "nullable": true
+    },
+    "v": "867031.2345792934"
+   },
+   "ud": "867031.2345792934"
+  },
+  {
+   "navn": "tekst #19",
+   "input": {
+    "kolonne": {
+     "navn": "navn",
+     "type": "text",
+     "nullable": true
+    },
+    "v": "-0.000000100"
+   },
+   "ud": "-0.000000100"
+  },
+  {
+   "navn": "tekst #20",
+   "input": {
+    "kolonne": {
+     "navn": "navn",
+     "type": "text",
+     "nullable": true
+    },
+    "v": "0.30000000000000004"
+   },
+   "ud": "0.30000000000000004"
+  },
+  {
+   "navn": "tekst #21",
+   "input": {
+    "kolonne": {
+     "navn": "navn",
+     "type": "text",
+     "nullable": true
+    },
+    "v": "00012.5000"
+   },
+   "ud": "00012.5000"
+  },
+  {
+   "navn": "tekst #22",
+   "input": {
+    "kolonne": {
+     "navn": "navn",
+     "type": "text",
+     "nullable": true
+    },
+    "v": ".5"
+   },
+   "ud": ".5"
+  },
+  {
+   "navn": "tekst #23",
+   "input": {
+    "kolonne": {
+     "navn": "navn",
+     "type": "text",
+     "nullable": true
+    },
+    "v": "5."
+   },
+   "ud": "5."
+  },
+  {
+   "navn": "tekst #24",
+   "input": {
+    "kolonne": {
+     "navn": "navn",
+     "type": "text",
+     "nullable": true
+    },
+    "v": "1E-7"
+   },
+   "ud": "1E-7"
+  },
+  {
+   "navn": "tekst #25",
+   "input": {
+    "kolonne": {
+     "navn": "navn",
+     "type": "text",
+     "nullable": true
+    },
     "v": "2026-10-25T01:30:00.000Z"
    },
    "ud": "2026-10-25T01:30:00.000Z"
   },
   {
-   "navn": "tekst #16",
+   "navn": "tekst #26",
    "input": {
     "kolonne": {
      "navn": "navn",
@@ -495,7 +735,7 @@
    "ud": "2026-10-25T01:30:00"
   },
   {
-   "navn": "tekst #17",
+   "navn": "tekst #27",
    "input": {
     "kolonne": {
      "navn": "navn",
@@ -507,7 +747,7 @@
    "ud": "2026-10-25T03:30:00+02:00"
   },
   {
-   "navn": "tekst #18",
+   "navn": "tekst #28",
    "input": {
     "kolonne": {
      "navn": "navn",
@@ -519,7 +759,7 @@
    "ud": "2026-10-25T01:30:00.1234Z"
   },
   {
-   "navn": "tekst #19",
+   "navn": "tekst #29",
    "input": {
     "kolonne": {
      "navn": "navn",
@@ -531,7 +771,7 @@
    "ud": "2026-10-25"
   },
   {
-   "navn": "tekst #20",
+   "navn": "tekst #30",
    "input": {
     "kolonne": {
      "navn": "navn",
@@ -543,7 +783,7 @@
    "ud": "ikke en dato"
   },
   {
-   "navn": "tekst #21",
+   "navn": "tekst #31",
    "input": {
     "kolonne": {
      "navn": "navn",
@@ -557,7 +797,7 @@
    "afvisning": "navn: forventede tekst, fik object."
   },
   {
-   "navn": "tekst #22",
+   "navn": "tekst #32",
    "input": {
     "kolonne": {
      "navn": "navn",
@@ -760,12 +1000,132 @@
      "type": "int",
      "nullable": false
     },
+    "v": "10000000.0000000001"
+   },
+   "afvisning": "forsoeg: 10000000.0000000001 har flere cifre, end arkivet kan bevare (dobbelt præcision, ca. 15–17 betydende cifre)."
+  },
+  {
+   "navn": "heltal #16",
+   "input": {
+    "kolonne": {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
+    "v": "10000000.0000000002"
+   },
+   "afvisning": "forsoeg: 10000000.0000000002 har flere cifre, end arkivet kan bevare (dobbelt præcision, ca. 15–17 betydende cifre)."
+  },
+  {
+   "navn": "heltal #17",
+   "input": {
+    "kolonne": {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
+    "v": "867031.2300"
+   },
+   "ud": 867031.23
+  },
+  {
+   "navn": "heltal #18",
+   "input": {
+    "kolonne": {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
+    "v": "867031.2345792934"
+   },
+   "ud": 867031.2345792934
+  },
+  {
+   "navn": "heltal #19",
+   "input": {
+    "kolonne": {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
+    "v": "-0.000000100"
+   },
+   "ud": -1e-7
+  },
+  {
+   "navn": "heltal #20",
+   "input": {
+    "kolonne": {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
+    "v": "0.30000000000000004"
+   },
+   "ud": 0.30000000000000004
+  },
+  {
+   "navn": "heltal #21",
+   "input": {
+    "kolonne": {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
+    "v": "00012.5000"
+   },
+   "ud": 12.5
+  },
+  {
+   "navn": "heltal #22",
+   "input": {
+    "kolonne": {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
+    "v": ".5"
+   },
+   "ud": 0.5
+  },
+  {
+   "navn": "heltal #23",
+   "input": {
+    "kolonne": {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
+    "v": "5."
+   },
+   "ud": 5
+  },
+  {
+   "navn": "heltal #24",
+   "input": {
+    "kolonne": {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
+    "v": "1E-7"
+   },
+   "ud": 1e-7
+  },
+  {
+   "navn": "heltal #25",
+   "input": {
+    "kolonne": {
+     "navn": "forsoeg",
+     "type": "int",
+     "nullable": false
+    },
     "v": "2026-10-25T01:30:00.000Z"
    },
    "afvisning": "forsoeg: forventede et tal, fik 2026-10-25T01:30:00.000Z."
   },
   {
-   "navn": "heltal #16",
+   "navn": "heltal #26",
    "input": {
     "kolonne": {
      "navn": "forsoeg",
@@ -777,7 +1137,7 @@
    "afvisning": "forsoeg: forventede et tal, fik 2026-10-25T01:30:00."
   },
   {
-   "navn": "heltal #17",
+   "navn": "heltal #27",
    "input": {
     "kolonne": {
      "navn": "forsoeg",
@@ -789,7 +1149,7 @@
    "afvisning": "forsoeg: forventede et tal, fik 2026-10-25T03:30:00+02:00."
   },
   {
-   "navn": "heltal #18",
+   "navn": "heltal #28",
    "input": {
     "kolonne": {
      "navn": "forsoeg",
@@ -801,7 +1161,7 @@
    "afvisning": "forsoeg: forventede et tal, fik 2026-10-25T01:30:00.1234Z."
   },
   {
-   "navn": "heltal #19",
+   "navn": "heltal #29",
    "input": {
     "kolonne": {
      "navn": "forsoeg",
@@ -813,7 +1173,7 @@
    "afvisning": "forsoeg: forventede et tal, fik 2026-10-25."
   },
   {
-   "navn": "heltal #20",
+   "navn": "heltal #30",
    "input": {
     "kolonne": {
      "navn": "forsoeg",
@@ -825,7 +1185,7 @@
    "afvisning": "forsoeg: forventede et tal, fik ikke en dato."
   },
   {
-   "navn": "heltal #21",
+   "navn": "heltal #31",
    "input": {
     "kolonne": {
      "navn": "forsoeg",
@@ -839,7 +1199,7 @@
    "afvisning": "forsoeg: forventede et tal, fik 1."
   },
   {
-   "navn": "heltal #22",
+   "navn": "heltal #32",
    "input": {
     "kolonne": {
      "navn": "forsoeg",
@@ -1042,12 +1402,132 @@
      "type": "decimal",
      "nullable": true
     },
+    "v": "10000000.0000000001"
+   },
+   "afvisning": "vaerdi: 10000000.0000000001 har flere cifre, end arkivet kan bevare (dobbelt præcision, ca. 15–17 betydende cifre)."
+  },
+  {
+   "navn": "decimal #16",
+   "input": {
+    "kolonne": {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "nullable": true
+    },
+    "v": "10000000.0000000002"
+   },
+   "afvisning": "vaerdi: 10000000.0000000002 har flere cifre, end arkivet kan bevare (dobbelt præcision, ca. 15–17 betydende cifre)."
+  },
+  {
+   "navn": "decimal #17",
+   "input": {
+    "kolonne": {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "nullable": true
+    },
+    "v": "867031.2300"
+   },
+   "ud": 867031.23
+  },
+  {
+   "navn": "decimal #18",
+   "input": {
+    "kolonne": {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "nullable": true
+    },
+    "v": "867031.2345792934"
+   },
+   "ud": 867031.2345792934
+  },
+  {
+   "navn": "decimal #19",
+   "input": {
+    "kolonne": {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "nullable": true
+    },
+    "v": "-0.000000100"
+   },
+   "ud": -1e-7
+  },
+  {
+   "navn": "decimal #20",
+   "input": {
+    "kolonne": {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "nullable": true
+    },
+    "v": "0.30000000000000004"
+   },
+   "ud": 0.30000000000000004
+  },
+  {
+   "navn": "decimal #21",
+   "input": {
+    "kolonne": {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "nullable": true
+    },
+    "v": "00012.5000"
+   },
+   "ud": 12.5
+  },
+  {
+   "navn": "decimal #22",
+   "input": {
+    "kolonne": {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "nullable": true
+    },
+    "v": ".5"
+   },
+   "ud": 0.5
+  },
+  {
+   "navn": "decimal #23",
+   "input": {
+    "kolonne": {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "nullable": true
+    },
+    "v": "5."
+   },
+   "ud": 5
+  },
+  {
+   "navn": "decimal #24",
+   "input": {
+    "kolonne": {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "nullable": true
+    },
+    "v": "1E-7"
+   },
+   "ud": 1e-7
+  },
+  {
+   "navn": "decimal #25",
+   "input": {
+    "kolonne": {
+     "navn": "vaerdi",
+     "type": "decimal",
+     "nullable": true
+    },
     "v": "2026-10-25T01:30:00.000Z"
    },
    "afvisning": "vaerdi: forventede et tal, fik 2026-10-25T01:30:00.000Z."
   },
   {
-   "navn": "decimal #16",
+   "navn": "decimal #26",
    "input": {
     "kolonne": {
      "navn": "vaerdi",
@@ -1059,7 +1539,7 @@
    "afvisning": "vaerdi: forventede et tal, fik 2026-10-25T01:30:00."
   },
   {
-   "navn": "decimal #17",
+   "navn": "decimal #27",
    "input": {
     "kolonne": {
      "navn": "vaerdi",
@@ -1071,7 +1551,7 @@
    "afvisning": "vaerdi: forventede et tal, fik 2026-10-25T03:30:00+02:00."
   },
   {
-   "navn": "decimal #18",
+   "navn": "decimal #28",
    "input": {
     "kolonne": {
      "navn": "vaerdi",
@@ -1083,7 +1563,7 @@
    "afvisning": "vaerdi: forventede et tal, fik 2026-10-25T01:30:00.1234Z."
   },
   {
-   "navn": "decimal #19",
+   "navn": "decimal #29",
    "input": {
     "kolonne": {
      "navn": "vaerdi",
@@ -1095,7 +1575,7 @@
    "afvisning": "vaerdi: forventede et tal, fik 2026-10-25."
   },
   {
-   "navn": "decimal #20",
+   "navn": "decimal #30",
    "input": {
     "kolonne": {
      "navn": "vaerdi",
@@ -1107,7 +1587,7 @@
    "afvisning": "vaerdi: forventede et tal, fik ikke en dato."
   },
   {
-   "navn": "decimal #21",
+   "navn": "decimal #31",
    "input": {
     "kolonne": {
      "navn": "vaerdi",
@@ -1121,7 +1601,7 @@
    "afvisning": "vaerdi: forventede et tal, fik 1."
   },
   {
-   "navn": "decimal #22",
+   "navn": "decimal #32",
    "input": {
     "kolonne": {
      "navn": "vaerdi",
@@ -1324,12 +1804,132 @@
      "type": "boolean",
      "nullable": false
     },
+    "v": "10000000.0000000001"
+   },
+   "afvisning": "arkiveret: forventede sand/falsk, fik 10000000.0000000001."
+  },
+  {
+   "navn": "bool #16",
+   "input": {
+    "kolonne": {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    "v": "10000000.0000000002"
+   },
+   "afvisning": "arkiveret: forventede sand/falsk, fik 10000000.0000000002."
+  },
+  {
+   "navn": "bool #17",
+   "input": {
+    "kolonne": {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    "v": "867031.2300"
+   },
+   "afvisning": "arkiveret: forventede sand/falsk, fik 867031.2300."
+  },
+  {
+   "navn": "bool #18",
+   "input": {
+    "kolonne": {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    "v": "867031.2345792934"
+   },
+   "afvisning": "arkiveret: forventede sand/falsk, fik 867031.2345792934."
+  },
+  {
+   "navn": "bool #19",
+   "input": {
+    "kolonne": {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    "v": "-0.000000100"
+   },
+   "afvisning": "arkiveret: forventede sand/falsk, fik -0.000000100."
+  },
+  {
+   "navn": "bool #20",
+   "input": {
+    "kolonne": {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    "v": "0.30000000000000004"
+   },
+   "afvisning": "arkiveret: forventede sand/falsk, fik 0.30000000000000004."
+  },
+  {
+   "navn": "bool #21",
+   "input": {
+    "kolonne": {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    "v": "00012.5000"
+   },
+   "afvisning": "arkiveret: forventede sand/falsk, fik 00012.5000."
+  },
+  {
+   "navn": "bool #22",
+   "input": {
+    "kolonne": {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    "v": ".5"
+   },
+   "afvisning": "arkiveret: forventede sand/falsk, fik .5."
+  },
+  {
+   "navn": "bool #23",
+   "input": {
+    "kolonne": {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    "v": "5."
+   },
+   "afvisning": "arkiveret: forventede sand/falsk, fik 5.."
+  },
+  {
+   "navn": "bool #24",
+   "input": {
+    "kolonne": {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
+    "v": "1E-7"
+   },
+   "afvisning": "arkiveret: forventede sand/falsk, fik 1E-7."
+  },
+  {
+   "navn": "bool #25",
+   "input": {
+    "kolonne": {
+     "navn": "arkiveret",
+     "type": "boolean",
+     "nullable": false
+    },
     "v": "2026-10-25T01:30:00.000Z"
    },
    "afvisning": "arkiveret: forventede sand/falsk, fik 2026-10-25T01:30:00.000Z."
   },
   {
-   "navn": "bool #16",
+   "navn": "bool #26",
    "input": {
     "kolonne": {
      "navn": "arkiveret",
@@ -1341,7 +1941,7 @@
    "afvisning": "arkiveret: forventede sand/falsk, fik 2026-10-25T01:30:00."
   },
   {
-   "navn": "bool #17",
+   "navn": "bool #27",
    "input": {
     "kolonne": {
      "navn": "arkiveret",
@@ -1353,7 +1953,7 @@
    "afvisning": "arkiveret: forventede sand/falsk, fik 2026-10-25T03:30:00+02:00."
   },
   {
-   "navn": "bool #18",
+   "navn": "bool #28",
    "input": {
     "kolonne": {
      "navn": "arkiveret",
@@ -1365,7 +1965,7 @@
    "afvisning": "arkiveret: forventede sand/falsk, fik 2026-10-25T01:30:00.1234Z."
   },
   {
-   "navn": "bool #19",
+   "navn": "bool #29",
    "input": {
     "kolonne": {
      "navn": "arkiveret",
@@ -1377,7 +1977,7 @@
    "afvisning": "arkiveret: forventede sand/falsk, fik 2026-10-25."
   },
   {
-   "navn": "bool #20",
+   "navn": "bool #30",
    "input": {
     "kolonne": {
      "navn": "arkiveret",
@@ -1389,7 +1989,7 @@
    "afvisning": "arkiveret: forventede sand/falsk, fik ikke en dato."
   },
   {
-   "navn": "bool #21",
+   "navn": "bool #31",
    "input": {
     "kolonne": {
      "navn": "arkiveret",
@@ -1403,7 +2003,7 @@
    "afvisning": "arkiveret: forventede sand/falsk, fik 1."
   },
   {
-   "navn": "bool #22",
+   "navn": "bool #32",
    "input": {
     "kolonne": {
      "navn": "arkiveret",
@@ -1606,12 +2206,132 @@
      "type": "datetime",
      "nullable": false
     },
+    "v": "10000000.0000000001"
+   },
+   "afvisning": "tid: forventede et tidspunkt, fik 10000000.0000000001."
+  },
+  {
+   "navn": "tid #16",
+   "input": {
+    "kolonne": {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
+    "v": "10000000.0000000002"
+   },
+   "afvisning": "tid: forventede et tidspunkt, fik 10000000.0000000002."
+  },
+  {
+   "navn": "tid #17",
+   "input": {
+    "kolonne": {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
+    "v": "867031.2300"
+   },
+   "afvisning": "tid: forventede et tidspunkt, fik 867031.2300."
+  },
+  {
+   "navn": "tid #18",
+   "input": {
+    "kolonne": {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
+    "v": "867031.2345792934"
+   },
+   "afvisning": "tid: forventede et tidspunkt, fik 867031.2345792934."
+  },
+  {
+   "navn": "tid #19",
+   "input": {
+    "kolonne": {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
+    "v": "-0.000000100"
+   },
+   "afvisning": "tid: forventede et tidspunkt, fik -0.000000100."
+  },
+  {
+   "navn": "tid #20",
+   "input": {
+    "kolonne": {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
+    "v": "0.30000000000000004"
+   },
+   "afvisning": "tid: forventede et tidspunkt, fik 0.30000000000000004."
+  },
+  {
+   "navn": "tid #21",
+   "input": {
+    "kolonne": {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
+    "v": "00012.5000"
+   },
+   "afvisning": "tid: forventede et tidspunkt, fik 00012.5000."
+  },
+  {
+   "navn": "tid #22",
+   "input": {
+    "kolonne": {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
+    "v": ".5"
+   },
+   "afvisning": "tid: forventede et tidspunkt, fik .5."
+  },
+  {
+   "navn": "tid #23",
+   "input": {
+    "kolonne": {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
+    "v": "5."
+   },
+   "afvisning": "tid: forventede et tidspunkt, fik 5.."
+  },
+  {
+   "navn": "tid #24",
+   "input": {
+    "kolonne": {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
+    "v": "1E-7"
+   },
+   "afvisning": "tid: forventede et tidspunkt, fik 1E-7."
+  },
+  {
+   "navn": "tid #25",
+   "input": {
+    "kolonne": {
+     "navn": "tid",
+     "type": "datetime",
+     "nullable": false
+    },
     "v": "2026-10-25T01:30:00.000Z"
    },
    "ud": "2026-10-25T01:30:00.000Z"
   },
   {
-   "navn": "tid #16",
+   "navn": "tid #26",
    "input": {
     "kolonne": {
      "navn": "tid",
@@ -1623,7 +2343,7 @@
    "ud": "2026-10-25T01:30:00.000Z"
   },
   {
-   "navn": "tid #17",
+   "navn": "tid #27",
    "input": {
     "kolonne": {
      "navn": "tid",
@@ -1635,7 +2355,7 @@
    "ud": "2026-10-25T01:30:00.000Z"
   },
   {
-   "navn": "tid #18",
+   "navn": "tid #28",
    "input": {
     "kolonne": {
      "navn": "tid",
@@ -1647,7 +2367,7 @@
    "ud": "2026-10-25T01:30:00.123Z"
   },
   {
-   "navn": "tid #19",
+   "navn": "tid #29",
    "input": {
     "kolonne": {
      "navn": "tid",
@@ -1659,7 +2379,7 @@
    "ud": "2026-10-25T00:00:00.000Z"
   },
   {
-   "navn": "tid #20",
+   "navn": "tid #30",
    "input": {
     "kolonne": {
      "navn": "tid",
@@ -1671,7 +2391,7 @@
    "afvisning": "tid: forventede et tidspunkt, fik ikke en dato."
   },
   {
-   "navn": "tid #21",
+   "navn": "tid #31",
    "input": {
     "kolonne": {
      "navn": "tid",
@@ -1685,7 +2405,7 @@
    "afvisning": "tid: forventede et tidspunkt, fik 1."
   },
   {
-   "navn": "tid #22",
+   "navn": "tid #32",
    "input": {
     "kolonne": {
      "navn": "tid",

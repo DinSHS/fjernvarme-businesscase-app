@@ -27,6 +27,7 @@ INPUT = {
     "hentDmiTemperatur": ("omraade", "fra", "til"),
     "skemaInfo": (),
     "importerArkiv": ("anmodningId", "del"),          # runde 13: logik/arkiv.py
+    "arkivTal": ("scenarieIder",),                    # runde 13b (K10-F4): rækketal, kun læsning
 }
 
 
@@ -53,6 +54,8 @@ def kald(app, navn: str, inp, bruger: str):
         return t.hent_kilde_yaml(inp["vaerkId"])
     if navn == "hentDmiTemperatur":
         return t.hent_dmi_temperatur(inp["omraade"], inp["fra"], inp["til"], inp.get("kolonne") or "")
+    if navn == "arkivTal":
+        return t.arkiv_tal(inp["scenarieIder"])
     if navn == "hentTidsserie":
         return t.hent_tidsserie(inp["tidsserieId"], inp.get("fra") or "", inp.get("til") or "")
     with betroet_mutex:

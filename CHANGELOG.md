@@ -30,6 +30,12 @@ sammenlignes med tal efter.
   kørsel som historisk kørsel (markeret *importeret fra arkiv*). Ny Function `importerArkiv` (Fabric) og samme forløb
   i den lokale server (`logik/arkiv.py`, bundet af `skema/vektorer/arkiv/`). Ingen skemaændring.
   Fabric: deploy Functions og frontend (`rayfin up`); ingen `db apply`.
+- Arkivet rettet efter Codex' review K10 (runde 13b, formatversion 2 — arkiver fra før kan ikke læses): et scenarie skrives
+  sammen med sine ændringer; en kørsel skrives først, når dens rækker har arkivets antal og indhold (sha256 pr. undertabel)
+  under en lås pr. kørsel, og en eksisterende kørsel er kun "findes", hvis dens rækker også passer; eksporten tæller hver
+  tabel i databasen (ny Function `arkivTal`) og tjekker `input_hash`; tidsserier matches på rolle og sha256; delene deles
+  efter bytes; afledte kolonner er entydigt kodet. Tal bevares med dobbelt præcision (som appen læser dem) — en decimal
+  med flere cifre afvises i stedet for at afrundes.
 
 ### Ændret
 - Scenarielisten (`#/scenarier`) har ikke længere farvevalg eller heatmap: ΔRef står som almindeligt tal med fortegn.

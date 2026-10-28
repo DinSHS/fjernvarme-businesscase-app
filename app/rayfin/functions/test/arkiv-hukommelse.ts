@@ -5,7 +5,7 @@
 //-----------------------------------------------------------------------
 
 import {
-    inputHashRen, kolonnenavne, NIL_UUID, type ArkivLager, type ArkivTx, type Børnetal, type ImportTabel, type InputRad, type Kanonisk, type LogRad,
+    børnetilstandAf, inputHashRen, KOERSEL_BOERN, kolonnenavne, NIL_UUID, type ArkivLager, type ArkivTx, type ImportTabel, type InputRad, type Kanonisk, type LogRad,
 } from "../src/arkiv";
 
 export type Række = Record<string, unknown>;
@@ -25,8 +25,23 @@ export function kopiDb(db: Tabeller): Tabeller {
 const fraKanonisk = (tabel: ImportTabel, r: readonly Kanonisk[]): Række =>
     Object.fromEntries(kolonnenavne(tabel).map((k, i) => [k, r[i]]));
 
-/** Lageret over en hukommelses-db. `afbryd` kaster efter n indsættelser (afbrudt import). */
-export function hukommelsesLager(db: Tabeller, valg: { afbrydEfter?: number } = {}): ArkivLager & { indsatte: number } {
+const låseregister = new WeakMap<Tabeller, Map<string, Promise<void>>>();
+
+export interface Lagervalg {
+    /** Kast efter n indsatte rækker (en afbrudt import). */
+    afbrydEfter?: number;
+    /** Kaldes før hver indsættelse (en test kan sætte transaktionen på pause her). */
+    førIndsæt?: (tabel: string) => Promise<void>;
+    /** Uden låse pr. kørsel — kun til at vise, at testen af K10-F3 fanger fejlen. */
+    udenKørselslås?: boolean;
+}
+
+/**
+ * Lageret over en hukommelses-db med READ COMMITTED som SQL Server: læsninger ser det committede, skrivninger samles
+ * og committes til sidst (rollback ved fejl), og `låsKørsler` er en rigtig, ventende lås pr. kørsels-id (som
+ * sp_getapplock), der holdes til transaktionen slutter.
+ */
+export function hukommelsesLager(db: Tabeller, valg: Lagervalg = {}): ArkivLager & { indsatte: number } {
     const lager = {
         indsatte: 0,
         læsAnmodning: async (id: string) => {
@@ -38,36 +53,51 @@ export function hukommelsesLager(db: Tabeller, valg: { afbrydEfter?: number } = 
             if (a && a.status === "ny") { a.status = "afvist"; a.svar = tekst; }
         },
         iTransaktion: async <T,>(fn: (tx: ArkivTx) => Promise<T>): Promise<T> => {
-            const kopi = kopiDb(db);
+            const skrevet: [string, string, Række][] = [];
+            const frigiv: (() => void)[] = [];
+            const reg = låseregister.get(db) ?? new Map<string, Promise<void>>();
+            låseregister.set(db, reg);
+            const rækker = (t: string) => [...db[t].values()];
             const tx: ArkivTx = {
-                låsAnmodning: async (id) => ({ status: String(kopi.Aendringsanmodning.get(id)?.status), svar: (kopi.Aendringsanmodning.get(id)?.svar as string) ?? null }),
-                hent: async (tabel, ider) => ider.map((i) => kopi[tabel].get(i)).filter((x): x is Række => !!x),
-                indsæt: async (tabel, rækker) => {
-                    for (const r of rækker) {
+                låsAnmodning: async (id) => ({ status: String(db.Aendringsanmodning.get(id)?.status), svar: (db.Aendringsanmodning.get(id)?.svar as string) ?? null }),
+                låsKørsler: async (ider) => {
+                    if (valg.udenKørselslås) return;
+                    for (const id of ider) {
+                        while (reg.has(id)) await reg.get(id);
+                        let slip!: () => void;
+                        reg.set(id, new Promise<void>((r) => (slip = r)));
+                        frigiv.push(() => { reg.delete(id); slip(); });
+                    }
+                },
+                hent: async (tabel, ider) => ider.map((i) => db[tabel].get(i)).filter((x): x is Række => !!x).map((x) => ({ ...x })),
+                indsæt: async (tabel, nye) => {
+                    if (valg.førIndsæt) await valg.førIndsæt(tabel);
+                    for (const r of nye) {
                         if (valg.afbrydEfter !== undefined && lager.indsatte >= valg.afbrydEfter) throw new Error("forbindelsen blev afbrudt (test)");
-                        if (kopi[tabel].has(r[0] as string)) throw new Error(`PK-brud ${tabel} ${String(r[0])}`);
-                        kopi[tabel].set(r[0] as string, fraKanonisk(tabel, r));
+                        if (db[tabel].has(r[0] as string) || skrevet.some(([t, id]) => t === tabel && id === r[0])) throw new Error(`PK-brud ${tabel} ${String(r[0])}`);
+                        skrevet.push([tabel, r[0] as string, fraKanonisk(tabel, r)]);
                         lager.indsatte++;
                     }
                 },
-                tælBørn: async (k) => Object.fromEntries((["KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime"] as const)
-                    .map((b) => [b, [...kopi[b].values()].filter((r) => r.koersel_id === k).length])) as Børnetal,
-                input: async (k) => [...kopi.KoerselInput.values()].filter((r) => r.koersel_id === k)
+                børneside: async (k, tabel, fra, antal) => rækker(tabel).filter((r) => r.koersel_id === k)
+                    .sort((a, b) => (String(a.id) < String(b.id) ? -1 : 1)).slice(fra, fra + antal).map((x) => ({ ...x })),
+                input: async (k) => rækker("KoerselInput").filter((r) => r.koersel_id === k)
                     .map((r) => ({ kilde: String(r.kilde), sti: String(r.sti), vaerdi_json: String(r.vaerdi_json) })),
                 vaerkHistorik: async (v) => ({
-                    revision: Number(kopi.Vaerk.get(v)?.revision ?? 0),
-                    blade: [...kopi.VaerkParameter.values()].filter((r) => r.vaerk_id === v).map((r) => ({ sti: String(r.sti), vaerdi_json: String(r.vaerdi_json) })),
-                    log: [...kopi.Aendringslog.values()].filter((r) => r.vaerk_id === v) as unknown as LogRad[],
+                    revision: Number(db.Vaerk.get(v)?.revision ?? 0),
+                    blade: rækker("VaerkParameter").filter((r) => r.vaerk_id === v).map((r) => ({ sti: String(r.sti), vaerdi_json: String(r.vaerdi_json) })),
+                    log: rækker("Aendringslog").filter((r) => r.vaerk_id === v) as unknown as LogRad[],
                 }),
-                tidsserieShas: async (v) => new Set([...kopi.Tidsserie.values()].filter((r) => r.vaerk_id === v && r.status === "gyldig").map((r) => String(r.sha256))),
-                udfoer: async (id, svar) => {
-                    const a = kopi.Aendringsanmodning.get(id)!;
-                    a.status = "udfoert"; a.svar = svar;
-                },
+                tidsserier: async (v) => rækker("Tidsserie").filter((r) => r.vaerk_id === v && r.status === "gyldig").map((r) => ({ rolle: String(r.rolle), sha256: String(r.sha256) })),
+                udfoer: async (id, svar) => { skrevet.push(["Aendringsanmodning", id, { ...db.Aendringsanmodning.get(id)!, status: "udfoert", svar }]); },
             };
-            const ud = await fn(tx);
-            for (const t of Object.keys(db)) db[t] = kopi[t];          // commit
-            return ud;
+            try {
+                const ud = await fn(tx);
+                for (const [t, id, r] of skrevet) db[t].set(id, r);          // commit
+                return ud;
+            } finally {
+                for (const f of frigiv) f();
+            }
         },
     };
     return lager;
@@ -177,4 +207,26 @@ function tilføjReferencekørsel(db: Tabeller): void {
 /** Tabellens rækker i arkivets kanoniske form (sorteret som i databasen). */
 export function rækkerFra(db: Tabeller, tabel: ImportTabel, filter: (r: Række) => boolean = () => true): Kanonisk[][] {
     return [...db[tabel].values()].filter(filter).map((r) => kolonnenavne(tabel).map((k) => (r[k] ?? null) as Kanonisk));
+}
+
+/** Arkivets forventede rækker (antal og sha256 pr. undertabel) for kørslerne, som klienten sender dem i en Koersel-del. */
+export function forventetFor(kilde: Tabeller, koersler: readonly (readonly Kanonisk[])[]) {
+    return Object.fromEntries(koersler.map((k) => [k[0] as string, børnetilstandAf(Object.fromEntries(KOERSEL_BOERN.map((b) =>
+        [b, rækkerFra(kilde, b, (x) => x.koersel_id === k[0])])) as never)]));
+}
+
+/** Databasens egne rækketal (som Function arkivTal), til eksportens fuldstændighedstjek i testene. */
+export function tællerFor(db: Tabeller) {
+    return async (ider: readonly string[]) => {
+        const tæl = (t: string, f: (r: Række) => boolean) => [...db[t].values()].filter(f).length;
+        const scenarier = Object.fromEntries(ider.map((id) => [id, {
+            ScenarieAendring: tæl("ScenarieAendring", (r) => r.scenarie_id === id), Bestilling: tæl("Bestilling", (r) => r.scenarie_id === id),
+            Koersel: tæl("Koersel", (r) => r.scenarie_id === id),
+        }]));
+        const kør = [...db.Koersel.values()].filter((k) => ider.includes(String(k.scenarie_id)));
+        const koersler = Object.fromEntries(kør.map((k) => [String(k.id), Object.fromEntries(KOERSEL_BOERN.map((b) => [b, tæl(b, (r) => r.koersel_id === k.id)]))]));
+        const vids = new Set([...ider.map((id) => String(db.Scenarie.get(id)?.vaerk_id)), ...kør.map((k) => String(k.vaerk_id))]);
+        const vaerker = Object.fromEntries([...vids].map((v) => [v, { Aendringslog: tæl("Aendringslog", (r) => r.vaerk_id === v), Tidsserie: tæl("Tidsserie", (r) => r.vaerk_id === v) }]));
+        return { ok: true, scenarier, koersler: koersler as never, vaerker };
+    };
 }

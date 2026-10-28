@@ -76,7 +76,7 @@ function EksportérAlt({ bruger, gåTil }: { bruger: string | undefined; gåTil:
     return (
         <Kort titel="Eksportér arkiv" afgraensning="alle scenarier"
             budskab={valgte ? `${antalScen} ${antalScen === 1 ? "scenarie" : "scenarier"} i ${valgte.length} ${valgte.length === 1 ? "familie" : "familier"} (et scenarie og dets reference), ${antalKørsler} afsluttede ${antalKørsler === 1 ? "kørsel" : "kørsler"}.` : undefined}
-            fod="Én .zip med én Excel-fil pr. familie og manifest.json. Hver fil kan importeres for sig. Kørsler, der ikke er færdige, kommer ikke med. Værker og tidsserier eksporteres ikke — eksportér værksarket under Konfiguration.">
+            fod="Én .zip med én Excel-fil pr. familie og manifest.json. Hver fil kan importeres for sig. Kørsler, der ikke er færdige, kommer ikke med. Værker og tidsserier eksporteres ikke — eksportér værksarket under Konfiguration. Hver tabel tælles også i databasen; mangler en række, stopper eksporten. Tal bevares med dobbelt præcision (ca. 15–17 betydende cifre), som appen læser dem.">
             <DataTilstand h={scenarier}>
                 {() => (
                     <div className="fs-blok">

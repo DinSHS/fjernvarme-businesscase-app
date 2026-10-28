@@ -57,6 +57,10 @@ export type AppFunctionsSchema = {
     input: { anmodningId: string; del: string };
     output: { ok: boolean; status: string; svar: string; oprettet?: undefined | number; fandtes?: undefined | number };
   };
+  arkivTal: {
+    input: { scenarieIder: string };
+    output: { ok: boolean; fejl?: undefined | string; scenarier?: undefined | Record<string, { ScenarieAendring: number; Bestilling: number; Koersel: number }>; koersler?: undefined | Record<string, { KoerselInput: number; KoerselNoegletal: number; KoerselMaaned: number; KoerselTime: number }>; vaerker?: undefined | Record<string, { Aendringslog: number; Tidsserie: number }> };
+  };
   skemaInfo: {
     input: Record<string, never>;
     output: { login: string; kolonner: { tabel: string; kolonne: string; type: string; laengde: null | number; praecision: null | number; skala: null | number; nullable: boolean }[]; unikke: string[]; checks: string[] };

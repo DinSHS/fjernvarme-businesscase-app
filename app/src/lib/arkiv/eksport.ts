@@ -1,9 +1,10 @@
 //-----------------------------------------------------------------------
 // Eksport af scenarier og kørsler til et arkiv (runde 13). Genereres i browseren — begge udgaver, intet job.
 //
-// Alt læses PAGINERET (`læs` -> hentAlle; DAB svarer ellers med 100 rækker). En afkortet KoerselTime er den
-// farligste fejl her, så eksporten tjekker hver færdig kørsel: antallet af timerækker skal være kørslens eget
-// `antal_interval_csv` (de N-1 rækker i modellens _hourly.csv) — ellers stopper den med en forklaring.
+// Alt læses PAGINERET (`læs` -> hentAlle; DAB svarer ellers med 100 rækker). En afkortet læsning er den farligste
+// fejl her, så eksporten sammenholder HVER tabel med rækketal, databasen selv tæller (Function `arkivTal`, COUNT som
+// app-ejeren — uafhængigt af DAB-læsningen), tjekker hver kørsels `input_hash` mod dens input og hver færdig kørsels
+// timer mod `antal_interval_csv`. Passer noget ikke, stopper eksporten højt (K10-F4).
 //
 // Enheden er en scenarie-FAMILIE: et scenarie og dets reference (og de scenarier, der bruger dem som reference).
 // En familie kan genimporteres for sig og kan sammenlignes bagefter; derfor er "Eksportér arkiv" en .zip med én
@@ -11,10 +12,11 @@
 //-----------------------------------------------------------------------
 
 import {
-    AFSLUTTEDE_STATUS, ArkivAfvisning, kanoniskRække, kolonnenavne, sha256Bytes, vaerkSha, type ImportTabel, type Kanonisk,
+    AFSLUTTEDE_STATUS, ArkivAfvisning, inputHashRen, kanoniskRække, kolonnenavne, sha256Bytes, vaerkSha, type Arkivtal, type ImportTabel, type Kanonisk,
 } from "../../../rayfin/functions/src/arkiv";
 import { MOTOR_ID } from "../../../rayfin/data/fjv.constants";
 import { læs, læsÉn } from "@/lib/data/laes";
+import { hentArkivTal } from "@/lib/data/skriv";
 import { MODEL_COMMIT } from "@/sider/konfiguration/katalog.data";
 import { bygArkivBog, tomtIndhold, type ArkivIndhold, type ArkivMeta, type ArkivTabel, type Manifest } from "./bog";
 import { APP_COMMIT, APP_VERSION } from "./version";
@@ -38,8 +40,19 @@ export interface Eksportvalg {
     titel?: string;
 }
 
+/** Rækketal fra databasen selv (standard: Function arkivTal). Testene giver deres egen. */
+export type Tæller = (scenarieIder: readonly string[]) => Promise<Arkivtal>;
+
+/** Sammenholder det læste med databasens egne rækketal; kaster ved den mindste afvigelse. */
+function tjekAntal(hvad: string, læst: number, db: number | undefined): void {
+    if (db === undefined) throw new ArkivAfvisning(`Databasen kender ikke ${hvad} — eksporten stopper.`);
+    if (læst !== db) {
+        throw new ArkivAfvisning(`${hvad}: læst ${læst} rækker, men databasen har ${db}. Eksporten stopper hellere end at gemme et afkortet arkiv — prøv igen, og meld fejlen, hvis tallet står fast.`);
+    }
+}
+
 /** Henter et arkivs indhold fra databasen (pagineret) og tjekker, at intet er afkortet. */
-export async function hentArkivindhold(valg: Eksportvalg, fremdrift: Fremdrift = () => {}): Promise<ArkivIndhold> {
+export async function hentArkivindhold(valg: Eksportvalg, fremdrift: Fremdrift = () => {}, tæller: Tæller = hentArkivTal): Promise<ArkivIndhold> {
     const motor = await læsÉn("Motor", MOTOR_ID).catch(() => null);
     const meta: ArkivMeta = {
         titel: valg.titel ?? "Arkiv — scenarier og kørsler",
@@ -51,6 +64,9 @@ export async function hentArkivindhold(valg: Eksportvalg, fremdrift: Fremdrift =
     const tilføj = (t: ArkivTabel, r: Kanonisk[]) => ind.tabeller[t].push(r);
     const vaerker = new Set<string>();
     const revisioner = new Map<string, Kanonisk[]>();
+    fremdrift("Tæller rækkerne i databasen");
+    const tal = await tæller(valg.scenarier);
+    if (!tal.ok || !tal.scenarier || !tal.koersler || !tal.vaerker) throw new ArkivAfvisning(`Rækketallene kunne ikke hentes: ${tal.fejl ?? "ukendt fejl"}`);
 
     for (const sid of valg.scenarier) {
         const s = await læsÉn("Scenarie", sid);
@@ -58,11 +74,17 @@ export async function hentArkivindhold(valg: Eksportvalg, fremdrift: Fremdrift =
         fremdrift(`Scenariet "${s.navn}"`);
         tilføj("Scenarie", kan("Scenarie", s));
         vaerker.add(s.vaerk_id);
-        for (const a of await læs("ScenarieAendring", { filter: { scenarie_id: { eq: sid } }, sidestørrelse: EKSPORT_SIDE })) tilføj("ScenarieAendring", kan("ScenarieAendring", a));
+        const st = tal.scenarier[sid];
+        const ændringer = await læs("ScenarieAendring", { filter: { scenarie_id: { eq: sid } }, sidestørrelse: EKSPORT_SIDE });
+        tjekAntal(`Scenariet "${s.navn}"s ændringer`, ændringer.length, st?.ScenarieAendring);
+        for (const a of ændringer) tilføj("ScenarieAendring", kan("ScenarieAendring", a));
         const koersler = await læs("Koersel", { filter: { scenarie_id: { eq: sid } }, sidestørrelse: EKSPORT_SIDE });
+        tjekAntal(`Scenariet "${s.navn}"s kørsler`, koersler.length, st?.Koersel);
         const med = koersler.filter((k) => !valg.koersler || valg.koersler.has(k.id));
         const bestillinger = new Set(med.map((k) => k.bestilling_id));
-        for (const b of await læs("Bestilling", { filter: { scenarie_id: { eq: sid } }, sidestørrelse: EKSPORT_SIDE })) {
+        const alleBestillinger = await læs("Bestilling", { filter: { scenarie_id: { eq: sid } }, sidestørrelse: EKSPORT_SIDE });
+        tjekAntal(`Scenariet "${s.navn}"s bestillinger`, alleBestillinger.length, st?.Bestilling);
+        for (const b of alleBestillinger) {
             if (bestillinger.has(b.id)) tilføj("Bestilling", kan("Bestilling", b));
         }
         for (const k of med) {
@@ -76,6 +98,14 @@ export async function hentArkivindhold(valg: Eksportvalg, fremdrift: Fremdrift =
             const noegletal = await læs("KoerselNoegletal", f);
             const maaneder = await læs("KoerselMaaned", f);
             const timer = await læs("KoerselTime", { ...f, sortering: { tid: "asc" } });
+            const kt = tal.koersler[k.id];
+            tjekAntal(`Kørslen ${k.id}s input`, input.length, kt?.KoerselInput);
+            tjekAntal(`Kørslen ${k.id}s nøgletal`, noegletal.length, kt?.KoerselNoegletal);
+            tjekAntal(`Kørslen ${k.id}s månedsrækker`, maaneder.length, kt?.KoerselMaaned);
+            tjekAntal(`Kørslen ${k.id}s timerækker`, timer.length, kt?.KoerselTime);
+            if (inputHashRen(input) !== k.input_hash) {
+                throw new ArkivAfvisning(`Kørslen ${k.id}: det læste input passer ikke med kørslens input_hash. Eksporten stopper — prøv igen, og meld fejlen, hvis den står fast.`);
+            }
             if (k.status === "faerdig" && k.antal_interval_csv != null && timer.length !== k.antal_interval_csv) {
                 throw new ArkivAfvisning(
                     `Kørslen ${k.id} har ${timer.length} timerækker i databasen, men kørslen siger ${k.antal_interval_csv}. ` +
@@ -95,8 +125,12 @@ export async function hentArkivindhold(valg: Eksportvalg, fremdrift: Fremdrift =
         const v = await læsÉn("Vaerk", vid);
         if (!v) throw new ArkivAfvisning(`Værket ${vid} findes ikke.`);
         tilføj("VaerkRef", [v.id, v.kode, v.navn, v.revision, v.kilde]);
-        for (const l of await læs("Aendringslog", { filter: { vaerk_id: { eq: vid } }, sidestørrelse: EKSPORT_SIDE })) tilføj("Aendringslog", kan("Aendringslog", l));
-        for (const t of await læs("Tidsserie", { filter: { vaerk_id: { eq: vid } }, sidestørrelse: EKSPORT_SIDE })) {
+        const log = await læs("Aendringslog", { filter: { vaerk_id: { eq: vid } }, sidestørrelse: EKSPORT_SIDE });
+        tjekAntal(`Værket ${v.kode}s ændringslog`, log.length, tal.vaerker[vid]?.Aendringslog);
+        for (const l of log) tilføj("Aendringslog", kan("Aendringslog", l));
+        const serier = await læs("Tidsserie", { filter: { vaerk_id: { eq: vid } }, sidestørrelse: EKSPORT_SIDE });
+        tjekAntal(`Værket ${v.kode}s tidsserier`, serier.length, tal.vaerker[vid]?.Tidsserie);
+        for (const t of serier) {
             tilføj("TidsserieRef", [t.id, t.vaerk_id, t.rolle, t.navn, t.filnavn, t.sha256 ?? null, t.status, (t.uploadet as Date).toISOString()]);
         }
     }
@@ -118,8 +152,8 @@ export function arkivFilnavn(vaerkKode: string, scenarienavn: string, iso: strin
 export interface EksporteretFil { navn: string; bytes: Uint8Array; manifest: Manifest }
 
 /** Én familie som én .xlsx. */
-export async function eksporterFamilie(valg: Eksportvalg, fremdrift?: Fremdrift): Promise<EksporteretFil> {
-    const ind = await hentArkivindhold(valg, fremdrift);
+export async function eksporterFamilie(valg: Eksportvalg, fremdrift?: Fremdrift, tæller?: Tæller): Promise<EksporteretFil> {
+    const ind = await hentArkivindhold(valg, fremdrift, tæller);
     // Familien hedder som sin rod: scenariet uden reference (referencen), ellers det første.
     const første = ind.tabeller.Scenarie.find((r) => r[kolonnenavne("Scenarie").indexOf("reference_scenarie_id")] === null) ?? ind.tabeller.Scenarie[0];
     const vaerk = ind.tabeller.VaerkRef[0];
@@ -136,13 +170,13 @@ export interface SamlingsManifest {
 }
 
 /** Alle familier som én .zip: én .xlsx pr. familie + manifest.json (filernes sha256, så en manglende eller ændret fil opdages). */
-export async function eksporterSamling(familierne: readonly string[][], bruger: string, fremdrift?: Fremdrift): Promise<{ navn: string; bytes: Uint8Array; manifest: SamlingsManifest }> {
+export async function eksporterSamling(familierne: readonly string[][], bruger: string, fremdrift?: Fremdrift, tæller?: Tæller): Promise<{ navn: string; bytes: Uint8Array; manifest: SamlingsManifest }> {
     const nu = new Date().toISOString();
     const filer: Record<string, Uint8Array> = {};
     const m: SamlingsManifest = { format: SAMLING_FORMAT, version: 1, eksporteret: nu, eksporteret_af: bruger, app_version: APP_VERSION, app_commit: APP_COMMIT, filer: [] };
     for (const [i, f] of familierne.entries()) {
         fremdrift?.(`Familie ${i + 1} af ${familierne.length}`);
-        const e = await eksporterFamilie({ scenarier: f, bruger }, fremdrift);
+        const e = await eksporterFamilie({ scenarier: f, bruger }, fremdrift, tæller);
         let navn = e.navn;
         for (let n = 2; filer[navn]; n++) navn = e.navn.replace(/\.xlsx$/, `_${n}.xlsx`);
         filer[navn] = e.bytes;

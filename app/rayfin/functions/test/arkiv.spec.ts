@@ -7,11 +7,11 @@
 import { createHash, randomBytes } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
-    ArkivAfvisning, delOp, delTekst, fejlIVærdi, importAnmodningJson, importerDel, inputHashRen, kanonisk, kolonner, læsDel, læsImportAnmodning,
-    sha256Bytes, sha256Tekst, tabelSha, vaerkRevisioner, vaerkSha, type Børnetal, type ImportTabel, type Kanonisk,
+    ArkivAfvisning, delOp, delTekst, fejlIVærdi, importAnmodningJson, importerDel, inputHashRen, kaldBytes, kanonisk, kolonnenavne, kolonner,
+    læsDel, læsImportAnmodning, sha256Bytes, sha256Tekst, tabelSha, vaerkRevisioner, vaerkSha, type DelTabel, type ImportTabel, type Kanonisk,
 } from "../src/arkiv";
 import { inputHash } from "../src/logik";
-import { eksempelDb, hukommelsesLager, ID, opretAnmodning, rækkerFra, tomDb, kopiDb, type Tabeller } from "./arkiv-hukommelse";
+import { eksempelDb, forventetFor, hukommelsesLager, ID, opretAnmodning, rækkerFra, tomDb, kopiDb, type Tabeller } from "./arkiv-hukommelse";
 
 const ARKIV = "c".repeat(64);
 const node = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
@@ -88,39 +88,57 @@ describe("anmodning og del", () => {
         expect(() => læsImportAnmodning(j.replace("KoerselTime", "Vaerk"))).toThrow(/Ukendt tabel/);
     });
     it("afviser en del med andre kolonner end skemaets", () => {
-        const t = delTekst({ arkiv: ARKIV, tabel: "Scenarie", raekker: rækkerFra(eksempelDb(), "Scenarie") });
+        const t = delTekst({ arkiv: ARKIV, tabel: "Scenarie", raekker: rækkerFra(eksempelDb(), "Scenarie"), aendringer: rækkerFra(eksempelDb(), "ScenarieAendring") });
         expect(læsDel(t).raekker).toHaveLength(2);
         expect(() => læsDel(t.replace('"navn"', '"Navn"'))).toThrow(/kolonnerne passer ikke/);
     });
-    it("delOp holder hver del under grænsen og deler aldrig en række", () => {
+    it("delOp holder hele kaldet under grænsen i UTF-8-bytes og deler aldrig en række", () => {
         const r = rækkerFra(eksempelDb(), "KoerselTime");
-        const dele = delOp(r, "KoerselTime", 5000);
-        expect(dele.length).toBeGreaterThan(5);
-        expect(dele.flat()).toEqual(r);
-        for (const d of dele) expect(delTekst({ arkiv: ARKIV, tabel: "KoerselTime", raekker: d }).length).toBeLessThan(5000);
+        const dele = delOp(r, "KoerselTime", 70_000);
+        expect(dele.length).toBeGreaterThan(1);
+        expect(dele.flatMap((d) => d.raekker)).toEqual(r);
+        for (const d of dele) expect(kaldBytes(delTekst({ arkiv: ARKIV, tabel: "KoerselTime", raekker: d.raekker }))).toBeLessThanOrEqual(70_000);
+    });
+    it("K10-F7: dansk tekst og escape-tung JSON — grænsen gælder kaldets bytes, ikke tegn", () => {
+        const base = rækkerFra(eksempelDb(1), "KoerselTime")[0];
+        const ks = kolonnenavne("KoerselTime");
+        const rækker = Array.from({ length: 700 }, (_, i) => {
+            const r = [...base];
+            r[0] = `aaaaaaaa-4444-4444-8444-${i.toString(16).padStart(12, "0")}`;
+            r[ks.indexOf("tid")] = new Date(Date.UTC(2026, 0, 1) + i * 3_600_000).toISOString();
+            r[ks.indexOf("vaerdier_json")] = JSON.stringify({ notat: i % 2 ? "æ".repeat(3980) : '"'.repeat(1990) });
+            return r;
+        });
+        const dele = delOp(rækker, "KoerselTime");
+        expect(dele.length).toBeGreaterThan(1);
+        for (const d of dele) expect(kaldBytes(delTekst({ arkiv: ARKIV, tabel: "KoerselTime", raekker: d.raekker }))).toBeLessThanOrEqual(3_000_000);
+    });
+    it("K10-F1: scenariets ændringer kan ikke sendes alene, og en Scenarie-del holder dem samlet", () => {
+        const j = importAnmodningJson({ arkiv: ARKIV, sha256: ARKIV, tabel: "Bestilling", nr: 1, af: 1, koersel_ider: [], filnavn: "" });
+        expect(() => læsImportAnmodning(j.replace("Bestilling", "ScenarieAendring"))).toThrow(/sammen med scenariet/);
+        const db = eksempelDb();
+        const dele = delOp(rækkerFra(db, "Scenarie"), "Scenarie", 3_000_000, rækkerFra(db, "ScenarieAendring"));
+        expect(dele).toHaveLength(1);
+        expect(dele[0].aendringer).toHaveLength(2);
     });
 });
 
 // ------------------------------------------------------------------ forløbet
 
-/** Kilde-db'ens rækker sendt som klienten gør: Scenarie, ændringer, bestilling, kørslens rækker, kørslen sidst. */
-async function importér(kilde: Tabeller, mål: Tabeller, valg: { maksTegn?: number; afbrydEfter?: number; kun?: ImportTabel[] } = {}) {
+/** Kilde-db'ens rækker sendt som klienten gør: scenarier med ændringer, bestilling, kørslens rækker, kørslen sidst. */
+async function importér(kilde: Tabeller, mål: Tabeller, valg: { maksBytes?: number; afbrydEfter?: number; kun?: DelTabel[] } = {}) {
     const lager = hukommelsesLager(mål, { afbrydEfter: valg.afbrydEfter });
-    const svar: { tabel: ImportTabel; ok: boolean; status: string; svar: string }[] = [];
-    const rækkefølge: ImportTabel[] = valg.kun ?? ["Scenarie", "ScenarieAendring", "Bestilling", "KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime", "Koersel"];
+    const svar: { tabel: DelTabel; ok: boolean; status: string; svar: string }[] = [];
+    const rækkefølge: DelTabel[] = valg.kun ?? ["Scenarie", "Bestilling", "KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime", "Koersel"];
     for (const tabel of rækkefølge) {
-        let rækker = rækkerFra(kilde, tabel);
-        if (tabel === "Scenarie") rækker = [...rækker].sort((a) => (a[4] === null ? -1 : 1));      // referencen først
+        const rækker = rækkerFra(kilde, tabel);
         if (!rækker.length) continue;
-        const dele = delOp(rækker, tabel, valg.maksTegn);
+        const dele = delOp(rækker, tabel, valg.maksBytes, rækkerFra(kilde, "ScenarieAendring"));
         for (const [i, d] of dele.entries()) {
-            const forventet = tabel === "Koersel"
-                ? Object.fromEntries(d.map((r) => [r[0] as string, Object.fromEntries((["KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime"] as const)
-                    .map((b) => [b, [...kilde[b].values()].filter((x) => x.koersel_id === r[0]).length])) as Børnetal]))
-                : undefined;
-            const tekst = delTekst({ arkiv: ARKIV, tabel, raekker: d, forventet });
+            const forventet = tabel === "Koersel" ? forventetFor(kilde, d.raekker) : undefined;
+            const tekst = delTekst({ arkiv: ARKIV, tabel, raekker: d.raekker, aendringer: d.aendringer, forventet });
             const a = opretAnmodning(mål, importAnmodningJson({ arkiv: ARKIV, sha256: sha256Tekst(tekst), tabel, nr: i + 1, af: dele.length,
-                koersel_ider: tabel === "Koersel" ? d.map((r) => r[0] as string) : [], filnavn: "test.xlsx" }));
+                koersel_ider: tabel === "Koersel" ? d.raekker.map((r) => r[0] as string) : [], filnavn: "test.xlsx" }));
             const s = await importerDel(lager, a, tekst);
             svar.push({ tabel, ...s });
             if (!s.ok) return svar;
@@ -144,9 +162,9 @@ describe("importerDel", () => {
     it("rundtur i en tom database giver identiske rækker i alle tabeller, inkl. 250 timer", async () => {
         const kilde = eksempelDb();
         const mål = målMedVaerk(kilde);
-        const svar = await importér(kilde, mål, { maksTegn: 8000 });
+        const svar = await importér(kilde, mål, { maksBytes: 80_000 });
         expect(svar.every((s) => s.ok), JSON.stringify(svar.filter((s) => !s.ok))).toBe(true);
-        expect(svar.filter((s) => s.tabel === "KoerselTime").length).toBeGreaterThan(3);
+        expect(svar.filter((s) => s.tabel === "KoerselTime").length).toBeGreaterThan(1);
         ens(kilde, mål);
         expect(mål.KoerselTime.size).toBe(250);
     });
@@ -164,13 +182,13 @@ describe("importerDel", () => {
     it("samme anmodning to gange: andet kald svarer med det gemte svar og skriver intet", async () => {
         const kilde = eksempelDb();
         const mål = målMedVaerk(kilde);
-        const tekst = delTekst({ arkiv: ARKIV, tabel: "Scenarie", raekker: rækkerFra(kilde, "Scenarie").reverse() });
+        const tekst = delTekst({ arkiv: ARKIV, tabel: "Scenarie", raekker: rækkerFra(kilde, "Scenarie").reverse(), aendringer: rækkerFra(kilde, "ScenarieAendring") });
         const a = opretAnmodning(mål, importAnmodningJson({ arkiv: ARKIV, sha256: sha256Tekst(tekst), tabel: "Scenarie", nr: 1, af: 1, koersel_ider: [], filnavn: "" }));
         const lager = hukommelsesLager(mål);
         expect((await importerDel(lager, a, tekst)).ok).toBe(true);
         const igen = await importerDel(lager, a, tekst);
         expect(igen).toMatchObject({ ok: true, status: "udfoert" });
-        expect(lager.indsatte).toBe(2);
+        expect(lager.indsatte).toBe(4);          // 2 scenarier + 2 ændringer, én gang
     });
 
     it("samme id med andet indhold er en konflikt: hele delen afvises, intet overskrives", async () => {
@@ -187,9 +205,9 @@ describe("importerDel", () => {
     it("en afbrudt import genoptages uden dubletter, og kørslen er usynlig indtil den er komplet", async () => {
         const kilde = eksempelDb();
         const mål = målMedVaerk(kilde);
-        await expect(importér(kilde, mål, { maksTegn: 8000, afbrydEfter: 100 })).rejects.toThrow(/afbrudt/);
+        await expect(importér(kilde, mål, { maksBytes: 80_000, afbrydEfter: 100 })).rejects.toThrow(/afbrudt/);
         expect(mål.Koersel.size).toBe(0);
-        const svar = await importér(kilde, mål, { maksTegn: 8000 });
+        const svar = await importér(kilde, mål, { maksBytes: 80_000 });
         expect(svar.every((s) => s.ok)).toBe(true);
         ens(kilde, mål);
     });
@@ -197,7 +215,7 @@ describe("importerDel", () => {
     it("en kørsel med manglende timer skrives ikke (antal passer ikke)", async () => {
         const kilde = eksempelDb();
         const mål = målMedVaerk(kilde);
-        await importér(kilde, mål, { kun: ["Scenarie", "ScenarieAendring", "Bestilling", "KoerselInput", "KoerselNoegletal", "KoerselMaaned"] });
+        await importér(kilde, mål, { kun: ["Scenarie", "Bestilling", "KoerselInput", "KoerselNoegletal", "KoerselMaaned"] });
         const svar = await importér(kilde, mål, { kun: ["Koersel"] });
         expect(svar[0].ok).toBe(false);
         expect(svar[0].svar).toMatch(/KoerselTime har 0 rækker i databasen, arkivet 250/);
@@ -220,7 +238,8 @@ describe("importerDel", () => {
         expect((await importér(kilde, uden)).at(-1)!.svar).toMatch(/værksrevision/);
         const udenSerie = målMedVaerk(kilde);
         udenSerie.Tidsserie.clear();
-        expect((await importér(kilde, udenSerie)).at(-1)!.svar).toMatch(/tidsserien \(varmelast\)/);
+        // Scenariets valg af varmelast peger på serien: nu afvises allerede scenariet (K10-F6).
+        expect((await importér(kilde, udenSerie)).at(-1)!.svar).toMatch(/tidsserie(n)? \(varmelast\)/);
     });
 
     it("afviser scenarier, når værket ikke findes (upload værksarket først)", async () => {

@@ -7,9 +7,9 @@
 
 import { afterEach, describe, expect, it } from "vitest";
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
-import { importerDel, tabelSha, type ImportTabel } from "../../../rayfin/functions/src/arkiv";
+import { delTekst, importAnmodningJson, importerDel, kolonnenavne, sha256Tekst, tabelSha, type ImportTabel } from "../../../rayfin/functions/src/arkiv";
 import {
-    eksempelDb, hukommelsesLager, ID, opretAnmodning, REF_KOERSEL, rækkerFra, tomDb, type Række, type Tabeller,
+    eksempelDb, hukommelsesLager, ID, opretAnmodning, REF_KOERSEL, rækkerFra, tællerFor, tomDb, type Række, type Tabeller,
 } from "../../../rayfin/functions/test/arkiv-hukommelse";
 import { sætLæseKilde, læs, type LæseKilde } from "@/lib/data/laes";
 import { difference, maanedstabel, samlNoegletal } from "@/sider/analyser/beregn";
@@ -64,7 +64,7 @@ function målMedVaerk(kilde: Tabeller): Tabeller {
 
 async function eksportérFra(kilde: Tabeller, scenarier = [ID.reference, ID.scenarie]) {
     sætLæseKilde(() => dabKilde(kilde));
-    return eksporterFamilie({ scenarier, bruger: "eksportoer@example.org" });
+    return eksporterFamilie({ scenarier, bruger: "eksportoer@example.org" }, undefined, tællerFor(kilde));
 }
 
 async function importérTil(mål: Tabeller, bytes: Uint8Array, filnavn = "arkiv.xlsx") {
@@ -140,7 +140,7 @@ describe("eksport", () => {
         const db = eksempelDb(250, true);
         const tæller = { kald: 0 };
         sætLæseKilde(() => dabKilde(db, tæller));
-        const ind = await hentArkivindhold({ scenarier: [ID.reference, ID.scenarie], bruger: "x@example.org" });
+        const ind = await hentArkivindhold({ scenarier: [ID.reference, ID.scenarie], bruger: "x@example.org" }, undefined, tællerFor(db));
         expect(ind.tabeller.KoerselTime.length).toBe(db.KoerselTime.size);
         expect(ind.tabeller.KoerselTime.length).toBe(500);
         expect(tabelSha(ind.tabeller.KoerselTime)).toBe(tabelSha(rækkerFra(db, "KoerselTime")));
@@ -165,7 +165,7 @@ describe("eksport", () => {
             };
             return k;
         });
-        await expect(hentArkivindhold({ scenarier: [ID.reference, ID.scenarie], bruger: "x" })).rejects.toThrow(/250|timerækker/);
+        await expect(hentArkivindhold({ scenarier: [ID.reference, ID.scenarie], bruger: "x" }, undefined, tællerFor(db))).rejects.toThrow(/timerækker: læst 100 rækker, men databasen har 250/);
     });
 
     it("springer kørsler over, der ikke er afsluttede, og siger det i Læs mig", async () => {
@@ -185,8 +185,8 @@ describe("eksport", () => {
         const timer = ark.find((a) => a.navn === "Timer")!;
         expect(timer.skjulteRækker.has(2)).toBe(true);
         const navne = [...timer.celler.get(2)!.values()];
-        expect(navne.slice(0, 4)).toEqual(["id", "koersel_id", "tid~dk", "tid"]);
-        expect(navne).toContain("vaerdier_json~p_halmkedel_mw");
+        expect(navne.slice(0, 4)).toEqual(["id", "koersel_id", "~dk:tid", "tid"]);
+        expect(navne).toContain("~json:p_halmkedel_mw");
         expect([...timer.celler.get(1)!.values()].slice(2, 4)).toEqual(["Interval start (dansk tid)", "Interval start (UTC)"]);
         const r3 = timer.celler.get(3)!;
         expect(r3.get(4)).toBe("2026-03-28T22:00:00.000Z");
@@ -196,8 +196,9 @@ describe("eksport", () => {
     });
 
     it("Excels rækkegrænse: en tabel deles i flere ark og læses tilbage uden tab", async () => {
-        sætLæseKilde(() => dabKilde(eksempelDb(250)));
-        const ind = await hentArkivindhold({ scenarier: [ID.reference, ID.scenarie], bruger: "x" });
+        const db250 = eksempelDb(250);
+        sætLæseKilde(() => dabKilde(db250));
+        const ind = await hentArkivindhold({ scenarier: [ID.reference, ID.scenarie], bruger: "x" }, undefined, tællerFor(db250));
         const { bytes, manifest } = bygArkivBog(ind, { maksDatarækker: 100 });
         expect(manifest.tabeller.KoerselTime.ark).toEqual(["Timer", "Timer (2)", "Timer (3)"]);
         expect(tabelSha(læsArkivBog(bytes).indhold.tabeller.KoerselTime)).toBe(tabelSha(ind.tabeller.KoerselTime));
@@ -236,7 +237,7 @@ describe("et rettet arkiv afvises før noget skrives", () => {
     it("en .zip, hvor en fil er ændret eller mangler", async () => {
         const db = eksempelDb(5);
         sætLæseKilde(() => dabKilde(db));
-        const z = await eksporterSamling([[ID.reference, ID.scenarie]], "x");
+        const z = await eksporterSamling([[ID.reference, ID.scenarie]], "x", undefined, tællerFor(db));
         expect(læsArkivfil(z.bytes, z.navn)).toHaveLength(1);
         const f = unzipSync(z.bytes);
         const navn = z.manifest.filer[0].navn;
@@ -312,7 +313,7 @@ describe("rundtur eksport -> import", () => {
         const plan = await planlæg(fil);
         const k = plan.poster.find((p) => p.slags === "koersel")!;
         expect(k.udfald).toBe("genoptag");
-        expect(k.rækker).toBe(5 + 2 + 2 + 250 + 1 - 5);         // inputrækkerne nåede at blive skrevet; resten sendes
+        expect(k.rækker).toBe(5 + 2 + 2 + 250 + 1 - 5 - 2);     // input og nøgletal nåede at blive skrevet; resten sendes
         await importér(plan, "i@example.org", undefined, skriv);
         for (const t of IMPORT_TABELLER) expect(tabelSha(rækkerFra(mål, t)), t).toBe(tabelSha(rækkerFra(kilde, t)));
     });
@@ -356,5 +357,168 @@ describe("rundtur eksport -> import", () => {
         const p2 = await planlæg(læsArkivfil(e.bytes, "a.xlsx")[0]);
         expect(p2.poster.find((x) => x.slags === "koersel")!.grund).toMatch(/aldrig haft de parametre/);
         expect(p2.poster.find((x) => x.slags === "scenarie" && x.id === ID.scenarie)!.udfald).toBe("opret");
+    });
+});
+
+// ------------------------------------------------------------------ Codex K10 (runde 13b)
+
+/** Rækketallene fra kilden, men én tabel læses afkortet: 100 rækker og intet om, at der er flere. */
+function afkortet(db: Tabeller, tabel: string): LæseKilde {
+    const k = dabKilde(db);
+    const sel = k.data[tabel].select.bind(k.data[tabel]);
+    type Q = { first(n: number): Q; executePaginated(): Promise<{ items: unknown[]; hasNextPage: boolean; endCursor?: string | null }> };
+    k.data[tabel] = {
+        select: (f: readonly string[]) => {
+            const q = sel(f) as Q;
+            const first = q.first.bind(q), e = q.executePaginated.bind(q);
+            q.first = () => first(100);
+            q.executePaginated = async () => ({ ...(await e()), hasNextPage: false });
+            return q;
+        },
+    };
+    return k;
+}
+
+function flereRækker(db: Tabeller, tabel: "KoerselMaaned" | "ScenarieAendring", antal: number) {
+    const gammel = [...db[tabel].values()][0];
+    for (let i = 0; i < antal; i++) {
+        const id = `aaaaaaaa-0000-4000-8000-${i.toString(16).padStart(12, "0")}`;
+        db[tabel].set(id, { ...gammel, id, ...(tabel === "KoerselMaaned" ? { noegle: `syntetisk_${i}` } : { sti: `syntetisk_${i}` }) });
+    }
+}
+
+describe("K10: genimporten", () => {
+    it("F1: afbrudt efter scenarierne — de har deres ændringer (samme del), og genoptagelsen er komplet", async () => {
+        const kilde = eksempelDb(5);
+        const e = await eksportérFra(kilde);
+        const mål = målMedVaerk(kilde);
+        sætLæseKilde(() => dabKilde(mål));
+        const [fil] = læsArkivfil(e.bytes, "a.xlsx");
+        let n = 0;
+        const skriv = skriverTil(mål);
+        await expect(importér(await planlæg(fil), "i@example.org", undefined, async (a, d, b) => { if (++n === 2) throw new Error("AFBRUDT"); return skriv(a, d, b); }))
+            .rejects.toThrow(/AFBRUDT/);
+        expect(mål.Scenarie.size).toBe(2);
+        expect(mål.ScenarieAendring.size).toBe(2);
+        await importér(await planlæg(fil), "i@example.org", undefined, skriv);
+        for (const t of IMPORT_TABELLER) expect(tabelSha(rækkerFra(mål, t)), t).toBe(tabelSha(rækkerFra(kilde, t)));
+    });
+
+    it("F1: et scenarie, hvis ændringer er rettet her, er en konflikt — ikke 'findes'", async () => {
+        const kilde = eksempelDb(5);
+        const e = await eksportérFra(kilde);
+        const mål = målMedVaerk(kilde);
+        await importérTil(mål, e.bytes);
+        mål.ScenarieAendring.delete([...mål.ScenarieAendring.keys()][0]);
+        sætLæseKilde(() => dabKilde(mål));
+        const p = await planlæg(læsArkivfil(e.bytes, "a.xlsx")[0]);
+        const s = p.poster.find((x) => x.id === ID.scenarie)!;
+        expect(s.udfald).toBe("konflikt");
+        expect(s.grund).toMatch(/ændringerne/);
+    });
+
+    it("F2: rækker fra et andet arkiv med samme id'er giver konflikt ved genoptagelse — aldrig en blandet kørsel", async () => {
+        const kilde = eksempelDb(5);
+        const e = await eksportérFra(kilde);
+        const mål = målMedVaerk(kilde);
+        const fremmede = rækkerFra(kilde, "KoerselNoegletal");
+        fremmede[0][kolonnenavne("KoerselNoegletal").indexOf("vaerdi")] = 123456789;
+        await skriverTil(mål)(...((): [string, string, string] => {
+            const tekst = delTekst({ arkiv: "d".repeat(64), tabel: "KoerselNoegletal", raekker: fremmede });
+            return [importAnmodningJson({ arkiv: "d".repeat(64), sha256: sha256Tekst(tekst), tabel: "KoerselNoegletal", nr: 1, af: 1, koersel_ider: [], filnavn: "a" }), tekst, "i@example.org"];
+        })());
+        sætLæseKilde(() => dabKilde(mål));
+        const p = await planlæg(læsArkivfil(e.bytes, "a.xlsx")[0]);
+        const k = p.poster.find((x) => x.id === ID.koersel)!;
+        expect(k.udfald).toBe("konflikt");
+        expect(k.grund).toMatch(/tidligere import afviger/);
+        await importér(p, "i@example.org", undefined, skriverTil(mål));
+        expect(mål.Koersel.has(ID.koersel)).toBe(false);
+    });
+
+    it("F2: en eksisterende kørsel med et ændret nøgletal vises som konflikt, ikke 'findes'", async () => {
+        const kilde = eksempelDb(5);
+        const e = await eksportérFra(kilde);
+        const mål = målMedVaerk(kilde);
+        await importérTil(mål, e.bytes);
+        [...mål.KoerselNoegletal.values()][0].vaerdi = 999999;
+        sætLæseKilde(() => dabKilde(mål));
+        const p = await planlæg(læsArkivfil(e.bytes, "a.xlsx")[0]);
+        expect(p.poster.find((x) => x.id === ID.koersel)!.udfald).toBe("konflikt");
+    });
+
+    it("F6: en solprofil med samme sha256 bruges ikke som scenariets varmelast", async () => {
+        const kilde = eksempelDb(5);
+        const e = await eksportérFra(kilde);
+        const mål = målMedVaerk(kilde);
+        const s = mål.Tidsserie.get(ID.tidsserie)!;
+        mål.Tidsserie.clear();
+        mål.Tidsserie.set("aaaaaaaa-3333-4333-8333-333333333333", { ...s, id: "aaaaaaaa-3333-4333-8333-333333333333", rolle: "solprofil" });
+        sætLæseKilde(() => dabKilde(mål));
+        const p = await planlæg(læsArkivfil(e.bytes, "a.xlsx")[0]);
+        const sc = p.poster.find((x) => x.id === ID.scenarie)!;
+        expect(sc.udfald).toBe("afvist");
+        expect(sc.grund).toMatch(/som varmelast/);
+    });
+
+    it("F6: samme id men anden rolle her tæller ikke som samme serie", async () => {
+        const kilde = eksempelDb(5);
+        const e = await eksportérFra(kilde);
+        const mål = målMedVaerk(kilde);
+        mål.Tidsserie.get(ID.tidsserie)!.rolle = "solprofil";
+        sætLæseKilde(() => dabKilde(mål));
+        const p = await planlæg(læsArkivfil(e.bytes, "a.xlsx")[0]);
+        expect(p.poster.find((x) => x.id === ID.scenarie)!.udfald).toBe("afvist");
+    });
+});
+
+describe("K10: eksporten", () => {
+    it("F4: afkortede månedsrækker stopper eksporten, selv om timerne er komplette", async () => {
+        const db = eksempelDb(5);
+        flereRækker(db, "KoerselMaaned", 150);
+        sætLæseKilde(() => afkortet(db, "KoerselMaaned"));
+        await expect(hentArkivindhold({ scenarier: [ID.scenarie], bruger: "x" }, undefined, tællerFor(db))).rejects.toThrow(/månedsrækker: læst 100 rækker, men databasen har 152/);
+    });
+    it("F4: afkortede scenarieændringer stopper eksporten", async () => {
+        const db = eksempelDb(5);
+        flereRækker(db, "ScenarieAendring", 150);
+        sætLæseKilde(() => afkortet(db, "ScenarieAendring"));
+        await expect(hentArkivindhold({ scenarier: [ID.scenarie], bruger: "x" }, undefined, tællerFor(db))).rejects.toThrow(/ændringer: læst 100 rækker, men databasen har 152/);
+    });
+    it("F4: et input, der ikke passer med input_hash, stopper eksporten", async () => {
+        const db = eksempelDb(5);
+        [...db.KoerselInput.values()][0].vaerdi_json = "1.0";
+        sætLæseKilde(() => dabKilde(db));
+        await expect(hentArkivindhold({ scenarier: [ID.scenarie], bruger: "x" }, undefined, tællerFor(db))).rejects.toThrow(/input_hash/);
+    });
+    it("F4: rækketallene skal kunne hentes", async () => {
+        const db = eksempelDb(5);
+        sætLæseKilde(() => dabKilde(db));
+        await expect(hentArkivindhold({ scenarier: [ID.scenarie], bruger: "x" }, undefined, async () => ({ ok: false, fejl: "nede" }))).rejects.toThrow(/Rækketallene kunne ikke hentes: nede/);
+    });
+    it("F5: Læs mig siger, hvad tal bevares med", async () => {
+        const e = await eksportérFra(eksempelDb(2));
+        const læsmig = [...læsXlsx(e.bytes)[0].celler.values()].map((r) => String(r.get(2) ?? "")).join(" ");
+        expect(læsmig).toMatch(/dobbelt præcision/);
+        expect(læsmig).toMatch(/flere cifre, skrevet udefra med SQL, kan ikke bevares og stopper eksporten/);
+    });
+});
+
+describe("K10-F8: entydige afledte kolonner", () => {
+    it("en JSON-nøgle med ~ og : kan eksporteres og læses igen", async () => {
+        const db = eksempelDb(2);
+        [...db.KoerselTime.values()][0].vaerdier_json = '{"p~varme":5,"a:b":1}';
+        const e = await eksportérFra(db);
+        expect(læsArkivfil(e.bytes, "a.xlsx")[0].arkiv.indhold.tabeller.KoerselTime).toHaveLength(2);
+    });
+    it("en rettet udfoldet værdi afvises, også når dens tekniske overskrift er slettet", async () => {
+        const e = await eksportérFra(eksempelDb(2));
+        const z = unzipSync(e.bytes);
+        const sti = "xl/worksheets/sheet9.xml";
+        const før = strFromU8(z[sti]);
+        const efter = før.replace(/<c r="I2"[\s\S]*?<\/c>/, "").replace(/(<c r="I3"><v>)[^<]+/, "$1999");
+        expect(efter).not.toBe(før);
+        z[sti] = strToU8(efter);
+        expect(() => læsArkivBog(zipSync(z))).toThrow(/mangler — arket er rettet/);
     });
 });

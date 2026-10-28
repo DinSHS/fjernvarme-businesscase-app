@@ -7,9 +7,13 @@
 //     har en sha256 i arkivets manifest, så et rettet eller beskadiget ark opdages før noget skrives;
 //   * genimporten er idempotent på id: samme id og samme indhold springes over, samme id med andet indhold
 //     er en konflikt, der vises og aldrig overskrives;
+//   * et scenarie skrives i SAMME del (transaktion) som sine ændringer, så det aldrig findes halvt (K10-F1);
 //   * en kørsel skrives SIDST (efter alle dens input-, nøgletals-, måneds- og timerækker), og Function'en
-//     tjekker antal og input_hash, før den skriver kørslen — en afbrudt import er derfor usynlig og kan
-//     genoptages uden dubletter.
+//     tjekker antal OG indhold (sha256 pr. undertabel) og input_hash under en lås pr. kørsel, før den skriver
+//     kørslen — en afbrudt import er derfor usynlig og kan genoptages uden dubletter eller blandede arkiver
+//     (K10-F2, F3). En eksisterende kørsel er kun "findes", hvis dens rækker også passer;
+//   * tal bevares med dobbelt præcision (det, appen og regnemotoren læser og skriver); en decimal med flere
+//     cifre, end et JS-tal kan bære, afvises højt i stedet for at blive afrundet tavst (K10-F5).
 //
 // Ren logik uden node:-import: browseren (eksport, forhåndsvisning) og Function `importerArkiv` bruger
 // PRÆCIS denne fil. Python-porten er community/fjernvarme_app/logik/arkiv.py, bundet af
@@ -28,7 +32,8 @@ export class ArkivAfvisning extends Error {
 }
 
 export const ARKIV_FORMAT = 'fjv-arkiv';
-export const ARKIV_FORMATVERSION = 1;
+/** 2: sha256 pr. række i tabellens hash og entydigt kodede afledte kolonner (runde 13b). */
+export const ARKIV_FORMATVERSION = 2;
 export const DEL_FORMAT = 'fjv-arkiv-del';
 export const NIL_UUID = '00000000-0000-0000-0000-000000000000';
 
@@ -61,6 +66,11 @@ export function kolonnenavne(tabel: ImportTabel | 'Aendringslog'): string[] {
 }
 
 export const erImportTabel = (t: string): t is ImportTabel => (IMPORT_TABELLER as readonly string[]).includes(t);
+
+/** De tabeller, en del kan skrive. ScenarieAendring rejser med sit scenarie (Scenarie-delens `aendringer`, K10-F1). */
+export const DEL_TABELLER = ['Scenarie', 'Bestilling', 'KoerselInput', 'KoerselNoegletal', 'KoerselMaaned', 'KoerselTime', 'Koersel'] as const;
+export type DelTabel = (typeof DEL_TABELLER)[number];
+export const erDelTabel = (t: string): t is DelTabel => (DEL_TABELLER as readonly string[]).includes(t);
 
 // ------------------------------------------------------------------ sha256 (ren JS: browser og Node)
 
@@ -148,6 +158,10 @@ export function kanonisk(k: Kolonne, v: unknown): Kanonisk {
         case 'decimal': {
             const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
             if (!Number.isFinite(n)) throw new ArkivAfvisning(`${k.navn}: forventede et tal, fik ${String(v)}.`);
+            // En decimal som tekst (fx en database, der svarer med tekst) må ikke afrundes tavst (K10-F5).
+            if (typeof v === 'string' && !decimalBevares(v, n)) {
+                throw new ArkivAfvisning(`${k.navn}: ${v.trim()} har flere cifre, end arkivet kan bevare (dobbelt præcision, ca. 15–17 betydende cifre).`);
+            }
             return Object.is(n, -0) ? 0 : n;
         }
         case 'boolean':
@@ -163,6 +177,23 @@ export function kanonisk(k: Kolonne, v: unknown): Kanonisk {
     }
 }
 
+/** Et decimaltal som (fortegn, cifre uden foranstillede/efterstillede nuller, eksponent): "1.50" og "15e-1" er ens. */
+function decimalNormal(s: string): string | null {
+    const m = /^([+-]?)(\d*)(?:\.(\d*))?(?:[eE]([+-]?\d+))?$/.exec(s.trim());
+    if (!m || (m[2] === '' && (m[3] ?? '') === '')) return null;
+    const alle = `${m[2]}${m[3] ?? ''}`;
+    const uden = alle.replace(/^0+/, '');
+    const eks = Number(m[4] ?? 0) + m[2].length - (alle.length - uden.length);
+    const cifre = uden.replace(/0+$/, '');
+    return cifre === '' ? '0' : `${m[1] === '-' ? '-' : ''}${cifre}e${eks}`;
+}
+
+/** Bærer JS-tallet `n` præcis de cifre, teksten `s` har? (`String(n)` er den korteste form, der giver `n` igen.) */
+export function decimalBevares(s: string, n: number): boolean {
+    const a = decimalNormal(s);
+    return a !== null && a === decimalNormal(String(n));
+}
+
 /** Rækken som kanoniske værdier i skemaets kolonnerækkefølge. */
 export function kanoniskRække(tabel: ImportTabel | 'Aendringslog', r: Record<string, unknown>): Kanonisk[] {
     return kolonner(tabel).map((k) => kanonisk(k, r[k.navn]));
@@ -171,15 +202,25 @@ export function kanoniskRække(tabel: ImportTabel | 'Aendringslog', r: Record<st
 /** Rækkens tekst i tabellens sha: kompakt JSON af værdierne (tal i JS' korteste form). */
 export const rækkeTekst = (r: readonly Kanonisk[]): string => JSON.stringify(r);
 
+/** Rækkens sha256 (af dens JSON-linje). */
+export const rækkeSha = (r: readonly Kanonisk[]): string => sha256Tekst(rækkeTekst(r));
+
 /**
- * Tabellens sha256: én JSON-linje pr. række, linjerne sorteret (UTF-16-kodeenheder) og adskilt af "\n" — uafhængig
- * af den rækkefølge, databasen eller arket giver rækkerne i. Python-porten skriver tallene som JS (logik/jsjson.py)
- * og sorterer på samme nøgle, så de to giver samme hash.
+ * Tabellens sha256: rækkernes sha256 sorteret og adskilt af "\n" — uafhængig af den rækkefølge, databasen eller arket
+ * giver rækkerne i, og den kan regnes side for side (en kørsel har op til 35.040 timer; serveren holder kun 64 tegn pr.
+ * række i hukommelsen). Python-porten skriver tallene som JS (logik/jsjson.py), så de to giver samme hash.
  */
+export class TabelHash {
+    private shas: string[] = [];
+    tilføj(r: readonly Kanonisk[]): void { this.shas.push(rækkeSha(r)); }
+    get antal(): number { return this.shas.length; }
+    sha256(): string { return sha256Tekst([...this.shas].sort().join('\n')); }
+}
+
 export function tabelSha(rækker: readonly (readonly Kanonisk[])[]): string {
-    const linjer = rækker.map(rækkeTekst);
-    linjer.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-    return sha256Tekst(linjer.join('\n'));
+    const h = new TabelHash();
+    for (const r of rækker) h.tilføj(r);
+    return h.sha256();
 }
 
 /** Arkivets samlede sha256: tabellernes sha'er i fast rækkefølge (navn:sha pr. linje). */
@@ -321,7 +362,7 @@ export function frosneTidsserier(input: readonly InputRad[]): { rolle: string; i
  * og er det, appen viser "importeret fra arkiv" ud fra (ingen skemaændring).
  */
 export interface ImportAnmodning {
-    handling: 'importer_arkiv'; arkiv: string; sha256: string; tabel: ImportTabel; nr: number; af: number;
+    handling: 'importer_arkiv'; arkiv: string; sha256: string; tabel: DelTabel; nr: number; af: number;
     koersel_ider: string[]; filnavn: string;
 }
 
@@ -344,7 +385,8 @@ export function læsImportAnmodning(tekst: string): ImportAnmodning {
     if (a?.handling !== 'importer_arkiv') throw new ArkivAfvisning('Anmodningen er ikke en arkivimport.');
     if (typeof a.arkiv !== 'string' || !SHA.test(a.arkiv)) throw new ArkivAfvisning('Arkivets sha256 mangler eller er ugyldig.');
     if (typeof a.sha256 !== 'string' || !SHA.test(a.sha256)) throw new ArkivAfvisning('Delens sha256 mangler eller er ugyldig.');
-    if (typeof a.tabel !== 'string' || !erImportTabel(a.tabel)) throw new ArkivAfvisning(`Ukendt tabel "${String(a.tabel)}".`);
+    if (a.tabel === 'ScenarieAendring') throw new ArkivAfvisning('Scenariets ændringer sendes sammen med scenariet (samme del).');
+    if (typeof a.tabel !== 'string' || !erDelTabel(a.tabel)) throw new ArkivAfvisning(`Ukendt tabel "${String(a.tabel)}".`);
     const heltal = (x: unknown) => typeof x === 'number' && Number.isInteger(x) && x >= 1;
     if (!heltal(a.nr) || !heltal(a.af) || (a.nr as number) > (a.af as number)) throw new ArkivAfvisning('Delens nummer er ugyldigt.');
     if (!Array.isArray(a.koersel_ider) || !a.koersel_ider.every((x) => typeof x === 'string' && UUID.test(x))) {
@@ -360,36 +402,40 @@ export function læsImportAnmodning(tekst: string): ImportAnmodning {
     };
 }
 
-/** Antal rækker pr. undertabel, som en kørsel skal have i databasen, før den selv skrives. */
+/** Antal rækker pr. undertabel. */
 export type Børnetal = Record<KoerselBarn, number>;
+/** En kørsels rækker, som de skal være i databasen, før kørslen skrives: antal og sha256 pr. undertabel (K10-F2). */
+export interface Børnetilstand { antal: Børnetal; sha256: Record<KoerselBarn, string> }
 
 /**
  * Én del (Function-kaldets andet argument, kompakt JSON):
- *   {"format":"fjv-arkiv-del","version":1,"arkiv":"<sha>","tabel":"…","kolonner":[…],"raekker":[[…],…],
- *    "forventet":{"<koersel_id>":{"KoerselInput":n,…}}}   (forventet kun i en Koersel-del)
+ *   {"format":"fjv-arkiv-del","version":2,"arkiv":"<sha>","tabel":"…","kolonner":[…],"raekker":[[…],…],
+ *    "aendringer":[[…]],                                              (kun Scenarie: scenariernes ændringer)
+ *    "forventet":{"<koersel_id>":{"antal":{…},"sha256":{…}}}}         (kun Koersel)
  */
 export interface Del {
-    format: typeof DEL_FORMAT; version: 1; arkiv: string; tabel: ImportTabel; kolonner: string[]; raekker: Kanonisk[][];
-    forventet?: Record<string, Børnetal>;
+    format: typeof DEL_FORMAT; version: 2; arkiv: string; tabel: DelTabel; kolonner: string[]; raekker: Kanonisk[][];
+    aendringer?: Kanonisk[][];
+    forventet?: Record<string, Børnetilstand>;
 }
 
-/** Højst så mange tegn pr. del: et Function-kald tager højst 4 MB i alt (målt; tidsserie.ts). */
-export const MAKS_DEL_TEGN = 2_500_000;
+/**
+ * Højst så mange UTF-8-bytes i hele Function-kaldets krop ({anmodningId, del} som JSON — delen er en JSON-TEKST, så
+ * dens anførselstegn escapes igen). Et kald tager højst 4 MB (målt; tidsserie.ts); resten er margen (K10-F7).
+ */
+export const MAKS_KALD_BYTES = 3_000_000;
 
-export function læsDel(tekst: string): Del {
-    let v: Record<string, unknown>;
-    try { v = JSON.parse(tekst); } catch { throw new ArkivAfvisning('Delen er ikke gyldig JSON.'); }
-    if (v?.format !== DEL_FORMAT || v.version !== 1) throw new ArkivAfvisning('Delen har ikke arkivets format.');
-    if (typeof v.arkiv !== 'string' || !SHA.test(v.arkiv)) throw new ArkivAfvisning('Delen mangler arkivets sha256.');
-    if (typeof v.tabel !== 'string' || !erImportTabel(v.tabel)) throw new ArkivAfvisning(`Ukendt tabel "${String(v.tabel)}".`);
-    const tabel = v.tabel;
-    const forventede = kolonnenavne(tabel);
-    if (!Array.isArray(v.kolonner) || v.kolonner.length !== forventede.length || v.kolonner.some((k, i) => k !== forventede[i])) {
-        throw new ArkivAfvisning(`${tabel}: kolonnerne passer ikke med skemaet (arkivet er fra en anden skemaversion?).`);
-    }
-    if (!Array.isArray(v.raekker) || v.raekker.length === 0) throw new ArkivAfvisning('Delen har ingen rækker.');
+const utf8 = (s: string) => new TextEncoder().encode(s).byteLength;
+
+/** UTF-8-størrelsen af kaldets krop, som klienten sender den. */
+export function kaldBytes(delTekst: string): number {
+    return utf8(JSON.stringify({ anmodningId: NIL_UUID, del: delTekst }));
+}
+
+function læsRækker(tabel: ImportTabel, v: unknown, hvad: string): Kanonisk[][] {
+    if (!Array.isArray(v)) throw new ArkivAfvisning(`${hvad} skal være en liste.`);
     const ider = new Set<string>();
-    for (const r of v.raekker as unknown[]) {
+    for (const r of v as unknown[]) {
         if (!Array.isArray(r) || !r.every((x) => x === null || ['string', 'number', 'boolean'].includes(typeof x))) {
             throw new ArkivAfvisning(`${tabel}: en række har ugyldige værdier.`);
         }
@@ -398,46 +444,96 @@ export function læsDel(tekst: string): Del {
         if (ider.has(r[0] as string)) throw new ArkivAfvisning(`${tabel} ${String(r[0])} står to gange i delen.`);
         ider.add(r[0] as string);
     }
-    let forventet: Record<string, Børnetal> | undefined;
+    return v as Kanonisk[][];
+}
+
+export function læsDel(tekst: string): Del {
+    let v: Record<string, unknown>;
+    try { v = JSON.parse(tekst); } catch { throw new ArkivAfvisning('Delen er ikke gyldig JSON.'); }
+    if (v?.format !== DEL_FORMAT || v.version !== 2) throw new ArkivAfvisning('Delen har ikke arkivets format.');
+    if (typeof v.arkiv !== 'string' || !SHA.test(v.arkiv)) throw new ArkivAfvisning('Delen mangler arkivets sha256.');
+    if (v.tabel === 'ScenarieAendring') throw new ArkivAfvisning('Scenariets ændringer sendes sammen med scenariet (samme del).');
+    if (typeof v.tabel !== 'string' || !erDelTabel(v.tabel)) throw new ArkivAfvisning(`Ukendt tabel "${String(v.tabel)}".`);
+    const tabel = v.tabel;
+    const forventede = kolonnenavne(tabel);
+    if (!Array.isArray(v.kolonner) || v.kolonner.length !== forventede.length || v.kolonner.some((k, i) => k !== forventede[i])) {
+        throw new ArkivAfvisning(`${tabel}: kolonnerne passer ikke med skemaet (arkivet er fra en anden skemaversion?).`);
+    }
+    const raekker = læsRækker(tabel, v.raekker, 'raekker');
+    if (raekker.length === 0) throw new ArkivAfvisning('Delen har ingen rækker.');
+    const ider = new Set(raekker.map((r) => r[0] as string));
+    const ud: Del = { format: DEL_FORMAT, version: 2, arkiv: v.arkiv, tabel, kolonner: forventede, raekker };
+    if (tabel === 'Scenarie') {
+        const ændr = læsRækker('ScenarieAendring', v.aendringer ?? null, 'En Scenarie-dels aendringer');
+        const si = kolonnenavne('ScenarieAendring').indexOf('scenarie_id');
+        for (const a of ændr) {
+            if (!ider.has(a[si] as string)) throw new ArkivAfvisning(`ScenarieAendring ${String(a[0])} hører ikke til et scenarie i delen.`);
+        }
+        ud.aendringer = ændr;
+    } else if (v.aendringer !== undefined) {
+        throw new ArkivAfvisning('Kun en Scenarie-del kan have aendringer.');
+    }
     if (tabel === 'Koersel') {
-        const f = v.forventet as Record<string, Record<string, unknown>> | undefined;
-        if (!f || typeof f !== 'object') throw new ArkivAfvisning('En Koersel-del skal angive det forventede antal rækker pr. kørsel.');
-        forventet = {};
+        const f = v.forventet as Record<string, { antal?: Record<string, unknown>; sha256?: Record<string, unknown> }> | undefined;
+        if (!f || typeof f !== 'object') throw new ArkivAfvisning('En Koersel-del skal angive kørslernes forventede rækker (antal og sha256).');
+        ud.forventet = {};
         for (const id of ider) {
             const x = f[id];
-            if (!x || !KOERSEL_BOERN.every((b) => Number.isInteger(x[b]) && (x[b] as number) >= 0)) {
-                throw new ArkivAfvisning(`Kørsel ${id}: det forventede antal rækker mangler.`);
+            if (!x || !KOERSEL_BOERN.every((b) => Number.isInteger(x.antal?.[b]) && (x.antal![b] as number) >= 0 && typeof x.sha256?.[b] === 'string' && SHA.test(x.sha256[b] as string))) {
+                throw new ArkivAfvisning(`Kørsel ${id}: de forventede rækker (antal og sha256 pr. undertabel) mangler.`);
             }
-            forventet[id] = Object.fromEntries(KOERSEL_BOERN.map((b) => [b, x[b] as number])) as Børnetal;
+            ud.forventet[id] = {
+                antal: Object.fromEntries(KOERSEL_BOERN.map((b) => [b, x.antal![b] as number])) as Børnetal,
+                sha256: Object.fromEntries(KOERSEL_BOERN.map((b) => [b, x.sha256![b] as string])) as Record<KoerselBarn, string>,
+            };
         }
     }
-    return { format: DEL_FORMAT, version: 1, arkiv: v.arkiv, tabel, kolonner: forventede, raekker: v.raekker as Kanonisk[][], forventet };
+    return ud;
 }
 
 /** Delens tekst (præcis det, anmodningens sha256 regnes over). */
-export function delTekst(d: Omit<Del, 'format' | 'version' | 'kolonner'>): string {
-    const o: Record<string, unknown> = { format: DEL_FORMAT, version: 1, arkiv: d.arkiv, tabel: d.tabel, kolonner: kolonnenavne(d.tabel), raekker: d.raekker };
+export function delTekst(d: { arkiv: string; tabel: DelTabel; raekker: Kanonisk[][]; aendringer?: Kanonisk[][]; forventet?: Record<string, Børnetilstand> }): string {
+    const o: Record<string, unknown> = { format: DEL_FORMAT, version: 2, arkiv: d.arkiv, tabel: d.tabel, kolonner: kolonnenavne(d.tabel), raekker: d.raekker };
+    if (d.tabel === 'Scenarie') o.aendringer = d.aendringer ?? [];
     if (d.forventet) o.forventet = d.forventet;
     return JSON.stringify(o);
 }
 
+/** Et stykke af en del: rækkerne (og for Scenarie deres ændringer). */
+export interface Delstykke { raekker: Kanonisk[][]; aendringer?: Kanonisk[][] }
+
+/** En rækkes bidrag til kaldets krop: dens JSON-linje, escapet igen som en del af del-teksten, plus komma. */
+const rækkeBytes = (r: readonly Kanonisk[]) => utf8(JSON.stringify(rækkeTekst(r))) - 1;
+/** Fast pladsreserve til delens hoved (kolonner, arkiv, format) og forventet for op til 60 kørsler. */
+const HOVED_BYTES = 64_000;
+
 /**
- * Deler rækker op i dele på højst `maksTegn` tegn (og for Koersel højst MAKS_KOERSLER_PR_DEL rækker). En enkelt
- * række større end grænsen kan ikke sendes — det kan ikke ske inden for skemaets længder, men siges højt.
+ * Deler rækker op i dele, så HELE kaldet (UTF-8, med den dobbelte escaping) holder sig under `maksBytes`. En Scenarie-
+ * del tager hvert scenarie med alle dets ændringer (de skrives i samme transaktion, K10-F1); en Koersel-del højst
+ * MAKS_KOERSLER_PR_DEL kørsler. En enhed, der alene er for stor, kan ikke sendes — det siges højt.
  */
-export function delOp(rækker: readonly Kanonisk[][], tabel: ImportTabel, maksTegn = MAKS_DEL_TEGN): Kanonisk[][][] {
-    const ud: Kanonisk[][][] = [];
-    let nu: Kanonisk[][] = [];
-    let tegn = 0;
+export function delOp(rækker: readonly Kanonisk[][], tabel: DelTabel, maksBytes = MAKS_KALD_BYTES, aendringer: readonly Kanonisk[][] = []): Delstykke[] {
+    const si = kolonnenavne('ScenarieAendring').indexOf('scenarie_id');
+    const enheder = rækker.map((r) => {
+        const ænd = tabel === 'Scenarie' ? aendringer.filter((a) => a[si] === r[0]) : [];
+        return { r, ænd, bytes: rækkeBytes(r) + ænd.reduce((s, a) => s + rækkeBytes(a), 0) };
+    });
     const loft = tabel === 'Koersel' ? MAKS_KOERSLER_PR_DEL : Infinity;
-    for (const r of rækker) {
-        const t = rækkeTekst(r).length + 1;
-        if (t + 400 > maksTegn) throw new ArkivAfvisning(`${tabel} ${String(r[0])}: rækken er for stor til ét kald (${t} tegn).`);
-        if (nu.length && (tegn + t + 400 > maksTegn || nu.length >= loft)) { ud.push(nu); nu = []; tegn = 0; }
-        nu.push(r);
-        tegn += t;
+    const ud: Delstykke[] = [];
+    let nu: typeof enheder = [];
+    let bytes = 0;
+    const luk = () => {
+        if (nu.length) ud.push(tabel === 'Scenarie' ? { raekker: nu.map((e) => e.r), aendringer: nu.flatMap((e) => e.ænd) } : { raekker: nu.map((e) => e.r) });
+        nu = [];
+        bytes = 0;
+    };
+    for (const e of enheder) {
+        if (e.bytes + HOVED_BYTES > maksBytes) throw new ArkivAfvisning(`${tabel} ${String(e.r[0])}: rækken er for stor til ét kald (${e.bytes} bytes).`);
+        if (nu.length && (bytes + e.bytes + HOVED_BYTES > maksBytes || nu.length >= loft)) luk();
+        nu.push(e);
+        bytes += e.bytes;
     }
-    if (nu.length) ud.push(nu);
+    luk();
     return ud;
 }
 
@@ -446,9 +542,9 @@ export function delOp(rækker: readonly Kanonisk[][], tabel: ImportTabel, maksTe
 export interface KoerselTjek {
     /** Kørslens kanoniske række. */
     koersel: readonly Kanonisk[];
-    /** Rækker i databasen nu pr. undertabel for netop denne kørsel. */
-    antal: Børnetal;
-    forventet: Børnetal;
+    /** Kørslens rækker i databasen nu: antal og sha256 pr. undertabel. */
+    nu: Børnetilstand;
+    forventet: Børnetilstand;
     /** Kørslens KoerselInput i databasen. */
     input: readonly InputRad[];
     bestilling: { scenarie_id: string } | null;
@@ -456,11 +552,26 @@ export interface KoerselTjek {
     vaerk: { id: string } | null;
     /** sha -> revisioner af værket (vaerkRevisioner). */
     revisioner: ReadonlyMap<string, readonly number[]>;
-    /** sha256 af værkets gyldige tidsserier. */
+    /** Værkets gyldige tidsserier som "<rolle>:<sha256>" (K10-F6: rollen skal også passe). */
     tidsserier: ReadonlySet<string>;
 }
 
 const felt = (r: readonly Kanonisk[], navn: string): Kanonisk => r[kolonnenavne('Koersel').indexOf(navn)];
+
+/** Afviger kørslens rækker i databasen fra arkivets? Svarer med en dansk tekst eller null. */
+export function børneforskel(id: string, nu: Børnetilstand, forventet: Børnetilstand): string | null {
+    for (const b of KOERSEL_BOERN) {
+        if (nu.antal[b] !== forventet.antal[b]) {
+            return `Kørsel ${id}: ${b} har ${nu.antal[b]} rækker i databasen, arkivet ${forventet.antal[b]} — importen er ufuldstændig; kør den igen.`;
+        }
+    }
+    for (const b of KOERSEL_BOERN) {
+        if (nu.sha256[b] !== forventet.sha256[b]) {
+            return `Kørsel ${id}: ${b} i databasen har andet indhold end arkivets (rækker fra et andet arkiv eller ændret efter importen). Intet er skrevet.`;
+        }
+    }
+    return null;
+}
 
 /** Kaster ArkivAfvisning, hvis kørslen ikke kan skrives som historisk kørsel. Samme tjek i forhåndsvisningen. */
 export function tjekKoersel(x: KoerselTjek): void {
@@ -469,11 +580,8 @@ export function tjekKoersel(x: KoerselTjek): void {
     if (!(AFSLUTTEDE_STATUS as readonly string[]).includes(status)) {
         throw new ArkivAfvisning(`Kørsel ${id} har status "${status}"; kun færdige, fejlede og annullerede kørsler kan genimporteres.`);
     }
-    for (const b of KOERSEL_BOERN) {
-        if (x.antal[b] !== x.forventet[b]) {
-            throw new ArkivAfvisning(`Kørsel ${id}: ${b} har ${x.antal[b]} rækker i databasen, arkivet ${x.forventet[b]} — importen er ufuldstændig; kør den igen.`);
-        }
-    }
+    const f = børneforskel(id, x.nu, x.forventet);
+    if (f) throw new ArkivAfvisning(f);
     if (inputHashRen(x.input) !== felt(x.koersel, 'input_hash')) {
         throw new ArkivAfvisning(`Kørsel ${id}: det frosne input passer ikke med input_hash — arkivet er rettet eller beskadiget.`);
     }
@@ -488,13 +596,22 @@ export function tjekKoersel(x: KoerselTjek): void {
         throw new ArkivAfvisning(`Kørsel ${id} bygger på en værksrevision (parametre ${sha.slice(0, 12)}…), som værket her ikke har haft som revision ${rev}. Upload værksarket for den revision først.`);
     }
     for (const t of frosneTidsserier(x.input)) {
-        if (!x.tidsserier.has(t.sha256)) {
-            throw new ArkivAfvisning(`Kørsel ${id} bygger på tidsserien (${t.rolle}) med sha256 ${t.sha256.slice(0, 12)}…, som ikke findes her. Upload den først.`);
+        if (!x.tidsserier.has(`${t.rolle}:${t.sha256}`)) {
+            throw new ArkivAfvisning(`Kørsel ${id} bygger på tidsserien (${t.rolle}) med sha256 ${t.sha256.slice(0, 12)}…, som ikke findes her som ${t.rolle}. Upload den først.`);
         }
     }
 }
 
 // ------------------------------------------------------------------ forløbet i Function'en (og Python-porten)
+
+/** Svaret fra arkivTal: rækketal fra databasen selv, til eksportens fuldstændighedstjek (K10-F4). */
+export interface Arkivtal {
+    ok: boolean;
+    fejl?: string;
+    scenarier?: Record<string, { ScenarieAendring: number; Bestilling: number; Koersel: number }>;
+    koersler?: Record<string, Børnetal>;
+    vaerker?: Record<string, { Aendringslog: number; Tidsserie: number }>;
+}
 
 /** Svaret fra importerArkiv. */
 export interface Importsvar { ok: boolean; status: string; svar: string; oprettet?: number; fandtes?: number }
@@ -508,29 +625,65 @@ export interface ArkivLager {
     iTransaktion<T>(fn: (tx: ArkivTx) => Promise<T>): Promise<T>;
 }
 
+/** Sidestørrelse, når en kørsels rækker hashes på serveren. */
+export const BØRNESIDE = 2000;
+
 export interface ArkivTx {
     /** Anmodningens status, låst for resten af transaktionen. */
     låsAnmodning(id: string): Promise<{ status: string; svar: string | null }>;
+    /**
+     * Eksklusiv lås pr. kørsels-id for resten af transaktionen (mssql: sp_getapplock), taget i den givne
+     * (sorterede) rækkefølge, FØR noget om kørslen læses. Både børneskrivning og afslutning tager den (K10-F3).
+     */
+    låsKørsler(ider: readonly string[]): Promise<void>;
     /** Rækkerne med disse id'er (rå databaseværdier). */
-    hent(tabel: ImportTabel | 'Vaerk', ider: readonly string[]): Promise<Record<string, unknown>[]>;
+    hent(tabel: ImportTabel | 'Vaerk' | 'Tidsserie', ider: readonly string[]): Promise<Record<string, unknown>[]>;
     indsæt(tabel: ImportTabel, rækker: readonly (readonly Kanonisk[])[]): Promise<void>;
-    tælBørn(koerselId: string): Promise<Børnetal>;
+    /** En side af kørslens rækker i en undertabel, i fast orden (rå databaseværdier). */
+    børneside(koerselId: string, tabel: KoerselBarn, fra: number, antal: number): Promise<Record<string, unknown>[]>;
     input(koerselId: string): Promise<InputRad[]>;
     vaerkHistorik(vaerkId: string): Promise<{ revision: number; blade: { sti: string; vaerdi_json: string }[]; log: LogRad[] }>;
-    tidsserieShas(vaerkId: string): Promise<Set<string>>;
+    /** Værkets gyldige tidsserier. */
+    tidsserier(vaerkId: string): Promise<{ rolle: string; sha256: string }[]>;
     udfoer(anmodningId: string, svar: string): Promise<void>;
 }
 
-const NAVN: Record<ImportTabel, string> = {
-    Scenarie: 'scenarier', ScenarieAendring: 'scenarieændringer', Bestilling: 'bestillinger', Koersel: 'kørsler',
+const NAVN: Record<DelTabel, string> = {
+    Scenarie: 'scenarier', Bestilling: 'bestillinger', Koersel: 'kørsler',
     KoerselInput: 'inputrækker', KoerselNoegletal: 'nøgletal', KoerselMaaned: 'månedsrækker', KoerselTime: 'timerækker',
 };
+
+/** Kørslens rækker i databasen: antal og sha256 pr. undertabel, side for side. */
+export async function børnetilstand(tx: ArkivTx, koerselId: string): Promise<Børnetilstand> {
+    const antal = {} as Børnetal;
+    const sha256 = {} as Record<KoerselBarn, string>;
+    for (const b of KOERSEL_BOERN) {
+        const h = new TabelHash();
+        for (let fra = 0; ; fra += BØRNESIDE) {
+            const side = await tx.børneside(koerselId, b, fra, BØRNESIDE);
+            for (const r of side) h.tilføj(kanoniskRække(b, r));
+            if (side.length < BØRNESIDE) break;
+        }
+        antal[b] = h.antal;
+        sha256[b] = h.sha256();
+    }
+    return { antal, sha256 };
+}
+
+/** Arkivets egne rækker for en kørsel: antal og sha256 pr. undertabel (det, `forventet` sendes med). */
+export function børnetilstandAf(rækker: Record<KoerselBarn, readonly (readonly Kanonisk[])[]>): Børnetilstand {
+    return {
+        antal: Object.fromEntries(KOERSEL_BOERN.map((b) => [b, rækker[b].length])) as Børnetal,
+        sha256: Object.fromEntries(KOERSEL_BOERN.map((b) => [b, tabelSha(rækker[b])])) as Record<KoerselBarn, string>,
+    };
+}
 
 /**
  * importerArkiv(anmodningId, del): skriver én del i ÉN transaktion. Idempotent: en anmodning, der allerede er
  * behandlet, svarer med sit gemte svar; rækker, der findes med samme indhold, springes over; en række med samme
- * id og andet indhold afviser HELE delen (intet overskrives). Undertabellernes rækker kan kun tilføjes, så længe
- * kørslen selv ikke findes; kørslen skrives først, når dens rækker er komplette og passer med input_hash.
+ * id og andet indhold afviser HELE delen (intet overskrives). Et scenarie skrives med alle sine ændringer.
+ * Undertabellernes rækker kan kun tilføjes, så længe kørslen selv ikke findes; kørslen skrives først, når dens
+ * rækker har arkivets antal og indhold og passer med input_hash — alt under en lås pr. kørsel.
  */
 export async function importerDel(lager: ArkivLager, anmodningId: string, tekst: string): Promise<Importsvar> {
     if (!UUID.test(anmodningId)) return { ok: false, status: 'afvist', svar: 'Ugyldigt anmodnings-id.' };
@@ -564,25 +717,82 @@ export async function importerDel(lager: ArkivLager, anmodningId: string, tekst:
 
 const kol = (tabel: ImportTabel, r: readonly Kanonisk[], navn: string): Kanonisk => r[kolonnenavne(tabel).indexOf(navn)];
 
-async function skrivDel(tx: ArkivTx, del: Del): Promise<{ oprettet: number; fandtes: number }> {
-    const { tabel } = del;
-    const ider = del.raekker.map((r) => r[0] as string);
-    const eksisterende = new Map((await tx.hent(tabel, ider)).map((r) => [String(r.id).toLowerCase(), r] as const));
+/** Rækkernes udfald mod databasen: de nye — og en afvisning, hvis en findes med andet indhold. */
+async function nyeRækker(tx: ArkivTx, tabel: ImportTabel, rækker: readonly Kanonisk[][]): Promise<Kanonisk[][]> {
+    if (!rækker.length) return [];
+    const eksisterende = new Map((await tx.hent(tabel, rækker.map((r) => r[0] as string))).map((r) => [String(r.id).toLowerCase(), r] as const));
     const nye: Kanonisk[][] = [];
     const konflikter: string[] = [];
-    for (const r of del.raekker) {
+    for (const r of rækker) {
         const s = sammenlign(tabel, r, eksisterende.get(r[0] as string));
         if (s.udfald === 'konflikt') konflikter.push(`${String(r[0])} (${s.kolonner.join(', ')})`);
         else if (s.udfald === 'ny') nye.push(r);
     }
     if (konflikter.length) {
-        throw new ArkivAfvisning(`Konflikt: ${konflikter.length} ${NAVN[tabel]} findes allerede med andet indhold, fx ${konflikter.slice(0, 3).join('; ')}. Intet er overskrevet.`);
+        const navn = tabel === 'ScenarieAendring' ? 'scenarieændringer' : NAVN[tabel as DelTabel];
+        throw new ArkivAfvisning(`Konflikt: ${konflikter.length} ${navn} findes allerede med andet indhold, fx ${konflikter.slice(0, 3).join('; ')}. Intet er overskrevet.`);
+    }
+    return nye;
+}
+
+async function skrivDel(tx: ArkivTx, del: Del): Promise<{ oprettet: number; fandtes: number }> {
+    const { tabel } = del;
+    // K10-F3: låsen pr. kørsel tages FØR noget læses — af børnedele og afslutningen ens, i fast (sorteret) orden.
+    if (tabel === 'Koersel') await tx.låsKørsler([...new Set(del.raekker.map((r) => r[0] as string))].sort());
+    else if ((KOERSEL_BOERN as readonly string[]).includes(tabel)) {
+        await tx.låsKørsler([...new Set(del.raekker.map((r) => kol(tabel, r, 'koersel_id') as string))].sort());
+    }
+    const nye = await nyeRækker(tx, tabel, del.raekker);
+    const fandtes = del.raekker.length - nye.length;
+    if (tabel === 'Scenarie') {
+        // Et nyt scenarie skrives med ALLE sine ændringer i samme transaktion (K10-F1); et eksisterende (levende)
+        // scenaries ændringer røres ikke.
+        const nyeIder = new Set(nye.map((r) => r[0] as string));
+        const ænd = await nyeRækker(tx, 'ScenarieAendring', (del.aendringer ?? []).filter((a) => nyeIder.has(kol('ScenarieAendring', a, 'scenarie_id') as string)));
+        if (nye.length) {
+            await tjekNye(tx, del, nye);
+            await tjekTidsserievalg(tx, nye, ænd);
+            await tx.indsæt('Scenarie', nye);
+        }
+        if (ænd.length) await tx.indsæt('ScenarieAendring', ænd);
+        return { oprettet: nye.length + ænd.length, fandtes };
+    }
+    if (tabel === 'Koersel') {
+        // En kørsel, der findes med samme række, er kun "findes", hvis dens rækker også passer (K10-F2).
+        const nyeIder = new Set(nye.map((r) => r[0] as string));
+        for (const r of del.raekker) {
+            if (nyeIder.has(r[0] as string)) continue;
+            const f = børneforskel(String(r[0]), await børnetilstand(tx, String(r[0])), del.forventet![r[0] as string]);
+            if (f) throw new ArkivAfvisning(`Konflikt: ${f}`);
+        }
     }
     if (nye.length) {
         await tjekNye(tx, del, nye);
         await tx.indsæt(tabel, nye);
     }
-    return { oprettet: nye.length, fandtes: del.raekker.length - nye.length };
+    return { oprettet: nye.length, fandtes };
+}
+
+/**
+ * Et scenaries valg af tidsserie (`_tidsserie.<rolle>` = id) skal pege på en gyldig serie i NETOP den rolle på
+ * scenariets værk (K10-F6) — ellers afvises scenariet her i stedet for ved næste bestilling. "syntetisk" er intet id.
+ */
+async function tjekTidsserievalg(tx: ArkivTx, scenarier: readonly Kanonisk[][], ændringer: readonly Kanonisk[][]): Promise<void> {
+    const værk = new Map(scenarier.map((r) => [r[0] as string, kol('Scenarie', r, 'vaerk_id') as string]));
+    for (const a of ændringer) {
+        const sti = String(kol('ScenarieAendring', a, 'sti'));
+        const vj = kol('ScenarieAendring', a, 'vaerdi_json');
+        if (!sti.startsWith('_tidsserie.') || typeof vj !== 'string') continue;
+        let valgt: unknown;
+        try { valgt = JSON.parse(vj); } catch { continue; }
+        if (typeof valgt !== 'string' || !UUID.test(valgt)) continue;
+        const rolle = sti.slice('_tidsserie.'.length);
+        const serie = (await tx.hent('Tidsserie', [valgt]))[0];
+        const sid = String(kol('ScenarieAendring', a, 'scenarie_id'));
+        if (!serie || String(serie.vaerk_id).toLowerCase() !== værk.get(sid) || serie.rolle !== rolle || serie.status !== 'gyldig') {
+            throw new ArkivAfvisning(`Scenarie ${sid}: den valgte tidsserie (${rolle}) findes ikke her som gyldig ${rolle} på værket. Upload den først.`);
+        }
+    }
 }
 
 async function findes(tx: ArkivTx, tabel: ImportTabel | 'Vaerk', ider: readonly string[]): Promise<Map<string, Record<string, unknown>>> {
@@ -607,7 +817,7 @@ async function tjekNye(tx: ArkivTx, del: Del, nye: readonly Kanonisk[][]): Promi
         }
         return;
     }
-    if (tabel === 'ScenarieAendring' || tabel === 'Bestilling') {
+    if (tabel === 'Bestilling') {
         const s = await findes(tx, 'Scenarie', ref('scenarie_id'));
         for (const r of nye) if (!s.has(kol(tabel, r, 'scenarie_id') as string)) throw new ArkivAfvisning(`${tabel} ${String(r[0])}: scenariet findes ikke.`);
         return;
@@ -629,13 +839,13 @@ async function tjekNye(tx: ArkivTx, del: Del, nye: readonly Kanonisk[][]): Promi
         if (vaerk && !historik.has(vaerkId)) {
             const h = await tx.vaerkHistorik(vaerkId);
             historik.set(vaerkId, vaerkRevisioner(h.revision, h.blade, h.log));
-            serier.set(vaerkId, await tx.tidsserieShas(vaerkId));
+            serier.set(vaerkId, new Set((await tx.tidsserier(vaerkId)).map((t) => `${t.rolle}:${t.sha256}`)));
         }
         const b = bestillinger.get(kol('Koersel', r, 'bestilling_id') as string);
         const s = scenarier.get(kol('Koersel', r, 'scenarie_id') as string);
         tjekKoersel({
             koersel: r,
-            antal: await tx.tælBørn(id),
+            nu: await børnetilstand(tx, id),
             forventet: del.forventet![id],
             input: await tx.input(id),
             bestilling: b ? { scenarie_id: String(b.scenarie_id).toLowerCase() } : null,

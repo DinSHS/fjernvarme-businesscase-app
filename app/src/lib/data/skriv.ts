@@ -334,6 +334,11 @@ export async function importerArkivDel(aendringer_json: string, del: string, bru
     return kald("importerArkiv", { anmodningId: a.id, del });
 }
 
+/** Arkivet (runde 13b, K10-F4): databasens egne rækketal for scenarierne — eksportens fuldstændighedstjek. */
+export async function hentArkivTal(scenarieIder: readonly string[]): Promise<Ud<"arkivTal">> {
+    return kald("arkivTal", { scenarieIder: JSON.stringify(scenarieIder) });
+}
+
 /**
  * Uploader et værksark (`vaerksdata_skabelon.xlsx`) som base64. Backend gemmer filen, opretter en
  * Vaerksarkimport (`koe`) og starter importnotebooken; følg den med `useVaerksarkimport(import_id)`.
