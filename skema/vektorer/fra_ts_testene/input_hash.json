@@ -9,17 +9,42 @@
   "app/rayfin/functions/src/datakrav.data.ts": "f5161974fa9318fb928e9c42e120ebfd6944f7d03980fd8a254e34235db36c77",
   "app/rayfin/functions/src/zip.ts": "40f3ce8e66817b30854563e4d975e88c0c5fcc5f521b953124d585e4de150ae6",
   "app/rayfin/functions/src/vaerksark.ts": "68bf94b5679c12030496f9fe43daaca600950ab1fd9e6232a6f0553c968808c5",
+  "app/rayfin/functions/test/arkiv.spec.ts": "bea63d559fc94f2b398db3c7f551e8adbe63f29c4303ace811c93e1d8e0d4959",
+  "app/rayfin/functions/test/arkiv_k10.spec.ts": "5f593e545d13dea1fd226ad555f5a4723b6dd9b1ed22872867a1b2c32efe634c",
   "app/rayfin/functions/test/k4.spec.ts": "7a7b32738c6d7012fc5875b55784f002b147174247db4679b37ff39884887fde",
   "app/rayfin/functions/test/k5.spec.ts": "0da34182a443b5c07ca45bf309863aac817b6ddc21e0ff648efdc553a0e4f537",
   "app/rayfin/functions/test/logik.spec.ts": "ccd354607085f5c46df86e5acefa8fa5bcd00653df06f36175854cd4cd505a32",
   "app/rayfin/functions/test/motor.spec.ts": "e7bfdd1bec93c5436bffd76d1847eaf1ef504c2e9700843f8548ffd43800d9b1",
   "app/rayfin/functions/test/opret_vaerk.spec.ts": "bca3d74a7c29d354b956fc00da0283e4030e586fc1932fd9bf30cf91c2160826",
   "app/rayfin/functions/test/r12_revision.spec.ts": "36cc1a511de8f860b704bcde22a2eb14daffb3cf952da708c98fdd35fe0973b1",
-  "app/rayfin/functions/test/registrering.spec.ts": "e0b16e0b11a1aff819d4f4c8ec1efd0bebd1bc3826ba0a2ab4eb24e0435f6b8b",
+  "app/rayfin/functions/test/registrering.spec.ts": "6d923ae2307c8c6111ff04b785d091107a271c5555501ed52be39bf429b556c4",
   "app/rayfin/functions/test/tidsserie.spec.ts": "49048b3d1da5c28742f15232852a301454a0e60486d5521f76432f165bbfa9d4",
   "app/rayfin/functions/test/tidsserie_backend.spec.ts": "6c501d927381a2973a610d97dbb917a3581bf09ba8a26ff9438d0e2dc46a2251"
  },
  "tilfaelde": [
+  {
+   "navn": "arkiv.spec.ts › sha256 uden crypto-API > inputHashRen er PRÆCIS logik.ts' inputHash (arbejderens definition)",
+   "input": {
+    "raekker": [
+     {
+      "kilde": "vaerk",
+      "sti": "b",
+      "vaerdi_json": "1"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "b",
+      "vaerdi_json": "\"ø\""
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "a",
+      "vaerdi_json": "[1,2]"
+     }
+    ]
+   },
+   "ud": "19b2e56065043f16afe19cfc76fe8c6ab6ac2284d8b629b409aa84bcc83b8b2d"
+  },
   {
    "navn": "logik.spec.ts › inputHash > er uafhængig af rækkefølgen",
    "input": {
