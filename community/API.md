@@ -96,7 +96,7 @@ Krop = input-objektet, svar = output — **præcis** `AppFunctionsSchema` i
 | `hentKildeYaml` | `{ vaerkId }` | `<data>/Files/fjv/vaerker/<kode>/kilde.yaml` |
 | `uploadTidsserie` | `{ anmodningId, indholdBase64 }` | |
 | `hentTidsserie` | `{ tidsserieId, fra, til }` | |
-| `uploadVaerksark` | `{ anmodningId, indholdBase64 }` | starter en lokal import-proces |
+| `uploadVaerksark` | `{ anmodningId, indholdBase64, basisBase64? }` | starter en lokal import-proces; med `basisBase64` (runde 12) er uploaden en ny revision af anmodningens værk — importen binder arket til værket (markering, grundlag, basis = værkets eksport) i sin transaktion |
 | `hentDmiTemperatur` | `{ omraade, fra, til, kolonne }` | henter df-data på Motor-rækkens `data_commit`, hvis den ikke er hentet |
 | `skemaInfo` | `{}` | `login` = `<dialekt>:<bruger>` |
 | `importerArkiv` | `{ anmodningId, del }` | én del af et arkiv (runde 13): anmodning `importer_arkiv` (nil-uuid som værk) med delens sha256; `logik/arkiv.py` |

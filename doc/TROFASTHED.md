@@ -32,6 +32,9 @@ cases/<værk>.yaml ── fjv/flad.py ──► blade i databasen (sti → værd
 
 * Et værk fra modelrepoet er casefilens blade uændret. Rundturen `flad → afflad` er typestreng for alle 7 cases.
 * Et værksark konverteres af modelrepoets **eget** `scripts/vaerksark_til_yaml.py` ved den pinnede commit.
+* Eksporten af et værk til værksarket (runde 12) udfylder modelrepoets **egen** `vaerksdata_skabelon.xlsx` og er den
+  inverse af scriptet: hvad scriptet læser tilbage, er bevist felt for felt i gaten ([4d](#4d-eksport-til-værksark--rundturen)).
+  Ved genupload som revision køres scriptet uændret på både arket og en ny eksport af værket, og kun forskellen gemmes.
 * Wrapperen ændrer intet i beregningen. Den pakker `src.manifest.write_manifest` ind og skriver bagefter
   `_fjv_fuld.csv` (alle N intervaller, fordi `_hourly.csv` dropper det første) og `_fjv.json` (objektivet uden afrunding).
 * Månedstal i dansk tid regnes af appen ud fra `_fjv_fuld.csv`, fordi modellens `_monthly.csv` grupperer i UTC.
@@ -46,6 +49,7 @@ cases/<værk>.yaml ── fjv/flad.py ──► blade i databasen (sti → værd
 |---|---|
 | [`viden/modelspejl.json`](../viden/modelspejl.json) | hver case som blade med linjenummer; kørselskommandoerne pr. case (casens `KØRES MED`-kommentar og README's tabel); kodens standardværdier med fil:linje; `class Solver`; README's vinduer; `requirements.txt`; værksarkets skaleringsregel med kildetekst |
 | `app/src/lib/modelspejl.data.ts` | samme spejl, som appen viser (kortet *Modelrepoet* på hvert værk, kilden under hvert felt) |
+| `app/src/sider/konfiguration/eksport/vaerksdata_skabelon.xlsx` | modelrepoets værksark ved pinnen, byte for byte (runde 12); eksporten udfylder det |
 | `app/src/sider/konfiguration/skalering.vektorer.json` | facit for skaleringen: modelrepoets egne linjer i `vaerksark_til_yaml.py` (`f`, `andeby_profil`, `heat_params`) udført i Python for 135 værdier af årsbehovet, inkl. alle halvtilfælde |
 
 Kørselskommandoerne læses **strengt** af [`fabric/fjv/modelkoersel.py`](../fabric/fjv/modelkoersel.py): flag og antal
@@ -132,6 +136,40 @@ argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.cs
 
 **7 af 7 er ens.** Ét vindue kan vælges med `--start`/`--slut`, enkelte cases som argumenter (`andeby.yaml`).
 
+### 4d. Eksport til værksark — rundturen
+
+```bash
+FJV_MODELPYTHON=<python med modelrepoets requirements.txt> python viden/vaerktoej/tjek_eksport_rundtur.py --koer
+```
+
+Gaten kører det som trinnet *eksport rundtur*. For hvert værk i kataloget (de 7 cases, plus `billund_idag_maalt`:
+billund_idag med casens egen målte varmelast aktiv, så Timedata prøves) og tre varianter fra Codex' review K11
+(`andeby_navne`: halmkedlen hedder `halm__kedel`; `andeby_hul`: solprofilen med et dagtimehul og to tomme nattetimer i
+vinduets ende; `billund_idag_maalt_hul`: den målte varmelast med et hul) laver **appens egen kode** eksporten, og
+modelrepoets `scripts/vaerksark_til_yaml.py` køres **uændret** på arket, som importen kører det. Kravene:
+
+* importens `slug()` (`fjv.revision`) = scriptets egen på svære navne;
+
+* scriptet godtager arket, og arket med og uden den skjulte markering `_app` giver præcis samme case og tidsserier;
+* eksportens forudsigelse af scriptet (`app/src/sider/konfiguration/eksport/kort.ts`) = scriptets blade, typestreng;
+* hver forskel mellem værket og scriptets case (scriptets objektnavne ført tilbage som importen gør) står på
+  eksportens liste *ikke med i arket*, og listen har intet andet; markeringens *afvigelser* er listens ikke-artefakter;
+* den målte serie i arket kommer tilbage byte for byte (inden for arkets periode), og begge mængdeforskelle i
+  tidsaksen er forklaret: timer, scriptet tilføjer, er præcis eksportens *udfyldes* (tidspunkt og værdi med 6
+  decimaler); timer, det fjerner, ligger uden for arket;
+* genupload uden ændringer gemmer intet, og `run_case` giver samme objektiv før og efter (`--koer`);
+* modprøver: én ændret celle (D&V, en brændselspris, én solvarmetime) ændrer præcis det felt; en serierettelse er
+  revision 2 med logrækken `tidsserie.<rolle>`; et værk på en nyere revision, et ark fra et andet værk og en basis, der
+  ikke er værkets eksport (det rettede ark sendt som sin egen basis), afvises uden at gemme noget; kun årsproduktionen
+  i Timedata!B3 ændret gemmer intet og siger hvorfor.
+
+Rundturen sammenligner med regnearkets præcision (15 betydende cifre), ikke bit for bit: en rettelse efter det 15.
+ciffer er usynlig. `run_case` køres på værket før og efter en revision uden ændringer (samme blade) — det beviser
+no-op-revisionen, ikke at en upload som nyt værk regner identisk med originalen; dén forskel er listen *ikke med i
+arket*.
+
+En fejl i forudsigelsen (målt: tankenes selvafladning sat til 0,0006) gør trinnet rødt med fire fund.
+
 ### 4c. Hele appen med en rigtig kørsel
 
 Følg [kom-i-gang i README](../README.md#kom-i-gang--lokal-udgave-520-minutter) og bestil Andeby 5.–6. januar 2026 uden
@@ -172,6 +210,7 @@ Fundet under arbejdet ved `eef950a` og ikke rettet af os (modelrepoet er dit). I
 | `scripts/vaerksark_til_yaml.py:1581` | skalerer fra "Andebys ~100 GWh"; Andebys parametre giver 105,52 GWh på karup-vejret jul 2025–jun 2026 (vores måling) |
 | `scripts/vaerksark_til_yaml.py:1015-1036` | dansk lokaltid i både Timedata og Solvarme fejler altid ("mangler 22 timer i starten") |
 | `cases/andeby.yaml:184` | CO₂-enheden hedder `DKK/t`; konverteringen skriver `DKK/t_CO2` |
+| `scripts/vaerksark_til_yaml.py:101-108` | `slug()` normaliserer til NFKD **før** æ/ø/å erstattes: `å` er da allerede `a` + en kombinerende ring og bliver `a` (ikke `aa`), og et stort Æ eller Ø falder bort i `.encode("ascii", "ignore")`. Målt: "Ærø Fjernvarme" → `roe_fjernvarme`, "Brønderslev Østerby" → `broenderslev_sterby`, "Tårs Halmværk" → `tars_halmvaerk`. Appens eksport forudsiger det samme |
 
 <a id="highs"></a>Om gabet: med `--mip-gap 0.0002` alene stopper HiGHS ved det absolutte gab (casens 5.000 kr.), før det
 relative er nået. Det er grunden til appens 100 kr. i parforslag.

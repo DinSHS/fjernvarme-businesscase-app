@@ -9,6 +9,7 @@ import type { Parameterændring } from "@/lib/data/skriv";
 import { MAKS } from "../../../rayfin/data/fjv.constants";
 import { ENHEDSTYPER, type FeltPost, findFelt } from "./katalog";
 import type { Blad } from "./gruppering";
+import { slug } from "./eksport/slug";
 
 /** Ét redigeret felt: det brugeren skrev, og hvad det kodes til (eller hvorfor ikke). */
 export interface Kladde { tekst: string; json: string | null; fejl: string | null }
@@ -96,8 +97,13 @@ export function tjekNavn(navn: string, optaget: { units: ReadonlySet<string>; st
     if (!navn) return "Giv enheden et navn.";
     if (!NAVN_MOENSTER.test(navn)) return "Navnet må kun indeholde små bogstaver, cifre og _ (fx vp_ny).";
     if (navn.length > 60) return "Navnet må højst være 60 tegn.";
+    // Codex K11 F1: et nyt navn skal komme uændret gennem værksarkets modelscript (slug). Eksisterende navne røres ikke.
+    if (slug(navn) !== navn) return "Navnet må ikke starte eller slutte med _ eller have to _ i træk — værksarkets modelscript fjerner dem, og navnet ville ikke komme uændret tilbage.";
+    if (/_x[0-9a-f]{4}_/.test(navn)) return "Navnet må ikke indeholde _x efterfulgt af fire tegn og _ (fx _x0041_) — Excel læser det som et kodet tegn.";
     if (optaget.units.has(navn)) return `Der findes allerede en enhed ved navn ${navn}.`;
     if (optaget.storage.has(navn)) return `Der findes et lager ved navn ${navn} — til/fra i et scenarie kan ikke skelne dem.`;
+    const samme = [...optaget.units, ...optaget.storage].find((x) => slug(x) === navn);
+    if (samme) return `Navnet ${navn} er det samme som ${samme}, når værksarkets modelscript har normaliseret det — vælg et andet navn.`;
     return null;
 }
 

@@ -4,7 +4,8 @@ Modelrepoet er sandheden. Testen fejler, hvis en modelopdatering ændrer en anta
 lade den glide igennem:
 
   [1] pins       viden/modelspejl.json, konstanter.py og hver viden/*.json's model_commit er den samme commit.
-  [2] spejl      modelspejl.json, app/src/lib/modelspejl.data.ts og skalering.vektorer.json er præcis, hvad modelrepoet
+  [2] spejl      modelspejl.json, app/src/lib/modelspejl.data.ts, skalering.vektorer.json og eksportens
+                 vaerksdata_skabelon.xlsx (runde 12, byte for byte) er præcis, hvad modelrepoet
                  giver ved commit'en (cases som blade, kørselskommandoer læst STRENGT, kodens standarder, solver, vinduer,
                  requirements, HELE skaleringsreglen med kildetekst, og orakelvektorer fra modellens egne linjer).
   [3] ordre      for HVER case i cases/*.yaml: appens bestillingsvej (flad -> raekker_fra_vaerk -> byg) med
@@ -29,6 +30,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -108,6 +110,14 @@ if kilde is not None:
             meld("spejl", "skalering.vektorer.json er ikke modelrepoets egne skaleringslinjer udført for G - kør byg_modelspejl.py")
     except SystemExit as e:
         meld("spejl", f"varmelast_skalering: {e}")
+    # Runde 12: eksporten udfylder modelrepoets eget værksark ved pinnen — byte for byte den fil.
+    try:
+        model_skabelon = kilde.bytes(BM.SKABELON_KILDE)
+    except (OSError, subprocess.CalledProcessError) as e:
+        model_skabelon = None
+        meld("spejl", f"modelrepoets {BM.SKABELON_KILDE} kan ikke læses ({e}) - eksporten har ingen skabelon at følge")
+    if model_skabelon is not None and (BM.UD_SKABELON.read_bytes() if BM.UD_SKABELON.exists() else b"") != model_skabelon:
+        meld("spejl", f"{BM.UD_SKABELON.name} i appen er ikke modelrepoets {BM.SKABELON_KILDE} ved pinnen - kør byg_modelspejl.py")
     for kode, c in CASES.items():
         tekster[kode] = kilde.tekst(c["fil"])
     print(f"[2] spejl: {len(CASES)} cases, {sum(len(c['blade']) for c in CASES.values())} blade mod {kilde.beskriv()}, "

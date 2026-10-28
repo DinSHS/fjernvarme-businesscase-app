@@ -1,22 +1,23 @@
 {
  "_om": "Udtrukket af TS-testene (tjek_modelkrav) med skema/vektorer/udtraek.mjs: input og TS' faktiske udfald for hvert kald, testene selv laver. Ret aldrig i hånden — udtræk igen.",
  "kilder": {
-  "app/rayfin/functions/src/logik.ts": "5938c94855acf5a81b1c9e1ac5684b6470985a9da3ebec4ccad3985442cce1fa",
+  "app/rayfin/functions/src/logik.ts": "61ab87038bce9c7b0f3e02e2b05e111beb010a7a845255cecb4f12df317b05eb",
   "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
   "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
-  "app/rayfin/functions/src/tidsserie.ts": "627c8ceba5d15918eab01b7af82abe79542819d9d912a7a841e6931ea3e11fce",
-  "app/rayfin/functions/src/tidsserie-validering.ts": "5e14c47754ff0d4af6cf34d75f88aaab7fd941879ec39df0f142a18d15e6211a",
-  "app/rayfin/functions/src/datakrav.data.ts": "769757a2751512e13c52cd75b28805fb40eb6802be5771721353bed9e18880af",
-  "app/rayfin/functions/src/zip.ts": "467a871529507b73de8179aea3465aea59ea6541954e8c912de2638caa5100ea",
-  "app/rayfin/functions/src/vaerksark.ts": "8b5fb2f0aa3fd1d9491c237a617d998e63586b44939ff1b038ced614edd5f427",
+  "app/rayfin/functions/src/tidsserie.ts": "1cce44ad863accac534d56ee116da48676375238349c09166c9701a6e8ceee40",
+  "app/rayfin/functions/src/tidsserie-validering.ts": "fa3f4389a650f0064983082b6a2146e4a9a817c1adf4f35b3c86e48c016d349f",
+  "app/rayfin/functions/src/datakrav.data.ts": "f5161974fa9318fb928e9c42e120ebfd6944f7d03980fd8a254e34235db36c77",
+  "app/rayfin/functions/src/zip.ts": "40f3ce8e66817b30854563e4d975e88c0c5fcc5f521b953124d585e4de150ae6",
+  "app/rayfin/functions/src/vaerksark.ts": "68bf94b5679c12030496f9fe43daaca600950ab1fd9e6232a6f0553c968808c5",
   "app/rayfin/functions/test/k4.spec.ts": "7a7b32738c6d7012fc5875b55784f002b147174247db4679b37ff39884887fde",
-  "app/rayfin/functions/test/k5.spec.ts": "315e3cc11b497ae105ab1c2a4552371beb00b554fd17fcb5d26aeec5edbaf5ae",
-  "app/rayfin/functions/test/logik.spec.ts": "f9507699c7679fd342ed5630a6151d048aaa0050eba3859eafa2d6338514cfc0",
-  "app/rayfin/functions/test/motor.spec.ts": "645d24741b0636fca77fc9dcca430184431f9f7b389dac982123d3dcc74ae11e",
-  "app/rayfin/functions/test/opret_vaerk.spec.ts": "99d2f3c44429535f4ae9741aef571bad67c0a1eef07161765f9c389bf8a1bf68",
-  "app/rayfin/functions/test/registrering.spec.ts": "05a8a0edaa4d02c8d48d6a1d921b867bcd3d31d82a03dd9d7f577be61f73e414",
+  "app/rayfin/functions/test/k5.spec.ts": "0da34182a443b5c07ca45bf309863aac817b6ddc21e0ff648efdc553a0e4f537",
+  "app/rayfin/functions/test/logik.spec.ts": "ccd354607085f5c46df86e5acefa8fa5bcd00653df06f36175854cd4cd505a32",
+  "app/rayfin/functions/test/motor.spec.ts": "e7bfdd1bec93c5436bffd76d1847eaf1ef504c2e9700843f8548ffd43800d9b1",
+  "app/rayfin/functions/test/opret_vaerk.spec.ts": "bca3d74a7c29d354b956fc00da0283e4030e586fc1932fd9bf30cf91c2160826",
+  "app/rayfin/functions/test/r12_revision.spec.ts": "36cc1a511de8f860b704bcde22a2eb14daffb3cf952da708c98fdd35fe0973b1",
+  "app/rayfin/functions/test/registrering.spec.ts": "e0b16e0b11a1aff819d4f4c8ec1efd0bebd1bc3826ba0a2ab4eb24e0435f6b8b",
   "app/rayfin/functions/test/tidsserie.spec.ts": "49048b3d1da5c28742f15232852a301454a0e60486d5521f76432f165bbfa9d4",
-  "app/rayfin/functions/test/tidsserie_backend.spec.ts": "7c166c36baf80a999d547e0b5535b0276390d6b996a75256f07f2b9baa45aabe"
+  "app/rayfin/functions/test/tidsserie_backend.spec.ts": "6c501d927381a2973a610d97dbb917a3581bf09ba8a26ff9438d0e2dc46a2251"
  },
  "tilfaelde": [
   {
