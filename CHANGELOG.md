@@ -14,6 +14,16 @@ sammenlignes med tal efter.
 ### Tilføjet
 - Farvestyring i tabellerne med Δ-tal (kørsel og sammenligning): *Ingen*, *Retning* og *Heatmap*, med farver efter
   IBCS-polaritet og WCAG AA-kontrast. Arbejdet foregår på grenen `runde9/heatmap`.
+- Sammenligningen har kortet **Sammensætning måned for måned**: Ref og Scen som små multipler på samme skala med
+  enhedskulører og varmebehov, og en tabel med rækkegrupperne Reference og Scenarie (runde 11). Det står før
+  ΔRef-kortet *Måned for måned*, som er uændret bortset fra afgrænsningen "ΔRef = Scen − Ref".
+- Vælgeren **MWh · % af total** på sammensætningen (kørsel og sammenligning): under % af total er hver søjle 100 % —
+  enhedens andel af månedens (eller hele periodens) produktion; tooltip viser både energi og andel. Huskes pr. bruger.
+- Farvevalget i et kort gælder nu også kortets variansgraf (ΔRef-søjler og ΔRef%-nåle): Retning og Heatmap tegner dem i
+  farvesættets farver; `Ingen` er uændret IBCS (`app/IBCS.md` AF7).
+
+### Ændret
+- Scenarielisten (`#/scenarier`) har ikke længere farvevalg eller heatmap: ΔRef står som almindeligt tal med fortegn.
 
 ## [0.3.1] — 2026-10-27 — oprydning og dokumentation før offentliggørelse
 

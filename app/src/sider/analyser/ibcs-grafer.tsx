@@ -132,8 +132,33 @@ export function ProduktionPrEnhed({ enheder }: { enheder: readonly EnhedTal[] })
 
 // ---------------------------------------------------------------- Ref og Scen pr. enhed med ΔRef og ΔRef%
 
-/** A-23 + A-25 + A-26: Ref som omrids bagved, Scen fyldt foran, ΔRef på samme skala, ΔRef% som pins. Polaritet 0 → blå. */
-export function ProduktionMod({ varians, fremhaev }: { varians: readonly EnhedVarians[]; fremhaev?: string }) {
+/** Variansmærkerne (søjle, nål, outlier og deres etiketter); 0 og N/A har virkningen "none" og røres ikke. */
+const VARIANSROLLER = new Set(["variance", "variance-label", "pin", "outlier"]);
+
+/**
+ * Kortets farvevalg i grafen (runde 11, IBCS.md AF7): giv variansmærkerne `farve(fortegn)` — fortegnet er rækkens ΔRef
+ * (ΔRef% har samme fortegn, når den findes). `farve` → undefined beholder bibliotekets IBCS-farve. Geometri og tal
+ * (med fortegn) er uændrede.
+ */
+export function omfarv(layout: Layout, fortegn: ReadonlyMap<string, number | null | undefined>, farve?: (v: number) => string | undefined): Layout {
+    if (!farve) return layout;
+    const marks = layout.marks.map((m) => {
+        if (!VARIANSROLLER.has(m.role) || !m.impact || m.impact === "none" || m.category == null) return m;
+        const v = fortegn.get(m.category);
+        const f = v == null ? undefined : farve(v);
+        if (!f) return m;
+        if (m.kind === "text") return { ...m, fill: f };
+        if (m.kind === "rect" || m.kind === "path") return { ...m, fill: f };
+        return m;
+    });
+    return { ...layout, marks };
+}
+
+/**
+ * A-23 + A-25 + A-26: Ref som omrids bagved, Scen fyldt foran, ΔRef på samme skala, ΔRef% som pins. Polaritet 0 → blå
+ * (Ingen); `farve` er kortets farvevalg (Retning/Heatmap: farvesættets pol, se omfarv).
+ */
+export function ProduktionMod({ varians, fremhaev, farve }: { varians: readonly EnhedVarians[]; fremhaev?: string; farve?: (v: number) => string | undefined }) {
     // Codex K9 F1: ukendt Scen tegnes ikke — biblioteket tegner en manglende AC som 0, når Ref findes (udgået enhed), så
     // Ref udelades også; ukendt Ref tegner kun Scen. Δ og Δ% er da ukendte (ingen bjælke, N/A).
     const rækker: StructureRow[] = [...varians]
@@ -145,13 +170,13 @@ export function ProduktionMod({ varians, fremhaev }: { varians: readonly EnhedVa
             undertitel={<><strong>Varmeproduktion</strong> i {enhed}, pr. enhed · Ref og Scen | ΔRef | ΔRef%</>}
             lav={(b) => {
                 const stablet = b < SMAL;
-                return layoutStructureBars(rækker, {
+                return omfarv(layoutStructureBars(rækker, {
                     width: b, reference: "PL", referenceStyle: "bar", ppu: pxPrEnhed(rækker, b, true, stablet), scale: skala,
                     // Ingen outlier-klipning (IBCS F7: kun for forretningsmæssigt uvæsentlige relative værdier). Bibliotekets
                     // "dybeste kløft" klippede ellers netop de to største flytninger (tankparret: +5,2 % og −13,1 %).
                     polarity: 0, stack: stablet ? true : "auto", codes: KODER, pctDecimals: 1, outlierRatio: 0,
                     highlight: fremhaev ? { category: fremhaev, tier: "delta" } : undefined,
-                });
+                }), new Map(rækker.map((r) => [r.category, r.delta])), farve);
             }} />
     );
 }

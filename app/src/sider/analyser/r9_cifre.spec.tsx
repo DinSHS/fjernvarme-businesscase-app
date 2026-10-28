@@ -79,7 +79,7 @@ describe("energi i tabeller: højst 4 heltalscifre, GWh med samme regel som graf
         const ref = pakke({}, [m("2025-07", "halmkedel", 5), m("periode", "halmkedel", 60)]);
         const scen = pakke({}, [m("2025-07", "halmkedel", 3.1), m("periode", "halmkedel", 47.5)]);
         const t = render(<MaanedDelta a={ref} b={scen} />).container;
-        expect(t.textContent).toMatch(/ΔRef varmeproduktion, GWh/);
+        expect(t.textContent).toMatch(/ΔRef = Scen − Ref, varmeproduktion i GWh/);
         expect(t.textContent).toContain("−12,50");
         expect(t.textContent).toContain("−1,90");
         expect(tal(t).filter((x) => heltalscifre(x) > 4)).toEqual([]);
