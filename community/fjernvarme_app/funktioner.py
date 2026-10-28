@@ -64,5 +64,5 @@ def kald(app, navn: str, inp, bruger: str):
         if navn == "uploadTidsserie":
             return t.upload_tidsserie(inp["anmodningId"], inp["indholdBase64"])
         if navn == "uploadVaerksark":
-            return t.upload_vaerksark(inp["anmodningId"], inp["indholdBase64"])
+            return t.upload_vaerksark(inp["anmodningId"], inp["indholdBase64"], inp.get("basisBase64"))
     raise Fejl(500, "teknisk", f"{navn} er ikke koblet på")

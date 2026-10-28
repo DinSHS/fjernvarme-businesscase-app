@@ -216,6 +216,14 @@
           "hasDefault": false,
           "position": 2,
           "isFabricParameter": false
+        },
+        {
+          "name": "basisBase64",
+          "type": "string",
+          "optional": true,
+          "hasDefault": false,
+          "position": 3,
+          "isFabricParameter": false
         }
       ],
       "contextAudiences": [

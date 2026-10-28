@@ -11,5 +11,10 @@ denne notebook med `import_id`.
 3. Varmelast og solprofil normaliseres og gemmes som uforanderlige filer + aktive
    `Tidsserie`-rækker (kilde `vaerksark`) — alt i én transaktion med importens status.
 
+**Genupload som revision (runde 12).** Bærer anmodningen bag importen en `basis_sha256`, er arket eksporteret af
+appen: scriptet køres også på basis (`<id>_basis.xlsx`, appens nye eksport af værkets revision), og kun forskellen
+mellem de to læsninger gemmes på værket (`fjv.revision`) — parametre + revisionslog som `udfoerAendring`,
+`forventet_revision` tjekket i samme transaktion, ændrede timer som en ny aktiv tidsserie. Ingen forskel = intet gemt.
+
 Uden `import_id` tages alle ventende importer (FIFO). Bruger ikke solver-låsen.
 Rapport: `Files/_run/fjv_importer_vaerksark.json`.

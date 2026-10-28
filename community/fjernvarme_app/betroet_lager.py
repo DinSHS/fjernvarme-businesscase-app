@@ -332,9 +332,9 @@ class Tjenester:
     def hent_tidsserie(self, tidsserie_id, fra="", til=""):
         return self.T.hent_tidsserie(self.lager, self.filer, tidsserie_id, fra, til)
 
-    def upload_vaerksark(self, anmodning_id, indhold_base64):
+    def upload_vaerksark(self, anmodning_id, indhold_base64, basis_base64=None):
         return self.T.upload_vaerksark(self.lager, self.filer, self.app.motor.start_import, anmodning_id,
-                                       indhold_base64)
+                                       indhold_base64, basis_base64)
 
     def hent_kilde_yaml(self, vaerk_id):
         return self.T.hent_kilde_yaml(self.lager, self.filer, vaerk_id)

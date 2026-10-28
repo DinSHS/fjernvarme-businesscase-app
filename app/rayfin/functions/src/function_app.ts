@@ -11,7 +11,8 @@
 //   hentKildeYaml(vaerkId)          værkets oprindelige YAML fra lakehouset (kun læsning)
 //   uploadTidsserie(anmodningId, indhold)        CSV -> validering -> normaliseret fil + Tidsserie (KONTRAKT §6d)
 //   hentTidsserie(tidsserieId)                   værdierne kompakt til visning
-//   uploadVaerksark(anmodningId, indholdBase64)  xlsx -> Files/fjv/uploads + Vaerksarkimport + importnotebook
+//   uploadVaerksark(anmodningId, indholdBase64, basisBase64)  xlsx -> Files/fjv/uploads + Vaerksarkimport + importnotebook
+//                                                (basis = runde 12's revision: appens nye eksport af værket)
 //   hentDmiTemperatur(omraade, fra, til, kolonne) DMI-temperatur rå fra df-data (målt mod syntetisk varmelast)
 //   skemaInfo()                     læs-kun diagnose af databasens faktiske tabeller/kolonner
 //
@@ -748,21 +749,26 @@ udf.func(
 
 
 /**
- * uploadVaerksark(anmodningId, indholdBase64): gemmer `vaerksdata_skabelon.xlsx` i `Files/fjv/uploads/<id>.xlsx`,
+ * uploadVaerksark(anmodningId, indholdBase64, basisBase64): gemmer `vaerksdata_skabelon.xlsx` i `Files/fjv/uploads/<id>.xlsx`,
  * opretter Vaerksarkimport (`koe`) og starter `fjv_importer_vaerksark` med `import_id` (uden solver-låsen).
+ * Runde 12: med `basis_sha256` i anmodningen er uploaden en ny revision af `vaerk_id` — basis gemmes som
+ * `<id>_basis.xlsx`, og importen bindes til værket fra start. `basisBase64` er tom for et nyt værk.
  */
 udf.func(
     'uploadVaerksark',
-    async (ctx: RayfinContext<Skema, AudienceType.Sql | AudienceType.Storage | AudienceType.Fabric>, anmodningId: string, indholdBase64: string): Promise<Uploadsvar> => {
+    async (ctx: RayfinContext<Skema, AudienceType.Sql | AudienceType.Storage | AudienceType.Fabric>, anmodningId: string, indholdBase64: string, basisBase64?: string): Promise<Uploadsvar> => {
         if (!uuid(anmodningId)) return { ok: false, status: 'afvist', svar: 'Ugyldigt anmodnings-id.' };
         if (typeof indholdBase64 !== 'string' || !indholdBase64) return { ok: false, status: 'afvist', svar: 'Filen er tom.' };
+        if (basisBase64 != null && typeof basisBase64 !== 'string') return { ok: false, status: 'afvist', svar: 'Basis-arket er ugyldigt.' };
         const pool = await forbind(ctx.Tokens.Sql);
         // K5-F4: forløbet står i vaerksark.ts (testet mod en falsk database); her er SQL'en.
         const deps: VaerksarkDeps = {
             læsAnmodning: async (id) => (await pool.request().input('a', sql.UniqueIdentifier, id).query(`
-                SELECT id, status, svar, aendringer_json, anmodet_af FROM dbo.Aendringsanmodnings WHERE id = @a`)).recordset[0],
+                SELECT id, status, svar, aendringer_json, anmodet_af, vaerk_id, forventet_revision FROM dbo.Aendringsanmodnings WHERE id = @a`)).recordset[0],
             læsImport: async (id) => (await pool.request().input('i', sql.UniqueIdentifier, id).query(`
                 SELECT id, status, fabric_job_id, log FROM dbo.Vaerksarkimports WHERE id = @i`)).recordset[0],
+            læsVaerk: async (id) => (uuid(id) ? (await pool.request().input('v', sql.UniqueIdentifier, id).query(`
+                SELECT id, kode, revision, arkiveret FROM dbo.Vaerks WHERE id = @v`)).recordset[0] : undefined),
             skrivFil: async (sti, bytes) => { await skrivFil(ctx.Tokens.Storage, sti, bytes); },
             opretImport: (a, upload, sti, log) => iTransaktion(pool, async (req) => {
                 const igen = (await req().input('a', sql.UniqueIdentifier, a.id)
@@ -771,10 +777,12 @@ udf.func(
                 const findes = (await req().input('i', sql.UniqueIdentifier, a.id)
                     .query('SELECT COUNT(*) AS n FROM dbo.Vaerksarkimports WITH (UPDLOCK, HOLDLOCK) WHERE id = @i')).recordset[0].n;
                 if (Number(findes) === 0) {
+                    // Runde 12: en revision bindes til værket fra start (importen viser værket, mens den kører).
                     await req().input('id', sql.UniqueIdentifier, a.id).input('fil', sql.NVarChar(300), upload.filnavn).input('sti', sql.NVarChar(400), sti)
                         .input('log', sql.NVarChar(4000), log).input('af', sql.NVarChar(200), a.anmodet_af).input('ts', sql.Bit, upload.timeslut)
-                        .query(`INSERT INTO dbo.Vaerksarkimports (id, filnavn, sti, status, log, timeslut, uploadet_af, uploadet)
-                                VALUES (@id, @fil, @sti, 'koe', @log, @ts, @af, SYSUTCDATETIME())`);
+                        .input('v', sql.UniqueIdentifier, upload.basis_sha256 ? a.vaerk_id : null)
+                        .query(`INSERT INTO dbo.Vaerksarkimports (id, filnavn, sti, status, log, timeslut, vaerk_id, uploadet_af, uploadet)
+                                VALUES (@id, @fil, @sti, 'koe', @log, @ts, @v, @af, SYSUTCDATETIME())`);
                 }
                 const u = await req().input('a', sql.UniqueIdentifier, a.id).input('svar', sql.NVarChar(2000), `Værksarket "${upload.filnavn}" er modtaget (import ${lc(a.id)}).`)
                     .query(`UPDATE dbo.Aendringsanmodnings SET status = 'udfoert', svar = @svar WHERE id = @a AND status = 'ny'`);
@@ -793,7 +801,7 @@ udf.func(
             afvisAnmodning: (id, tekst) => afvisAnmodning(pool, id, tekst),
         };
         try {
-            return await behandlVaerksark(deps, anmodningId, indholdBase64);
+            return await behandlVaerksark(deps, anmodningId, indholdBase64, basisBase64 ?? '');
         } catch (e) {
             return { ok: false, status: 'ny', svar: tekniskFejl('uploadVaerksark', e) + ' Prøv igen.' };
         } finally {

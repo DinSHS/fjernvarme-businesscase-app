@@ -483,7 +483,15 @@ export interface UploadTidsserie {
     /** sha256 af base64-teksten, der sendes (filens rå bytes, så tolkeren selv kan genkende Windows-1252). */
     sha256: string;
 }
-export interface UploadVaerksark { handling: 'upload_vaerksark'; filnavn: string; sha256: string; /** Står arkets tidsstempler for timens slut? (--timeslut) */ timeslut: boolean | null }
+export interface UploadVaerksark {
+    handling: 'upload_vaerksark'; filnavn: string; sha256: string; /** Står arkets tidsstempler for timens slut? (--timeslut) */ timeslut: boolean | null;
+    /**
+     * Runde 12: genupload af et ark, appen har eksporteret = ny revision af anmodningens `vaerk_id` (med
+     * `forventet_revision` = arkets revision). sha256 af base64-teksten af BASIS-arket — appens nye eksport af værkets
+     * revision, som importen sammenligner arket med. null = et nyt værk (som før).
+     */
+    basis_sha256: string | null;
+}
 /** Gør en gyldig tidsserie aktiv (højst én pr. værk + rolle) eller inaktiv. vaerk_id = værket. */
 export interface AktiverTidsserie { handling: 'aktiver_tidsserie'; tidsserie_id: string; aktiv: boolean }
 
@@ -554,7 +562,9 @@ export function læsAnmodning(aendringer_json: string): Anmodning {
         if (!/^[0-9a-f]{64}$/.test(sha)) throw new Afvisning('Filens sha256 mangler eller er ugyldig.');
         if (første.handling === 'upload_vaerksark') {
             if (første.timeslut != null && typeof første.timeslut !== 'boolean') throw new Afvisning('"timeslut" skal være true, false eller udeladt.');
-            return { type: 'upload_vaerksark', upload: { handling: 'upload_vaerksark', filnavn, sha256: sha, timeslut: (første.timeslut as boolean | undefined) ?? null } };
+            const basis = første.basis_sha256 == null ? null : String(første.basis_sha256).toLowerCase();
+            if (basis !== null && !/^[0-9a-f]{64}$/.test(basis)) throw new Afvisning('Basis-arkets sha256 er ugyldig.');
+            return { type: 'upload_vaerksark', upload: { handling: 'upload_vaerksark', filnavn, sha256: sha, timeslut: (første.timeslut as boolean | undefined) ?? null, basis_sha256: basis } };
         }
         const rolle = første.rolle;
         if (rolle !== 'varmelast' && rolle !== 'solprofil') throw new Afvisning(`Ukendt rolle "${String(rolle)}" (varmelast eller solprofil).`);

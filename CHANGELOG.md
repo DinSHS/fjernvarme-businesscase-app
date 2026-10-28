@@ -22,8 +22,17 @@ sammenlignes med tal efter.
 - Farvevalget i et kort gælder nu også kortets variansgraf (ΔRef-søjler og ΔRef%-nåle): Retning og Heatmap tegner dem i
   farvesættets farver; `Ingen` er uændret IBCS (`app/IBCS.md` AF7).
 
+- **Eksportér værksark (.xlsx)** (runde 12): et værk som modelrepoets egen `vaerksdata_skabelon.xlsx` udfyldt i
+  browseren (begge udgaver; fflate 0.8.3, MIT). Listen "ikke med i arket" vises før download. Genupload af arket
+  genkendes (skjult ark `_app`): diff før bekræftelse, og arket gemmes som **ny revision af samme værk** — kun
+  forskellen mellem modelscriptets læsning af appens nye eksport og af arket. Konflikt ved en nyere revision; intet
+  gemmes uden ændringer. Gaten har trinnet *eksport rundtur* (`viden/vaerktoej/tjek_eksport_rundtur.py`).
+
 ### Ændret
 - Scenarielisten (`#/scenarier`) har ikke længere farvevalg eller heatmap: ΔRef står som almindeligt tal med fortegn.
+- `uploadVaerksark` tager en valgfri tredje parameter `basisBase64`, og `upload_vaerksark`-anmodningen et valgfrit
+  `basis_sha256` (KONTRAKT §6d). Intet skemaskift. Fabric: `deploy.py kode` (fjv), `deploy.py notebook`
+  (fjv_importer_vaerksark) og `rayfin-up` (Functions + frontend).
 
 ## [0.3.1] — 2026-10-27 — oprydning og dokumentation før offentliggørelse
 

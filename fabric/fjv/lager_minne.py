@@ -29,6 +29,7 @@ class MinneDb:
         self.tidsserier: dict[str, dict] = {}     # id -> Tidsserie-række
         self.importer: dict[str, dict] = {}       # id -> Vaerksarkimport-række
         self.vaerker: dict[str, dict] = {}        # id -> Vaerk (+ "parametre", "log")
+        self.anmodninger: dict[str, dict] = {}    # id -> Aendringsanmodning (vaerk_id, forventet_revision, aendringer_json)
         self.motor: dict = {}
         self.laas_ejer = None
         self._mutex = threading.Lock()            # ét "transaktions"-niveau for hele db'en
@@ -359,6 +360,68 @@ class MinneImportLager:
             log = f"Værket '{k.navn}' (kode {k.kode}) er oprettet med {len(blade)} parametre."
             r.update(status="faerdig", vaerk_id=vid, tidsserie_id=varme or sol, log=log)
         return {"vaerk_id": vid, "kode": k.kode, "parametre": len(blade), "tidsserier": ts_ud, "log": log}
+
+    def revision_for(self, import_id: str) -> dict | None:
+        from .vaerksark import laes_revision
+        a = self.db.anmodninger.get(import_id)
+        b = laes_revision(a.get("aendringer_json")) if a else None
+        return {"vaerk_id": a["vaerk_id"].lower(), "forventet_revision": int(a["forventet_revision"]),
+                "basis_sha256": b} if b else None
+
+    def gem_revision(self, imp: dict, rev: dict, aendr: list, serier: dict, scriptlog: str,
+                     files: str | None = None) -> dict:
+        """Som ``vaerksark.gem_revision`` (Fabric) - alt eller intet under db'ens lås."""
+        from .tidsserie_db import gem_tidsseriefil
+        from .vaerksark import ArkFejl, _log_tekst, forbered_revision
+        hvem = (imp.get("uploadet_af") or "fjv_importer_vaerksark")[:200]
+        with self.db._mutex:
+            r = self.db.importer.get(imp["id"])
+            if not r or r["status"] != "koerer":
+                raise ArkFejl(f"importen er ikke længere i gang (status {r and r['status']})")
+            v = self.db.vaerker.get(rev["vaerk_id"])
+            nuv = {b["sti"]: b["vaerdi_json"] for b in (v or {}).get("parametre", [])}
+            aktive = {t["rolle"]: t["sti"] for t in self.db.tidsserier.values()
+                      if v and t["vaerk_id"] == v["id"] and t["aktiv"] and t["status"] == "gyldig"}
+            f = forbered_revision(v, rev, nuv, aktive, aendr, serier, files)
+            plan, ny_rev = f["plan"], f["ny_rev"]
+            if ny_rev is not None:
+                ny = dict(nuv)
+                log = v.setdefault("log", [])
+                for x in plan["slet"]:
+                    ny.pop(x["sti"])
+                    log.append({"revision": ny_rev, "sti": x["sti"], "handling": "slet", "gammel_json": x["gammel_json"],
+                                "ny_json": None, "aendret_af": hvem, "anmodning_id": imp["id"]})
+                for x in plan["ret"]:
+                    ny[x["sti"]] = x["ny_json"]
+                    log.append({"revision": ny_rev, "sti": x["sti"], "handling": "ret", "gammel_json": x["gammel_json"],
+                                "ny_json": x["ny_json"], "aendret_af": hvem, "anmodning_id": imp["id"]})
+                for x in plan["opret"]:
+                    ny[x["sti"]] = x["ny_json"]
+                    log.append({"revision": ny_rev, "sti": x["sti"], "handling": "opret", "gammel_json": None,
+                                "ny_json": x["ny_json"], "aendret_af": hvem, "anmodning_id": imp["id"]})
+                gamle = {b["sti"]: b for b in v.get("parametre", [])}
+                v["parametre"] = [gamle.get(sti, {"sti": sti, "vaerdi_json": vj}) | {"vaerdi_json": vj} for sti, vj in ny.items()]
+                v.update(revision=ny_rev, aendret_af=hvem)
+            ts_id = None
+            for rolle, sr in f["serier"].items():
+                for t in self.db.tidsserier.values():
+                    if t["vaerk_id"] == v["id"] and t["rolle"] == rolle:
+                        t["aktiv"] = False
+                if sr["res"] is None:
+                    continue
+                res = sr["res"]
+                tid = str(uuid.uuid4())
+                self.db.tidsserier[tid] = {
+                    "id": tid, "vaerk_id": v["id"], "rolle": rolle, "navn": f"Værksark: {rolle} rettet i arket"[:200],
+                    "sti": gem_tidsseriefil(v["kode"], res.data, res.sha256, files), "sha256": res.sha256,
+                    "kilde": "vaerksark", "status": res.status, "aktiv": True, "tidsstempel": sr["tidsstempel"],
+                    "uploadet_af": hvem, "uploadet": self.db.nu()}
+                ts_id = ts_id or tid
+            loggen = _log_tekst(f["log"], scriptlog)
+            r.update(status="faerdig", vaerk_id=v["id"], tidsserie_id=ts_id, log=loggen)
+        return {"vaerk_id": v["id"], "kode": v["kode"], "revision": ny_rev, "log": loggen,
+                "aendringer": len(plan["ret"]) + len(plan["slet"]) + len(plan["opret"]),
+                "tidsserier": {r_: (sr["res"].sha256 if sr["res"] else None) for r_, sr in f["serier"].items()}}
 
     def motor_pins(self) -> dict:
         from . import konstanter as K

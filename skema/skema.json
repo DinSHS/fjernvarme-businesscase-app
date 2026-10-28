@@ -390,7 +390,7 @@
     {
       "entitet": "Aendringsanmodning",
       "tabel": "Aendringsanmodnings",
-      "beskrivelse": "Aendringsanmodning — brugerens ønske om at ændre et værk (KONTRAKT §3.3b). Klienten må KUN oprette (og læse), og kun med sin egen e-mail i `anmodet_af` (DAB-policy). Function `udfoerAendring` udfører den i ÉN SQL-transaktion: tjek `forventet_revision`, ret VaerkParameter, skriv Aendringslog, øg Vaerk.revision, sæt status. Konflikt -> `afvist` + `svar`. `aendringer_json` er en liste. Former (læses af rayfin/functions/src/logik.ts læsAnmodning): parameterændringer : [{\"sti\": \"...\", \"handling\": \"opret|ret|slet\", \"ny_json\": \"...\"}] værksniveau : [{\"handling\": \"kopier_vaerk\", \"ny_kode\": \"...\", \"navn\": \"...\"}] (vaerk_id = kildeværket; forventet_revision = dets revision) nyt værk, N dele : [{\"handling\": \"opret_vaerk_del\", \"udkast\": \"<uuid>\", \"nr\": k, \"af\": N, \"blade\": [{sti, ny_json, bekraeft?, kommentar?}]}] nyt værk, afslut : [{\"handling\": \"opret_vaerk\", \"udkast\": \"<uuid>\", \"dele\": N, \"ny_kode\": \"...\", \"navn\": \"...\"}] (vaerk_id = nil-uuid, forventet_revision = 0; se app/AGENTS.md › Nyt værk fra bunden) Status skrives af funktionen; DAB afviser create med en anden status end `ny` (K2-F10).",
+      "beskrivelse": "Aendringsanmodning — brugerens ønske om at ændre et værk (KONTRAKT §3.3b). Klienten må KUN oprette (og læse), og kun med sin egen e-mail i `anmodet_af` (DAB-policy). Function `udfoerAendring` udfører den i ÉN SQL-transaktion: tjek `forventet_revision`, ret VaerkParameter, skriv Aendringslog, øg Vaerk.revision, sæt status. Konflikt -> `afvist` + `svar`. `aendringer_json` er en liste. Former (læses af rayfin/functions/src/logik.ts læsAnmodning): parameterændringer : [{\"sti\": \"...\", \"handling\": \"opret|ret|slet\", \"ny_json\": \"...\"}] værksniveau : [{\"handling\": \"kopier_vaerk\", \"ny_kode\": \"...\", \"navn\": \"...\"}] (vaerk_id = kildeværket; forventet_revision = dets revision) nyt værk, N dele : [{\"handling\": \"opret_vaerk_del\", \"udkast\": \"<uuid>\", \"nr\": k, \"af\": N, \"blade\": [{sti, ny_json, bekraeft?, kommentar?}]}] nyt værk, afslut : [{\"handling\": \"opret_vaerk\", \"udkast\": \"<uuid>\", \"dele\": N, \"ny_kode\": \"...\", \"navn\": \"...\"}] (vaerk_id = nil-uuid, forventet_revision = 0; se app/AGENTS.md › Nyt værk fra bunden) værksark : [{\"handling\": \"upload_vaerksark\", \"filnavn\": \"...\", \"sha256\": \"...\", \"timeslut\": bool|null, \"basis_sha256\"?: \"...\"}] (uden basis_sha256: nyt værk, vaerk_id = nil-uuid; MED basis_sha256 (runde 12): genupload af et eksporteret ark = ny revision af vaerk_id, forventet_revision = arkets revision — importen gemmer kun forskellen mellem modelscriptets læsning af basis og af arket) Status skrives af funktionen; DAB afviser create med en anden status end `ny` (K2-F10).",
       "klient": {
         "read": true,
         "create": {
@@ -1544,7 +1544,7 @@
     {
       "entitet": "Vaerksarkimport",
       "tabel": "Vaerksarkimports",
-      "beskrivelse": "Vaerksarkimport — én upload af `vaerksdata_skabelon.xlsx` (KONTRAKT §6d). Function `uploadVaerksark` gemmer filen i `Files/fjv/uploads/<id>.xlsx`, opretter rækken (`koe`) og starter notebooken `fjv_importer_vaerksark`, der kører modelrepoets `scripts/vaerksark_til_yaml.py` uændret og opretter værk (som opret_vaerk, kilde `app`) + tidsserie (kilde `vaerksark`). Importen bruger IKKE solver-låsen. Klienten må KUN læse; status/log skrives af backend.",
+      "beskrivelse": "Vaerksarkimport — én upload af `vaerksdata_skabelon.xlsx` (KONTRAKT §6d). Function `uploadVaerksark` gemmer filen i `Files/fjv/uploads/<id>.xlsx`, opretter rækken (`koe`) og starter notebooken `fjv_importer_vaerksark`, der kører modelrepoets `scripts/vaerksark_til_yaml.py` uændret og opretter værk (som opret_vaerk, kilde `app`) + tidsserie (kilde `vaerksark`). Runde 12: bærer anmodningen `basis_sha256`, er importen en ny revision af anmodningens værk — basis (appens nye eksport af revisionen) gemmes som `<id>_basis.xlsx`, scriptet køres på begge, og kun forskellen gemmes som `udfoerAendring` gør (parametre + Aendringslog med anmodning_id = importens id, revision + 1, `forventet_revision` tjekket i samme transaktion); ændrede timer giver en ny aktiv tidsserie. Importen bruger IKKE solver-låsen. Klienten må KUN læse; status/log skrives af backend.",
       "klient": {
         "read": true,
         "create": false,
@@ -1588,7 +1588,7 @@
           "navn": "vaerk_id",
           "type": "uuid",
           "nullable": true,
-          "beskrivelse": "Værket, importen oprettede (når `faerdig`).",
+          "beskrivelse": "Værket, importen oprettede (når `faerdig`) — eller, ved en revision (runde 12), værket, arket gælder (sat fra start).",
           "ref": "Vaerk"
         },
         {

@@ -76,6 +76,7 @@ cd community && python -m unittest discover -s tests -t tests       # kræver sq
 python viden/vaerktoej/byg_modelspejl.py [--tjek]
 python viden/vaerktoej/tjek_trofasthed.py
 python viden/vaerktoej/bevis_app_vej.py --model <modelrepo ved pinnen> --ud <kort mappe>
+FJV_MODELPYTHON=<python med modellens pakker> python viden/vaerktoej/tjek_eksport_rundtur.py --koer   # eksport -> værksark -> script
 ```
 
 ---
@@ -94,7 +95,8 @@ python viden/vaerktoej/bevis_app_vej.py --model <modelrepo ved pinnen> --ud <kor
 - **Pinnen** (`MODEL_COMMIT`, `DF_DATA_SHA` i `fabric/fjv/konstanter.py`) står flere steder; `scripts/tjek.py` fejler,
   hvis de ikke er ens. Modellens kode hentes som zip ved pinnen ved første kørsel.
 - **Genererede filer** (ret ikke i hånden): `viden/modelspejl.json`, `app/src/lib/modelspejl.data.ts`,
-  `app/src/sider/konfiguration/skalering.vektorer.json` (fra `byg_modelspejl.py`), `viden/felt_katalog.json`,
+  `app/src/sider/konfiguration/skalering.vektorer.json`, `app/src/sider/konfiguration/eksport/vaerksdata_skabelon.xlsx`
+  (fra `byg_modelspejl.py`), `viden/felt_katalog.json`,
   `viden/nyt_vaerk_skabelon.json`, `viden/data_krav.json`, `app/src/ibcs/tokens.*.ts` (`npm run tokens`) og
   dokumentationskopierne under `app/src/sider/dokumentation/indhold/` (`kopier-indhold.mjs`).
 

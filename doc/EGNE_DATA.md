@@ -37,6 +37,34 @@ Tre ting, der ofte giver en afvisning:
 
 Hele kontrakten (felter, fejl og advarsler, målt på udfyldte ark) står i [`viden/data_krav.md`](../viden/data_krav.md) §4.
 
+### Ret et værk i Excel: eksport og genupload som revision
+
+**Konfiguration › værket › Eksportér værksark (.xlsx)** (også i værkslisten) udfylder modelrepoets egen
+`vaerksdata_skabelon.xlsx` ved pinnen med værket — anlæg, tanke, varmepumpernes målepunkter, priser, eltarif,
+DMI-område og priszone, den aktive målte varmelast (Timedata) og den aktive målte solvarme (et ark *Solvarme*, som
+modelscriptet læser). Arket bygges i browseren i begge udgaver; filen hedder `<kode>_rev<N>.xlsx`. Før du henter det,
+viser appen listen **"ikke med i arket"**: alt i værket, som skabelonen ikke kan bære (balancemarked, nettilslutning,
+slåede-fra enheder og tanke, timer uden for 1. juli 2025 – 30. juni 2026, en kalibreret varmelastmodel …), og de
+felter, `scripts/vaerksark_til_yaml.py` sætter til sin egen værdi (tankenes startfyldning, gasenhedernes CO2-faktor,
+unit commitment …).
+
+Ret arket i Excel og upload det under **Konfiguration › Upload værksark**. Arket bærer et skjult ark `_app` med
+værkets id, revisionen og en sha256 af det eksporterede indhold (modelscriptet ignorerer det). Appen genkender det:
+
+* **Værket findes, og revisionen er den samme:** appen laver en ny eksport af værkets revision (*basis*) og viser hvert
+  ændret felt (gammel → ny) og timedata som en opsummering (timer ændret, sum før/efter). *Gem som revision N+1*
+  sender arket og basis; importen kører modelscriptet **uændret på begge** og gemmer kun forskellen — som en
+  redigering i appen (revisionslog i dit navn, `forventet_revision` tjekket). Ændrede timer giver en ny aktiv
+  tidsserie, hvor timerne uden for arket er bevaret. Felterne på listen "ikke med i arket" røres aldrig.
+* **Ingen ændringer:** appen siger det og gemmer intet.
+* **Værket er ændret siden eksporten:** arket afvises (eksportér igen) — ingen tavs overskrivning.
+* **Ingen markering, eller værket findes ikke** (slettet, anden installation): arket bliver et nyt værk som før; da får
+  felterne på listen modelscriptets værdi.
+
+Beviset står i gaten: `viden/vaerktoej/tjek_eksport_rundtur.py` eksporterer hvert værk i kataloget med appens kode, kører
+modelrepoets script på arket og kræver, at hver forskel står på listen (og intet andet), at genupload uden ændringer
+gemmer intet, at `run_case` giver samme objektiv før og efter, og at én ændret celle ændrer præcis det felt.
+
 ## 2. I appen
 
 * **Kopiér et værk:** Konfiguration › kortet *Kopiér værk*. Ret derefter felterne; hver ændring logges med revision.

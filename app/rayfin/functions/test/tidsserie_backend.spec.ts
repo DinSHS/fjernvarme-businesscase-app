@@ -30,8 +30,13 @@ describe("læsAnmodning — upload og aktivering", () => {
         expect(læsAnmodning(JSON.stringify([{ handling: "upload_tidsserie", rolle: "varmelast", navn: "", filnavn: "maalt.csv", tidsstempel: "slut", tidszone: "Europe/Copenhagen", enhed: "kW", kolonne: "varme", sha256: SHA.toUpperCase() }])))
             .toEqual({ type: "upload_tidsserie", upload: { handling: "upload_tidsserie", rolle: "varmelast", navn: "maalt.csv", filnavn: "maalt.csv", tidsstempel: "slut", tidszone: "Europe/Copenhagen", enhed: "kW", kolonne: "varme", sha256: SHA } });
         expect(læsAnmodning(JSON.stringify([{ handling: "upload_vaerksark", filnavn: "ark.xlsx", sha256: SHA }]))).toEqual({
-            type: "upload_vaerksark", upload: { handling: "upload_vaerksark", filnavn: "ark.xlsx", sha256: SHA, timeslut: null },
+            type: "upload_vaerksark", upload: { handling: "upload_vaerksark", filnavn: "ark.xlsx", sha256: SHA, timeslut: null, basis_sha256: null },
         });
+        // Runde 12: genupload som revision bærer basis-arkets sha256 (normaliseret til små bogstaver).
+        expect(læsAnmodning(JSON.stringify([{ handling: "upload_vaerksark", filnavn: "a.xlsx", sha256: SHA, basis_sha256: SHA.toUpperCase() }]))).toEqual({
+            type: "upload_vaerksark", upload: { handling: "upload_vaerksark", filnavn: "a.xlsx", sha256: SHA, timeslut: null, basis_sha256: SHA },
+        });
+        expect(() => læsAnmodning(JSON.stringify([{ handling: "upload_vaerksark", filnavn: "a.xlsx", sha256: SHA, basis_sha256: "abc" }]))).toThrow(/Basis-arkets sha256 er ugyldig/);
         expect(læsAnmodning(JSON.stringify([{ handling: "aktiver_tidsserie", tidsserie_id: "11111111-1111-4111-8111-111111111111", aktiv: true }])).type).toBe("aktiver_tidsserie");
     });
     it.each([
@@ -139,7 +144,7 @@ describe("function_app.ts — §6d-regler i kilden", () => {
         expect(f).toMatch(/if \(sha256Hex\(indhold\) !== upload\.sha256\) throw new Afvisning/);
         expect(del("uploadTidsserie")).toMatch(/læsUploadAnmodning\(pool, anmodningId, 'upload_tidsserie', indholdBase64\)/);
         // Værksarkets forløb står i vaerksark.ts (K5-F4); bindingen til anmodningens sha256 er dér.
-        expect(del("uploadVaerksark")).toMatch(/behandlVaerksark\(deps, anmodningId, indholdBase64\)/);
+        expect(del("uploadVaerksark")).toMatch(/behandlVaerksark\(deps, anmodningId, indholdBase64, basisBase64 \?\? ''\)/);
         expect(readFileSync(new URL("../src/vaerksark.ts", import.meta.url), "utf8")).toMatch(/if \(sha256Hex\(indholdBase64\) !== upload\.sha256\) throw new Afvisning/);
     });
     it("den fælles tolker validerer de RÅ bytes med værkets enheder; stien er kode + hash af den normaliserede fils bytes", () => {

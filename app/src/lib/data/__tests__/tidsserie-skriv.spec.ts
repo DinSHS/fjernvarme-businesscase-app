@@ -66,9 +66,21 @@ describe("skrivehjælperne", () => {
         const base64 = Buffer.from("PK\u0003\u0004 resten af arket").toString("base64");
         await uploadVaerksark({ navn: "vaerksdata.xlsx", base64 }, "a@b.dk", { timeslut: true });
         expect(læsAnmodning(create.mock.calls[0][0].aendringer_json as string)).toEqual({
-            type: "upload_vaerksark", upload: { handling: "upload_vaerksark", filnavn: "vaerksdata.xlsx", sha256: backendSha(base64), timeslut: true },
+            type: "upload_vaerksark", upload: { handling: "upload_vaerksark", filnavn: "vaerksdata.xlsx", sha256: backendSha(base64), timeslut: true, basis_sha256: null },
         });
-        expect(invoke).toHaveBeenCalledWith({ anmodningId: "anm-1", indholdBase64: base64 }, expect.anything());
+        expect(create.mock.calls[0][0]).toMatchObject({ vaerk_id: "00000000-0000-0000-0000-000000000000", forventet_revision: 0 });
+        expect(invoke).toHaveBeenCalledWith({ anmodningId: "anm-1", indholdBase64: base64, basisBase64: "" }, expect.anything());
+    });
+    it("runde 12: en genupload som revision bærer værket, arkets revision og basis-arket bundet med sin sha256", async () => {
+        const base64 = Buffer.from("PK\u0003\u0004 det redigerede ark").toString("base64");
+        const basis = Buffer.from("PK\u0003\u0004 appens nye eksport").toString("base64");
+        await uploadVaerksark({ navn: "andeby_rev3.xlsx", base64 }, "a@b.dk", { revision: { vaerkId: "v-1", revision: 3, basisBase64: basis } });
+        const række = create.mock.calls[0][0] as Record<string, unknown>;
+        expect(række).toMatchObject({ vaerk_id: "v-1", forventet_revision: 3, anmodet_af: "a@b.dk", status: "ny" });
+        expect(læsAnmodning(række.aendringer_json as string)).toEqual({
+            type: "upload_vaerksark", upload: { handling: "upload_vaerksark", filnavn: "andeby_rev3.xlsx", sha256: backendSha(base64), timeslut: null, basis_sha256: backendSha(basis) },
+        });
+        expect(invoke).toHaveBeenCalledWith({ anmodningId: "anm-1", indholdBase64: base64, basisBase64: basis }, expect.anything());
     });
     it.each([
         ["en tom fil", () => uploadTidsserie("v", { navn: "a.csv", bytes: new Uint8Array() }, VALG, "a@b.dk"), /tom/],

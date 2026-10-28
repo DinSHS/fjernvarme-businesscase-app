@@ -484,6 +484,11 @@ const tilfældig = prng(20261016);
         ['værksark timeslut true', JSON.stringify([{ handling: 'upload_vaerksark', filnavn: 'ark.xlsx', sha256: SHA, timeslut: true }])],
         ['værksark timeslut null', JSON.stringify([{ handling: 'upload_vaerksark', filnavn: 'ark.xlsx', sha256: SHA, timeslut: null }])],
         ['værksark timeslut ja', JSON.stringify([{ handling: 'upload_vaerksark', filnavn: 'a.xlsx', sha256: SHA, timeslut: 'ja' }])],
+        // Runde 12: genupload som revision bærer basis-arkets sha256.
+        ['værksark revision', JSON.stringify([{ handling: 'upload_vaerksark', filnavn: 'ark.xlsx', sha256: SHA, basis_sha256: SHA.toUpperCase() }])],
+        ['værksark revision basis null', JSON.stringify([{ handling: 'upload_vaerksark', filnavn: 'ark.xlsx', sha256: SHA, basis_sha256: null }])],
+        ['værksark revision basis ugyldig', JSON.stringify([{ handling: 'upload_vaerksark', filnavn: 'ark.xlsx', sha256: SHA, basis_sha256: 'abc' }])],
+        ['værksark revision basis tal', JSON.stringify([{ handling: 'upload_vaerksark', filnavn: 'ark.xlsx', sha256: SHA, basis_sha256: 12 }])],
         ['aktivering', JSON.stringify([{ handling: 'aktiver_tidsserie', tidsserie_id: '11111111-1111-4111-8111-111111111111'.toUpperCase(), aktiv: true }])],
         ['aktivering uden filnavn er ok', JSON.stringify([{ handling: 'aktiver_tidsserie', tidsserie_id: '11111111-1111-4111-8111-111111111111', aktiv: false }])],
         ['aktiv der ikke er boolean', JSON.stringify([{ handling: 'aktiver_tidsserie', tidsserie_id: '11111111-1111-4111-8111-111111111111', aktiv: 'ja' }])],
@@ -797,12 +802,15 @@ async function vaerksarkForløb() {
     const SKAB = fil('app/rayfin/functions/test/vektorer/skabelon_uaendret.xlsx');
     const b64 = (b: Uint8Array) => Buffer.from(b).toString('base64');
     const A = '44444444-4444-4444-8444-444444444444';
-    const anm = (o: Partial<V.AnmodningsRad>, indhold: string, filnavn = 'ark.xlsx', timeslut?: boolean | null) => ({
+    const anm = (o: Partial<V.AnmodningsRad>, indhold: string, filnavn = 'ark.xlsx', timeslut?: boolean | null, basis?: string) => ({
         id: A.toUpperCase(), status: 'ny', svar: null, anmodet_af: 'x@y.dk',
-        aendringer_json: JSON.stringify([{ handling: 'upload_vaerksark', filnavn, sha256: sha(indhold), ...(timeslut === undefined ? {} : { timeslut }) }]), ...o,
+        aendringer_json: JSON.stringify([{ handling: 'upload_vaerksark', filnavn, sha256: sha(indhold), ...(timeslut === undefined ? {} : { timeslut }), ...(basis === undefined ? {} : { basis_sha256: sha(basis) }) }]), ...o,
     });
-    type Sc = { navn: string; indhold: string; anmodning: V.AnmodningsRad | null; import?: V.ImportRad | null; importEfter?: V.ImportRad | null;
-        opret?: 'oprettet' | 'allerede_behandlet'; reserver?: boolean; job?: V.Jobsvar | null; skrivKaster?: boolean };
+    type Sc = { navn: string; indhold: string; basis?: string; anmodning: V.AnmodningsRad | null; import?: V.ImportRad | null; importEfter?: V.ImportRad | null;
+        opret?: 'oprettet' | 'allerede_behandlet'; reserver?: boolean; job?: V.Jobsvar | null; skrivKaster?: boolean; vaerk?: V.VaerkRad | null };
+    const V_ID = '55555555-5555-4555-8555-555555555555';
+    const rev = (o: Partial<V.AnmodningsRad>, basis: string) => anm({ vaerk_id: V_ID.toUpperCase(), forventet_revision: 3, ...o }, ok, 'andeby_rev3.xlsx', null, basis);
+    const VAERK: V.VaerkRad = { id: V_ID, kode: 'andeby', revision: 3, arkiveret: false };
     const ok = b64(SKAB);
     // Store indhold gemmes som en opskrift, Python genskaber: {"$b64af": {"$fil": sti}} / {"$b64af": {"$nul": n}}.
     const BOMBE = 'app/rayfin/functions/test/vektorer/k5_komprimeret.xlsx';
@@ -838,12 +846,23 @@ async function vaerksarkForløb() {
         { navn: 'udført, ingen import', indhold: ok, anmodning: anm({ status: 'udfoert', svar: 's' }, ok), importEfter: null },
         { navn: 'ny status men ukendt (ingen import)', indhold: ok, anmodning: anm({ status: 'mærkelig', svar: null }, ok), importEfter: null },
         { navn: 'skrivning fejler (programfejl)', indhold: ok, anmodning: anm({}, ok), skrivKaster: true },
+        // Runde 12: genupload som revision (basis = appens nye eksport af værkets revision).
+        { navn: 'revision, samme revision, job startes', indhold: ok, basis: ok, anmodning: rev({}, ok), vaerk: VAERK, opret: 'oprettet', importEfter: { id: A, status: 'koe', fabric_job_id: null, log: null }, reserver: true, job: { ok: true, jobId: 'job-r', status: 202 } },
+        { navn: 'revision, værket er ændret siden eksporten', indhold: ok, basis: ok, anmodning: rev({}, ok), vaerk: { ...VAERK, revision: 4 } },
+        { navn: 'revision, værket findes ikke', indhold: ok, basis: ok, anmodning: rev({}, ok), vaerk: null },
+        { navn: 'revision, værket er arkiveret', indhold: ok, basis: ok, anmodning: rev({}, ok), vaerk: { ...VAERK, arkiveret: true } },
+        { navn: 'revision, basis passer ikke med sha256', indhold: ok, basis: b64(new Uint8Array([9, 9])), anmodning: rev({}, ok), vaerk: VAERK },
+        { navn: 'revision, basis mangler', indhold: ok, anmodning: rev({}, ok), vaerk: VAERK },
+        { navn: 'revision, basis er ikke en xlsx', indhold: ok, basis: b64(new Uint8Array([1, 2, 3, 4, 5])), anmodning: rev({}, b64(new Uint8Array([1, 2, 3, 4, 5]))), vaerk: VAERK },
+        { navn: 'basis uden revision', indhold: ok, basis: ok, anmodning: anm({}, ok), vaerk: VAERK },
+        { navn: 'revision, udført, import færdig', indhold: ok, basis: ok, anmodning: rev({ status: 'udfoert', svar: 's' }, ok), importEfter: { id: A, status: 'faerdig', fabric_job_id: 'j', log: null }, job: { ok: true, status: 202 } },
     ];
     for (const s of sc) {
         const spor: unknown[] = [];
         const deps: V.VaerksarkDeps = {
             læsAnmodning: async (id) => { spor.push(['laes_anmodning', id]); return s.anmodning ?? undefined; },
             læsImport: async (id) => { spor.push(['laes_import', id]); return s.importEfter ?? undefined; },
+            læsVaerk: async (id) => { spor.push(['laes_vaerk', id]); return s.vaerk ?? undefined; },
             skrivFil: async (sti, bytes) => { spor.push(['skriv_fil', sti, bytes.byteLength, sha(bytes)]); if (s.skrivKaster) throw new Error('disk fuld'); },
             opretImport: async (a, upload, sti, log) => { spor.push(['opret_import', a.id, upload, sti, log]); return s.opret ?? 'oprettet'; },
             reserverJobstart: async (id) => { spor.push(['reserver_jobstart', id]); return s.reserver ?? false; },
@@ -852,9 +871,10 @@ async function vaerksarkForløb() {
             afvisAnmodning: async (id, tekst) => { spor.push(['afvis_anmodning', id, tekst]); },
         };
         let ud: Udfald;
-        try { ud = { ud: await V.behandlVaerksark(deps, A, s.indhold) }; } catch (e) { ud = { fejl: (e as Error).message, fejltype: (e as Error).name }; }
+        try { ud = { ud: await V.behandlVaerksark(deps, A, s.indhold, s.basis ?? '') }; } catch (e) { ud = { fejl: (e as Error).message, fejltype: (e as Error).name }; }
         const { navn, ...input } = s;
-        tilføj('behandl_vaerksark', navn, { ...input, anmodning_id: A, indhold: STOR.get(s.indhold) ?? s.indhold }, { ...ud, spor } as Udfald);
+        tilføj('behandl_vaerksark', navn, { ...input, anmodning_id: A, indhold: STOR.get(s.indhold) ?? s.indhold,
+            ...(s.basis === undefined ? {} : { basis: STOR.get(s.basis) ?? s.basis }) }, { ...ud, spor } as Udfald);
     }
 }
 

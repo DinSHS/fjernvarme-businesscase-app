@@ -325,18 +325,28 @@ export async function aktiverTidsserie(
 /**
  * Uploader et værksark (`vaerksdata_skabelon.xlsx`) som base64. Backend gemmer filen, opretter en
  * Vaerksarkimport (`koe`) og starter importnotebooken; følg den med `useVaerksarkimport(import_id)`.
+ *
+ * Runde 12: `valg.revision` = genupload af et ark, appen har eksporteret — en ny revision af værket. Anmodningen
+ * bærer værket og arkets revision (`forventet_revision`, samme optimistiske kontrol som en redigering), og
+ * `basisBase64` (appens nye eksport af revisionen) bindes med sin sha256; importen gemmer kun forskellen.
  */
 export async function uploadVaerksark(
-    fil: { navn: string; base64: string }, bruger: string | undefined, valg: { timeslut?: boolean | null } = {},
+    fil: { navn: string; base64: string }, bruger: string | undefined,
+    valg: { timeslut?: boolean | null; revision?: { vaerkId: string; revision: number; basisBase64: string } } = {},
 ): Promise<Ud<"uploadVaerksark">> {
     if (!fil.base64) throw new Afvist("Filen er tom.");
     if ((fil.base64.length * 3) / 4 > MAKS_VAERKSARK_BYTES) throw new Afvist(`Værksarket er for stort (højst ${MAKS_VAERKSARK_BYTES / 1000} kB).`);
     if (!/\.xlsx$/i.test(fil.navn)) throw new Afvist("Værksarket skal være en .xlsx-fil (vaerksdata_skabelon.xlsx).");
+    const r = valg.revision;
+    if (r && ((r.basisBase64.length * 3) / 4 > MAKS_VAERKSARK_BYTES)) throw new Afvist(`Værkets eksport er for stor (højst ${MAKS_VAERKSARK_BYTES / 1000} kB).`);
     const a = await opret<{ id: string }>("Aendringsanmodning", {
-        vaerk_id: INGEN_VAERK, forventet_revision: 0, anmodet_af: kræv(bruger), anmodet: new Date(), status: "ny",
-        aendringer_json: JSON.stringify([{ handling: "upload_vaerksark", filnavn: fil.navn, timeslut: valg.timeslut ?? null, sha256: await sha256Hex(fil.base64) }]),
+        vaerk_id: r?.vaerkId ?? INGEN_VAERK, forventet_revision: r?.revision ?? 0, anmodet_af: kræv(bruger), anmodet: new Date(), status: "ny",
+        aendringer_json: JSON.stringify([{
+            handling: "upload_vaerksark", filnavn: fil.navn, timeslut: valg.timeslut ?? null, sha256: await sha256Hex(fil.base64),
+            ...(r ? { basis_sha256: await sha256Hex(r.basisBase64) } : {}),
+        }]),
     });
-    return kald("uploadVaerksark", { anmodningId: a.id, indholdBase64: fil.base64 });
+    return kald("uploadVaerksark", { anmodningId: a.id, indholdBase64: fil.base64, basisBase64: r?.basisBase64 ?? "" });
 }
 
 // ------------------------------------------------------------------ scenarier (klient-CRUD)
