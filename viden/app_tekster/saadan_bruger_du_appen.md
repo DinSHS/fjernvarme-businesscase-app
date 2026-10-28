@@ -111,3 +111,29 @@ af de kørsler, der findes i appen. **Dokumentation** har modelrepoets vejlednin
 Notebooken `fjv_koer_scenarie` i workspacet kan også startes direkte med et værk, ændringer og en
 periode. Kørslen oprettes da selv i appen og kan ses og sammenlignes som alle andre. Se
 "Kør i en notebook" under Dokumentation. (Kilde: KONTRAKT §5.1)
+
+## 7. Backup og flytning
+
+Under **Scenarier › Backup og flytning** gemmer du scenarier og kørsler som et Excel-arkiv og importerer
+det igen — som backup, eller for at flytte historikken fra en testinstallation til produktion (en ny
+Fabric-installation starter med en tom database). **Eksportér arkiv** giver en .zip med én Excel-fil pr.
+scenariefamilie (et scenarie og dets reference) og et manifest; på et scenarie giver **Eksportér til Excel**
+én fil med scenariet, dets reference og de kørsler, du vælger. Kun færdige, fejlede og annullerede kørsler
+kommer med. (Kilde: KONTRAKT §6e)
+
+Arket **Læs mig** forklarer indholdet: app-version, modellens pin, hvem og hvornår. Hver tabel har sit eget
+ark med danske overskrifter; tal står som tal, og hver tid står to gange — som Excel-dato i dansk tid og som
+UTC-tekst, der er den, genimporten læser. Arket er en backup, ikke et redigeringsformat: hver tabel har en
+kontrolsum i det skjulte ark `_manifest`, og et arkiv, hvor et tal er rettet, afvises. Åbn det skrivebeskyttet.
+(Kilde: KONTRAKT §6e)
+
+**Importér arkiv** viser først, hvad der vil ske — oprettes, findes allerede, konflikt eller kan ikke
+importeres og hvorfor — og skriver intet, før du bekræfter. En kørsel importeres som historisk kørsel med
+sit frosne input, sine pins og resultater uændret; den køres ikke om og kan sammenlignes som før. Den er
+markeret *importeret fra arkiv* med dato og hvem. Samme indhold to gange springes over; en række, der
+findes med andet indhold, er en konflikt og overskrives aldrig. Afbrydes en import, så importér igen —
+det, der allerede er skrevet, springes over. (Kilde: KONTRAKT §6e)
+
+Værkerne er ikke med i arkivet. Upload værksarket først (Konfiguration); arkivet finder værket på dets
+kode og tjekker, at værket her har haft præcis de parametre, kørslen bygger på. Det samme gælder en
+varmelast eller solprofil, som kørslen bruger: den skal være uploadet med samme indhold. (Kilde: KONTRAKT §6e)

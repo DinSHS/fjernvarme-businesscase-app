@@ -1,0 +1,269 @@
+{
+ "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
+ "kilder": {
+  "app/rayfin/functions/src/arkiv.ts": "cf41d66c76997da67405806eac16fa654d82345d127d7f507ef052a3da249926",
+  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "22e04302a065bd632229ae4ec6eb39684ef49ce53120ef60d261761ee20a2f77"
+ },
+ "tilfaelde": [
+  {
+   "navn": "gyldig",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}"
+   },
+   "ud": {
+    "format": "fjv-arkiv-del",
+    "version": 1,
+    "arkiv": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "tabel": "Scenarie",
+    "kolonner": [
+     "id",
+     "vaerk_id",
+     "navn",
+     "beskrivelse",
+     "reference_scenarie_id",
+     "periode_start",
+     "periode_slut",
+     "med_balancering",
+     "balancing_method",
+     "mip_rel_gap",
+     "mip_abs_gap",
+     "tidsgraense_s",
+     "ekstra_flag",
+     "heat_csv",
+     "arkiveret",
+     "oprettet_af",
+     "oprettet"
+    ],
+    "raekker": [
+     [
+      "22222222-2222-4222-8222-222222222222",
+      "11111111-1111-4111-8111-111111111111",
+      "Reference",
+      "syntetisk",
+      null,
+      "2026-01-05",
+      "2026-01-06",
+      false,
+      null,
+      0.0002,
+      100,
+      600,
+      null,
+      null,
+      false,
+      "a@example.org",
+      "2026-10-01T08:00:00.000Z"
+     ],
+     [
+      "33333333-3333-4333-8333-333333333333",
+      "11111111-1111-4111-8111-111111111111",
+      "Uden tank",
+      "syntetisk",
+      "22222222-2222-4222-8222-222222222222",
+      "2026-01-05",
+      "2026-01-06",
+      false,
+      null,
+      0.0002,
+      100,
+      600,
+      null,
+      null,
+      false,
+      "a@example.org",
+      "2026-10-01T08:00:00.000Z"
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "ugyldig JSON",
+   "input": {
+    "tekst": "{"
+   },
+   "afvisning": "Delen er ikke gyldig JSON."
+  },
+  {
+   "navn": "format",
+   "input": {
+    "tekst": "{\"format\":\"x\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}"
+   },
+   "afvisning": "Delen har ikke arkivets format."
+  },
+  {
+   "navn": "version 2",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":2,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}"
+   },
+   "afvisning": "Delen har ikke arkivets format."
+  },
+  {
+   "navn": "arkiv",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"x\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}"
+   },
+   "afvisning": "Delen mangler arkivets sha256."
+  },
+  {
+   "navn": "tabel",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Motor\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}"
+   },
+   "afvisning": "Ukendt tabel \"Motor\"."
+  },
+  {
+   "navn": "kolonner",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}"
+   },
+   "afvisning": "Scenarie: kolonnerne passer ikke med skemaet (arkivet er fra en anden skemaversion?)."
+  },
+  {
+   "navn": "ingen rækker",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[]}"
+   },
+   "afvisning": "Delen har ingen rækker."
+  },
+  {
+   "navn": "objekt i celle",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",{\"a\":1}]]}"
+   },
+   "afvisning": "Scenarie: en række har ugyldige værdier."
+  },
+  {
+   "navn": "for langt navn",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}"
+   },
+   "afvisning": "Scenarie 22222222-2222-4222-8222-222222222222: navn er for lang (201 > 200 tegn)."
+  },
+  {
+   "navn": "dublet",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}"
+   },
+   "afvisning": "Scenarie 22222222-2222-4222-8222-222222222222 står to gange i delen."
+  },
+  {
+   "navn": "Koersel uden forventet",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,4,3,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]]}"
+   },
+   "afvisning": "En Koersel-del skal angive det forventede antal rækker pr. kørsel."
+  },
+  {
+   "navn": "Koersel forventet mangler barn",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,4,3,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"KoerselInput\":5}}}"
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: det forventede antal rækker mangler."
+  },
+  {
+   "navn": "Koersel gyldig",
+   "input": {
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,4,3,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"KoerselInput\":5,\"KoerselNoegletal\":2,\"KoerselMaaned\":2,\"KoerselTime\":3}}}"
+   },
+   "ud": {
+    "format": "fjv-arkiv-del",
+    "version": 1,
+    "arkiv": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "tabel": "Koersel",
+    "kolonner": [
+     "id",
+     "bestilling_id",
+     "scenarie_id",
+     "vaerk_id",
+     "vaerk_revision",
+     "input_hash",
+     "status",
+     "fase",
+     "bestilt_af",
+     "bestilt",
+     "modtaget",
+     "startet",
+     "afsluttet",
+     "hjerteslag",
+     "annuller_anmodet",
+     "forsoeg",
+     "arbejder_id",
+     "fabric_job_id",
+     "kilde",
+     "model_commit",
+     "data_commit",
+     "miljoe_json",
+     "case_sti",
+     "output_sti",
+     "output_stem",
+     "oploesning",
+     "interval_min",
+     "antal_interval_model",
+     "antal_interval_csv",
+     "solve_status",
+     "er_milp",
+     "objektiv_dkk",
+     "oensket_rel_gap",
+     "oensket_abs_gap",
+     "opnaaet_gap",
+     "best_bound",
+     "loesetid_s",
+     "fejlbesked",
+     "manifest_json"
+    ],
+    "raekker": [
+     [
+      "55555555-5555-4555-8555-555555555555",
+      "44444444-4444-4444-8444-444444444444",
+      "33333333-3333-4333-8333-333333333333",
+      "11111111-1111-4111-8111-111111111111",
+      2,
+      "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+      "faerdig",
+      "Færdig",
+      "a@example.org",
+      "2026-10-01T08:00:00.000Z",
+      "2026-10-01T08:00:01.123Z",
+      "2026-10-01T08:00:00.000Z",
+      "2026-10-01T08:03:00.000Z",
+      null,
+      null,
+      1,
+      "w1",
+      null,
+      "app",
+      "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "1111111111111111111111111111111111111111",
+      "{\"python\":\"3.11\"}",
+      null,
+      null,
+      null,
+      "1h",
+      60,
+      4,
+      3,
+      "optimal",
+      true,
+      867031.23,
+      0.0002,
+      100,
+      0.00011,
+      866950.5,
+      12.345,
+      null,
+      "{}"
+     ]
+    ],
+    "forventet": {
+     "55555555-5555-4555-8555-555555555555": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3
+     }
+    }
+   }
+  }
+ ]
+}

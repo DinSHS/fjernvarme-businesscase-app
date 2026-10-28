@@ -13,6 +13,7 @@
 //   hentTidsserie(tidsserieId)                   værdierne kompakt til visning
 //   uploadVaerksark(anmodningId, indholdBase64)  xlsx -> Files/fjv/uploads + Vaerksarkimport + importnotebook
 //   hentDmiTemperatur(omraade, fra, til, kolonne) DMI-temperatur rå fra df-data (målt mod syntetisk varmelast)
+//   importerArkiv(anmodningId, del)              én del af et arkiv (scenarier + historiske kørsler, runde 13; arkiv.ts)
 //   skemaInfo()                     læs-kun diagnose af databasens faktiske tabeller/kolonner
 //
 // INGEN test- eller oprydningsfunktioner her (K2-F1, KONTRAKT §6c): alt der er registreret med
@@ -48,6 +49,11 @@ import {
     type AktiverTidsserie, type InputRad, type NytBlad, type OpretVaerk, type OpretVaerkDel, type ScenarieAendringRad, type ScenarieRad,
     type TidsserieRad, type UploadTidsserie, type UploadVaerksark,
 } from './logik.js';
+import {
+    importerDel, kolonner as arkivKolonner, type ArkivLager, type ArkivTx, type ImportTabel, type Importsvar, type InputRad as ArkivInputRad,
+    type Kanonisk, type Kolonne as ArkivKolonne, type LogRad,
+} from './arkiv.js';
+import { SKEMA_TABELLER } from './skema.data.js';
 
 const udf = new UserDataFunctions();
 
@@ -855,6 +861,116 @@ udf.func(
             return { ok: true, data_commit: dataCommit, kolonne: kol, tider, vaerdier };
         } catch (e) {
             return { ok: false, fejl: tekniskFejl('hentDmiTemperatur', e) };
+        }
+    },
+    [],
+);
+
+// ------------------------------------------------------------------ importerArkiv (runde 13)
+
+/** mssql-parametertypen for en skemakolonne. */
+function sqlType(k: ArkivKolonne): sql.ISqlType | (() => sql.ISqlType) {
+    switch (k.type) {
+        case 'uuid': return sql.UniqueIdentifier;
+        case 'text': case 'set': return sql.NVarChar(k.max ?? 4000);
+        case 'int': return sql.Int;
+        case 'decimal': return sql.Decimal(k.precision ?? 18, k.scale ?? 0);
+        case 'boolean': return sql.Bit;
+        case 'datetime': return sql.DateTime2(3);
+    }
+}
+
+const sqlVærdi = (k: ArkivKolonne, v: Kanonisk) => (v !== null && k.type === 'datetime' ? new Date(v as string) : v);
+
+/** ArkivLager mod appens database som app-ejeren (db.ts). SQL Server tager højst 2100 parametre pr. kald. */
+function sqlArkivLager(pool: sql.ConnectionPool): ArkivLager {
+    const tabelnavn = (t: ImportTabel | 'Vaerk') => `dbo.${SKEMA_TABELLER[t].tabel}`;
+    const tx = (req: () => sql.Request): ArkivTx => ({
+        låsAnmodning: async (id) => (await req().input('a', sql.UniqueIdentifier, id)
+            .query('SELECT status, svar FROM dbo.Aendringsanmodnings WITH (UPDLOCK, HOLDLOCK) WHERE id = @a')).recordset[0],
+        hent: async (tabel, ider) => {
+            const navne = (SKEMA_TABELLER[tabel].kolonner as readonly { navn: string }[]).map((k) => `[${k.navn}]`).join(', ');
+            const ud: Record<string, unknown>[] = [];
+            for (let i = 0; i < ider.length; i += 1000) {
+                const r = req();
+                const bid = ider.slice(i, i + 1000);
+                bid.forEach((id, j) => r.input(`i${j}`, sql.UniqueIdentifier, id));
+                ud.push(...(await r.query(`SELECT ${navne} FROM ${tabelnavn(tabel)} WHERE id IN (${bid.map((_, j) => `@i${j}`).join(', ')})`)).recordset);
+            }
+            return ud;
+        },
+        indsæt: async (tabel, rækker) => {
+            const ks = arkivKolonner(tabel);
+            const pr = Math.floor(2000 / ks.length);
+            for (let i = 0; i < rækker.length; i += pr) {
+                const r = req();
+                const bid = rækker.slice(i, i + pr);
+                const værdier = bid.map((række, j) => `(${ks.map((k, c) => {
+                    r.input(`p${j}_${c}`, sqlType(k), sqlVærdi(k, række[c]));
+                    return `@p${j}_${c}`;
+                }).join(', ')})`);
+                await r.query(`INSERT INTO ${tabelnavn(tabel)} (${ks.map((k) => `[${k.navn}]`).join(', ')}) VALUES ${værdier.join(', ')}`);
+            }
+        },
+        tælBørn: async (koerselId) => {
+            const r = (await req().input('k', sql.UniqueIdentifier, koerselId).query(`SELECT
+                (SELECT COUNT(*) FROM dbo.KoerselInputs WHERE koersel_id = @k) AS KoerselInput,
+                (SELECT COUNT(*) FROM dbo.KoerselNoegletals WHERE koersel_id = @k) AS KoerselNoegletal,
+                (SELECT COUNT(*) FROM dbo.KoerselMaaneds WHERE koersel_id = @k) AS KoerselMaaned,
+                (SELECT COUNT(*) FROM dbo.KoerselTimes WHERE koersel_id = @k) AS KoerselTime`)).recordset[0];
+            return { KoerselInput: Number(r.KoerselInput), KoerselNoegletal: Number(r.KoerselNoegletal), KoerselMaaned: Number(r.KoerselMaaned), KoerselTime: Number(r.KoerselTime) };
+        },
+        input: async (koerselId) => (await req().input('k', sql.UniqueIdentifier, koerselId)
+            .query('SELECT kilde, sti, vaerdi_json FROM dbo.KoerselInputs WHERE koersel_id = @k')).recordset as ArkivInputRad[],
+        vaerkHistorik: async (vaerkId) => {
+            const v = (await req().input('v', sql.UniqueIdentifier, vaerkId).query('SELECT revision FROM dbo.Vaerks WHERE id = @v')).recordset[0];
+            const blade = (await req().input('v', sql.UniqueIdentifier, vaerkId)
+                .query('SELECT sti, vaerdi_json FROM dbo.VaerkParameters WHERE vaerk_id = @v')).recordset as { sti: string; vaerdi_json: string }[];
+            const log = (await req().input('v', sql.UniqueIdentifier, vaerkId)
+                .query('SELECT revision, sti, handling, gammel_json, ny_json FROM dbo.Aendringslogs WHERE vaerk_id = @v')).recordset as LogRad[];
+            return { revision: Number(v?.revision ?? 0), blade, log };
+        },
+        tidsserieShas: async (vaerkId) => new Set(((await req().input('v', sql.UniqueIdentifier, vaerkId)
+            .query(`SELECT sha256 FROM dbo.Tidsseries WHERE vaerk_id = @v AND status = 'gyldig' AND sha256 IS NOT NULL`)).recordset as { sha256: string }[])
+            .map((r) => r.sha256)),
+        udfoer: async (id, svar) => {
+            await req().input('a', sql.UniqueIdentifier, id).input('svar', sql.NVarChar(2000), svar.slice(0, 2000))
+                .query(`UPDATE dbo.Aendringsanmodnings SET status = 'udfoert', svar = @svar WHERE id = @a AND status = 'ny'`);
+        },
+    });
+    return {
+        læsAnmodning: async (id) => {
+            const a = (await pool.request().input('a', sql.UniqueIdentifier, id).query(`
+                SELECT id, vaerk_id, aendringer_json, anmodet_af, status, svar FROM dbo.Aendringsanmodnings WHERE id = @a`)).recordset[0];
+            return a ? { ...a, id: lc(a.id), vaerk_id: lc(a.vaerk_id) } : null;
+        },
+        afvisAnmodning: (id, tekst) => afvisAnmodning(pool, id, tekst),
+        iTransaktion: (fn) => iTransaktion(pool, (req) => fn(tx(req))),
+    };
+}
+
+/**
+ * importerArkiv(anmodningId, del): skriver én del af et arkiv (scenarier og historiske kørsler, runde 13) i én
+ * transaktion — forløbet og alle regler står i arkiv.ts `importerDel` (samme kode som forhåndsvisningen i browseren).
+ * Klienten opretter først en Aendringsanmodning `importer_arkiv` i eget navn (vaerk_id = nil-uuid) med delens
+ * sha256: identiteten (`anmodet_af` er DAB-verificeret) og bindingen til netop denne del. En kørsel skrives først,
+ * når dens rækker er komplette og passer med input_hash; en afbrudt import kan derfor genoptages uden dubletter.
+ */
+udf.func(
+    'importerArkiv',
+    async (ctx: RayfinContext<Skema, AudienceType.Sql>, anmodningId: string, del: string): Promise<Importsvar> => {
+        const pool = await forbind(ctx.Tokens.Sql);
+        try {
+            return await importerDel(sqlArkivLager(pool), anmodningId, del);
+        } catch (e) {
+            if (erUnikBrud(e)) {
+                const tekst = 'Konflikt: en række med samme nøgle blev skrevet samtidig eller findes allerede. Intet i denne del er gemt; importér igen.';
+                await afvisAnmodning(pool, anmodningId, tekst);
+                return { ok: false, status: 'afvist', svar: tekst };
+            }
+            return { ok: false, status: 'ny', svar: tekniskFejl('importerArkiv', e) + ' Intet i denne del er gemt; prøv igen.' };
+        } finally {
+            await pool.close();
         }
     },
     [],

@@ -1,0 +1,105 @@
+{
+ "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
+ "kilder": {
+  "app/rayfin/functions/src/arkiv.ts": "cf41d66c76997da67405806eac16fa654d82345d127d7f507ef052a3da249926",
+  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "22e04302a065bd632229ae4ec6eb39684ef49ce53120ef60d261761ee20a2f77"
+ },
+ "tilfaelde": [
+  {
+   "navn": "#0",
+   "input": {
+    "raekker": []
+   },
+   "ud": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "navn": "#1",
+   "input": {
+    "raekker": [
+     [
+      "a",
+      1,
+      null
+     ]
+    ]
+   },
+   "ud": "0ae764bffd3a17b6454c8d9ebf712311d9b92efce67a4e4ea4f095fc05ed0122"
+  },
+  {
+   "navn": "#2",
+   "input": {
+    "raekker": [
+     [
+      "b",
+      1,
+      null
+     ],
+     [
+      "a",
+      2.5,
+      "x"
+     ]
+    ]
+   },
+   "ud": "eb2214da808268e4bbb14ada31243404e7aeedf728f8b2cb40a8359c28937601"
+  },
+  {
+   "navn": "#3",
+   "input": {
+    "raekker": [
+     [
+      "a",
+      0.30000000000000004,
+      1e+21,
+      1e-7,
+      -5,
+      123.456,
+      true,
+      false
+     ]
+    ]
+   },
+   "ud": "81969d669e8adb32648237aa98863cb5cb2edfa95ec1ff8f89bd865759348346"
+  },
+  {
+   "navn": "#4",
+   "input": {
+    "raekker": [
+     [
+      "～"
+     ],
+     [
+      "😀"
+     ],
+     [
+      "æ"
+     ],
+     [
+      "Z"
+     ],
+     [
+      "\"\\\n\u0001"
+     ]
+    ]
+   },
+   "ud": "44bf5b482dbbdf0bae1ca5534bb5683aa19165007fffcef88de087818981a3d7"
+  },
+  {
+   "navn": "#5",
+   "input": {
+    "raekker": [
+     [
+      "a",
+      "b"
+     ],
+     [
+      "a",
+      "b"
+     ]
+    ]
+   },
+   "ud": "68757325290bfc4363e63f9b8d36c71b2399901b5e04bddaae987a9908dbf475"
+  }
+ ]
+}

@@ -1,0 +1,1663 @@
+{
+ "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
+ "kilder": {
+  "app/rayfin/functions/src/arkiv.ts": "cf41d66c76997da67405806eac16fa654d82345d127d7f507ef052a3da249926",
+  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "22e04302a065bd632229ae4ec6eb39684ef49ce53120ef60d261761ee20a2f77"
+ },
+ "tilfaelde": [
+  {
+   "navn": "gyldig",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "ud": null
+  },
+  {
+   "navn": "i kø",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "koe",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555 har status \"koe\"; kun færdige, fejlede og annullerede kørsler kan genimporteres."
+  },
+  {
+   "navn": "fejlet",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "fejl",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "ud": null
+  },
+  {
+   "navn": "mangler timer",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 2
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: KoerselTime har 2 rækker i databasen, arkivet 3 — importen er ufuldstændig; kør den igen."
+  },
+  {
+   "navn": "input rettet",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "1.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: det frosne input passer ikke med input_hash — arkivet er rettet eller beskadiget."
+  },
+  {
+   "navn": "ingen bestilling",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": null,
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: bestillingen findes ikke."
+  },
+  {
+   "navn": "bestilling andet scenarie",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "22222222-2222-4222-8222-222222222222"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: bestillingen hører til et andet scenarie."
+  },
+  {
+   "navn": "intet scenarie",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": null,
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: scenariet findes ikke."
+  },
+  {
+   "navn": "scenarie andet værk",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "66666666-6666-4666-8666-666666666666"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: scenariet hører til et andet værk."
+  },
+  {
+   "navn": "intet værk",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": null,
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: værket findes ikke. Upload værksarket først."
+  },
+  {
+   "navn": "forkert revision",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     3,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555 bygger på en værksrevision (parametre 9ec1eda5da73…), som værket her ikke har haft som revision 3. Upload værksarket for den revision først."
+  },
+  {
+   "navn": "ingen revisioner",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": []
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555 bygger på en værksrevision (parametre 9ec1eda5da73…), som værket her ikke har haft som revision 2. Upload værksarket for den revision først."
+  },
+  {
+   "navn": "ingen tidsserie",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"66666666-6666-4666-8666-666666666666\",\"sha256\":\"abababababababababababababababababababababababababababababababab\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": []
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555 bygger på tidsserien (varmelast) med sha256 abababababab…, som ikke findes her. Upload den først."
+  },
+  {
+   "navn": "tidsserie uden sha",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "antal": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "forventet": {
+     "KoerselInput": 5,
+     "KoerselNoegletal": 2,
+     "KoerselMaaned": 2,
+     "KoerselTime": 3
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"x\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: det frosne input passer ikke med input_hash — arkivet er rettet eller beskadiget."
+  }
+ ]
+}

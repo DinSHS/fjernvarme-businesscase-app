@@ -26,6 +26,7 @@ INPUT = {
     "uploadVaerksark": ("anmodningId", "indholdBase64"),
     "hentDmiTemperatur": ("omraade", "fra", "til"),
     "skemaInfo": (),
+    "importerArkiv": ("anmodningId", "del"),          # runde 13: logik/arkiv.py
 }
 
 
@@ -65,4 +66,6 @@ def kald(app, navn: str, inp, bruger: str):
             return t.upload_tidsserie(inp["anmodningId"], inp["indholdBase64"])
         if navn == "uploadVaerksark":
             return t.upload_vaerksark(inp["anmodningId"], inp["indholdBase64"])
+        if navn == "importerArkiv":
+            return t.importer_arkiv(inp["anmodningId"], inp["del"])
     raise Fejl(500, "teknisk", f"{navn} er ikke koblet på")

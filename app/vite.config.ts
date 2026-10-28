@@ -11,6 +11,7 @@ import { defineConfig, type PluginOption } from "vite";
 import { backendAlias, valgtBackend } from "./backend.config";
 import license from "rollup-plugin-license";
 import { readFileSync } from "node:fs";
+import { execSync } from "node:child_process";
 import { NOTICE_SKILLE, vendoredeNotices } from "./src/ibcs/notices";
 
 import { resolve } from 'path';
@@ -44,6 +45,16 @@ const localNetworkAccessPlugin: PluginOption = {
   },
 };
 
+/** HEAD's commit (40 hex), eller "ukendt" uden git (fx en kildekopi uden .git). */
+function appCommit(): string {
+  try {
+    const c = execSync('git rev-parse HEAD', { cwd: projectRoot, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+    return /^[0-9a-f]{40}$/.test(c) ? c : 'ukendt';
+  } catch {
+    return 'ukendt';
+  }
+}
+
 // https://vite.dev/config/
 // `npm run build` = Fabric-udgaven (rayfin) til dist/; `npm run build:community` = rest-udgaven til dist-rest/.
 export default defineConfig(({ mode }) => {
@@ -51,6 +62,11 @@ export default defineConfig(({ mode }) => {
   // Rest-udgaven får sin egen mappe, så den aldrig kan blive det, `rayfin up` deployer.
   const outDir = resolve(projectRoot, backend === 'rest' ? 'dist-rest' : 'dist');
   return {
+    // Arkivets Læs mig og manifest (runde 13) skriver appens version og commit (src/lib/arkiv/version.ts).
+    define: {
+        __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(resolve(projectRoot, 'package.json'), 'utf8')).version),
+        __APP_COMMIT__: JSON.stringify(appCommit()),
+    },
     plugins: [
         react(),
         tailwindcss(),

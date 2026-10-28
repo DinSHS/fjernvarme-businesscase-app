@@ -323,6 +323,18 @@ export async function aktiverTidsserie(
 }
 
 /**
+ * Arkivet (runde 13): skriver én del af en genimport. Opretter en Aendringsanmodning `importer_arkiv` i eget navn
+ * (nil-uuid som værk; `aendringer_json` er lavet af arkiv.ts `importAnmodningJson` med delens sha256) og kalder
+ * Function `importerArkiv`, der skriver delen i én transaktion. Se src/lib/arkiv/genimport.ts.
+ */
+export async function importerArkivDel(aendringer_json: string, del: string, bruger: string | undefined): Promise<Ud<"importerArkiv">> {
+    const a = await opret<{ id: string }>("Aendringsanmodning", {
+        vaerk_id: INGEN_VAERK, forventet_revision: 0, anmodet_af: kræv(bruger), anmodet: new Date(), status: "ny", aendringer_json,
+    });
+    return kald("importerArkiv", { anmodningId: a.id, del });
+}
+
+/**
  * Uploader et værksark (`vaerksdata_skabelon.xlsx`) som base64. Backend gemmer filen, opretter en
  * Vaerksarkimport (`koe`) og starter importnotebooken; følg den med `useVaerksarkimport(import_id)`.
  */

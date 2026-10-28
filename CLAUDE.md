@@ -41,6 +41,7 @@ spørg kun tilbage, hvis noget ikke kan afgøres herfra. Kør fra repoets rod.
 | "hvad koster det at …", "hvad sparer vi ved …" | Differensmetoden: et par kørsler med samme værk, periode og data, kun ændringen forskellig. Appen laver parret under *Scenarier* og viser forskellen under *Analyser*. Læs differensen, ikke de absolutte tal. |
 | "helåret", "hele året" | Tager 1–40 minutter og op til 3,5 GB hukommelse. Sig det, før du bestiller; kør ikke to helår samtidig. |
 | "regner appen rigtigt?", "test trofastheden" | [`doc/TROFASTHED.md`](doc/TROFASTHED.md) §4: `tjek_trofasthed.py` og `bevis_app_vej.py`. |
+| "tag backup", "flyt historikken", "gem kørslerne i Excel" | *Scenarier › Backup og flytning* (`#/scenarier/arkiv`): eksportér arkivet (.xlsx pr. familie / .zip), importér med forhåndsvisning. Værkerne er ikke med: upload værksarket først. Et rettet arkiv afvises (sha256 pr. tabel). Se *Sådan bruger du appen* §7. |
 | "installér i Fabric", "udrul" | [`doc/FABRIC.md`](doc/FABRIC.md). Brugeren skal selv logge ind (`fab auth login`, `az login`, `npx rayfin login`) i en rigtig konsol. **Udrul aldrig uden at blive bedt om det.** |
 | "ny modelversion", "opdatér modellen" | [`CONTRIBUTING.md`](CONTRIBUTING.md#ny-modelversion). Pinnen skiftes bevidst; tallene ændrer sig. |
 

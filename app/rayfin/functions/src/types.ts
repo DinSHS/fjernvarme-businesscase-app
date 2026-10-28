@@ -53,6 +53,10 @@ export type AppFunctionsSchema = {
     input: { omraade: string; fra: string; til: string; kolonne: string };
     output: { ok: boolean; fejl?: undefined | string; data_commit?: undefined | string; kolonne?: undefined | string; tider?: undefined | string[]; vaerdier?: undefined | (null | number)[] };
   };
+  importerArkiv: {
+    input: { anmodningId: string; del: string };
+    output: { ok: boolean; status: string; svar: string; oprettet?: undefined | number; fandtes?: undefined | number };
+  };
   skemaInfo: {
     input: Record<string, never>;
     output: { login: string; kolonner: { tabel: string; kolonne: string; type: string; laengde: null | number; praecision: null | number; skala: null | number; nullable: boolean }[]; unikke: string[]; checks: string[] };

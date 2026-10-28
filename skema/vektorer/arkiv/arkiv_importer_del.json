@@ -1,0 +1,1991 @@
+{
+ "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
+ "kilder": {
+  "app/rayfin/functions/src/arkiv.ts": "cf41d66c76997da67405806eac16fa654d82345d127d7f507ef052a3da249926",
+  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "22e04302a065bd632229ae4ec6eb39684ef49ce53120ef60d261761ee20a2f77"
+ },
+ "tilfaelde": [
+  {
+   "navn": "fuld import og så igen",
+   "input": {
+    "start": {
+     "Vaerk": [
+      {
+       "id": "11111111-1111-4111-8111-111111111111",
+       "kode": "andeby",
+       "navn": "Andeby",
+       "beskrivelse": null,
+       "kilde": "repo",
+       "kilde_fil": "cases/andeby.yaml",
+       "repo_commit": null,
+       "kopieret_fra_id": null,
+       "revision": 3,
+       "arkiveret": false,
+       "oprettet_af": "a@example.org",
+       "aendret_af": "a@example.org",
+       "oprettet": "2026-10-01T08:00:00.000Z",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "VaerkParameter": [
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000000",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "prices.straw.value",
+       "vaerdi_json": "250.0",
+       "sektion": "prices",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 0,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "units.halmkedel.p_max",
+       "vaerdi_json": "5.0",
+       "sektion": "units",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 1,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "storage.tank.enabled",
+       "vaerdi_json": "true",
+       "sektion": "storage",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 2,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "Aendringslog": [
+      {
+       "id": "cccccccc-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 2,
+       "sti": "prices.straw.value",
+       "handling": "ret",
+       "gammel_json": "200.0",
+       "ny_json": "250.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      },
+      {
+       "id": "cccccccc-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 3,
+       "sti": "units.halmkedel.p_max",
+       "handling": "ret",
+       "gammel_json": "4.0",
+       "ny_json": "5.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      }
+     ],
+     "Aendringsanmodning": [],
+     "Scenarie": [],
+     "ScenarieAendring": [],
+     "Bestilling": [],
+     "Koersel": [],
+     "KoerselInput": [],
+     "KoerselNoegletal": [],
+     "KoerselMaaned": [],
+     "KoerselTime": [],
+     "Tidsserie": [
+      {
+       "id": "66666666-6666-4666-8666-666666666666",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "rolle": "varmelast",
+       "navn": "Målt 2026",
+       "filnavn": "maalt.csv",
+       "sti": "Files/x.csv",
+       "sha256": "abababababababababababababababababababababababababababababababab",
+       "oploesning": "1h",
+       "start": "2026-10-01T08:00:00.000Z",
+       "slut": "2026-10-01T08:00:00.000Z",
+       "antal_raekker": 10,
+       "antal_huller": 0,
+       "enhed": "MW",
+       "tidsstempel": "start",
+       "tidszone": "UTC",
+       "kilde": "csv",
+       "status": "gyldig",
+       "validering_json": "{}",
+       "aktiv": true,
+       "uploadet_af": "a@example.org",
+       "uploadet": "2026-10-01T08:00:00.000Z"
+      }
+     ]
+    },
+    "trin": [
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000001",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"c87f7f5dc198575e66fdf485a9ba04f473545e640f773cc1c69af4ce71bdc38e\",\"tabel\":\"Scenarie\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000002",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"e44d65629f4e0e669b9acdf78888db226cc93348a3c1d946b9d9bbf8f769f3bd\",\"tabel\":\"ScenarieAendring\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"ScenarieAendring\",\"kolonner\":[\"id\",\"scenarie_id\",\"type\",\"sti\",\"vaerdi_json\",\"raekkefoelge\"],\"raekker\":[[\"dddddddd-0000-4000-8000-000000000001\",\"33333333-3333-4333-8333-333333333333\",\"disable\",\"tank\",null,0],[\"dddddddd-0000-4000-8000-000000000002\",\"33333333-3333-4333-8333-333333333333\",\"set\",\"_tidsserie.varmelast\",\"\\\"66666666-6666-4666-8666-666666666666\\\"\",1]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000003",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"b7a2b9b8176be28c3b1333b763bfffb1d06161116ffa3a3844fc941d525c80c7\",\"tabel\":\"Bestilling\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Bestilling\",\"kolonner\":[\"id\",\"scenarie_id\",\"klient_noegle\",\"bestilt_af\",\"bestilt\"],\"raekker\":[[\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"k-1\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000004",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"4ed09c70d02eb19ba9e46ddd7c96affccec7361a7fd5346c9ff65aecde9de047\",\"tabel\":\"KoerselInput\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselInput\",\"kolonner\":[\"id\",\"koersel_id\",\"sti\",\"vaerdi_json\",\"kilde\"],\"raekker\":[[\"eeeeeeee-0000-4000-8000-000000000000\",\"55555555-5555-4555-8555-555555555555\",\"prices.straw.value\",\"250.0\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"units.halmkedel.p_max\",\"4.0\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"storage.tank.enabled\",\"true\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000003\",\"55555555-5555-4555-8555-555555555555\",\"storage.tank.enabled\",\"false\",\"aendring\"],[\"eeeeeeee-0000-4000-8000-000000000004\",\"55555555-5555-4555-8555-555555555555\",\"_koersel.tidsserie.varmelast\",\"{\\\"id\\\":\\\"66666666-6666-4666-8666-666666666666\\\",\\\"sha256\\\":\\\"abababababababababababababababababababababababababababababababab\\\"}\",\"scenarie\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000005",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"25fb4509a44509822a6e6c3d460610b34db650227653a4a8b7b436772a3875a5\",\"tabel\":\"KoerselNoegletal\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselNoegletal\",\"kolonner\":[\"id\",\"koersel_id\",\"gruppe\",\"objekt\",\"marked\",\"noegle\",\"vaerdi\",\"enhed\"],\"raekker\":[[\"ffffffff-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"objektiv\",null,null,\"objektiv_dkk\",867031.23,\"DKK\"],[\"ffffffff-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"lager\",\"tank\",null,\"dual\",null,null]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000006",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"a4749a22a7d4b6515f870fe22f63acd466afe9648eec233152a37e1664cae606\",\"tabel\":\"KoerselMaaned\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselMaaned\",\"kolonner\":[\"id\",\"koersel_id\",\"maaned\",\"objekt\",\"noegle\",\"vaerdi\"],\"raekker\":[[\"99999999-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"2026-01\",\"halmkedel\",\"varme_mwh\",123.4567890123],[\"99999999-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"periode\",null,\"varme_mwh\",123.4567890123]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000007",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"ce34118be752dfadca79823d63e1f804484a49d9f4db354fc9285f218983ec5d\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselTime\",\"kolonner\":[\"id\",\"koersel_id\",\"tid\",\"varmelast_mw\",\"spotpris\",\"t_ude\",\"vaerdier_json\"],\"raekker\":[[\"77777777-0000-4000-8000-000000000000\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-28T22:00:00.000Z\",3.5,null,1.5,\"{\\\"p_halmkedel_mw\\\":0,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":true}\"],[\"77777777-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-28T23:00:00.000Z\",3.6,-11.25,1.5,\"{\\\"p_halmkedel_mw\\\":1.25,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":false}\"],[\"77777777-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-29T00:00:00.000Z\",3.7,-10.25,1.5,\"{\\\"p_halmkedel_mw\\\":2.5,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":true}\"],[\"77777777-0000-4000-8000-000000000003\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-29T01:00:00.000Z\",3.8,-9.25,1.5,\"{\\\"p_halmkedel_mw\\\":3.75,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":false}\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000008",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"3ac3d3466e7f5614fd3ecfa453505e03e706ff51dbbc8fc92dbbdce39c6151e9\",\"tabel\":\"Koersel\",\"nr\":1,\"af\":1,\"koersel_ider\":[\"55555555-5555-4555-8555-555555555555\"],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,5,4,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"KoerselInput\":5,\"KoerselNoegletal\":2,\"KoerselMaaned\":2,\"KoerselTime\":4}}}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000009",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"c87f7f5dc198575e66fdf485a9ba04f473545e640f773cc1c69af4ce71bdc38e\",\"tabel\":\"Scenarie\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000010",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"e44d65629f4e0e669b9acdf78888db226cc93348a3c1d946b9d9bbf8f769f3bd\",\"tabel\":\"ScenarieAendring\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"ScenarieAendring\",\"kolonner\":[\"id\",\"scenarie_id\",\"type\",\"sti\",\"vaerdi_json\",\"raekkefoelge\"],\"raekker\":[[\"dddddddd-0000-4000-8000-000000000001\",\"33333333-3333-4333-8333-333333333333\",\"disable\",\"tank\",null,0],[\"dddddddd-0000-4000-8000-000000000002\",\"33333333-3333-4333-8333-333333333333\",\"set\",\"_tidsserie.varmelast\",\"\\\"66666666-6666-4666-8666-666666666666\\\"\",1]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000011",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"b7a2b9b8176be28c3b1333b763bfffb1d06161116ffa3a3844fc941d525c80c7\",\"tabel\":\"Bestilling\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Bestilling\",\"kolonner\":[\"id\",\"scenarie_id\",\"klient_noegle\",\"bestilt_af\",\"bestilt\"],\"raekker\":[[\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"k-1\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000012",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"4ed09c70d02eb19ba9e46ddd7c96affccec7361a7fd5346c9ff65aecde9de047\",\"tabel\":\"KoerselInput\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselInput\",\"kolonner\":[\"id\",\"koersel_id\",\"sti\",\"vaerdi_json\",\"kilde\"],\"raekker\":[[\"eeeeeeee-0000-4000-8000-000000000000\",\"55555555-5555-4555-8555-555555555555\",\"prices.straw.value\",\"250.0\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"units.halmkedel.p_max\",\"4.0\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"storage.tank.enabled\",\"true\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000003\",\"55555555-5555-4555-8555-555555555555\",\"storage.tank.enabled\",\"false\",\"aendring\"],[\"eeeeeeee-0000-4000-8000-000000000004\",\"55555555-5555-4555-8555-555555555555\",\"_koersel.tidsserie.varmelast\",\"{\\\"id\\\":\\\"66666666-6666-4666-8666-666666666666\\\",\\\"sha256\\\":\\\"abababababababababababababababababababababababababababababababab\\\"}\",\"scenarie\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000013",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"25fb4509a44509822a6e6c3d460610b34db650227653a4a8b7b436772a3875a5\",\"tabel\":\"KoerselNoegletal\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselNoegletal\",\"kolonner\":[\"id\",\"koersel_id\",\"gruppe\",\"objekt\",\"marked\",\"noegle\",\"vaerdi\",\"enhed\"],\"raekker\":[[\"ffffffff-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"objektiv\",null,null,\"objektiv_dkk\",867031.23,\"DKK\"],[\"ffffffff-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"lager\",\"tank\",null,\"dual\",null,null]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000014",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"a4749a22a7d4b6515f870fe22f63acd466afe9648eec233152a37e1664cae606\",\"tabel\":\"KoerselMaaned\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselMaaned\",\"kolonner\":[\"id\",\"koersel_id\",\"maaned\",\"objekt\",\"noegle\",\"vaerdi\"],\"raekker\":[[\"99999999-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"2026-01\",\"halmkedel\",\"varme_mwh\",123.4567890123],[\"99999999-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"periode\",null,\"varme_mwh\",123.4567890123]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000015",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"ce34118be752dfadca79823d63e1f804484a49d9f4db354fc9285f218983ec5d\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselTime\",\"kolonner\":[\"id\",\"koersel_id\",\"tid\",\"varmelast_mw\",\"spotpris\",\"t_ude\",\"vaerdier_json\"],\"raekker\":[[\"77777777-0000-4000-8000-000000000000\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-28T22:00:00.000Z\",3.5,null,1.5,\"{\\\"p_halmkedel_mw\\\":0,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":true}\"],[\"77777777-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-28T23:00:00.000Z\",3.6,-11.25,1.5,\"{\\\"p_halmkedel_mw\\\":1.25,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":false}\"],[\"77777777-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-29T00:00:00.000Z\",3.7,-10.25,1.5,\"{\\\"p_halmkedel_mw\\\":2.5,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":true}\"],[\"77777777-0000-4000-8000-000000000003\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-29T01:00:00.000Z\",3.8,-9.25,1.5,\"{\\\"p_halmkedel_mw\\\":3.75,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":false}\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000016",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"3ac3d3466e7f5614fd3ecfa453505e03e706ff51dbbc8fc92dbbdce39c6151e9\",\"tabel\":\"Koersel\",\"nr\":1,\"af\":1,\"koersel_ider\":[\"55555555-5555-4555-8555-555555555555\"],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,5,4,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"KoerselInput\":5,\"KoerselNoegletal\":2,\"KoerselMaaned\":2,\"KoerselTime\":4}}}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     }
+    ]
+   },
+   "ud": {
+    "svar": [
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 scenarier oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 scenarieændringer oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "1 bestillinger oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 1,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "5 inputrækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 5,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 nøgletal oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 månedsrækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "4 timerækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 4,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "1 kørsler oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 1,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "0 scenarier oprettet, 2 fandtes allerede (del 1 af 1).",
+      "oprettet": 0,
+      "fandtes": 2
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "0 scenarieændringer oprettet, 2 fandtes allerede (del 1 af 1).",
+      "oprettet": 0,
+      "fandtes": 2
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "0 bestillinger oprettet, 1 fandtes allerede (del 1 af 1).",
+      "oprettet": 0,
+      "fandtes": 1
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "0 inputrækker oprettet, 5 fandtes allerede (del 1 af 1).",
+      "oprettet": 0,
+      "fandtes": 5
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "0 nøgletal oprettet, 2 fandtes allerede (del 1 af 1).",
+      "oprettet": 0,
+      "fandtes": 2
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "0 månedsrækker oprettet, 2 fandtes allerede (del 1 af 1).",
+      "oprettet": 0,
+      "fandtes": 2
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "0 timerækker oprettet, 4 fandtes allerede (del 1 af 1).",
+      "oprettet": 0,
+      "fandtes": 4
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "0 kørsler oprettet, 1 fandtes allerede (del 1 af 1).",
+      "oprettet": 0,
+      "fandtes": 1
+     }
+    ],
+    "shas": {
+     "Scenarie": "d5703316007c8c0402a43ae3ee92ae61666af8bff63cb8ef5d5e542e5e4a460d",
+     "ScenarieAendring": "1731bae83af148ca62b65b10f0d502cf579892e2e63a3ac84abe5ede0abd66bb",
+     "Bestilling": "da0409cbce2caeaaec4caf14acdfe7c88e2fd7fc0acbf9e998c88137d9d8dca3",
+     "KoerselInput": "e0b530d1ed0c2cafcdeca4136a8117b25362ce694017fc4367dd7d88f2666272",
+     "KoerselNoegletal": "a59b2340a022858d102027588cc05241a429a348c85331d015b9a83655b595da",
+     "KoerselMaaned": "e5b2e54541a7ed31c16d77d867b0ae516e266c45485f1131d36f9c5dee53829f",
+     "KoerselTime": "9f61da990e23405c3664b4cfe8f38931acca26a595aa2365257932223c79304b",
+     "Koersel": "6773bf901f5309bf416a14ec00981a373eeba544ff5ca7016d44d0743429f84b"
+    },
+    "anmodninger": [
+     [
+      "f0000000-0000-4000-8000-000000000001",
+      "udfoert",
+      "2 scenarier oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000002",
+      "udfoert",
+      "2 scenarieændringer oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000003",
+      "udfoert",
+      "1 bestillinger oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000004",
+      "udfoert",
+      "5 inputrækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000005",
+      "udfoert",
+      "2 nøgletal oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000006",
+      "udfoert",
+      "2 månedsrækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000007",
+      "udfoert",
+      "4 timerækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000008",
+      "udfoert",
+      "1 kørsler oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000009",
+      "udfoert",
+      "0 scenarier oprettet, 2 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000010",
+      "udfoert",
+      "0 scenarieændringer oprettet, 2 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000011",
+      "udfoert",
+      "0 bestillinger oprettet, 1 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000012",
+      "udfoert",
+      "0 inputrækker oprettet, 5 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000013",
+      "udfoert",
+      "0 nøgletal oprettet, 2 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000014",
+      "udfoert",
+      "0 månedsrækker oprettet, 2 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000015",
+      "udfoert",
+      "0 timerækker oprettet, 4 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000016",
+      "udfoert",
+      "0 kørsler oprettet, 1 fandtes allerede (del 1 af 1)."
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "uden værk",
+   "input": {
+    "start": {
+     "Vaerk": [],
+     "VaerkParameter": [],
+     "Aendringslog": [],
+     "Aendringsanmodning": [],
+     "Scenarie": [],
+     "ScenarieAendring": [],
+     "Bestilling": [],
+     "Koersel": [],
+     "KoerselInput": [],
+     "KoerselNoegletal": [],
+     "KoerselMaaned": [],
+     "KoerselTime": [],
+     "Tidsserie": []
+    },
+    "trin": [
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000001",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"c87f7f5dc198575e66fdf485a9ba04f473545e640f773cc1c69af4ce71bdc38e\",\"tabel\":\"Scenarie\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     }
+    ]
+   },
+   "ud": {
+    "svar": [
+     {
+      "ok": false,
+      "status": "afvist",
+      "svar": "Scenarie 22222222-2222-4222-8222-222222222222: værket findes ikke her. Upload værksarket først."
+     }
+    ],
+    "shas": {
+     "Scenarie": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "ScenarieAendring": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Bestilling": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselInput": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselNoegletal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselMaaned": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselTime": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Koersel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "anmodninger": [
+     [
+      "f0000000-0000-4000-8000-000000000001",
+      "afvist",
+      "Scenarie 22222222-2222-4222-8222-222222222222: værket findes ikke her. Upload værksarket først."
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "konflikt på scenarie",
+   "input": {
+    "start": {
+     "Vaerk": [
+      {
+       "id": "11111111-1111-4111-8111-111111111111",
+       "kode": "andeby",
+       "navn": "Andeby",
+       "beskrivelse": null,
+       "kilde": "repo",
+       "kilde_fil": "cases/andeby.yaml",
+       "repo_commit": null,
+       "kopieret_fra_id": null,
+       "revision": 3,
+       "arkiveret": false,
+       "oprettet_af": "a@example.org",
+       "aendret_af": "a@example.org",
+       "oprettet": "2026-10-01T08:00:00.000Z",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "VaerkParameter": [
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000000",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "prices.straw.value",
+       "vaerdi_json": "250.0",
+       "sektion": "prices",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 0,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "units.halmkedel.p_max",
+       "vaerdi_json": "5.0",
+       "sektion": "units",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 1,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "storage.tank.enabled",
+       "vaerdi_json": "true",
+       "sektion": "storage",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 2,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "Aendringslog": [
+      {
+       "id": "cccccccc-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 2,
+       "sti": "prices.straw.value",
+       "handling": "ret",
+       "gammel_json": "200.0",
+       "ny_json": "250.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      },
+      {
+       "id": "cccccccc-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 3,
+       "sti": "units.halmkedel.p_max",
+       "handling": "ret",
+       "gammel_json": "4.0",
+       "ny_json": "5.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      }
+     ],
+     "Aendringsanmodning": [],
+     "Scenarie": [
+      {
+       "id": "33333333-3333-4333-8333-333333333333",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "navn": "Rettet",
+       "beskrivelse": "syntetisk",
+       "reference_scenarie_id": "22222222-2222-4222-8222-222222222222",
+       "periode_start": "2026-01-05",
+       "periode_slut": "2026-01-06",
+       "med_balancering": false,
+       "balancing_method": null,
+       "mip_rel_gap": 0.0002,
+       "mip_abs_gap": 100,
+       "tidsgraense_s": 600,
+       "ekstra_flag": null,
+       "heat_csv": null,
+       "arkiveret": false,
+       "oprettet_af": "a@example.org",
+       "oprettet": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "ScenarieAendring": [],
+     "Bestilling": [],
+     "Koersel": [],
+     "KoerselInput": [],
+     "KoerselNoegletal": [],
+     "KoerselMaaned": [],
+     "KoerselTime": [],
+     "Tidsserie": [
+      {
+       "id": "66666666-6666-4666-8666-666666666666",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "rolle": "varmelast",
+       "navn": "Målt 2026",
+       "filnavn": "maalt.csv",
+       "sti": "Files/x.csv",
+       "sha256": "abababababababababababababababababababababababababababababababab",
+       "oploesning": "1h",
+       "start": "2026-10-01T08:00:00.000Z",
+       "slut": "2026-10-01T08:00:00.000Z",
+       "antal_raekker": 10,
+       "antal_huller": 0,
+       "enhed": "MW",
+       "tidsstempel": "start",
+       "tidszone": "UTC",
+       "kilde": "csv",
+       "status": "gyldig",
+       "validering_json": "{}",
+       "aktiv": true,
+       "uploadet_af": "a@example.org",
+       "uploadet": "2026-10-01T08:00:00.000Z"
+      }
+     ]
+    },
+    "trin": [
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000001",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"c87f7f5dc198575e66fdf485a9ba04f473545e640f773cc1c69af4ce71bdc38e\",\"tabel\":\"Scenarie\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     }
+    ]
+   },
+   "ud": {
+    "svar": [
+     {
+      "ok": false,
+      "status": "afvist",
+      "svar": "Konflikt: 1 scenarier findes allerede med andet indhold, fx 33333333-3333-4333-8333-333333333333 (navn). Intet er overskrevet."
+     }
+    ],
+    "shas": {
+     "Scenarie": "4620cf2ebfde193a1e537d4ae773ad9298ba1d3ad084b784f9fb0882e2b925bd",
+     "ScenarieAendring": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Bestilling": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselInput": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselNoegletal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselMaaned": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselTime": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Koersel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "anmodninger": [
+     [
+      "f0000000-0000-4000-8000-000000000001",
+      "afvist",
+      "Konflikt: 1 scenarier findes allerede med andet indhold, fx 33333333-3333-4333-8333-333333333333 (navn). Intet er overskrevet."
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "kørsel før timerne",
+   "input": {
+    "start": {
+     "Vaerk": [
+      {
+       "id": "11111111-1111-4111-8111-111111111111",
+       "kode": "andeby",
+       "navn": "Andeby",
+       "beskrivelse": null,
+       "kilde": "repo",
+       "kilde_fil": "cases/andeby.yaml",
+       "repo_commit": null,
+       "kopieret_fra_id": null,
+       "revision": 3,
+       "arkiveret": false,
+       "oprettet_af": "a@example.org",
+       "aendret_af": "a@example.org",
+       "oprettet": "2026-10-01T08:00:00.000Z",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "VaerkParameter": [
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000000",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "prices.straw.value",
+       "vaerdi_json": "250.0",
+       "sektion": "prices",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 0,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "units.halmkedel.p_max",
+       "vaerdi_json": "5.0",
+       "sektion": "units",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 1,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "storage.tank.enabled",
+       "vaerdi_json": "true",
+       "sektion": "storage",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 2,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "Aendringslog": [
+      {
+       "id": "cccccccc-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 2,
+       "sti": "prices.straw.value",
+       "handling": "ret",
+       "gammel_json": "200.0",
+       "ny_json": "250.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      },
+      {
+       "id": "cccccccc-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 3,
+       "sti": "units.halmkedel.p_max",
+       "handling": "ret",
+       "gammel_json": "4.0",
+       "ny_json": "5.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      }
+     ],
+     "Aendringsanmodning": [],
+     "Scenarie": [],
+     "ScenarieAendring": [],
+     "Bestilling": [],
+     "Koersel": [],
+     "KoerselInput": [],
+     "KoerselNoegletal": [],
+     "KoerselMaaned": [],
+     "KoerselTime": [],
+     "Tidsserie": [
+      {
+       "id": "66666666-6666-4666-8666-666666666666",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "rolle": "varmelast",
+       "navn": "Målt 2026",
+       "filnavn": "maalt.csv",
+       "sti": "Files/x.csv",
+       "sha256": "abababababababababababababababababababababababababababababababab",
+       "oploesning": "1h",
+       "start": "2026-10-01T08:00:00.000Z",
+       "slut": "2026-10-01T08:00:00.000Z",
+       "antal_raekker": 10,
+       "antal_huller": 0,
+       "enhed": "MW",
+       "tidsstempel": "start",
+       "tidszone": "UTC",
+       "kilde": "csv",
+       "status": "gyldig",
+       "validering_json": "{}",
+       "aktiv": true,
+       "uploadet_af": "a@example.org",
+       "uploadet": "2026-10-01T08:00:00.000Z"
+      }
+     ]
+    },
+    "trin": [
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000001",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"c87f7f5dc198575e66fdf485a9ba04f473545e640f773cc1c69af4ce71bdc38e\",\"tabel\":\"Scenarie\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000002",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"e44d65629f4e0e669b9acdf78888db226cc93348a3c1d946b9d9bbf8f769f3bd\",\"tabel\":\"ScenarieAendring\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"ScenarieAendring\",\"kolonner\":[\"id\",\"scenarie_id\",\"type\",\"sti\",\"vaerdi_json\",\"raekkefoelge\"],\"raekker\":[[\"dddddddd-0000-4000-8000-000000000001\",\"33333333-3333-4333-8333-333333333333\",\"disable\",\"tank\",null,0],[\"dddddddd-0000-4000-8000-000000000002\",\"33333333-3333-4333-8333-333333333333\",\"set\",\"_tidsserie.varmelast\",\"\\\"66666666-6666-4666-8666-666666666666\\\"\",1]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000003",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"b7a2b9b8176be28c3b1333b763bfffb1d06161116ffa3a3844fc941d525c80c7\",\"tabel\":\"Bestilling\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Bestilling\",\"kolonner\":[\"id\",\"scenarie_id\",\"klient_noegle\",\"bestilt_af\",\"bestilt\"],\"raekker\":[[\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"k-1\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000004",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"4ed09c70d02eb19ba9e46ddd7c96affccec7361a7fd5346c9ff65aecde9de047\",\"tabel\":\"KoerselInput\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselInput\",\"kolonner\":[\"id\",\"koersel_id\",\"sti\",\"vaerdi_json\",\"kilde\"],\"raekker\":[[\"eeeeeeee-0000-4000-8000-000000000000\",\"55555555-5555-4555-8555-555555555555\",\"prices.straw.value\",\"250.0\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"units.halmkedel.p_max\",\"4.0\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"storage.tank.enabled\",\"true\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000003\",\"55555555-5555-4555-8555-555555555555\",\"storage.tank.enabled\",\"false\",\"aendring\"],[\"eeeeeeee-0000-4000-8000-000000000004\",\"55555555-5555-4555-8555-555555555555\",\"_koersel.tidsserie.varmelast\",\"{\\\"id\\\":\\\"66666666-6666-4666-8666-666666666666\\\",\\\"sha256\\\":\\\"abababababababababababababababababababababababababababababababab\\\"}\",\"scenarie\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000005",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"25fb4509a44509822a6e6c3d460610b34db650227653a4a8b7b436772a3875a5\",\"tabel\":\"KoerselNoegletal\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselNoegletal\",\"kolonner\":[\"id\",\"koersel_id\",\"gruppe\",\"objekt\",\"marked\",\"noegle\",\"vaerdi\",\"enhed\"],\"raekker\":[[\"ffffffff-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"objektiv\",null,null,\"objektiv_dkk\",867031.23,\"DKK\"],[\"ffffffff-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"lager\",\"tank\",null,\"dual\",null,null]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000006",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"a4749a22a7d4b6515f870fe22f63acd466afe9648eec233152a37e1664cae606\",\"tabel\":\"KoerselMaaned\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselMaaned\",\"kolonner\":[\"id\",\"koersel_id\",\"maaned\",\"objekt\",\"noegle\",\"vaerdi\"],\"raekker\":[[\"99999999-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"2026-01\",\"halmkedel\",\"varme_mwh\",123.4567890123],[\"99999999-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"periode\",null,\"varme_mwh\",123.4567890123]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000007",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"3ac3d3466e7f5614fd3ecfa453505e03e706ff51dbbc8fc92dbbdce39c6151e9\",\"tabel\":\"Koersel\",\"nr\":1,\"af\":1,\"koersel_ider\":[\"55555555-5555-4555-8555-555555555555\"],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,5,4,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"KoerselInput\":5,\"KoerselNoegletal\":2,\"KoerselMaaned\":2,\"KoerselTime\":4}}}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     }
+    ]
+   },
+   "ud": {
+    "svar": [
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 scenarier oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 scenarieændringer oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "1 bestillinger oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 1,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "5 inputrækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 5,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 nøgletal oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 månedsrækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": false,
+      "status": "afvist",
+      "svar": "Kørsel 55555555-5555-4555-8555-555555555555: KoerselTime har 0 rækker i databasen, arkivet 4 — importen er ufuldstændig; kør den igen."
+     }
+    ],
+    "shas": {
+     "Scenarie": "d5703316007c8c0402a43ae3ee92ae61666af8bff63cb8ef5d5e542e5e4a460d",
+     "ScenarieAendring": "1731bae83af148ca62b65b10f0d502cf579892e2e63a3ac84abe5ede0abd66bb",
+     "Bestilling": "da0409cbce2caeaaec4caf14acdfe7c88e2fd7fc0acbf9e998c88137d9d8dca3",
+     "KoerselInput": "e0b530d1ed0c2cafcdeca4136a8117b25362ce694017fc4367dd7d88f2666272",
+     "KoerselNoegletal": "a59b2340a022858d102027588cc05241a429a348c85331d015b9a83655b595da",
+     "KoerselMaaned": "e5b2e54541a7ed31c16d77d867b0ae516e266c45485f1131d36f9c5dee53829f",
+     "KoerselTime": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Koersel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "anmodninger": [
+     [
+      "f0000000-0000-4000-8000-000000000001",
+      "udfoert",
+      "2 scenarier oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000002",
+      "udfoert",
+      "2 scenarieændringer oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000003",
+      "udfoert",
+      "1 bestillinger oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000004",
+      "udfoert",
+      "5 inputrækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000005",
+      "udfoert",
+      "2 nøgletal oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000006",
+      "udfoert",
+      "2 månedsrækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000007",
+      "afvist",
+      "Kørsel 55555555-5555-4555-8555-555555555555: KoerselTime har 0 rækker i databasen, arkivet 4 — importen er ufuldstændig; kør den igen."
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "rækker til en kørsel, der findes",
+   "input": {
+    "start": {
+     "Vaerk": [
+      {
+       "id": "11111111-1111-4111-8111-111111111111",
+       "kode": "andeby",
+       "navn": "Andeby",
+       "beskrivelse": null,
+       "kilde": "repo",
+       "kilde_fil": "cases/andeby.yaml",
+       "repo_commit": null,
+       "kopieret_fra_id": null,
+       "revision": 3,
+       "arkiveret": false,
+       "oprettet_af": "a@example.org",
+       "aendret_af": "a@example.org",
+       "oprettet": "2026-10-01T08:00:00.000Z",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "VaerkParameter": [
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000000",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "prices.straw.value",
+       "vaerdi_json": "250.0",
+       "sektion": "prices",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 0,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "units.halmkedel.p_max",
+       "vaerdi_json": "5.0",
+       "sektion": "units",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 1,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "storage.tank.enabled",
+       "vaerdi_json": "true",
+       "sektion": "storage",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 2,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "Aendringslog": [
+      {
+       "id": "cccccccc-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 2,
+       "sti": "prices.straw.value",
+       "handling": "ret",
+       "gammel_json": "200.0",
+       "ny_json": "250.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      },
+      {
+       "id": "cccccccc-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 3,
+       "sti": "units.halmkedel.p_max",
+       "handling": "ret",
+       "gammel_json": "4.0",
+       "ny_json": "5.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      }
+     ],
+     "Aendringsanmodning": [],
+     "Scenarie": [],
+     "ScenarieAendring": [],
+     "Bestilling": [],
+     "Koersel": [],
+     "KoerselInput": [],
+     "KoerselNoegletal": [],
+     "KoerselMaaned": [],
+     "KoerselTime": [],
+     "Tidsserie": [
+      {
+       "id": "66666666-6666-4666-8666-666666666666",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "rolle": "varmelast",
+       "navn": "Målt 2026",
+       "filnavn": "maalt.csv",
+       "sti": "Files/x.csv",
+       "sha256": "abababababababababababababababababababababababababababababababab",
+       "oploesning": "1h",
+       "start": "2026-10-01T08:00:00.000Z",
+       "slut": "2026-10-01T08:00:00.000Z",
+       "antal_raekker": 10,
+       "antal_huller": 0,
+       "enhed": "MW",
+       "tidsstempel": "start",
+       "tidszone": "UTC",
+       "kilde": "csv",
+       "status": "gyldig",
+       "validering_json": "{}",
+       "aktiv": true,
+       "uploadet_af": "a@example.org",
+       "uploadet": "2026-10-01T08:00:00.000Z"
+      }
+     ]
+    },
+    "trin": [
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000001",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"c87f7f5dc198575e66fdf485a9ba04f473545e640f773cc1c69af4ce71bdc38e\",\"tabel\":\"Scenarie\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000002",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"e44d65629f4e0e669b9acdf78888db226cc93348a3c1d946b9d9bbf8f769f3bd\",\"tabel\":\"ScenarieAendring\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"ScenarieAendring\",\"kolonner\":[\"id\",\"scenarie_id\",\"type\",\"sti\",\"vaerdi_json\",\"raekkefoelge\"],\"raekker\":[[\"dddddddd-0000-4000-8000-000000000001\",\"33333333-3333-4333-8333-333333333333\",\"disable\",\"tank\",null,0],[\"dddddddd-0000-4000-8000-000000000002\",\"33333333-3333-4333-8333-333333333333\",\"set\",\"_tidsserie.varmelast\",\"\\\"66666666-6666-4666-8666-666666666666\\\"\",1]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000003",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"b7a2b9b8176be28c3b1333b763bfffb1d06161116ffa3a3844fc941d525c80c7\",\"tabel\":\"Bestilling\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Bestilling\",\"kolonner\":[\"id\",\"scenarie_id\",\"klient_noegle\",\"bestilt_af\",\"bestilt\"],\"raekker\":[[\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"k-1\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000004",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"4ed09c70d02eb19ba9e46ddd7c96affccec7361a7fd5346c9ff65aecde9de047\",\"tabel\":\"KoerselInput\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselInput\",\"kolonner\":[\"id\",\"koersel_id\",\"sti\",\"vaerdi_json\",\"kilde\"],\"raekker\":[[\"eeeeeeee-0000-4000-8000-000000000000\",\"55555555-5555-4555-8555-555555555555\",\"prices.straw.value\",\"250.0\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"units.halmkedel.p_max\",\"4.0\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"storage.tank.enabled\",\"true\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000003\",\"55555555-5555-4555-8555-555555555555\",\"storage.tank.enabled\",\"false\",\"aendring\"],[\"eeeeeeee-0000-4000-8000-000000000004\",\"55555555-5555-4555-8555-555555555555\",\"_koersel.tidsserie.varmelast\",\"{\\\"id\\\":\\\"66666666-6666-4666-8666-666666666666\\\",\\\"sha256\\\":\\\"abababababababababababababababababababababababababababababababab\\\"}\",\"scenarie\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000005",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"25fb4509a44509822a6e6c3d460610b34db650227653a4a8b7b436772a3875a5\",\"tabel\":\"KoerselNoegletal\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselNoegletal\",\"kolonner\":[\"id\",\"koersel_id\",\"gruppe\",\"objekt\",\"marked\",\"noegle\",\"vaerdi\",\"enhed\"],\"raekker\":[[\"ffffffff-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"objektiv\",null,null,\"objektiv_dkk\",867031.23,\"DKK\"],[\"ffffffff-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"lager\",\"tank\",null,\"dual\",null,null]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000006",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"a4749a22a7d4b6515f870fe22f63acd466afe9648eec233152a37e1664cae606\",\"tabel\":\"KoerselMaaned\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselMaaned\",\"kolonner\":[\"id\",\"koersel_id\",\"maaned\",\"objekt\",\"noegle\",\"vaerdi\"],\"raekker\":[[\"99999999-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"2026-01\",\"halmkedel\",\"varme_mwh\",123.4567890123],[\"99999999-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"periode\",null,\"varme_mwh\",123.4567890123]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000007",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"ce34118be752dfadca79823d63e1f804484a49d9f4db354fc9285f218983ec5d\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselTime\",\"kolonner\":[\"id\",\"koersel_id\",\"tid\",\"varmelast_mw\",\"spotpris\",\"t_ude\",\"vaerdier_json\"],\"raekker\":[[\"77777777-0000-4000-8000-000000000000\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-28T22:00:00.000Z\",3.5,null,1.5,\"{\\\"p_halmkedel_mw\\\":0,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":true}\"],[\"77777777-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-28T23:00:00.000Z\",3.6,-11.25,1.5,\"{\\\"p_halmkedel_mw\\\":1.25,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":false}\"],[\"77777777-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-29T00:00:00.000Z\",3.7,-10.25,1.5,\"{\\\"p_halmkedel_mw\\\":2.5,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":true}\"],[\"77777777-0000-4000-8000-000000000003\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-29T01:00:00.000Z\",3.8,-9.25,1.5,\"{\\\"p_halmkedel_mw\\\":3.75,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":false}\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000008",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"3ac3d3466e7f5614fd3ecfa453505e03e706ff51dbbc8fc92dbbdce39c6151e9\",\"tabel\":\"Koersel\",\"nr\":1,\"af\":1,\"koersel_ider\":[\"55555555-5555-4555-8555-555555555555\"],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,5,4,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"KoerselInput\":5,\"KoerselNoegletal\":2,\"KoerselMaaned\":2,\"KoerselTime\":4}}}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000009",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"fa785ff6e2ee208ff837566b789d42b17a169acbd47629463a26e8105c4adc1b\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselTime\",\"kolonner\":[\"id\",\"koersel_id\",\"tid\",\"varmelast_mw\",\"spotpris\",\"t_ude\",\"vaerdier_json\"],\"raekker\":[[\"77777777-1111-4111-8111-111111111111\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-28T22:00:00.000Z\",3.5,null,1.5,\"{\\\"p_halmkedel_mw\\\":0,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":true}\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     }
+    ]
+   },
+   "ud": {
+    "svar": [
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 scenarier oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 scenarieændringer oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "1 bestillinger oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 1,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "5 inputrækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 5,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 nøgletal oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 månedsrækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "4 timerækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 4,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "1 kørsler oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 1,
+      "fandtes": 0
+     },
+     {
+      "ok": false,
+      "status": "afvist",
+      "svar": "Kørsel 55555555-5555-4555-8555-555555555555 findes allerede; der kan ikke tilføjes rækker til en kørsel."
+     }
+    ],
+    "shas": {
+     "Scenarie": "d5703316007c8c0402a43ae3ee92ae61666af8bff63cb8ef5d5e542e5e4a460d",
+     "ScenarieAendring": "1731bae83af148ca62b65b10f0d502cf579892e2e63a3ac84abe5ede0abd66bb",
+     "Bestilling": "da0409cbce2caeaaec4caf14acdfe7c88e2fd7fc0acbf9e998c88137d9d8dca3",
+     "KoerselInput": "e0b530d1ed0c2cafcdeca4136a8117b25362ce694017fc4367dd7d88f2666272",
+     "KoerselNoegletal": "a59b2340a022858d102027588cc05241a429a348c85331d015b9a83655b595da",
+     "KoerselMaaned": "e5b2e54541a7ed31c16d77d867b0ae516e266c45485f1131d36f9c5dee53829f",
+     "KoerselTime": "9f61da990e23405c3664b4cfe8f38931acca26a595aa2365257932223c79304b",
+     "Koersel": "6773bf901f5309bf416a14ec00981a373eeba544ff5ca7016d44d0743429f84b"
+    },
+    "anmodninger": [
+     [
+      "f0000000-0000-4000-8000-000000000001",
+      "udfoert",
+      "2 scenarier oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000002",
+      "udfoert",
+      "2 scenarieændringer oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000003",
+      "udfoert",
+      "1 bestillinger oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000004",
+      "udfoert",
+      "5 inputrækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000005",
+      "udfoert",
+      "2 nøgletal oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000006",
+      "udfoert",
+      "2 månedsrækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000007",
+      "udfoert",
+      "4 timerækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000008",
+      "udfoert",
+      "1 kørsler oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000009",
+      "afvist",
+      "Kørsel 55555555-5555-4555-8555-555555555555 findes allerede; der kan ikke tilføjes rækker til en kørsel."
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "sha passer ikke",
+   "input": {
+    "start": {
+     "Vaerk": [
+      {
+       "id": "11111111-1111-4111-8111-111111111111",
+       "kode": "andeby",
+       "navn": "Andeby",
+       "beskrivelse": null,
+       "kilde": "repo",
+       "kilde_fil": "cases/andeby.yaml",
+       "repo_commit": null,
+       "kopieret_fra_id": null,
+       "revision": 3,
+       "arkiveret": false,
+       "oprettet_af": "a@example.org",
+       "aendret_af": "a@example.org",
+       "oprettet": "2026-10-01T08:00:00.000Z",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "VaerkParameter": [
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000000",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "prices.straw.value",
+       "vaerdi_json": "250.0",
+       "sektion": "prices",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 0,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "units.halmkedel.p_max",
+       "vaerdi_json": "5.0",
+       "sektion": "units",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 1,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "storage.tank.enabled",
+       "vaerdi_json": "true",
+       "sektion": "storage",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 2,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "Aendringslog": [
+      {
+       "id": "cccccccc-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 2,
+       "sti": "prices.straw.value",
+       "handling": "ret",
+       "gammel_json": "200.0",
+       "ny_json": "250.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      },
+      {
+       "id": "cccccccc-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 3,
+       "sti": "units.halmkedel.p_max",
+       "handling": "ret",
+       "gammel_json": "4.0",
+       "ny_json": "5.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      }
+     ],
+     "Aendringsanmodning": [],
+     "Scenarie": [],
+     "ScenarieAendring": [],
+     "Bestilling": [],
+     "Koersel": [],
+     "KoerselInput": [],
+     "KoerselNoegletal": [],
+     "KoerselMaaned": [],
+     "KoerselTime": [],
+     "Tidsserie": [
+      {
+       "id": "66666666-6666-4666-8666-666666666666",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "rolle": "varmelast",
+       "navn": "Målt 2026",
+       "filnavn": "maalt.csv",
+       "sti": "Files/x.csv",
+       "sha256": "abababababababababababababababababababababababababababababababab",
+       "oploesning": "1h",
+       "start": "2026-10-01T08:00:00.000Z",
+       "slut": "2026-10-01T08:00:00.000Z",
+       "antal_raekker": 10,
+       "antal_huller": 0,
+       "enhed": "MW",
+       "tidsstempel": "start",
+       "tidszone": "UTC",
+       "kilde": "csv",
+       "status": "gyldig",
+       "validering_json": "{}",
+       "aktiv": true,
+       "uploadet_af": "a@example.org",
+       "uploadet": "2026-10-01T08:00:00.000Z"
+      }
+     ]
+    },
+    "trin": [
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000001",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"tabel\":\"Scenarie\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     }
+    ]
+   },
+   "ud": {
+    "svar": [
+     {
+      "ok": false,
+      "status": "afvist",
+      "svar": "Delens indhold passer ikke med anmodningens sha256 — send delen igen."
+     }
+    ],
+    "shas": {
+     "Scenarie": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "ScenarieAendring": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Bestilling": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselInput": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselNoegletal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselMaaned": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselTime": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Koersel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "anmodninger": [
+     [
+      "f0000000-0000-4000-8000-000000000001",
+      "afvist",
+      "Delens indhold passer ikke med anmodningens sha256 — send delen igen."
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "anmodning med værk",
+   "input": {
+    "start": {
+     "Vaerk": [
+      {
+       "id": "11111111-1111-4111-8111-111111111111",
+       "kode": "andeby",
+       "navn": "Andeby",
+       "beskrivelse": null,
+       "kilde": "repo",
+       "kilde_fil": "cases/andeby.yaml",
+       "repo_commit": null,
+       "kopieret_fra_id": null,
+       "revision": 3,
+       "arkiveret": false,
+       "oprettet_af": "a@example.org",
+       "aendret_af": "a@example.org",
+       "oprettet": "2026-10-01T08:00:00.000Z",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "VaerkParameter": [
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000000",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "prices.straw.value",
+       "vaerdi_json": "250.0",
+       "sektion": "prices",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 0,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "units.halmkedel.p_max",
+       "vaerdi_json": "5.0",
+       "sektion": "units",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 1,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "storage.tank.enabled",
+       "vaerdi_json": "true",
+       "sektion": "storage",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 2,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "Aendringslog": [
+      {
+       "id": "cccccccc-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 2,
+       "sti": "prices.straw.value",
+       "handling": "ret",
+       "gammel_json": "200.0",
+       "ny_json": "250.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      },
+      {
+       "id": "cccccccc-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 3,
+       "sti": "units.halmkedel.p_max",
+       "handling": "ret",
+       "gammel_json": "4.0",
+       "ny_json": "5.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      }
+     ],
+     "Aendringsanmodning": [],
+     "Scenarie": [],
+     "ScenarieAendring": [],
+     "Bestilling": [],
+     "Koersel": [],
+     "KoerselInput": [],
+     "KoerselNoegletal": [],
+     "KoerselMaaned": [],
+     "KoerselTime": [],
+     "Tidsserie": [
+      {
+       "id": "66666666-6666-4666-8666-666666666666",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "rolle": "varmelast",
+       "navn": "Målt 2026",
+       "filnavn": "maalt.csv",
+       "sti": "Files/x.csv",
+       "sha256": "abababababababababababababababababababababababababababababababab",
+       "oploesning": "1h",
+       "start": "2026-10-01T08:00:00.000Z",
+       "slut": "2026-10-01T08:00:00.000Z",
+       "antal_raekker": 10,
+       "antal_huller": 0,
+       "enhed": "MW",
+       "tidsstempel": "start",
+       "tidszone": "UTC",
+       "kilde": "csv",
+       "status": "gyldig",
+       "validering_json": "{}",
+       "aktiv": true,
+       "uploadet_af": "a@example.org",
+       "uploadet": "2026-10-01T08:00:00.000Z"
+      }
+     ]
+    },
+    "trin": [
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000001",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"c87f7f5dc198575e66fdf485a9ba04f473545e640f773cc1c69af4ce71bdc38e\",\"tabel\":\"Scenarie\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "11111111-1111-4111-8111-111111111111"
+     }
+    ]
+   },
+   "ud": {
+    "svar": [
+     {
+      "ok": false,
+      "status": "afvist",
+      "svar": "En arkivimport skal have nil-uuid'et som vaerk_id."
+     }
+    ],
+    "shas": {
+     "Scenarie": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "ScenarieAendring": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Bestilling": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselInput": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselNoegletal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselMaaned": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselTime": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Koersel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "anmodninger": [
+     [
+      "f0000000-0000-4000-8000-000000000001",
+      "afvist",
+      "En arkivimport skal have nil-uuid'et som vaerk_id."
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "værkets historik mangler",
+   "input": {
+    "start": {
+     "Vaerk": [
+      {
+       "id": "11111111-1111-4111-8111-111111111111",
+       "kode": "andeby",
+       "navn": "Andeby",
+       "beskrivelse": null,
+       "kilde": "repo",
+       "kilde_fil": "cases/andeby.yaml",
+       "repo_commit": null,
+       "kopieret_fra_id": null,
+       "revision": 3,
+       "arkiveret": false,
+       "oprettet_af": "a@example.org",
+       "aendret_af": "a@example.org",
+       "oprettet": "2026-10-01T08:00:00.000Z",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "VaerkParameter": [
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000000",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "prices.straw.value",
+       "vaerdi_json": "250.0",
+       "sektion": "prices",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 0,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "units.halmkedel.p_max",
+       "vaerdi_json": "5.0",
+       "sektion": "units",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 1,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "storage.tank.enabled",
+       "vaerdi_json": "true",
+       "sektion": "storage",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 2,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "Aendringslog": [],
+     "Aendringsanmodning": [],
+     "Scenarie": [],
+     "ScenarieAendring": [],
+     "Bestilling": [],
+     "Koersel": [],
+     "KoerselInput": [],
+     "KoerselNoegletal": [],
+     "KoerselMaaned": [],
+     "KoerselTime": [],
+     "Tidsserie": [
+      {
+       "id": "66666666-6666-4666-8666-666666666666",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "rolle": "varmelast",
+       "navn": "Målt 2026",
+       "filnavn": "maalt.csv",
+       "sti": "Files/x.csv",
+       "sha256": "abababababababababababababababababababababababababababababababab",
+       "oploesning": "1h",
+       "start": "2026-10-01T08:00:00.000Z",
+       "slut": "2026-10-01T08:00:00.000Z",
+       "antal_raekker": 10,
+       "antal_huller": 0,
+       "enhed": "MW",
+       "tidsstempel": "start",
+       "tidszone": "UTC",
+       "kilde": "csv",
+       "status": "gyldig",
+       "validering_json": "{}",
+       "aktiv": true,
+       "uploadet_af": "a@example.org",
+       "uploadet": "2026-10-01T08:00:00.000Z"
+      }
+     ]
+    },
+    "trin": [
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000001",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"c87f7f5dc198575e66fdf485a9ba04f473545e640f773cc1c69af4ce71bdc38e\",\"tabel\":\"Scenarie\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000002",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"e44d65629f4e0e669b9acdf78888db226cc93348a3c1d946b9d9bbf8f769f3bd\",\"tabel\":\"ScenarieAendring\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"ScenarieAendring\",\"kolonner\":[\"id\",\"scenarie_id\",\"type\",\"sti\",\"vaerdi_json\",\"raekkefoelge\"],\"raekker\":[[\"dddddddd-0000-4000-8000-000000000001\",\"33333333-3333-4333-8333-333333333333\",\"disable\",\"tank\",null,0],[\"dddddddd-0000-4000-8000-000000000002\",\"33333333-3333-4333-8333-333333333333\",\"set\",\"_tidsserie.varmelast\",\"\\\"66666666-6666-4666-8666-666666666666\\\"\",1]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000003",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"b7a2b9b8176be28c3b1333b763bfffb1d06161116ffa3a3844fc941d525c80c7\",\"tabel\":\"Bestilling\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Bestilling\",\"kolonner\":[\"id\",\"scenarie_id\",\"klient_noegle\",\"bestilt_af\",\"bestilt\"],\"raekker\":[[\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"k-1\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000004",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"4ed09c70d02eb19ba9e46ddd7c96affccec7361a7fd5346c9ff65aecde9de047\",\"tabel\":\"KoerselInput\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselInput\",\"kolonner\":[\"id\",\"koersel_id\",\"sti\",\"vaerdi_json\",\"kilde\"],\"raekker\":[[\"eeeeeeee-0000-4000-8000-000000000000\",\"55555555-5555-4555-8555-555555555555\",\"prices.straw.value\",\"250.0\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"units.halmkedel.p_max\",\"4.0\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"storage.tank.enabled\",\"true\",\"vaerk\"],[\"eeeeeeee-0000-4000-8000-000000000003\",\"55555555-5555-4555-8555-555555555555\",\"storage.tank.enabled\",\"false\",\"aendring\"],[\"eeeeeeee-0000-4000-8000-000000000004\",\"55555555-5555-4555-8555-555555555555\",\"_koersel.tidsserie.varmelast\",\"{\\\"id\\\":\\\"66666666-6666-4666-8666-666666666666\\\",\\\"sha256\\\":\\\"abababababababababababababababababababababababababababababababab\\\"}\",\"scenarie\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000005",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"25fb4509a44509822a6e6c3d460610b34db650227653a4a8b7b436772a3875a5\",\"tabel\":\"KoerselNoegletal\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselNoegletal\",\"kolonner\":[\"id\",\"koersel_id\",\"gruppe\",\"objekt\",\"marked\",\"noegle\",\"vaerdi\",\"enhed\"],\"raekker\":[[\"ffffffff-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"objektiv\",null,null,\"objektiv_dkk\",867031.23,\"DKK\"],[\"ffffffff-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"lager\",\"tank\",null,\"dual\",null,null]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000006",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"a4749a22a7d4b6515f870fe22f63acd466afe9648eec233152a37e1664cae606\",\"tabel\":\"KoerselMaaned\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselMaaned\",\"kolonner\":[\"id\",\"koersel_id\",\"maaned\",\"objekt\",\"noegle\",\"vaerdi\"],\"raekker\":[[\"99999999-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"2026-01\",\"halmkedel\",\"varme_mwh\",123.4567890123],[\"99999999-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"periode\",null,\"varme_mwh\",123.4567890123]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000007",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"ce34118be752dfadca79823d63e1f804484a49d9f4db354fc9285f218983ec5d\",\"tabel\":\"KoerselTime\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"KoerselTime\",\"kolonner\":[\"id\",\"koersel_id\",\"tid\",\"varmelast_mw\",\"spotpris\",\"t_ude\",\"vaerdier_json\"],\"raekker\":[[\"77777777-0000-4000-8000-000000000000\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-28T22:00:00.000Z\",3.5,null,1.5,\"{\\\"p_halmkedel_mw\\\":0,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":true}\"],[\"77777777-0000-4000-8000-000000000001\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-28T23:00:00.000Z\",3.6,-11.25,1.5,\"{\\\"p_halmkedel_mw\\\":1.25,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":false}\"],[\"77777777-0000-4000-8000-000000000002\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-29T00:00:00.000Z\",3.7,-10.25,1.5,\"{\\\"p_halmkedel_mw\\\":2.5,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":true}\"],[\"77777777-0000-4000-8000-000000000003\",\"55555555-5555-4555-8555-555555555555\",\"2026-03-29T01:00:00.000Z\",3.8,-9.25,1.5,\"{\\\"p_halmkedel_mw\\\":3.75,\\\"soc_tank_mwh\\\":null,\\\"solgt\\\":false}\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     },
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000008",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"3ac3d3466e7f5614fd3ecfa453505e03e706ff51dbbc8fc92dbbdce39c6151e9\",\"tabel\":\"Koersel\",\"nr\":1,\"af\":1,\"koersel_ider\":[\"55555555-5555-4555-8555-555555555555\"],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,5,4,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"KoerselInput\":5,\"KoerselNoegletal\":2,\"KoerselMaaned\":2,\"KoerselTime\":4}}}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     }
+    ]
+   },
+   "ud": {
+    "svar": [
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 scenarier oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 scenarieændringer oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "1 bestillinger oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 1,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "5 inputrækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 5,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 nøgletal oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 månedsrækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     },
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "4 timerækker oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 4,
+      "fandtes": 0
+     },
+     {
+      "ok": false,
+      "status": "afvist",
+      "svar": "Kørsel 55555555-5555-4555-8555-555555555555 bygger på en værksrevision (parametre 9ec1eda5da73…), som værket her ikke har haft som revision 2. Upload værksarket for den revision først."
+     }
+    ],
+    "shas": {
+     "Scenarie": "d5703316007c8c0402a43ae3ee92ae61666af8bff63cb8ef5d5e542e5e4a460d",
+     "ScenarieAendring": "1731bae83af148ca62b65b10f0d502cf579892e2e63a3ac84abe5ede0abd66bb",
+     "Bestilling": "da0409cbce2caeaaec4caf14acdfe7c88e2fd7fc0acbf9e998c88137d9d8dca3",
+     "KoerselInput": "e0b530d1ed0c2cafcdeca4136a8117b25362ce694017fc4367dd7d88f2666272",
+     "KoerselNoegletal": "a59b2340a022858d102027588cc05241a429a348c85331d015b9a83655b595da",
+     "KoerselMaaned": "e5b2e54541a7ed31c16d77d867b0ae516e266c45485f1131d36f9c5dee53829f",
+     "KoerselTime": "9f61da990e23405c3664b4cfe8f38931acca26a595aa2365257932223c79304b",
+     "Koersel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "anmodninger": [
+     [
+      "f0000000-0000-4000-8000-000000000001",
+      "udfoert",
+      "2 scenarier oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000002",
+      "udfoert",
+      "2 scenarieændringer oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000003",
+      "udfoert",
+      "1 bestillinger oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000004",
+      "udfoert",
+      "5 inputrækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000005",
+      "udfoert",
+      "2 nøgletal oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000006",
+      "udfoert",
+      "2 månedsrækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000007",
+      "udfoert",
+      "4 timerækker oprettet, 0 fandtes allerede (del 1 af 1)."
+     ],
+     [
+      "f0000000-0000-4000-8000-000000000008",
+      "afvist",
+      "Kørsel 55555555-5555-4555-8555-555555555555 bygger på en værksrevision (parametre 9ec1eda5da73…), som værket her ikke har haft som revision 2. Upload værksarket for den revision først."
+     ]
+    ]
+   }
+  },
+  {
+   "navn": "referencen i delen efter scenariet",
+   "input": {
+    "start": {
+     "Vaerk": [
+      {
+       "id": "11111111-1111-4111-8111-111111111111",
+       "kode": "andeby",
+       "navn": "Andeby",
+       "beskrivelse": null,
+       "kilde": "repo",
+       "kilde_fil": "cases/andeby.yaml",
+       "repo_commit": null,
+       "kopieret_fra_id": null,
+       "revision": 3,
+       "arkiveret": false,
+       "oprettet_af": "a@example.org",
+       "aendret_af": "a@example.org",
+       "oprettet": "2026-10-01T08:00:00.000Z",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "VaerkParameter": [
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000000",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "prices.straw.value",
+       "vaerdi_json": "250.0",
+       "sektion": "prices",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 0,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "units.halmkedel.p_max",
+       "vaerdi_json": "5.0",
+       "sektion": "units",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 1,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      },
+      {
+       "id": "bbbbbbbb-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "sti": "storage.tank.enabled",
+       "vaerdi_json": "true",
+       "sektion": "storage",
+       "objekt": null,
+       "kommentar": null,
+       "bekraeft": false,
+       "raekkefoelge": 2,
+       "aendret_af": "a@example.org",
+       "aendret": "2026-10-01T08:00:00.000Z"
+      }
+     ],
+     "Aendringslog": [
+      {
+       "id": "cccccccc-0000-4000-8000-000000000001",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 2,
+       "sti": "prices.straw.value",
+       "handling": "ret",
+       "gammel_json": "200.0",
+       "ny_json": "250.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      },
+      {
+       "id": "cccccccc-0000-4000-8000-000000000002",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "revision": 3,
+       "sti": "units.halmkedel.p_max",
+       "handling": "ret",
+       "gammel_json": "4.0",
+       "ny_json": "5.0",
+       "aendret_af": "a@example.org",
+       "tidspunkt": "2026-10-01T08:00:00.000Z",
+       "anmodning_id": null
+      }
+     ],
+     "Aendringsanmodning": [],
+     "Scenarie": [],
+     "ScenarieAendring": [],
+     "Bestilling": [],
+     "Koersel": [],
+     "KoerselInput": [],
+     "KoerselNoegletal": [],
+     "KoerselMaaned": [],
+     "KoerselTime": [],
+     "Tidsserie": [
+      {
+       "id": "66666666-6666-4666-8666-666666666666",
+       "vaerk_id": "11111111-1111-4111-8111-111111111111",
+       "rolle": "varmelast",
+       "navn": "Målt 2026",
+       "filnavn": "maalt.csv",
+       "sti": "Files/x.csv",
+       "sha256": "abababababababababababababababababababababababababababababababab",
+       "oploesning": "1h",
+       "start": "2026-10-01T08:00:00.000Z",
+       "slut": "2026-10-01T08:00:00.000Z",
+       "antal_raekker": 10,
+       "antal_huller": 0,
+       "enhed": "MW",
+       "tidsstempel": "start",
+       "tidszone": "UTC",
+       "kilde": "csv",
+       "status": "gyldig",
+       "validering_json": "{}",
+       "aktiv": true,
+       "uploadet_af": "a@example.org",
+       "uploadet": "2026-10-01T08:00:00.000Z"
+      }
+     ]
+    },
+    "trin": [
+     {
+      "anmodning_id": "f0000000-0000-4000-8000-000000000001",
+      "aendringer_json": "[{\"handling\":\"importer_arkiv\",\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sha256\":\"2b3437f032b398544e6d099eb820639037a735aae1d09e0835dc51e1124ca7f8\",\"tabel\":\"Scenarie\",\"nr\":1,\"af\":1,\"koersel_ider\":[],\"filnavn\":\"v.xlsx\"}]",
+      "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":1,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Scenarie\",\"kolonner\":[\"id\",\"vaerk_id\",\"navn\",\"beskrivelse\",\"reference_scenarie_id\",\"periode_start\",\"periode_slut\",\"med_balancering\",\"balancing_method\",\"mip_rel_gap\",\"mip_abs_gap\",\"tidsgraense_s\",\"ekstra_flag\",\"heat_csv\",\"arkiveret\",\"oprettet_af\",\"oprettet\"],\"raekker\":[[\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",\"Uden tank\",\"syntetisk\",\"22222222-2222-4222-8222-222222222222\",\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"],[\"22222222-2222-4222-8222-222222222222\",\"11111111-1111-4111-8111-111111111111\",\"Reference\",\"syntetisk\",null,\"2026-01-05\",\"2026-01-06\",false,null,0.0002,100,600,null,null,false,\"a@example.org\",\"2026-10-01T08:00:00.000Z\"]]}",
+      "vaerk_id": "00000000-0000-0000-0000-000000000000"
+     }
+    ]
+   },
+   "ud": {
+    "svar": [
+     {
+      "ok": true,
+      "status": "udfoert",
+      "svar": "2 scenarier oprettet, 0 fandtes allerede (del 1 af 1).",
+      "oprettet": 2,
+      "fandtes": 0
+     }
+    ],
+    "shas": {
+     "Scenarie": "d5703316007c8c0402a43ae3ee92ae61666af8bff63cb8ef5d5e542e5e4a460d",
+     "ScenarieAendring": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Bestilling": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselInput": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselNoegletal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselMaaned": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "KoerselTime": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "Koersel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "anmodninger": [
+     [
+      "f0000000-0000-4000-8000-000000000001",
+      "udfoert",
+      "2 scenarier oprettet, 0 fandtes allerede (del 1 af 1)."
+     ]
+    ]
+   }
+  }
+ ]
+}

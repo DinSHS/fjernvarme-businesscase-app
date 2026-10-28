@@ -22,8 +22,18 @@ sammenlignes med tal efter.
 - Farvevalget i et kort gælder nu også kortets variansgraf (ΔRef-søjler og ΔRef%-nåle): Retning og Heatmap tegner dem i
   farvesættets farver; `Ingen` er uændret IBCS (`app/IBCS.md` AF7).
 
+- **Backup og flytning** (runde 13, `#/scenarier/arkiv`): scenarier og kørsler eksporteres til Excel og genimporteres
+  tabsfrit — som backup og som vejen fra en testinstallation til produktion. Én .xlsx pr. scenariefamilie (et
+  scenarie og dets reference) eller alt som .zip med manifest; ark *Læs mig*, ét ark pr. tabel med danske
+  overskrifter, tid i dansk tid og UTC, skjult `_manifest` med rækketal og sha256 pr. tabel. Genimporten viser en
+  forhåndsvisning, er idempotent på id, viser konflikter uden at overskrive, afviser et rettet arkiv og skriver en
+  kørsel som historisk kørsel (markeret *importeret fra arkiv*). Ny Function `importerArkiv` (Fabric) og samme forløb
+  i den lokale server (`logik/arkiv.py`, bundet af `skema/vektorer/arkiv/`). Ingen skemaændring.
+  Fabric: deploy Functions og frontend (`rayfin up`); ingen `db apply`.
+
 ### Ændret
 - Scenarielisten (`#/scenarier`) har ikke længere farvevalg eller heatmap: ΔRef står som almindeligt tal med fortegn.
+- Navnet på en kørsels tidsserie slås op på sha256, når id'et ikke findes i installationen (importerede kørsler).
 
 ## [0.3.1] — 2026-10-27 — oprydning og dokumentation før offentliggørelse
 

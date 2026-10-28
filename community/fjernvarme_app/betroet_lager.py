@@ -262,6 +262,42 @@ class SqlTransaktion:
             v["log"] = log
         self.cn.execute(i.update().where(and_(i.c.id == id.lower(), i.c.fabric_job_id.like("reserveret:%"))).values(**v))
 
+    # -------------------------------------------------- arkivet (runde 13; logik/arkiv.py importer_del)
+    def arkiv_hent(self, tabel: str, ider) -> list[dict]:
+        t = self.t(tabel)
+        ud: list[dict] = []
+        ider = [i.lower() for i in ider]
+        for a in range(0, len(ider), 500):
+            ud += self._alle(select(t).where(t.c.id.in_(ider[a:a + 500])))
+        return ud
+
+    def arkiv_indsaet(self, tabel: str, raekker: list[dict]) -> None:
+        for a in range(0, len(raekker), 500):
+            self._indsaet(tabel, raekker[a:a + 500])
+
+    def arkiv_tael_boern(self, koersel_id: str) -> dict:
+        ud = {}
+        for navn in ("KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime"):
+            t = self.t(navn)
+            ud[navn] = self.cn.execute(select(func.count()).select_from(t).where(t.c.koersel_id == koersel_id.lower())).scalar()
+        return ud
+
+    def arkiv_input(self, koersel_id: str) -> list[dict]:
+        t = self.t("KoerselInput")
+        return self._alle(select(t.c.kilde, t.c.sti, t.c.vaerdi_json).where(t.c.koersel_id == koersel_id.lower()))
+
+    def arkiv_vaerk_historik(self, vaerk_id: str) -> dict:
+        v, p, log = self.t("Vaerk"), self.t("VaerkParameter"), self.t("Aendringslog")
+        rev = self.cn.execute(select(v.c.revision).where(v.c.id == vaerk_id.lower())).scalar()
+        return {"revision": int(rev or 0),
+                "blade": self._alle(select(p.c.sti, p.c.vaerdi_json).where(p.c.vaerk_id == vaerk_id.lower())),
+                "log": self._alle(select(log.c.revision, log.c.sti, log.c.handling, log.c.gammel_json, log.c.ny_json)
+                                  .where(log.c.vaerk_id == vaerk_id.lower()))}
+
+    def arkiv_tidsserie_shas(self, vaerk_id: str) -> set:
+        t = self.t("Tidsserie")
+        return {r["sha256"] for r in self._alle(select(t.c.sha256).where(and_(
+            t.c.vaerk_id == vaerk_id.lower(), t.c.status == "gyldig", t.c.sha256.is_not(None))))}
 
 
 class SqlBetroetLager:
@@ -354,6 +390,19 @@ class Tjenester:
 
     def afstem(self):
         return self.T.afstem(self.app.motor.marker_doede, self.app.motor.start_arbejder)
+
+    def importer_arkiv(self, anmodning_id, del_):
+        """Runde 13: én del af et arkiv (``logik.arkiv.importer_del``, port af Function ``importerArkiv``)."""
+        from .logik import arkiv as A
+        try:
+            return A.importer_del(self.lager, anmodning_id, del_)
+        except _unik():
+            tekst = "Konflikt: en række med samme nøgle blev skrevet samtidig eller findes allerede. Intet i denne del er gemt; importér igen."
+            with self.lager.transaktion() as tx:
+                tx.saet_anmodning(anmodning_id, "afvist", tekst)
+            return {"ok": False, "status": "afvist", "svar": tekst}
+        except Exception as e:                                     # noqa: BLE001
+            return {"ok": False, "status": "ny", "svar": self.T.teknisk_fejl("importerArkiv", e) + " Intet i denne del er gemt; prøv igen."}
 
 
 import threading as _threading  # noqa: E402

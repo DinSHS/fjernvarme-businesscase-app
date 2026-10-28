@@ -274,6 +274,38 @@
       ]
     },
     {
+      "functionName": "importerArkiv",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<Skema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "anmodningId",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        },
+        {
+          "name": "del",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 2,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
       "functionName": "skemaInfo",
       "delegateParameters": [
         {
