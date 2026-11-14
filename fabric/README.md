@@ -18,9 +18,11 @@ SQL-database; notebooken `fjv_koer_scenarie` regner dem og skriver resultaterne 
 Installationens workspace, lakehouse og item-id'er står **ikke** i kernen: udrulningen læser dem fra
 `fabric_miljoe.py` (udfyld den - se `doc/FABRIC.md`).
 
-Referencetal ved eef950a, målt lokalt 2026-10-26 med den ægte arbejder over hukommelseslageret
-(som `koer_minne.py`; df-data 106b9fc): Andeby 5.–16. jan 2026 uden balancering **3.446.711,91**, med
-balancering **3.117.644,03**; Billund Spor B **4.204.128,43** (= README). Ikke kørt i Fabric endnu.
+Referencetal ved 90fb16e, målt lokalt 2026-11-14 med den ægte arbejder over hukommelseslageret
+(som `koer_minne.py`; df-data 106b9fc): Andeby 5.–16. jan 2026 uden balancering **3.441.004,22**, med
+balancering **3.111.637,94**; Billund Spor B (demo D09, gab 0,0015 %) **4.428.863,74**. README's Spor B-tal 4.204.128
+er fra før spotrettelsen. Ikke kørt i Fabric endnu. Ved eef950a (målt 2026-10-26) var tallene 3.446.711,91 /
+3.117.644,03 / 4.204.128,43 (= README dengang).
 Ved b49aeb0 (før rettelserne 19/10) gav Fabric 3.424.407,96 / 3.000.362,97 og Spor A-ankeret 4.698.361 —
 de tal kan ikke sammenlignes med de nye.
 
@@ -120,8 +122,9 @@ Arbejderen er databaseuafhængig; alt Fabric-specifikke ligger bag protokollerne
 `vaerksark.koer_importer`. **Fabric-adfærden er låst af et SQL-spor:** `tests/spor.py` kører begge indgange mod en
 stub, og `tests/test_lager.py` kræver byte-identitet med `tests/data/sql_spor.json` (genereret fra koden før
 grænsefladen, 3d144d5). Ændres Fabric-SQL med vilje, genereres sporet igen, og diffen hører med i committen.
-`python koer_minne.py andeby 2026-01-05 2026-01-06` kører den ægte arbejder mod hukommelseslageret: 867.031,23 kr.
-ved eef950a, samme tal som community-udgaven (målt 2026-10-26; ved b49aeb0 844.727,28 kr., samme bits som Fabric). Filroden er `FJV_FILES` (sæt den før `import fjv`).
+`python koer_minne.py andeby 2026-01-05 2026-01-06` kører den ægte arbejder mod hukommelseslageret: 866.567,72 kr.
+ved 90fb16e (målt 2026-11-14; samme tal som `run_case.py` direkte på modelrepoet). Ved eef950a 867.031,23 kr., samme tal
+som community-udgaven (målt 2026-10-26); ved b49aeb0 844.727,28 kr., samme bits som Fabric. Filroden er `FJV_FILES` (sæt den før `import fjv`).
 
 ## Udvikling
 

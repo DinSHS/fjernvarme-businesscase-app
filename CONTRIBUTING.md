@@ -61,7 +61,8 @@ længe den regner præcis som modellen. Det er den ene regel, der går forud for
    Hukommelsen er den knappe ressource; kør ikke to tunge ting samtidig.
 4. **Ændrer I noget, der flytter et tal med vilje**, så skriv det gamle og det nye i pull requesten og i
    [`CHANGELOG.md`](CHANGELOG.md). Referencetallet for hele kæden er Andeby 5.–6. januar 2026 uden balancemarked:
-   **867.031,23 kr.** (`python fabric/koer_minne.py andeby 2026-01-05 2026-01-06`, kræver modellens pakker).
+   **866.567,72 kr.** ved modelversion 90fb16e (`python fabric/koer_minne.py andeby 2026-01-05 2026-01-06`, kræver
+   modellens pakker; 867.031,23 ved eef950a).
 5. **Pull request** mod `main`: hvad, hvorfor, og hvordan I har testet.
 
 ## Sprog og stil

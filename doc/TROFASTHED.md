@@ -121,20 +121,22 @@ python app/viden/vaerktoej/bevis_app_vej.py --model model --ud bevis
 
 For hver af de 7 cases køres 10.–11. marts 2026 to gange med modelrepoets egen kommando for casen: **A** direkte
 (`python run_case.py cases/<fil> --data-source github …`) og **B** ad appens vej (blade → frosset input → `case.yaml` +
-argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.csv` byte for byte. Målt 2026-10-27
-(linopy 0.10.0, highspy 1.15.1):
+argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.csv` byte for byte. Målt 2026-11-14 ved
+`90fb16e` (`bevis_app_vej.py --model ../fjernvarme-businesscase --ud C:/fjvb`; linopy 0.10.0, highspy 1.15.1, df-data
+`106b9fc` efter scriptets egen melding; begge veje læser samme klon):
 
-| Case | Kommando (kilde) | Objektiv A = B | `_hourly.csv`, `_kpi.csv` |
-|---|---|---:|---|
-| andeby | uden balancemarked, syntetisk last (`cases/andeby.yaml:9`) | 224.960 | byte-ens |
-| billund_idag | med, målt last (`cases/billund_idag.yaml:24-25`) | 127.642 | byte-ens |
-| billund_sporA | med, syntetisk (`README.md:185`) | 181.392 | byte-ens |
-| billund_sporA_rullende | med, målt (`README.md:187`) | 181.218 | byte-ens |
-| billund_sporA_rullende_bud | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.659 | byte-ens |
-| billund_sporB | med, målt (`cases/billund_sporB.yaml:17-19`) | 51.764 | byte-ens |
-| billund_sporB_rullende | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.659 | byte-ens |
+| Case | Kommando (kilde) | Objektiv A = B, kr. | `_hourly.csv`, `_kpi.csv` | Ved `eef950a` (2026-10-27) |
+|---|---|---:|---|---:|
+| andeby | uden balancemarked, syntetisk last (`cases/andeby.yaml:9`) | 224.912 | byte-ens | 224.960 |
+| billund_idag | med, målt last (`cases/billund_idag.yaml:24-25`) | 132.766 | byte-ens | 127.642 |
+| billund_sporA | med, syntetisk (`README.md:185`) | 183.920 | byte-ens | 181.392 |
+| billund_sporA_rullende | med, målt (`README.md:187`) | 183.494 | byte-ens | 181.218 |
+| billund_sporA_rullende_bud | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.859 | byte-ens | 236.659 |
+| billund_sporB | med, målt (`cases/billund_sporB.yaml:17-19`) | 54.619 | byte-ens | 51.764 |
+| billund_sporB_rullende | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.859 | byte-ens | 236.659 |
 
-**7 af 7 er ens.** Ét vindue kan vælges med `--start`/`--slut`, enkelte cases som argumenter (`andeby.yaml`).
+**7 af 7 er ens** ved begge versioner. Marts 2026 ligger efter 1. oktober 2025, så objektiverne flytter sig med
+spotrettelsen (5021a5e); kolonnen *ved eef950a* kan ikke sammenlignes med de nye tal, og forskellen er ikke en fejl. Ét vindue kan vælges med `--start`/`--slut`, enkelte cases som argumenter (`andeby.yaml`).
 
 ### 4d. Eksport til værksark — rundturen
 
@@ -173,8 +175,9 @@ En fejl i forudsigelsen (målt: tankenes selvafladning sat til 0,0006) gør trin
 ### 4c. Hele appen med en rigtig kørsel
 
 Følg [kom-i-gang i README](../README.md#kom-i-gang--lokal-udgave-520-minutter) og bestil Andeby 5.–6. januar 2026 uden
-balancemarked: **867.031,23 kr.** Samme tal giver den ægte arbejder uden server (`python fabric/koer_minne.py andeby
-2026-01-05 2026-01-06`). Kørslens side viser modelversionerne og *Data i denne kørsel*; de rå filer — `case.yaml`,
+balancemarked: **866.567,72 kr.** ved `90fb16e` (867.031,23 ved `eef950a`, før spotrettelsen). Samme tal giver den ægte
+arbejder uden server (`python fabric/koer_minne.py andeby 2026-01-05 2026-01-06`, målt 2026-11-14) og `run_case.py`
+direkte på modelrepoet ved `90fb16e`. Kørslens side viser modelversionerne og *Data i denne kørsel*; de rå filer — `case.yaml`,
 `argv.json`, modellens egne `_kpi.csv`/`_hourly.csv`/`_manifest.json` og solverloggen — ligger i
 `<datamappe>/Files/fjv/koersler/<kørsels-id>/`, så du kan køre præcis den kørsel med `run_case.py`.
 
