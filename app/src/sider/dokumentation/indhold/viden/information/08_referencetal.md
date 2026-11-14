@@ -41,9 +41,10 @@ med `billund_abvaerk_hourly_splejset_jun2026.csv` — *egen antagelse*: modelrep
 hvilken varmelastfil kontroltallene bruger. (Kilde: CLAUDE.md:30-38 i modelrepoet ved 90fb16e)
 
 **Tal fra før 19. oktober 2026 kan ikke sammenlignes** med tabellen; balancetallene i rapport v4 er
-regnet før rettelserne og er for høje (README.md:201-204). Appen sammenligner kun kørsler regnet ved
-samme modelversion som README-tallene (eef950a-koden): en kørsel ved 90fb16e står i
-sammenligningen nedenfor som *ikke kørt endnu*, ikke som en afvigelse.
+regnet før rettelserne og er for høje (README.md:201-204). Appen måler kun kørsler regnet ved samme
+modelversion som README-tallene (eef950a-koden) mod tallene. En kørsel ved 90fb16e står i
+sammenligningen nedenfor med status kørt ved en anden modelversion, med link til kørslen, men uden
+afvigelse og tolerance: tallene kan ikke sammenlignes.
 
 **Hvor tæt skal en ny kørsel ramme?** Inden for casens eget gab: for Billund-casene 0,5 % (ca.
 25.300 kr. på Spor A's README-tal), for Andeby 0,1 %. Kørsler, der rammer tidsgrænsen, kan lande længere væk.

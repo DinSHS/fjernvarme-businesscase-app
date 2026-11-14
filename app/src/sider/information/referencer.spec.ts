@@ -82,7 +82,25 @@ describe("hvilken kørsel er referencen", () => {
     it("en kørsel ved en ældre modelversion (b49aeb0, før rettelserne 19/10) er ikke en måling af README-tallet", () => {
         const gammel = koersel("k-gammel", "v-bil", "s-ren", 4698361.33, { model_commit: "b49aeb0af097be42938b80a0fea6acdd77162836", afsluttet: new Date("2026-10-29T00:00:00Z") });
         expect(kandidater(ref("spora_anker"), vaerker, scen, [...k, gammel]).map((x) => x.koersel.id)).toEqual(["k-ren"]);
-        expect(byggRaekker(refs, vaerker, scen, [gammel], new Map()).find((x) => x.ref.id === "spora_anker")!.tilstand).toBe("ikke-koert");
+        const r = byggRaekker(refs, vaerker, scen, [gammel], new Map()).find((x) => x.ref.id === "spora_anker")!;
+        expect(r.tilstand).toBe("anden-version");
+        expect(r.vurdering).toBeUndefined();
+    });
+    // Codex-review ved 90fb16e: en gennemført kørsel ved pinnen (efter spotrettelsen) stod som "ikke kørt endnu". Den er kørt —
+    // bare ved en anden modelversion end README-tallet (eef950a), så den kan ikke sammenlignes. Status skal sige præcis det.
+    it("en gennemført kørsel ved pinnen 90fb16e: 'anden-version' med kørslen, uden afvigelse eller tolerance", () => {
+        const ny = koersel("k-90", "v-bil", "s-ren", 5204555.28, { model_commit: "90fb16eb1e2d5aa8e619b5a951b93760fa803985", afsluttet: new Date("2026-11-14T10:42:18Z") });
+        const r = byggRaekker(refs, vaerker, scen, [ny], new Map()).find((x) => x.ref.id === "spora_anker")!;
+        expect(r.tilstand).toBe("anden-version");
+        expect(r.kandidat?.koersel.id).toBe("k-90");
+        expect(r.vurdering).toBeUndefined();
+        expect(kandidatScenarier(refs, vaerker, scen, [ny])).toEqual(["s-ren"]); // ændringerne skal også slås op for den
+        // en kørsel ved README-tallets version vinder, også når den anden er nyere
+        const begge = byggRaekker(refs, vaerker, scen, [ny, koersel("k-ren", "v-bil", "s-ren", 5069700.33)], new Map()).find((x) => x.ref.id === "spora_anker")!;
+        expect([begge.tilstand, begge.kandidat?.koersel.id]).toEqual(["indenfor", "k-ren"]);
+        // ved en anden version med ændringer i scenariet: ikke referencen
+        const ændret = byggRaekker(refs, vaerker, scen, [{ ...ny, scenarie_id: "s-tank" }], new Map([["s-tank", 1]])).find((x) => x.ref.id === "spora_anker")!;
+        expect(ændret.tilstand).toBe("aendret");
     });
     it("nyeste kørsel først", () => {
         const nyere = koersel("k-ny", "v-bil", "s-ren", 5069760, { afsluttet: new Date("2026-10-27T00:00:00Z") });

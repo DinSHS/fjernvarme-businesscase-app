@@ -130,6 +130,17 @@ describe("Information", () => {
         expect(screen.getAllByText("ikke kørt endnu")).toHaveLength(4);
     });
 
+    it("Codex ved 90fb16e: en kørsel ved en anden modelversion end README-tallene står som det — ikke som 'ikke kørt endnu'", async () => {
+        state.koersler = [k({ objektiv_dkk: 5204555.28, model_commit: "90fb16eb1e2d5aa8e619b5a951b93760fa803985" })];
+        const { container } = vis(["referencetal"]);
+        const række = (await screen.findByText("kørt ved en anden modelversion")).closest("tr")!;
+        expect(screen.getAllByText("ikke kørt endnu")).toHaveLength(4);
+        // Fabric, afvigelse og tolerance er "–": ingen afvigelse mod et tal fra en anden version; kørslen linkes stadig
+        expect([...række.querySelectorAll("td.fjv-h")].map((c) => c.textContent)).toEqual(["5.069.729", "–", "–", "–"]);
+        expect(række.querySelector("a")?.textContent).toMatch(/^2e345787/);
+        expect(container.textContent ?? "").toMatch(/regnet ved den modelversion, README-tallene er regnet ved \(eef950a\)/);
+    });
+
     it("§6d: 'Hvilke data skal med?' har en side — tabellen over data pr. kørsel, formatkravene og værksarket", async () => {
         vis(["data"]);
         expect(await screen.findByRole("heading", { level: 1, name: "Hvilke data skal med?" })).toBeInTheDocument();
