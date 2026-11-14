@@ -15,6 +15,7 @@ import type { KoerselStatus } from "../../../rayfin/data/fjv.constants";
 export { TemaVaelger } from "./TemaVaelger";
 export { Sidefod } from "./Sidefod";
 export { FarveValg, HeatSkalaProvider, useFarvesaet, useHeatMaks, useVisning } from "./Tabelfarve";
+export { MaalValg, useMaal } from "./Maalvalg";
 
 /**
  * IBCS-titlen i tre linjer (UN 2.2, app/IBCS.md §4): hvem (værk + alle afgrænsninger), **hvad** (mål i fed + enhed),

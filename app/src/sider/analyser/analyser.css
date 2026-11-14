@@ -158,3 +158,4 @@ a.fjv-a-kl-info:hover { color: var(--color-brand-foreground); }
 .fjv-ibcs svg { overflow: visible; }
 .fjv-ibcs-undertitel { font-size: var(--t-tabel); line-height: var(--t-tabel-lh); color: var(--dash-ink-2); margin-bottom: 6px; }
 .fjv-ibcs-undertitel strong { color: var(--dash-ink); font-weight: 650; }
+.fjv-a-fyldt { background: var(--dash-ink); }

@@ -5,7 +5,7 @@
 
 import { useMemo } from "react";
 import { ScaleProvider, formatDelta, formatValue } from "@/ibcs";
-import { DataTilstand, FarveValg, Gitter, HeatSkalaProvider, Knap, Kort, Maerke, Side, StatusMaerke, Tabel, useHeatMaks, useVisning } from "@/components/layout";
+import { DataTilstand, FarveValg, Gitter, HeatSkalaProvider, Knap, Kort, MaalValg, Maerke, Side, StatusMaerke, Tabel, useHeatMaks, useMaal, useVisning } from "@/components/layout";
 import { farvning, forklaring, skalaMaks } from "@/lib/tabelfarve";
 import { erAktiv } from "@/lib/data/koersel-status";
 import { tal, tidspunkt } from "@/lib/format";
@@ -16,6 +16,7 @@ import {
     spoergsmaal, spor, stoersteEnhed,
 } from "./beregn";
 import { usePakke, type Pakke } from "./data";
+import { PERIODE, andel, celleTekst, pct1, visteAndele } from "./andele";
 import { DataIKoersel } from "./data-kort";
 import { Commit, Fakta, SporMaerke } from "./dele";
 import DispatchKort from "./dispatch-kort";
@@ -258,45 +259,73 @@ export function VarmeOgMiljoe({ d }: { d: Pakke }) {
 
 export function Maaneder({ d, pladser }: { d: Pakke; pladser: Map<string, number> }) {
     const t = d.maaneder;
+    const maal = useMaal();
     const enheder = t.objekter("produktion_gwh");
     const ordnet = [...enheder].sort((a, b) => (t.periode(b, "produktion_gwh") ?? 0) - (t.periode(a, "produktion_gwh") ?? 0));
-    const søjler = t.maaneder.map((m) => {
-        const behov = t.vaerdi(m, null, "varmebehov_gwh");
+    const rækker = [...t.maaneder, "periode"];
+    const prod = (m: string, e: string) => (m === "periode" ? t.periode(e, "produktion_gwh") : t.vaerdi(m, e, "produktion_gwh"));
+    // Viste andele (1 decimal, største rest: hver måned og 'Hele perioden' summerer til 100,0 %; andele.ts).
+    const viste = new Map(rækker.map((m) => [m, visteAndele(t, m, ordnet)]));
+    const tip = (m: string, e: string) => `${celleTekst(prod(m, e), (x) => `${dec(x, 3)} GWh`)} · ${celleTekst(viste.get(m)!.get(e), pct1)}`;
+    // MWh: månederne med varmebehovet som markør. % af total: hver måned og 'Hele perioden' (adskilt) = 100 %, ingen markør.
+    const søjler = (maal === "andel" ? rækker : t.maaneder).map((m) => {
+        const behov = maal === "mwh" ? t.vaerdi(m, null, "varmebehov_gwh") : null;
         return {
-            etiket: maanedKort(m),
-            dele: ordnet.map((e) => ({ navn: e, plads: pladser.get(e) ?? 0, værdi: t.vaerdi(m, e, "produktion_gwh") ?? 0 })),
+            etiket: m === PERIODE ? "Periode" : maanedKort(m), adskilt: m === PERIODE,
+            dele: ordnet.map((e) => ({
+                navn: e, plads: pladser.get(e) ?? 0, tip: tip(m, e),
+                værdi: maal === "andel" ? andel(t, m, e) ?? 0 : prod(m, e) ?? 0,
+            })),
             markør: behov, topEtiket: behov == null ? undefined : dec(behov, 2),
         };
     });
     const behovMaaned = t.maaneder.map((m) => [m, t.vaerdi(m, null, "varmebehov_gwh") ?? 0] as const).sort((a, b) => b[1] - a[1]);
+    // Budskabet under % af total: den største enheds andel af perioden og dens spænd over månederne.
+    const størst = ordnet[0], pAndel = størst ? andel(t, PERIODE, størst) : null;
+    const spænd = størst ? t.maaneder.map((m) => [m, andel(t, m, størst)] as const)
+        .filter((x): x is readonly [string, number] => x[1] != null).sort((a, b) => a[1] - b[1]) : [];
     const budskab = t.maaneder.length === 0 ? "Ingen månedstal for kørslen."
-        : t.maaneder.length === 1 ? `Hele perioden ligger i ${maanedKort(t.maaneder[0])} (${ellers(t.periode(null, "antal_interval"), tal)} intervaller); varmebehovet er ${ellers(t.periode(null, "varmebehov_gwh"), (v) => dec(v, 2))} GWh.`
-            : `Varmebehovet topper i ${maanedKort(behovMaaned[0][0])} med ${dec(behovMaaned[0][1], 2)} GWh af periodens ${ellers(t.periode(null, "varmebehov_gwh"), (v) => dec(v, 2))} GWh.`;
-    const rækker = [...t.maaneder, "periode"];
+        : maal === "andel" && pAndel != null
+            ? `${størst} leverer ${pct1(pAndel)} af periodens produktion${spænd.length > 1 ? ` — fra ${pct1(spænd[0][1])} i ${maanedKort(spænd[0][0])} til ${pct1(spænd[spænd.length - 1][1])} i ${maanedKort(spænd[spænd.length - 1][0])}` : ""}.`
+            : t.maaneder.length === 1 ? `Hele perioden ligger i ${maanedKort(t.maaneder[0])} (${ellers(t.periode(null, "antal_interval"), tal)} intervaller); varmebehovet er ${ellers(t.periode(null, "varmebehov_gwh"), (v) => dec(v, 2))} GWh.`
+                : `Varmebehovet topper i ${maanedKort(behovMaaned[0][0])} med ${dec(behovMaaned[0][1], 2)} GWh af periodens ${ellers(t.periode(null, "varmebehov_gwh"), (v) => dec(v, 2))} GWh.`;
     // Heatmap på enhedernes produktion (sekventiel): én skala for månederne, og 'Hele perioden' deler skala med
     // enhedstabellens MWh (samme størrelse). Varmebehov, spot og temperatur er andre størrelser og farves ikke.
+    // Under % af total: andelene, med én skala for månederne og én for 'Hele perioden'.
     const vis = useVisning("niveau");
     const art = { slags: "niveau" } as const;
-    const prod = (m: string, e: string) => (m === "periode" ? t.periode(e, "produktion_gwh") : t.vaerdi(m, e, "produktion_gwh"));
+    const andelCelle = (m: string, e: string) => viste.get(m)!.get(e);
     const mM = useHeatMaks("MWh·enhed·måned", skalaMaks(t.maaneder.flatMap((m) => ordnet.map((e) => prod(m, e)))) * 1000) / 1000;
     const mP = useHeatMaks("MWh·enhed·periode", skalaMaks(ordnet.map((e) => prod("periode", e))) * 1000) / 1000;
-    const legende = forklaring(vis, art, [["månederne", mM, `${dec(mM, 2)} GWh`], ["hele perioden", mP, `${dec(mP, 2)} GWh, samme skala som enhedstabellen`]]);
-    const GWH2 = { factor: 1, prefix: "", decimals: 2 };
+    const aM = useHeatMaks("%·andel·måned", skalaMaks(t.maaneder.flatMap((m) => ordnet.map((e) => andelCelle(m, e)))));
+    const aP = useHeatMaks("%·andel·periode", skalaMaks(ordnet.map((e) => andelCelle("periode", e))));
+    const legende = maal === "andel"
+        ? forklaring(vis, art, [["månederne", aM, pct1(aM)], ["hele perioden", aP, pct1(aP)]])
+        : forklaring(vis, art, [["månederne", mM, `${dec(mM, 2)} GWh`], ["hele perioden", mP, `${dec(mP, 2)} GWh, samme skala som enhedstabellen`]]);
+    const GWH2 = { factor: 1, prefix: "", decimals: 2 }, PCT1 = { factor: 1, prefix: "", decimals: 1 };
+    const fod = maal === "andel"
+        ? "% af total: hver søjle er 100 % — enhedens andel af søjlens samlede produktion. Nævneren er summen af enhedernes produktion i måneden; for 'Hele perioden' summen af enhedernes periode-rækker (regnet på kørslens fulde, uafrundede tidsserie), ikke summen af månederne. Andelene er afrundet til én decimal med største rest, så hver række summerer til 100,0 %. Totalen er søjlens, ikke grand total over alle måneder: en andel af den ville tegne samme form som MWh. – = måneden har ingen produktion at fordele; 'ukendt' = målingen mangler — aldrig 0. Varmebehov, spot og temperatur står i deres egne enheder."
+        : "Månederne har samme skala (px pr. MWh) som 'Varmeproduktion pr. enhed' ovenfor, så en GWh er lige lang i begge grafer. Enhedskulørerne er enhedens identitet, ikke en vurdering. Rækken 'Hele perioden' er regnet på kørslens fulde, uafrundede tidsserie — ikke som summen af de viste måneder. En måned med færre intervaller end døgn × 24 er en delmåned. Spotprisen er tidsvægtet, ikke produktionsvægtet.";
     return (
-        <Kort titel="Måned for måned" afgraensning="lokale måneder (dansk tid), GWh" budskab={budskab}
-            handling={<FarveValg slags="niveau" />}
-            fod={`Månederne har samme skala (px pr. MWh) som 'Varmeproduktion pr. enhed' ovenfor, så en GWh er lige lang i begge grafer. Enhedskulørerne er enhedens identitet, ikke en vurdering. Rækken 'Hele perioden' er regnet på kørslens fulde, uafrundede tidsserie — ikke som summen af de viste måneder. En måned med færre intervaller end døgn × 24 er en delmåned. Spotprisen er tidsvægtet, ikke produktionsvægtet.${legende ? ` Tabellens enhedskolonner: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
-            <Forklaring serier={ordnet.map((e) => ({ navn: e, plads: pladser.get(e) ?? 0 }))} ekstra={<span><i className="fjv-a-streg" />Varmebehov</span>} />
-            <StablededeSoejler søjler={søjler} enhed="GWh" markørNavn="Varmebehov" formatér={(v) => `${dec(v, 3)} GWh`} skalagruppe={{ enhed: "MWh", faktor: 1000 }} />
+        <Kort titel="Måned for måned" afgraensning={`lokale måneder (dansk tid), ${maal === "andel" ? "enhedernes andel i % af månedens produktion" : "GWh"}`} budskab={budskab}
+            handling={<div className="fjv-farvevalg-raekke"><MaalValg /><FarveValg slags="niveau" /></div>}
+            fod={`${fod}${legende ? ` Tabellens enhedskolonner: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
+            <Forklaring serier={ordnet.map((e) => ({ navn: e, plads: pladser.get(e) ?? 0 }))} ekstra={maal === "mwh" ? <span><i className="fjv-a-streg" />Varmebehov</span> : undefined} />
+            {maal === "andel"
+                ? <StablededeSoejler søjler={søjler} enhed="%" maks={100} formatér={pct1} />
+                : <StablededeSoejler søjler={søjler} enhed="GWh" markørNavn="Varmebehov" formatér={(v) => `${dec(v, 3)} GWh`} skalagruppe={{ enhed: "MWh", faktor: 1000 }} />}
             <div className="fjv-a-panel-titel">Spotpris, tidsvægtet middel (kr./MWh)</div>
             <PunktRaekke punkter={t.maaneder.map((m) => ({ etiket: maanedKort(m), værdi: t.vaerdi(m, null, "spot_middel_dkk_mwh") }))} enhed="kr./MWh" formatér={(v) => tal(v)} />
             <Tabel rækker={rækker} nøgle={(m) => m} kolonner={[
                 { navn: "Måned", vis: (m) => (m === "periode" ? <strong>Hele perioden</strong> : maanedKort(m)) },
                 { navn: "Intervaller", vis: (m) => ellers(m === "periode" ? t.periode(null, "antal_interval") : t.vaerdi(m, null, "antal_interval"), tal), tal: true },
-                { navn: "Varmebehov", vis: (m) => ellers(m === "periode" ? t.periode(null, "varmebehov_gwh") : t.vaerdi(m, null, "varmebehov_gwh"), (v) => dec(v, 2)), tal: true },
+                { navn: maal === "andel" ? "Varmebehov GWh" : "Varmebehov", vis: (m) => ellers(m === "periode" ? t.periode(null, "varmebehov_gwh") : t.vaerdi(m, null, "varmebehov_gwh"), (v) => dec(v, 2)), tal: true },
                 ...ordnet.map((e) => ({
-                    navn: e, vis: (m: string) => ellers(prod(m, e), (v) => dec(v, 2)), tal: true,
-                    farve: (m: string) => farvning(vis, prod(m, e), art, m === "periode" ? mP : mM, GWH2),
+                    navn: maal === "andel" ? `${e} %` : e, tal: true,
+                    vis: (m: string) => (maal === "andel" ? celleTekst(andelCelle(m, e), (v) => dec(v, 1)) : ellers(prod(m, e), (v) => dec(v, 2))),
+                    farve: (m: string) => (maal === "andel"
+                        ? farvning(vis, andelCelle(m, e), art, m === "periode" ? aP : aM, PCT1)
+                        : farvning(vis, prod(m, e), art, m === "periode" ? mP : mM, GWH2)),
                 })),
                 { navn: "Spot kr./MWh", vis: (m) => ellers(m === "periode" ? t.periode(null, "spot_middel_dkk_mwh") : t.vaerdi(m, null, "spot_middel_dkk_mwh"), tal), tal: true },
                 { navn: "Udetemp. °C", vis: (m) => ellers(m === "periode" ? t.periode(null, "udetemp_middel_c") : t.vaerdi(m, null, "udetemp_middel_c"), (v) => dec(v, 1)), tal: true },

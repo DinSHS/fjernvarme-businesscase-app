@@ -347,12 +347,13 @@ export const KONTRASTKRAV: readonly (readonly [Farve | `serie.${number}` | `dive
     ["delta_pos", ["flade"], TEKST, "IBCS god virkning (mærke og tal)"],
     ["delta_neg", ["flade"], TEKST, "IBCS dårlig virkning (mærke og tal)"],
     ["delta_neutral", ["flade"], TEKST, "IBCS neutral virkning (mærke og tal)"],
-    // Tabellernes farvevalg (IBCS.md §8): Retning farver tallet med polen, Heatmap har polen som mørkeste celle.
-    ["heatmap_op", ["flade"], TEKST, "tabelfarve: mere end referencen (tal og mørkeste celle)"],
-    ["heatmap_ned", ["flade"], TEKST, "tabelfarve: mindre end referencen (tal og mørkeste celle)"],
-    ["heatmap_groen", ["flade"], TEKST, "tabelfarve Rød/grøn og Blå/rød: grøn (tal og mørkeste celle)"],
-    ["heatmap_roed", ["flade"], TEKST, "tabelfarve Rød/grøn og Blå/rød: rød (tal og mørkeste celle)"],
-    ["heatmap_blaa", ["flade"], TEKST, "tabelfarve Blå/rød: blå (tal og mørkeste celle)"],
+    // Tabellernes farvevalg (IBCS.md §8): Retning farver tallet med polen, Heatmap har polen som mørkeste celle. Polen er også
+    // variansmærkets fyld i kortets graf (runde 11): ≥ 4,5:1 mod fladen dækker mærkernes 3:1.
+    ["heatmap_op", ["flade"], TEKST, "tabelfarve: mere end referencen (tal, mørkeste celle og variansmærke i graf)"],
+    ["heatmap_ned", ["flade"], TEKST, "tabelfarve: mindre end referencen (tal, mørkeste celle og variansmærke i graf)"],
+    ["heatmap_groen", ["flade"], TEKST, "tabelfarve Rød/grøn og Blå/rød: grøn (tal, mørkeste celle og variansmærke i graf)"],
+    ["heatmap_roed", ["flade"], TEKST, "tabelfarve Rød/grøn og Blå/rød: rød (tal, mørkeste celle og variansmærke i graf)"],
+    ["heatmap_blaa", ["flade"], TEKST, "tabelfarve Blå/rød: blå (tal, mørkeste celle og variansmærke i graf)"],
     ...Array.from({ length: 8 }, (_, i) => [`serie.${i}`, ["flade"], GRAFIK, `kategorisk serie ${i + 1}`] as const),
     ["divergerende.0", ["flade"], GRAFIK, "divergerende yderpunkt"],
     ["divergerende.4", ["flade"], GRAFIK, "divergerende yderpunkt"],

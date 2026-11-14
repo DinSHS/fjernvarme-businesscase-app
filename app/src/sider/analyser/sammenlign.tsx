@@ -7,7 +7,7 @@
 
 import { useMemo } from "react";
 import { DataTilstand, FarveValg, Gitter, HeatSkalaProvider, Knap, Kort, Maerke, Side, StatusMaerke, Tabel, useFarvesaet, useHeatMaks, useVisning } from "@/components/layout";
-import { farverTeksten, farvning, forklaring, skalaMaks } from "@/lib/tabelfarve";
+import { FARVENAVNE, farverTeksten, farvning, forklaring, grafFarve, skalaMaks } from "@/lib/tabelfarve";
 import { useVaerkParametre, type Hentet } from "@/lib/data/hooks";
 import { tal } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
@@ -24,6 +24,7 @@ import { dec, ellers, energi, maanedKort, medFortegn, periodeTekst } from "./fmt
 import { formatValue } from "@/ibcs";
 import { DeltaTal, ENERGI_TABEL, NoegletalKort, OmkostningsVandfald, ProduktionMod, TKR, energiSkala, omkostningsBro, tkr, vandfaldSkala, type Noegletal } from "./ibcs-grafer";
 import { forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
+import { SammensaetningMaaned } from "./sammensaetning-kort";
 
 function begge(a: Hentet<Pakke | null>, b: Hentet<Pakke | null>): Hentet<[Pakke | null, Pakke | null]> {
     return {
@@ -121,6 +122,8 @@ function Indhold({ a, b }: { a: Pakke; b: Pakke }) {
             <Gitter><ToKoersler a={a} b={b} /></Gitter>
             <Gitter><InputForskel a={a} b={b} /></Gitter>
             <Gitter><Produktion a={a} b={b} /></Gitter>
+            {/* Niveau før differens (runde 11): sammensætningen pr. måned i Ref og Scen, derefter ΔRef pr. måned. */}
+            <Gitter><SammensaetningMaaned a={a} b={b} pladser={pladser} /></Gitter>
             <Gitter><MaanedDelta a={a} b={b} /></Gitter>
             <Gitter form="6-6">
                 <BalanceDelta a={a} b={b} />
@@ -298,7 +301,7 @@ function InputForskel({ a, b }: { a: Pakke; b: Pakke }) {
     );
 }
 
-function Produktion({ a, b }: { a: Pakke; b: Pakke }) {
+export function Produktion({ a, b }: { a: Pakke; b: Pakke }) {
     const v = produktionsvarians(a.samlet.enheder, b.samlet.enheder);
     const kendt = v.filter(kendtDelta);   // Codex K9 F1: en ukendt Δ indgår hverken i budskab eller fremhævning
     const ned = [...kendt].sort((x, y) => x.delta - y.delta)[0], op = [...kendt].sort((x, y) => y.delta - x.delta)[0];
@@ -315,12 +318,18 @@ function Produktion({ a, b }: { a: Pakke; b: Pakke }) {
     const vis = useVisning("delta"), saet = useFarvesaet();
     const maks = useHeatMaks("Δpp·andel", skalaMaks(rækker.map(andelDelta)));
     const art = { slags: "delta", polaritet: 0, saet } as const;
-    const legende = forklaring(vis, art, [["", maks, `${dec(maks, 1)} pp`]]);
+    // Farvevalget gælder hele kortet (runde 11): under Retning og Heatmap tegner grafen ΔRef og ΔRef% i farvesættets
+    // pol (ét trin); under Ingen er de neutrale (blå) som i IBCS. Tabellens legende nævner kun trinene — farverne står én gang.
+    const legende = vis === "heatmap" ? forklaring(vis, art, [["", maks, `${dec(maks, 1)} pp`]]) : "";
+    const farver = vis === "ingen"
+        ? "Afvigelserne er neutrale (blå): at en enhed producerer mere, er hverken godt eller skidt — virkningen står i Δ driftsomkostning."
+        : `Farvevalget gælder hele kortet. ${FARVENAVNE[saet][0]}; virkningen står i Δ driftsomkostning. ${vis === "heatmap" ? "Grafen har ét trin (søjlens længde er størrelsen); tabellens celler har fem." : "Graf og tabeltal har samme farve for samme fortegn."}`;
     return (
         <Kort titel="Varmeproduktion pr. enhed" afgraensning="hele perioden · Ref og Scen, ΔRef, ΔRef%" budskab={budskab}
             handling={<FarveValg slags="delta" />}
-            fod={`Ref = omrids (reference), Scen = fyldt (scenarie), ΔRef = scenarie − reference på samme skala; ΔRef% med én decimal, N/A når referencen er 0. Afvigelserne er neutrale (blå): at en enhed producerer mere, er hverken godt eller skidt — virkningen står i Δ driftsomkostning. Tabellen viser andel og driftstimer, som grafen ikke viser.${legende ? ` Tabellens ΔRef andel: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
-            <ProduktionMod varians={v} fremhaev={fremhaev && Math.abs(fremhaev.delta) > 0.5 ? fremhaev.navn : undefined} />
+            fod={`Ref = omrids (reference), Scen = fyldt (scenarie), ΔRef = scenarie − reference på samme skala; ΔRef% med én decimal, N/A når referencen er 0. ${farver} Tabellen viser andel og driftstimer, som grafen ikke viser.${legende ? ` Tabellens ΔRef andel: ${legende.replace(/^[^;]*; jo/, "jo")}` : ""}`}>
+            <ProduktionMod varians={v} fremhaev={fremhaev && Math.abs(fremhaev.delta) > 0.5 ? fremhaev.navn : undefined}
+                farve={vis === "ingen" ? undefined : (x) => grafFarve(vis, art, x)} />
             <Tabel rækker={rækker} nøgle={(x) => x.navn} kolonner={[
                 { navn: "Enhed", vis: (x) => x.navn },
                 { navn: "Andel Ref", vis: (x) => ellers(ea.get(x.navn)?.andel_pct, (z) => `${dec(z, 1)} %`), tal: true },
@@ -377,7 +386,7 @@ export function MaanedDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const art = { slags: "delta", polaritet: 0, saet } as const;
     const legende = forklaring(vis, art, [["månederne", maksM, en(maksM)], ["hele perioden", maksP, en(maksP)]]);
     return (
-        <Kort titel="Måned for måned" afgraensning={`ΔRef varmeproduktion, ${E.enhed}, pr. enhed og måned`} budskab={budskab}
+        <Kort titel="Måned for måned" afgraensning={`ΔRef = Scen − Ref, varmeproduktion i ${E.enhed} pr. enhed og måned`} budskab={budskab}
             handling={<FarveValg slags="delta" />}
             fod={`ΔRef = scenarie − reference${vis === "ingen" ? ", neutral (blå)" : ""}. ${legende ? `${legende} ` : ""}'Hele perioden' er differensen mellem de to kørslers periode-rækker (regnet på de fulde tidsserier), ikke summen af månederne.`}>
             <Tabel rækker={rækker} nøgle={(e) => e} kolonner={[
