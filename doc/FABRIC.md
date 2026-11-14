@@ -104,6 +104,14 @@ python fabric/deploy.py koer fjv_importer_vaerker   # kun hvis MODEL_COMMIT er �
 Rækkefølgen betyder noget: motoren (og dermed `dbo.Motors`) før appen, så den første bestilling efter opdateringen fryser de nye pins.
 `CHANGELOG.md` siger for hver version, hvilke af trinene den kræver.
 
+**Modelskiftet `eef950a` → `90fb16e` (version 0.4.0).** Kun `MODEL_COMMIT` skifter; `DF_DATA_SHA` (`106b9fc`) og skemaet er
+uændrede. Kør `deploy.py kode` (motoren og pins i `dbo.Motors`) og `deploy.py koer fjv_importer_vaerker`. Casefilerne er
+de samme ved de to versioner (målt: `git diff --stat eef950a 90fb16e` i modelrepoet rører kun `src/data_loader.py`,
+`src/data_loader_github.py`, `README.md`, `CLAUDE.md` og to tests). Efter koden melder importen derfor hvert uændret
+repoværk som `uaendret`, og værket beholder sin `repo_commit` (`fabric/fjv/importer.py:146-149`). En bestilling, der ligger i
+køen med de gamle pins, afvises (status `fejl`); bestil den igen. Tal fra kørsler ved `eef950a` kan ikke sammenlignes med
+nye. Ikke udrullet endnu: ingen installation er opdateret til `90fb16e`, og intet er målt i Fabric.
+
 ## Det der gælder altid
 
 * **Kør Rayfin fra `app/`** (CLI'en finder projektet ud fra den aktuelle mappe). Giv altid `--workspace-id` — `scripts/installation.py rayfin-up` gør det.

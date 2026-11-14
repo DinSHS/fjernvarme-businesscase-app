@@ -192,18 +192,22 @@ direkte på modelrepoet ved `90fb16e`. Kørslens side viser modelversionerne og 
 | Sammenligning, vandfald, anbefalinger | appens egne regler (`viden/anbefalingsregler.json`, METODE §6a) | differensmetoden (README) | appen lægger to kørsler side om side; reglerne står i appen |
 | Grænser | kun timeopløsning (1h); højst 366 døgn; én solver ad gangen; tidsgrænse ≤ 3.600 s i Fabric; CSV-upload strengere end modellens læser | modellen kan 15 min og vilkårlig længde | driftssikkerhed i en delt installation |
 | Netto og brutto balanceindtægt | vises hver for sig, aldrig lagt sammen | objektivet bruger brutto, manifestet netto | som modellens egen dokumentation |
+| Referencetal efter spotrettelsen (`5021a5e`) | README-tallene vises som *regnet før spotrettelsen* med egne målinger ved `90fb16e` ved siden af (Information › Referencetal og Budstrategi, METODE §7, `referencetal.json` › `regnet_igen`); *README mod Fabric* tæller kun kørsler ved `eef950a` (`model_commit` med `regnet_ved`); demoernes forventede tal er egne målinger, og D12 har intet | README-tabellen, `doc/` (fx `doc/BUDSTRATEGI.md:328-335`) og rapport v4 er regnet før rettelsen og opdateres senere (README.md:20-27); efter rettelsen kun tre kontroltal (CLAUDE.md:30-38) | koden ved pinnen regner med den nye spotregel; et gammelt tal som facit ville melde en korrekt kørsel som forkert |
 
 Ikke med i appen: `--heat-params`, `--heat-csv-column`/`--heat-csv-tz`, `--legacy-nettab` i standardkørslen, `--dummy`.
 
 ## 6. Observationer i modelrepoet
 
-Fundet under arbejdet ved `eef950a` og ikke rettet af os (modelrepoet er dit). Ingen af dem påvirker appens tal.
+Fundet under arbejdet ved `eef950a` og ikke rettet af os (modelrepoet er dit). Ingen af dem påvirker appens tal. Rækker
+mærket *ved 90fb16e* er fundet ved modelskiftet 14. november 2026; deres linjer er ved `90fb16e`.
 
 | Hvor | Hvad |
 |---|---|
 | `README.md:125,253`, `CONTRIBUTING.md:71`, `doc/WORKFLOW_LOKAL.md:149`, `doc/EGET_VAERK.md:4`, `scripts/vaerksark_til_yaml.py:51` | peger på `doc/vaerksdata_skabelon.xlsx`; filen ligger nu i roden |
 | `scripts/byg_skabelon.py:571` | skriver stadig skabelonen til `doc/` |
 | `README.md:14,217` | linker til `.docx`-filer, der er flyttet til `doc/arkiv/` |
+| `README.md:20-27`, `README.md:183-189`, `doc/BUDSTRATEGI.md:328-335` (ved 90fb16e) | tallene er regnet før spotrettelsen; modelrepoet siger det selv. Appen viser dem som sådan (afsnit 5) |
+| `CLAUDE.md:30-38` (ved 90fb16e) | kontroltallene for Billund i dag siger ikke, hvilken varmelastfil de er regnet med; appens kæde ramte dem til kronen med `billund_abvaerk_hourly_splejset_jun2026.csv` |
 | `doc/BALANCEMARKED.md:52-62` | aktiveringsværdien står stadig med spot; koden (`src/activation_value.py`) og BUDSTRATEGI §4.2 regner uden |
 | `src/reporting.py:314-338`, `src/model.py:262` | kommentarerne beskriver stadig t=0-lagerbalancen som ubundet |
 | `CONTRIBUTING.md:38` | "434 passed"; ved eef950a er der 437 tests |
