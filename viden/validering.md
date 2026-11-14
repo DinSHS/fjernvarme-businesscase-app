@@ -17,7 +17,7 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
    og manglende påkrævede nøgler giver `KeyError` (fx `raw["time"]`, src/config.py:921, eller
    `mk["block_mw"]`, src/config.py:1041). De ender som traceback. **Klienten skal fange dem**,
    ellers ser brugeren en Python-stak.
-2. **Dækningsfejl (`CoverageError`) kommer efter indlæsningen** (src/data_loader.py:150, :184) og
+2. **Dækningsfejl (`CoverageError`) kommer efter indlæsningen** (src/data_loader.py:179, :213) og
    fanges ikke af run_case.py; de bliver også traceback. Notebooken skal genkende klassenavnet og
    vise beskedens første linjer ("dækning mangler for den ønskede periode …").
 3. **En uløselig model stopper med `SystemExit` og en forklaring** (src/solve.py:128-140), ikke
@@ -33,7 +33,7 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 | `dmi_area` ukendt | er ikke en kendt DMI-station. Kendte: fyn, vestkyst, karup, ringsted | src/config.py:682-688 | Klient |
 | `price_zone` ukendt | er ikke en kendt priszone. Kendte: DK1, DK2 | src/config.py:689-693 | Klient |
 | `eur_dkk` ≤ 0 | data.eur_dkk skal vaere > 0 | src/config.py:694-696 | Klient |
-| `price_zone` ≠ `electricity.spot_area` | *ingen fejl* — balancepriserne hentes for `spot_area`, spot for `price_zone` (src/data_loader_github.py:701) | — | Klient (advarsel) |
+| `price_zone` ≠ `electricity.spot_area` | *ingen fejl* — balancepriserne hentes for `spot_area`, spot for `price_zone` (src/data_loader_github.py:704) | — | Klient (advarsel) |
 
 ## 2. Værk › Tid og scenariets periode
 
@@ -46,10 +46,11 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 | Slut før start (scenariets periode) | --end (…) skal være efter --start (…) | run_case.py:545-546 | Klient |
 | Kun start eller kun slut | --start og --end skal bruges sammen | run_case.py:528-529 | Klient |
 | Periode længere end 366 døgn | afvises af `startBestilling` | KONTRAKT §3.0 | Klient + Function |
-| Data dækker ikke perioden (spot, DMI, aFRR, mFRR, ubalance) | `CoverageError`: dækning mangler for den ønskede periode | src/data_loader.py:150; src/data_loader.py:184 | Notebook |
+| Data dækker ikke perioden (spot, DMI, aFRR, mFRR, ubalance) | `CoverageError`: dækning mangler for den ønskede periode | src/data_loader.py:179; src/data_loader.py:213 | Notebook |
+| En time har kun 2–3 af sine fire spotkvarterer (fra modelversion 5021a5e; df-data dækker ellers perioden) | `CoverageError`: Spot: N tidsskridt har kun en del af deres kvarterer, foerste … | src/data_loader.py:85-91 | Notebook |
 | Balancering før 4. marts 2025 | `CoverageError` (ubalance og mFRR-aktivering begynder 4. marts 2025) | cases/andeby.yaml:97-101 | Klient (periode) — som advarsel; afgøres endeligt i Notebook |
 | `fyn`/`vestkyst` og en periode hen over 28. februar 2026 (fyn også 1. januar 2026) | `CoverageError` | doc/KOERSEL.md:110-111; cases/andeby.yaml:89 | Klient (periode) — som advarsel |
-| Produktionsprofil (solvarme) dækker ikke perioden | production_profile daekker ikke hele perioden … Profilen er IKKE nulfyldt | src/data_loader.py:996-1010 | Notebook (klient kan advare: Andebys profil dækker 1. januar 2025 – 3. oktober 2026, cases/andeby.yaml:57) |
+| Produktionsprofil (solvarme) dækker ikke perioden | production_profile daekker ikke hele perioden … Profilen er IKKE nulfyldt | src/data_loader.py:1025-1039 | Notebook (klient kan advare: Andebys profil dækker 1. januar 2025 – 3. oktober 2026, cases/andeby.yaml:57) |
 
 ## 3. Værk › Priser
 
@@ -156,9 +157,9 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 
 | Fejl | Besked | Kilde | Fanges |
 |---|---|---|---|
-| Blokken mangler (også når målt varmelast bruges) | heat_load_params mangler i … | src/data_loader.py:805-809; run_case.py:377 | Klient |
-| `gaf_mw_per_k` mangler | `KeyError` (traceback) | src/data_loader.py:676 | Klient |
-| `baseline_profile_mw` ikke 24 tal | baseline_profile_mw skal være 24-element array | src/data_loader.py:666-670 | Klient |
+| Blokken mangler (også når målt varmelast bruges) | heat_load_params mangler i … | src/data_loader.py:834-838; run_case.py:377 | Klient |
+| `gaf_mw_per_k` mangler | `KeyError` (traceback) | src/data_loader.py:705 | Klient |
+| `baseline_profile_mw` ikke 24 tal | baseline_profile_mw skal være 24-element array | src/data_loader.py:695-699 | Klient |
 | Nettab: hverken `aarligt_nettab_mwh` eller `_pct` | Angiv enten 'aarligt_nettab_mwh' eller 'aarligt_nettab_pct' | src/nettab.py:116-125 | Klient |
 | Nettab: sommer/vinter-temperatur mangler | `KeyError` (traceback) | src/nettab.py:128-129 | Klient |
 | Nettab: `sommer.t_ude` ≤ `vinter.t_ude` | sommer.t_ude skal være højere end vinter.t_ude | src/nettab.py:133-134 | Klient |
@@ -167,7 +168,7 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 | Nettab: `t_jord_ema_days` ≤ 0 | t_jord_ema_days skal være positiv | src/nettab.py:73-74 | Klient |
 | Nettab: drivkraft ikke positiv | Drive-integral ikke-positiv | src/nettab.py:149-153 | Notebook (afhænger af vejret) |
 | Nettab ≥ årsproduktion | Inkonsistent input: nettab Q … er ≥ annual_production_mwh | src/nettab.py:160-165 | Notebook |
-| Målt varmelast: filen findes ikke | Heat-CSV ikke fundet / --heat-csv: filen findes ikke | src/data_loader.py:874; run_case.py:622-623 | Klient (hvidliste) + Notebook |
+| Målt varmelast: filen findes ikke | Heat-CSV ikke fundet / --heat-csv: filen findes ikke | src/data_loader.py:903; run_case.py:622-623 | Klient (hvidliste) + Notebook |
 
 ## 10. Scenarie › Ændringer (`set`, `enable`, `disable`)
 
@@ -195,8 +196,8 @@ både slås til og fra i ét scenarie, så rækkefølgen er uden betydning.
 | Fejl | Besked | Kilde |
 |---|---|---|
 | Uløselig model | Modellen kan ikke løses (infeasible) … Typiske årsager: driven-blokke større end eleffekten; driven uden tank om sommeren; kedler tændt ved start med minimumslast | src/solve.py:128-140 |
-| Tidsgrænsen nås | *ingen fejl*: bedste løsning gemmes; opnået gab står kun i solverens log | doc/KOERSEL.md:170-171; README.md:146 |
-| Netværk/klon af df-data fejler | `RuntimeError` fra datalaget | src/data_loader_github.py:123 |
+| Tidsgrænsen nås | *ingen fejl*: bedste løsning gemmes; opnået gab står kun i solverens log | doc/KOERSEL.md:170-171; README.md:155 |
+| Netværk/klon af df-data fejler | `RuntimeError` fra datalaget | src/data_loader_github.py:126 |
 
 Typiske uløselige kombinationer, som klienten kan **advare** om (ikke afvise):
 `reservation_gate.mode: driven` hvor aFRR- + mFRR-blok overstiger de bydende enheders samlede

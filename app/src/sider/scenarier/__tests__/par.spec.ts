@@ -124,4 +124,18 @@ describe("råd ved fejl", () => {
         // Ingen kendt årsag rammer -> det generelle råd.
         expect(rådFor(fejl, { medBalancering: false, start: "2026-03-10", slut: "2026-03-20", dmi: "karup" })?.tekst).toMatch(/df-data opdateres mandage/);
     });
+    it("halv time i spot (modelrepoet 5021a5e): råd om kvartererne, ikke om de kendte huller", () => {
+        // spot_paa_akse, src/data_loader.py:85-91 @ 90fb16e; arbejderen sætter sin hjælpetekst bag (fjv/koersel.py).
+        const fejl = "CoverageError: Spot: 1 tidsskridt har kun en del af deres kvarterer, foerste 2026-10-11 23:00:00 (2 kvarterer).";
+        expect(rådFor(fejl)?.tekst).toMatch(/kvarter/);
+        // Med en kontekst, hvor et kendt hul også rammer perioden, er det stadig kvartererne, der er årsagen.
+        const r = rådFor(fejl, { medBalancering: true, start: "2025-01-06", slut: "2026-10-12", dmi: "fyn" })!;
+        expect(r.tekst).toMatch(/kvarter/);
+        expect(r.tekst).not.toMatch(/4\. marts 2025|28\. februar/);
+        expect(r.kilde).toMatch(/data_loader\.py:70-92/);
+        // Arbejderens hjælpetekst (fjv/koersel.py) står bag ALLE CoverageError-beskeder og nævner kvarterpriser;
+        // en almindelig dækningsfejl skal stadig have det almindelige råd.
+        const alm = "CoverageError: imbalance/DK1: ingen brugbare tidsstempler. (df-data dækker ikke hele perioden, eller en time har kun nogle af sine kvarterpriser - vælg en anden periode eller en nyere data-SHA)";
+        expect(rådFor(alm)?.kilde).toBe("validering.md §2");
+    });
 });
