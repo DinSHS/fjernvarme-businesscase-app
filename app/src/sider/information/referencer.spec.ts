@@ -130,7 +130,7 @@ describe("Spor B mod Billunds afregning", () => {
 
 // I1 (fagligt review): en kørsel med SAMME ELLER STRAMMERE gab er en måling af README-tallet. Tallene er de rigtige demo-kørsler:
 // D09 Billund Spor B (README 4.204.128; casens gab 0,5 % / 5.000 kr.; demo 0,02 % / 1.000 kr.) og D11 Andeby helår uden balance,
-// begge målt 2026-10-26 ved eef950a (viden/demo_scenarier.json › koersel_status).
+// begge målt 2026-10-26 ved eef950a (viden/demo_scenarier.json › koersel_status_eef950a).
 describe("gab: samme eller strammere (I1)", () => {
     const sporB = ref("sporb");
     const vaerker = [vaerk("v-b", "billund_sporb"), vaerk("v-a", "andeby")];
