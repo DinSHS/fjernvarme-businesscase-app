@@ -8,6 +8,16 @@ export interface Råd { tekst: string; kilde: string }
 
 const RÅD: readonly { mønster: RegExp; råd: Råd }[] = [
     {
+        // Fra modelrepoets 5021a5e: spot midles over timen, og en time med kun 2-3 af sine fire kvarterer er en
+        // CoverageError, selv om df-data dækker perioden. Står før den almindelige dækningsfejl, så de kendte
+        // huller (4. marts 2025, fyn/vestkyst) ikke gives som årsag.
+        mønster: /kun en del af deres kvarterer/i,
+        råd: {
+            tekst: "Spotprisen har kun nogle af kvartererne for mindst én time (fejlbeskeden nævner den første). Modellen regner timens spotpris som middel af de fire kvarterer og regner ikke på en halv time. Vælg en periode uden om den time, eller bestil igen med en nyere data-SHA.",
+            kilde: "src/data_loader.py:70-92 (spot_paa_akse, modelrepoet 5021a5e)",
+        },
+    },
+    {
         mønster: /CoverageError|dækning|daekning|d.kker ikke/i,
         råd: {
             tekst: "Data dækker ikke hele perioden. Med balancering skal perioden ligge efter 4. marts 2025; DMI-områderne fyn og vestkyst mangler timer 28. februar 2026 (fyn også 1. januar 2026); df-data opdateres mandage, så de seneste dage mangler. Vælg en anden periode.",
@@ -34,7 +44,7 @@ const RÅD: readonly { mønster: RegExp; råd: Råd }[] = [
     },
     {
         mønster: /production_profile|produktionsprofil|profil(en)? (mangler|d.kker)/i,
-        råd: { tekst: "Produktionsprofilen (fx solvarme) dækker ikke perioden. Vælg en periode inden for profilens dækning.", kilde: "validering.md §2 (src/data_loader.py:996-1010)" },
+        råd: { tekst: "Produktionsprofilen (fx solvarme) dækker ikke perioden. Vælg en periode inden for profilens dækning.", kilde: "validering.md §2 (src/data_loader.py:1025-1039)" },
     },
     {
         mønster: /heat.?csv|varmelastfil|Heat-CSV/i,
@@ -46,7 +56,7 @@ const RÅD: readonly { mønster: RegExp; råd: Råd }[] = [
     },
     {
         mønster: /RuntimeError|netv.rk|klon/i,
-        råd: { tekst: "Hentningen af df-data fejlede. Det er som regel forbigående — bestil igen om lidt.", kilde: "validering.md §11 (src/data_loader_github.py:123)" },
+        råd: { tekst: "Hentningen af df-data fejlede. Det er som regel forbigående — bestil igen om lidt.", kilde: "validering.md §11 (src/data_loader_github.py:126)" },
     },
 ];
 
@@ -68,10 +78,13 @@ export function dækningsårsager(k: Rådkontekst): string[] {
     return ud;
 }
 
+/** Den almindelige dækningsfejl: dens råd målrettes efter kørslen (dækningsårsager). */
+const DÆKNING = RÅD.find((x) => x.råd.kilde === "validering.md §2")!.råd;
+
 export function rådFor(fejlbesked: string | null | undefined, kontekst?: Rådkontekst): Råd | undefined {
     if (!fejlbesked) return undefined;
     const r = RÅD.find((x) => x.mønster.test(fejlbesked))?.råd;
-    if (r && r === RÅD[0].råd && kontekst) {
+    if (r && r === DÆKNING && kontekst) {
         const årsager = dækningsårsager(kontekst);
         if (årsager.length) return { tekst: `${årsager.join(" ")} Vælg en anden periode.`, kilde: r.kilde };
     }

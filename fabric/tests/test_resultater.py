@@ -141,6 +141,22 @@ class TestLogHjaelp(unittest.TestCase):
         self.assertTrue(fejlbesked_fra_log("FEJL i casen eller --set: x\n", 2).startswith("FEJL"))
         self.assertIn("kode 3", fejlbesked_fra_log("", 3))
 
+    def test_coverage_halv_time_spot(self):
+        """Modelrepoet 5021a5e: spot_paa_akse rejser CoverageError, når et tidsskridt kun har 2-3 af sine fire
+        kvarterer (src/data_loader.py:85-91 @ 90fb16e). Hjælpeteksten må ikke kun tale om en periode, df-data
+        ikke dækker: her dækker df-data perioden, men én time er halv."""
+        tekst = ("Spot: 1 tidsskridt har kun en del af deres kvarterer, "
+                 "foerste 2026-10-11 23:00:00 (2 kvarterer).")
+        log = f"Traceback (most recent call last):\n  ...\nsrc.data_loader.CoverageError: {tekst}\n"
+        besked = fejlbesked_fra_log(log, 1)
+        self.assertTrue(besked.startswith(f"CoverageError: {tekst}"), besked)
+        hint = besked[len(f"CoverageError: {tekst}"):]
+        self.assertIn("kvarter", hint)
+        self.assertIn("nyere data-SHA", hint)
+        # Den almindelige dækningsfejl får samme, dækkende hjælpetekst.
+        alm = fejlbesked_fra_log("src.data_loader.CoverageError: spot/DK1 mangler\n", 1)
+        self.assertEqual(alm[len("CoverageError: spot/DK1 mangler"):], hint)
+
     def test_solverlog_uddrag(self):
         s = _solverlog((F1 / "log.txt").read_text(encoding="utf-8"))
         self.assertTrue(s.startswith("Running HiGHS"))

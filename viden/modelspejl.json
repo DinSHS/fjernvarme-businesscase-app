@@ -1,6 +1,6 @@
 {
  "_om": "Modelrepoets antagelser, som appen bruger, LÆST ved model_commit (genereres af viden/vaerktoej/byg_modelspejl.py; ret ikke i hånden). tjek_trofasthed.py holder appens værdier op mod dette spejl og spejlet op mod modelrepoet, så en modelopdatering, der ændrer en antagelse, får gaten til at fejle.",
- "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+ "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
  "data_commit": "106b9fce9a2e3610090b1a542559024056449b88",
  "cases": {
   "andeby": {
@@ -50,7 +50,7 @@
      ]
     },
     {
-     "kilde": "README.md:179",
+     "kilde": "README.md:188",
      "kommando": "python run_case.py cases/andeby.yaml --data-source github --with-balancing",
      "med_balancering": true,
      "heat_csv": null,
@@ -73,7 +73,7 @@
      "objektiv_dkk": 24188471
     },
     {
-     "kilde": "README.md:180",
+     "kilde": "README.md:189",
      "kommando": "python run_case.py cases/andeby.yaml --data-source github",
      "med_balancering": false,
      "heat_csv": null,
@@ -1906,7 +1906,7 @@
    "sha256": "d5ca86f4a7737683ab67ffbc18bcac1e6bd24ffaa91cf064c9b531101ec20e68",
    "kommandoer": [
     {
-     "kilde": "README.md:176",
+     "kilde": "README.md:185",
      "kommando": "python run_case.py cases/billund_sporA.yaml --data-source github --with-balancing",
      "med_balancering": true,
      "heat_csv": null,
@@ -1930,7 +1930,7 @@
     }
    ],
    "standard": {
-    "kilde": "README.md:176",
+    "kilde": "README.md:185",
     "kommando": "python run_case.py cases/billund_sporA.yaml --data-source github --with-balancing",
     "med_balancering": true,
     "heat_csv": null,
@@ -2720,7 +2720,7 @@
    "sha256": "72c8edd1d852f154569887bd35699dfad92dddfa478666f9ca23f44932401416",
    "kommandoer": [
     {
-     "kilde": "README.md:178",
+     "kilde": "README.md:187",
      "kommando": "python run_case.py cases/billund_sporA_rullende.yaml --data-source github --with-balancing --heat-csv data/billund_abvaerk_hourly_splejset_jun2026.csv",
      "med_balancering": true,
      "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
@@ -2748,7 +2748,7 @@
     }
    ],
    "standard": {
-    "kilde": "README.md:178",
+    "kilde": "README.md:187",
     "kommando": "python run_case.py cases/billund_sporA_rullende.yaml --data-source github --with-balancing --heat-csv data/billund_abvaerk_hourly_splejset_jun2026.csv",
     "med_balancering": true,
     "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
@@ -4359,7 +4359,7 @@
      ]
     },
     {
-     "kilde": "README.md:177",
+     "kilde": "README.md:186",
      "kommando": "python run_case.py cases/billund_sporB.yaml --data-source github --with-balancing --heat-csv data/billund_abvaerk_hourly_splejset_jun2026.csv",
      "med_balancering": true,
      "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
@@ -6499,67 +6499,67 @@
   {
    "navn": "rows",
    "vaerdi": [],
-   "kilde": "src/data_loader.py:228"
+   "kilde": "src/data_loader.py:257"
   },
   {
    "navn": "t_ref",
    "vaerdi": 15.0,
-   "kilde": "src/data_loader.py:651"
+   "kilde": "src/data_loader.py:680"
   },
   {
    "navn": "thermal_inertia_hours",
    "vaerdi": 24,
-   "kilde": "src/data_loader.py:652"
+   "kilde": "src/data_loader.py:681"
   },
   {
    "navn": "nettab_slope_mw_per_k",
    "vaerdi": 0.0,
-   "kilde": "src/data_loader.py:653"
+   "kilde": "src/data_loader.py:682"
   },
   {
    "navn": "t_net",
    "vaerdi": 12.0,
-   "kilde": "src/data_loader.py:654"
+   "kilde": "src/data_loader.py:683"
   },
   {
    "navn": "weekly_dip",
    "vaerdi": 0.02,
-   "kilde": "src/data_loader.py:658"
+   "kilde": "src/data_loader.py:687"
   },
   {
    "navn": "nettab_cfg",
    "vaerdi": null,
-   "kilde": "src/data_loader.py:661"
+   "kilde": "src/data_loader.py:690"
   },
   {
    "navn": "records",
    "vaerdi": [],
-   "kilde": "src/data_loader.py:298"
+   "kilde": "src/data_loader.py:327"
   },
   {
    "navn": "data",
    "vaerdi": [],
-   "kilde": "src/data_loader.py:237"
+   "kilde": "src/data_loader.py:266"
   },
   {
    "navn": "t_ref",
    "vaerdi": 15.0,
-   "kilde": "src/data_loader.py:677"
+   "kilde": "src/data_loader.py:706"
   },
   {
    "navn": "thermal_inertia_hours",
    "vaerdi": 24,
-   "kilde": "src/data_loader.py:678"
+   "kilde": "src/data_loader.py:707"
   },
   {
    "navn": "nettab_slope_mw_per_k",
    "vaerdi": 0.0,
-   "kilde": "src/data_loader.py:679"
+   "kilde": "src/data_loader.py:708"
   },
   {
    "navn": "t_net",
    "vaerdi": 12.0,
-   "kilde": "src/data_loader.py:680"
+   "kilde": "src/data_loader.py:709"
   },
   {
    "navn": "baseline_profile_mw",
@@ -6589,12 +6589,12 @@
     6.0,
     6.0
    ],
-   "kilde": "src/data_loader.py:682"
+   "kilde": "src/data_loader.py:711"
   },
   {
    "navn": "weekly_dip",
    "vaerdi": 0.02,
-   "kilde": "src/data_loader.py:684"
+   "kilde": "src/data_loader.py:713"
   },
   {
    "navn": "source",
@@ -6741,12 +6741,12 @@
   "vintervinduet": {
    "start": "2026-01-05",
    "slut": "2026-01-16",
-   "kilde": "README.md:32"
+   "kilde": "README.md:41"
   },
   "sommervinduet": {
    "start": "2026-06-08",
    "slut": "2026-06-19",
-   "kilde": "README.md:33"
+   "kilde": "README.md:42"
   }
  },
  "krav": {

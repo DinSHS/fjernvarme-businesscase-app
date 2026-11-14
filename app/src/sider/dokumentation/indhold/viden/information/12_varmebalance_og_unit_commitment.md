@@ -44,4 +44,4 @@ minimumstiderne er. (Kilde: doc/EGET_VAERK.md:124-129)
 **Pas på starttilstanden.** Kedler, der er tændt ved periodens start og har minimumslast, kan om
 sommeren give mere varme, end nettet aftager. Med en tank går det; uden tank bliver modellen
 uløselig. Billund-casene starter derfor flis- og halmkedlen slukket 1. juli. (Kilde: rapport v4 §4.4;
-README.md:131-133)
+README.md:140-142)

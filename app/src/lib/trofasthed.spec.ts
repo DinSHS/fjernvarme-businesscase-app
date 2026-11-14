@@ -20,15 +20,15 @@ describe("modelspejlet", () => {
 });
 
 describe("standardkørslen er modelrepoets egen kommando for casen (B2)", () => {
-    it("Spor B: med balancemarked og målt varmelast (cases/billund_sporB.yaml:17-19, README.md:177)", () => {
+    it("Spor B: med balancemarked og målt varmelast (cases/billund_sporB.yaml:17-19, README.md:186)", () => {
         expect(modelKoersel("billund_sporb")).toMatchObject({ med_balancering: true, heat_csv: SPLEJSET, kilde: "cases/billund_sporB.yaml:17-19" });
     });
-    it("Spor A-ankeret: med balancemarked, syntetisk varmelast (README.md:176)", () => {
-        expect(modelKoersel("billund_spora")).toMatchObject({ med_balancering: true, heat_csv: null, kilde: "README.md:176" });
+    it("Spor A-ankeret: med balancemarked, syntetisk varmelast (README.md:185)", () => {
+        expect(modelKoersel("billund_spora")).toMatchObject({ med_balancering: true, heat_csv: null, kilde: "README.md:185" });
     });
     it("Billund i dag og Billund rullende år: målt varmelast", () => {
         expect(modelKoersel("billund_idag")).toMatchObject({ med_balancering: true, heat_csv: SPLEJSET });
-        expect(modelKoersel("billund_spora_rullende")).toMatchObject({ med_balancering: true, heat_csv: SPLEJSET, kilde: "README.md:178" });
+        expect(modelKoersel("billund_spora_rullende")).toMatchObject({ med_balancering: true, heat_csv: SPLEJSET, kilde: "README.md:187" });
     });
     it("Andeby: casens egen kommando er uden balancemarked (cases/andeby.yaml:9)", () => {
         expect(modelKoersel("andeby")).toMatchObject({ med_balancering: false, heat_csv: null, kilde: "cases/andeby.yaml:9" });
@@ -39,7 +39,7 @@ describe("standardkørslen er modelrepoets egen kommando for casen (B2)", () => 
         expect(modelKoersel("vesterby")).toBeUndefined();
         expect(koerselskilde("billund_sporb_rullende")).toMatch(/^Egen antagelse: modelrepoet angiver ingen kørsel af cases\/billund_sporB_rullende\.yaml/);
         expect(koerselskilde("vesterby")).toMatch(/^Egen antagelse/);
-        expect(koerselskilde("billund_sporb")).toMatch(/^Som modelrepoet kører cases\/billund_sporB\.yaml: med balancemarked, målt varmelast .*@ eef950a/);
+        expect(koerselskilde("billund_sporb")).toMatch(/^Som modelrepoet kører cases\/billund_sporB\.yaml: med balancemarked, målt varmelast .*@ 90fb16e/);
     });
     it("varmelasten: modelrepoets fil, medmindre værket har sin egen aktive serie", () => {
         const ingen: TidsserieInfo[] = [];
@@ -59,7 +59,7 @@ describe("afdrift mellem et repoværk og casefilen ved den pinnede commit (V1)",
     it("et værk, der er casen felt for felt, har ingen afdrift", () => {
         const a = afdrift({ kode: "andeby", kilde: "repo", revision: 1, repo_commit: SPEJL_COMMIT }, blade());
         expect(harAfdrift(a)).toBe(false);
-        expect(modelrepoBudskab({ kode: "andeby", kilde: "repo", revision: 1 }, a, "andeby")).toMatch(/^Værket er cases\/andeby\.yaml ved den pinnede modelversion eef950a/);
+        expect(modelrepoBudskab({ kode: "andeby", kilde: "repo", revision: 1 }, a, "andeby")).toMatch(/^Værket er cases\/andeby\.yaml ved den pinnede modelversion 90fb16e/);
     });
     it("Fabric-databasen 27/10 (målt): importeret ved b49aeb0, og co2_eua.unit er den gamle", () => {
         const b = blade();
@@ -68,11 +68,11 @@ describe("afdrift mellem et repoværk og casefilen ved den pinnede commit (V1)",
         expect(a.gammelCommit).toBe(true);
         expect(a.afviger).toEqual([{ sti: "prices.co2_eua.unit", vaerk: "\"DKK/MWh_gas\"", model: "\"DKK/t\"", linje: 184 }]);
         expect(modelrepoBudskab({ kode: "andeby", kilde: "repo", revision: 1, repo_commit: "b49aeb0a" }, a, "andeby"))
-            .toMatch(/importeret ved b49aeb0, men appen kører modelversion eef950a; 1 felt afviger fra cases\/andeby\.yaml @ eef950a/);
+            .toMatch(/importeret ved b49aeb0, men appen kører modelversion 90fb16e; 1 felt afviger fra cases\/andeby\.yaml @ 90fb16e/);
     });
     it("feltkilden: fil:linje @ commit — eller at værket afviger", () => {
-        expect(bladkilde("andeby", "prices.co2_eua.value")).toBe("cases/andeby.yaml:183 @ eef950a");
-        expect(vaerdikilde("andeby", "prices.co2_eua.value", "600.0")).toBe("Værdien: cases/andeby.yaml:183 @ eef950a");
+        expect(bladkilde("andeby", "prices.co2_eua.value")).toBe("cases/andeby.yaml:183 @ 90fb16e");
+        expect(vaerdikilde("andeby", "prices.co2_eua.value", "600.0")).toBe("Værdien: cases/andeby.yaml:183 @ 90fb16e");
         expect(vaerdikilde("andeby", "prices.co2_eua.value", "800.0")).toMatch(/^Modelrepoet har 600\.0 .*værket afviger$/);
         expect(vaerdikilde("vesterby", "prices.co2_eua.value", "600.0")).toBeUndefined();
     });
@@ -89,7 +89,7 @@ describe("guiden 'Nyt værk' skalerer varmelasten som modelrepoets værksark (B1
     };
     it("regel og kilde er modelrepoets: f = round(G / 100, 4)", () => {
         expect(s.varmelast).toMatchObject({ divisor_gwh: 100, afrunding: 4 });
-        expect(s.varmelast.kilde).toMatch(/^scripts\/vaerksark_til_yaml\.py:1581 @ eef950a/);
+        expect(s.varmelast.kilde).toMatch(/^scripts\/vaerksark_til_yaml\.py:1581 @ 90fb16e/);
     });
     for (const [g, [f, gaf, nettab, profil]] of Object.entries(PY)) {
         it(`G = ${g} GWh giver præcis det, modelrepoets konvertering giver`, () => {
@@ -103,7 +103,7 @@ describe("guiden 'Nyt værk' skalerer varmelasten som modelrepoets værksark (B1
     it("hvert blad har sin kilde: Andeby i modelrepoet, modelrepoets skalering eller 'egen antagelse'", () => {
         for (const b of s.blade) {
             if (!b.kilde) continue;
-            expect(b.kilde, b.sti).toMatch(/^(Andeby, cases\/andeby\.yaml:\d+ @ eef950a|scripts\/vaerksark_til_yaml\.py:\d+ @ eef950a|egen antagelse: )/);
+            expect(b.kilde, b.sti).toMatch(/^(Andeby, cases\/andeby\.yaml:\d+ @ 90fb16e|scripts\/vaerksark_til_yaml\.py:\d+ @ 90fb16e|egen antagelse: )/);
         }
         expect(s.blade.find((b) => b.sti === "units.gaskedel.var_om")).toMatchObject({ vaerdi_json: "89.0", kilde: expect.stringMatching(/^Andeby, cases\/andeby\.yaml:\d+/) });
         expect(s.blade.find((b) => b.sti === "units.gaskedel.p_max_heat")?.kilde).toMatch(/^egen antagelse/);

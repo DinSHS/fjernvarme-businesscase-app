@@ -12,7 +12,7 @@ viser, hvordan du selv kan efterprøve det på en halv time (det meste er instal
 
 | | Commit | Står i |
 |---|---|---|
-| Modellen | `eef950a2ac7b3808a9456dcf48742ce08e52366a` ("FINAL version …", oktober 2026) | `MODEL_COMMIT` i [`fabric/fjv/konstanter.py`](../fabric/fjv/konstanter.py) |
+| Modellen | `90fb16eb1e2d5aa8e619b5a951b93760fa803985` ("Note om nye spotpriser …", november 2026; spot midles over tidsskridtet fra `5021a5e`) | `MODEL_COMMIT` i [`fabric/fjv/konstanter.py`](../fabric/fjv/konstanter.py) |
 | df-data | `106b9fce9a2e3610090b1a542559024056449b88` | `DF_DATA_SHA` samme sted |
 
 Pinnen står også i [`CREDITS.md`](../CREDITS.md), `app/src/sider/dokumentation/kilde.ts` og `viden/*.json`, og gaten
@@ -43,7 +43,7 @@ cases/<værk>.yaml ── fjv/flad.py ──► blade i databasen (sti → værd
 ## 3. Modelspejlet — appen læser dine filer, den afskriver dem ikke
 
 [`viden/vaerktoej/byg_modelspejl.py`](../viden/vaerktoej/byg_modelspejl.py) læser modelrepoet ved den pinnede commit
-(`git show eef950a:<fil>`) og skriver tre genererede filer:
+(`git show 90fb16e:<fil>`) og skriver tre genererede filer:
 
 | Fil | Indhold |
 |---|---|
@@ -65,7 +65,7 @@ filnavne er lange).
 ```bash
 git clone https://github.com/DinSHS/fjernvarme-businesscase-app.git app
 git clone https://github.com/skj-1964/fjernvarme-businesscase.git model
-git -C model checkout eef950a2ac7b3808a9456dcf48742ce08e52366a
+git -C model checkout 90fb16eb1e2d5aa8e619b5a951b93760fa803985
 git clone https://github.com/skj-1964/df-data.git model/data/df-data
 git -C model/data/df-data checkout 106b9fce9a2e3610090b1a542559024056449b88
 
@@ -121,20 +121,23 @@ python app/viden/vaerktoej/bevis_app_vej.py --model model --ud bevis
 
 For hver af de 7 cases køres 10.–11. marts 2026 to gange med modelrepoets egen kommando for casen: **A** direkte
 (`python run_case.py cases/<fil> --data-source github …`) og **B** ad appens vej (blade → frosset input → `case.yaml` +
-argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.csv` byte for byte. Målt 2026-10-27
-(linopy 0.10.0, highspy 1.15.1):
+argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.csv` byte for byte. Målt 2026-11-14 ved
+`90fb16e` med df-data **`106b9fc`** (= appens pin; scriptet melder `df-data 106b9fc, appens pin 106b9fc`), linopy 0.10.0,
+highspy 1.15.1 (`bevis_app_vej.py --model ../fjernvarme-businesscase --ud C:/fjvb2`). En første kørsel samme dag læste
+modelrepoets egen df-data-klon ved `a859b8b`, ikke pinnen; den gav de samme 7 objektiver, men tæller ikke som beviset:
 
-| Case | Kommando (kilde) | Objektiv A = B | `_hourly.csv`, `_kpi.csv` |
-|---|---|---:|---|
-| andeby | uden balancemarked, syntetisk last (`cases/andeby.yaml:9`) | 224.960 | byte-ens |
-| billund_idag | med, målt last (`cases/billund_idag.yaml:24-25`) | 127.642 | byte-ens |
-| billund_sporA | med, syntetisk (`README.md:176`) | 181.392 | byte-ens |
-| billund_sporA_rullende | med, målt (`README.md:178`) | 181.218 | byte-ens |
-| billund_sporA_rullende_bud | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.659 | byte-ens |
-| billund_sporB | med, målt (`cases/billund_sporB.yaml:17-19`) | 51.764 | byte-ens |
-| billund_sporB_rullende | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.659 | byte-ens |
+| Case | Kommando (kilde) | Objektiv A = B, kr. | `_hourly.csv`, `_kpi.csv` | Ved `eef950a` (2026-10-27) |
+|---|---|---:|---|---:|
+| andeby | uden balancemarked, syntetisk last (`cases/andeby.yaml:9`) | 224.912 | byte-ens | 224.960 |
+| billund_idag | med, målt last (`cases/billund_idag.yaml:24-25`) | 132.766 | byte-ens | 127.642 |
+| billund_sporA | med, syntetisk (`README.md:185`) | 183.920 | byte-ens | 181.392 |
+| billund_sporA_rullende | med, målt (`README.md:187`) | 183.494 | byte-ens | 181.218 |
+| billund_sporA_rullende_bud | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.859 | byte-ens | 236.659 |
+| billund_sporB | med, målt (`cases/billund_sporB.yaml:17-19`) | 54.619 | byte-ens | 51.764 |
+| billund_sporB_rullende | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.859 | byte-ens | 236.659 |
 
-**7 af 7 er ens.** Ét vindue kan vælges med `--start`/`--slut`, enkelte cases som argumenter (`andeby.yaml`).
+**7 af 7 er ens** ved begge versioner. Marts 2026 ligger efter 1. oktober 2025, så objektiverne flytter sig med
+spotrettelsen (5021a5e); kolonnen *ved eef950a* kan ikke sammenlignes med de nye tal, og forskellen er ikke en fejl. Ét vindue kan vælges med `--start`/`--slut`, enkelte cases som argumenter (`andeby.yaml`).
 
 ### 4d. Eksport til værksark — rundturen
 
@@ -173,8 +176,9 @@ En fejl i forudsigelsen (målt: tankenes selvafladning sat til 0,0006) gør trin
 ### 4c. Hele appen med en rigtig kørsel
 
 Følg [kom-i-gang i README](../README.md#kom-i-gang--lokal-udgave-520-minutter) og bestil Andeby 5.–6. januar 2026 uden
-balancemarked: **867.031,23 kr.** Samme tal giver den ægte arbejder uden server (`python fabric/koer_minne.py andeby
-2026-01-05 2026-01-06`). Kørslens side viser modelversionerne og *Data i denne kørsel*; de rå filer — `case.yaml`,
+balancemarked: **866.567,72 kr.** ved `90fb16e` (867.031,23 ved `eef950a`, før spotrettelsen). Samme tal giver den ægte
+arbejder uden server (`python fabric/koer_minne.py andeby 2026-01-05 2026-01-06`, målt 2026-11-14) og `run_case.py`
+direkte på modelrepoet ved `90fb16e`. Kørslens side viser modelversionerne og *Data i denne kørsel*; de rå filer — `case.yaml`,
 `argv.json`, modellens egne `_kpi.csv`/`_hourly.csv`/`_manifest.json` og solverloggen — ligger i
 `<datamappe>/Files/fjv/koersler/<kørsels-id>/`, så du kan køre præcis den kørsel med `run_case.py`.
 
@@ -182,25 +186,29 @@ balancemarked: **867.031,23 kr.** Samme tal giver den ægte arbejder uden server
 
 | Hvor | Appens valg | Modelrepoet | Hvorfor |
 |---|---|---|---|
-| Parforslag (scenarie mod reference) | relativt gab 0,02 % **og** absolut gab 100 kr. | `--mip-gap 0.0002` (README.md:152); det absolutte gab er casens (fx 5.000 kr.) | en differens på få tusinde kroner drukner ellers i det absolutte gab (se [nedenfor](#highs)) |
+| Parforslag (scenarie mod reference) | relativt gab 0,02 % **og** absolut gab 100 kr. | `--mip-gap 0.0002` (README.md:161); det absolutte gab er casens (fx 5.000 kr.) | en differens på få tusinde kroner drukner ellers i det absolutte gab (se [nedenfor](#highs)) |
 | Cases uden kørselskommando (`billund_sporA_rullende_bud`, `billund_sporB_rullende`) og egne værker | uden balancemarked, syntetisk varmelast | ingen kommando | appen skal vælge noget; valget står som *egen antagelse* i scenariet |
 | "Nyt værk" | årsbehov 50 GWh som udgangspunkt; gaskedel `round(50 × f)` MW; enhedstypernes pladsholdere | skalering `f = round(G/100, 4)` og Andebys tal (brugt uændret) | et minimalt gyldigt værk; hvert felt bærer sin kilde ind i databasen |
 | Månedstal | dansk lokaltid, alle N intervaller | `_monthly.csv` i UTC | sammenlignes med værkets egne måneder |
 | Sammenligning, vandfald, anbefalinger | appens egne regler (`viden/anbefalingsregler.json`, METODE §6a) | differensmetoden (README) | appen lægger to kørsler side om side; reglerne står i appen |
 | Grænser | kun timeopløsning (1h); højst 366 døgn; én solver ad gangen; tidsgrænse ≤ 3.600 s i Fabric; CSV-upload strengere end modellens læser | modellen kan 15 min og vilkårlig længde | driftssikkerhed i en delt installation |
 | Netto og brutto balanceindtægt | vises hver for sig, aldrig lagt sammen | objektivet bruger brutto, manifestet netto | som modellens egen dokumentation |
+| Referencetal efter spotrettelsen (`5021a5e`) | README-tallene vises som *regnet før spotrettelsen* med egne målinger ved `90fb16e` ved siden af (Information › Referencetal og Budstrategi, METODE §7, `referencetal.json` › `regnet_igen`); *README mod Fabric* tæller kun kørsler ved `eef950a` (`model_commit` med `regnet_ved`); demoernes forventede tal er egne målinger, og D12 har intet | README-tabellen, `doc/` (fx `doc/BUDSTRATEGI.md:328-335`) og rapport v4 er regnet før rettelsen og opdateres senere (README.md:20-27); efter rettelsen kun tre kontroltal (CLAUDE.md:30-38) | koden ved pinnen regner med den nye spotregel; et gammelt tal som facit ville melde en korrekt kørsel som forkert |
 
 Ikke med i appen: `--heat-params`, `--heat-csv-column`/`--heat-csv-tz`, `--legacy-nettab` i standardkørslen, `--dummy`.
 
 ## 6. Observationer i modelrepoet
 
-Fundet under arbejdet ved `eef950a` og ikke rettet af os (modelrepoet er dit). Ingen af dem påvirker appens tal.
+Fundet under arbejdet ved `eef950a` og ikke rettet af os (modelrepoet er dit). Ingen af dem påvirker appens tal. Rækker
+mærket *ved 90fb16e* er fundet ved modelskiftet 14. november 2026; deres linjer er ved `90fb16e`.
 
 | Hvor | Hvad |
 |---|---|
 | `README.md:125,253`, `CONTRIBUTING.md:71`, `doc/WORKFLOW_LOKAL.md:149`, `doc/EGET_VAERK.md:4`, `scripts/vaerksark_til_yaml.py:51` | peger på `doc/vaerksdata_skabelon.xlsx`; filen ligger nu i roden |
 | `scripts/byg_skabelon.py:571` | skriver stadig skabelonen til `doc/` |
 | `README.md:14,217` | linker til `.docx`-filer, der er flyttet til `doc/arkiv/` |
+| `README.md:20-27`, `README.md:183-189`, `doc/BUDSTRATEGI.md:328-335` (ved 90fb16e) | tallene er regnet før spotrettelsen; modelrepoet siger det selv. Appen viser dem som sådan (afsnit 5) |
+| `CLAUDE.md:30-38` (ved 90fb16e) | kontroltallene for Billund i dag siger ikke, hvilken varmelastfil de er regnet med; appens kæde ramte dem til kronen med `billund_abvaerk_hourly_splejset_jun2026.csv` |
 | `doc/BALANCEMARKED.md:52-62` | aktiveringsværdien står stadig med spot; koden (`src/activation_value.py`) og BUDSTRATEGI §4.2 regner uden |
 | `src/reporting.py:314-338`, `src/model.py:262` | kommentarerne beskriver stadig t=0-lagerbalancen som ubundet |
 | `CONTRIBUTING.md:38` | "434 passed"; ved eef950a er der 437 tests |

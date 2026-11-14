@@ -20,6 +20,7 @@ import { useReferencetal } from "./useReferencer";
 
 const TILSTAND: Record<RefTilstand, { tekst: string; tone: "neutral" | "ok" | "advarsel" | "fejl"; titel: string }> = {
     "ikke-koert": { tekst: "ikke kørt endnu", tone: "neutral", titel: "Ingen færdig kørsel af værket med referencens opsætning." },
+    "anden-version": { tekst: "kørt ved en anden modelversion", tone: "neutral", titel: "En færdig kørsel med referencens opsætning findes, men ved en anden modelversion end den, README-tallet er regnet ved. Tallene kan ikke sammenlignes, så der regnes ingen afvigelse." },
     "aendret": { tekst: "kun ændrede scenarier", tone: "advarsel", titel: "Kørsler af værket findes, men alle har ændringer i scenariet — ingen er den rene reference." },
     "indenfor": { tekst: "inden for tolerancen", tone: "ok", titel: "Afvigelsen er mindre end casens eget solvergab tillader." },
     "udenfor": { tekst: "uden for tolerancen", tone: "fejl", titel: "Afvigelsen er større end casens solvergab tillader. Tjek data-version, kerner og gab." },
@@ -41,7 +42,7 @@ function RefRaekke({ r }: { r: RefRække }) {
             <td><span title={t.titel}><Maerke tone={t.tone}>{t.tekst}</Maerke></span></td>
             <td>
                 {r.kandidat ? (
-                    <span title={r.kandidat.gab.erStrammere ? "Regnet med et strammere gab end casens eget — en lige så god måling af README-tallet." : "Regnet med casens eget gab."}>
+                    <span title={r.tilstand === "anden-version" ? "Kørslens gab. Kørslen er regnet ved en anden modelversion og er ikke en måling af README-tallet." : r.kandidat.gab.erStrammere ? "Regnet med et strammere gab end casens eget — en lige så god måling af README-tallet." : "Regnet med casens eget gab."}>
                         <span className="fjv-ref-tal">{gabTekst(r.kandidat.gab.rel, r.kandidat.gab.abs)}</span>
                         <span className="fjv-ref-sub">
                             {r.kandidat.gab.opnaaet !== null ? `opnået ${gabProcent(r.kandidat.gab.opnaaet)}` : "opnået gab ikke oplyst"}
@@ -63,7 +64,9 @@ function sammenfatning(raekker: readonly RefRække[]): string {
     const mangler = raekker.filter((r) => r.tilstand === "ikke-koert" || r.tilstand === "aendret").length;
     const dele = [`${inden} af ${raekker.length} er genskabt i Fabric inden for casens solvergab`];
     if (uden > 0) dele.push(`${uden} ligger uden for`);
+    const anden = raekker.filter((r) => r.tilstand === "anden-version").length;
     if (mangler > 0) dele.push(`${mangler} er ikke kørt endnu`);
+    if (anden > 0) dele.push(`${anden} er kun kørt ved en anden modelversion og kan ikke sammenlignes`);
     return dele.join(", ") + ".";
 }
 
@@ -86,6 +89,7 @@ export function ReferencetalSide({ emne, emner, anker }: { emne: Emne; emner: re
     const tekst = useEmneTekst(emne, anker);
     const ref = useReferencetal();
     const sporB = useSporB();
+    const version = ref.data?.raekker[0]?.ref.modelCommit?.slice(0, 7);
     const budskab = ref.data ? `${sammenfatning(ref.data.raekker)} ${eksempel(ref.data.raekker) ?? ""}`.trim() : tekst.budskab;
 
     return (
@@ -93,7 +97,7 @@ export function ReferencetalSide({ emne, emner, anker }: { emne: Emne; emner: re
             <Gitter form="12">
                 <Kort titel="README mod Fabric" afgraensning="objektiv, kr."
                     budskab={ref.data ? sammenfatning(ref.data.raekker) : undefined}
-                    fod="Afvigelse = Fabric − README. Tolerance = casens eget solvergab, max(absolut gab, relativt gab × objektiv) — README angiver ingen tolerance selv; for Andeby med balancering er det README's opnåede gab, 0,12 %. En kørsel tæller, hvis den har samme værk, periode, balancering, varmelast og metode som referencen, intet i scenariet er ændret, og gabet er det samme eller strammere; den nyeste sådan kørsel vises. Solveren minimerer, så et objektiv kan være for højt, men ikke under det sande optimum: en strammere kørsel ligger derfor typisk under README-tallet, ikke over.">
+                    fod={`Afvigelse = Fabric − README. Tolerance = casens eget solvergab, max(absolut gab, relativt gab × objektiv) — README angiver ingen tolerance selv; for Andeby med balancering er det README's opnåede gab, 0,12 %. En kørsel tæller, hvis den har samme værk, periode, balancering, varmelast og metode som referencen, intet i scenariet er ændret, og gabet er det samme eller strammere; den nyeste sådan kørsel vises. Kørslen skal også være regnet ved den modelversion, README-tallene er regnet ved${version ? ` (${version})` : ""}; en kørsel ved en anden version står som «kørt ved en anden modelversion» uden afvigelse, fordi tallene ikke kan sammenlignes. Solveren minimerer, så et objektiv kan være for højt, men ikke under det sande optimum: en strammere kørsel ligger derfor typisk under README-tallet, ikke over.`}>
                     <DataTilstand h={ref} højde={220}>
                         {(d) => (
                             <div className="fjv-tabelrul">

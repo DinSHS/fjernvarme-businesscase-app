@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_etiketter.py fra viden/anbefalingsregler.json og
 // viden/knapper.json (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: eef950a2ac7b3808a9456dcf48742ce08e52366a · 16 knapper · 12 forbehold
+// Modelcommit: 90fb16eb1e2d5aa8e619b5a951b93760fa803985 · 16 knapper · 12 forbehold
 //-----------------------------------------------------------------------
 
 export const KATEGORIER: Readonly<Record<string, { maerke: string; tone: string; betydning: string }>> = {
@@ -51,7 +51,7 @@ export const FORBEHOLD_REGLER: Readonly<Record<string, { virkning: string; tekst
  "spor_a": {
   "virkning": "nedgrader",
   "tekst": "Balancetallet er Spor A: en øvre grænse ved fuld tilgængelighed, ikke en prognose.",
-  "kilde": "README.md:156-158; doc/BALANCEMARKED.md:113-121"
+  "kilde": "README.md:165-167; doc/BALANCEMARKED.md:113-121"
  },
  "kender_aktiveringerne": {
   "virkning": "nedgrader",
@@ -71,7 +71,7 @@ export const FORBEHOLD_REGLER: Readonly<Record<string, { virkning: string; tekst
  "ikke_optimal": {
   "virkning": "nedgrader",
   "tekst": "{rolle} stoppede ved tidsgrænsen med gab {gab}; tallet er ikke bevist optimalt.",
-  "kilde": "README.md:146"
+  "kilde": "README.md:155"
  },
  "profilbunden": {
   "virkning": "nedgrader",

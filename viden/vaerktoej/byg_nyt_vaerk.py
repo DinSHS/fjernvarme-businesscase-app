@@ -203,7 +203,7 @@ def main() -> None:
             "pr_lager": ["volume_m3", "delta_t_k", "e_initial_mwh", "p_max_charge_mw", "p_max_discharge_mw", "self_discharge_per_hour"],
             "pr_braendsel_i_brug": ["prices.<brændsel>.value"],
             "hvis_tarifprofil": ["electricity.tariff_consumption.unit", "…net_tariff.bands.*", "…net_tariff.seasons.*.months/weekday/weekend (alle 12 måneder, alle 24 timer)", "…fixed_components.elafgift_net = electricity_tax"],
-            "kilde": "src/config.py:906-1165; src/tariff.py:110-161; src/data_loader.py:805-809"
+            "kilde": "src/config.py:906-1165; src/tariff.py:110-161; src/data_loader.py:834-838"
         },
         "blade": bl,
     }

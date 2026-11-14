@@ -137,12 +137,24 @@ const tidspunkt = (k: Koersel) => new Date(k.afsluttet ?? k.bestilt ?? 0).getTim
  * 19/10-2026 (eef950a) ligger fx Spor A-ankeret 371.000 kr. højere end ved b49aeb0, uden at nogen af dem er forkert.
  */
 export function kandidater(r: Reference, vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[]): Kandidat[] {
+    return udvalg(r, vaerker, scenarier, koersler, (k) => r.modelCommit === null || k.model_commit === r.modelCommit);
+}
+
+/**
+ * Samme udvalg ved en ANDEN modelversion end referencetallenes. De er ikke en måling af tallet, men de er kørt: uden dem
+ * stod en gennemført kørsel ved pinnen (90fb16e, efter spotrettelsen) som "ikke kørt endnu" (Codex-review 14/11-2026).
+ */
+export function kandidaterVedAndenVersion(r: Reference, vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[]): Kandidat[] {
+    return r.modelCommit === null ? [] : udvalg(r, vaerker, scenarier, koersler, (k) => k.model_commit !== r.modelCommit);
+}
+
+function udvalg(r: Reference, vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[],
+    version: (k: Koersel) => boolean): Kandidat[] {
     const vaerk = vaerker.find((v) => v.kode === r.kode);
     if (!vaerk) return [];
     const scen = new Map(scenarier.map((s) => [s.id, s]));
     return koersler
-        .filter((k) => k.vaerk_id === vaerk.id && k.status === "faerdig" && typeof k.objektiv_dkk === "number"
-            && (r.modelCommit === null || k.model_commit === r.modelCommit))
+        .filter((k) => k.vaerk_id === vaerk.id && k.status === "faerdig" && typeof k.objektiv_dkk === "number" && version(k))
         .flatMap((k): Kandidat[] => {
             const s = scen.get(k.scenarie_id);
             if (!s || !harReferencensOpsaetning(s, r)) return [];
@@ -181,6 +193,8 @@ export type RefTilstand =
     | "ikke-koert"
     /** Der findes kørsler af værket med samme felter, men alle er scenarier med ændringer: ingen af dem er referencen. */
     | "aendret"
+    /** Kun rene kørsler ved en anden modelversion end referencetallenes: kørt, men kan ikke sammenlignes (ingen vurdering). */
+    | "anden-version"
     | "indenfor"
     | "udenfor"
     /** En ren kørsel findes, men README angiver ingen tolerance at måle den mod. */
@@ -195,14 +209,23 @@ export interface RefRække {
 
 /**
  * Pr. reference: den nyeste kandidat uden scenarie-ændringer. `aendringer` er antal ændringer pr. scenarie-id
- * (et scenarie uden række i kortet regnes som uden ændringer — kortet skal derfor være bygget af ALLE kandidaters id'er).
+ * (et scenarie uden række i kortet regnes som uden ændringer — kortet skal derfor være bygget af ALLE kandidaters id'er,
+ * også dem ved en anden modelversion: `kandidatScenarier`). Findes ingen ren kørsel ved referencetallenes version, men en ved en
+ * anden, er tilstanden "anden-version": kørt, men uden vurdering, fordi tallene ikke kan sammenlignes.
  */
 export function byggRaekker(refs: readonly Reference[], vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[],
     aendringer: ReadonlyMap<string, number>): RefRække[] {
     return refs.map((ref) => {
         const alle = kandidater(ref, vaerker, scenarier, koersler);
         const ren = alle.find((k) => (aendringer.get(k.scenarie.id) ?? 0) === 0);
-        if (!ren) return { ref, kandidat: alle[0], tilstand: alle.length ? "aendret" : "ikke-koert" } satisfies RefRække;
+        if (!ren) {
+            const andre = kandidaterVedAndenVersion(ref, vaerker, scenarier, koersler);
+            const andenRen = andre.find((k) => (aendringer.get(k.scenarie.id) ?? 0) === 0);
+            // Rækkefølgen: ren ved referencens version > ren ved en anden > ændret > ikke kørt. En ÆNDRET kørsel ved
+            // referencens version må ikke skjule en REN ved en anden (Codex-efterreview 14/11-2026).
+            if (andenRen) return { ref, kandidat: andenRen, tilstand: "anden-version" } satisfies RefRække;
+            return { ref, kandidat: alle[0] ?? andre[0], tilstand: alle.length || andre.length ? "aendret" : "ikke-koert" } satisfies RefRække;
+        }
         const vurdering = vurder(ref, ren.koersel.objektiv_dkk as number);
         return { ref, kandidat: ren, vurdering, tilstand: vurdering.indenfor === null ? "uafgoerligt" : vurdering.indenfor ? "indenfor" : "udenfor" } satisfies RefRække;
     });
@@ -210,7 +233,8 @@ export function byggRaekker(refs: readonly Reference[], vaerker: readonly Vaerk[
 
 /** Scenarie-id'er, der skal tjekkes for ændringer, før en kandidat må kaldes en ren reference. */
 export function kandidatScenarier(refs: readonly Reference[], vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[]): string[] {
-    return [...new Set(refs.flatMap((r) => kandidater(r, vaerker, scenarier, koersler).map((k) => k.scenarie.id)))];
+    return [...new Set(refs.flatMap((r) => [...kandidater(r, vaerker, scenarier, koersler), ...kandidaterVedAndenVersion(r, vaerker, scenarier, koersler)]
+        .map((k) => k.scenarie.id)))];
 }
 
 //-- Spor B mod Billunds afregning (rapport v4 tabel 5.1) ----------------------

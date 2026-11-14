@@ -4,7 +4,8 @@
 //        [--dfdata <mappe med df-data ved den pinnede commit> --dfdata-commit <sha>]   (kreditteksterne, se nedenfor)
 //
 // - Modelrepoets filer hentes med `git show <commit>:<sti>` — aldrig fra arbejdsmappen, som indeholder
-//   utrackede filer (CLAUDE.md, doc/AUTOMATISERING.*) der ikke er en del af den pinnede udgivelse.
+//   utrackede filer (.claude/, doc/AUTOMATISERING.*) der ikke er en del af den pinnede udgivelse. CLAUDE.md er
+//   tracket fra 90fb16e, men bundtes ikke (viden/dokumentation_indeks.json, ikke_med).
 // - Commit og filliste læses fra viden/dokumentation_indeks.json (fv-ekspert), så der er én sandhed.
 // - Skriver KUN under indhold/repo og indhold/viden. indhold/egne er håndskrevet og røres ikke.
 // - Bytes kopieres uændret (LICENSE skal følge med uændret, MIT); linjeskift normaliseres ikke.

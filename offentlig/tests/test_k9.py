@@ -44,7 +44,7 @@ class TestF3IngenRaekkeId(unittest.TestCase):
     def test_demomaalingerne_staar_under_demokode(self):
         demo = json.loads((ROD / "viden" / "demo_scenarier.json").read_text(encoding="utf-8"))
         koder = {k["id"] for k in demo["koersler"]}
-        for afsnit in ("koersel_status", "koersel_status_b49aeb0"):
+        for afsnit in ("koersel_status", "koersel_status_eef950a", "koersel_status_b49aeb0"):
             for felt, vaerdi in demo[afsnit].items():
                 if isinstance(vaerdi, dict):
                     self.assertLessEqual(set(vaerdi), koder, f"{afsnit}.{felt}")

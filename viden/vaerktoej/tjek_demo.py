@@ -32,7 +32,7 @@ HER = Path(__file__).resolve().parent
 VIDEN = HER.parent
 PRODUKT = VIDEN.parent
 REPO = Path(os.environ.get("FJV_MODELREPO", PRODUKT.parent / "fjernvarme-businesscase"))
-PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
+PIN = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
 
 sys.path.insert(0, str(PRODUKT / "fabric"))
 from fjv.byg_case import byg, raekker_fra_vaerk  # noqa: E402

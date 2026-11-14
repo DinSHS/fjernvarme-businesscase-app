@@ -2,10 +2,10 @@
 // GENERERET af _byg/byg_etiketter.py fra viden/felt_katalog.json,
 // viden/enhedstyper.json og viden/resultat_etiketter.json (fv-ekspert).
 // Ret ikke i hånden.
-// Modelcommit: eef950a2ac7b3808a9456dcf48742ce08e52366a · 151 felter · 7 enhedstyper
+// Modelcommit: 90fb16eb1e2d5aa8e619b5a951b93760fa803985 · 151 felter · 7 enhedstyper
 //-----------------------------------------------------------------------
 
-export const MODEL_COMMIT_KATALOG = "eef950a2ac7b3808a9456dcf48742ce08e52366a";
+export const MODEL_COMMIT_KATALOG = "90fb16eb1e2d5aa8e619b5a951b93760fa803985";
 
 export const FELTER: readonly { sti: string; etiket: string; enhed: string | null }[] = [
  {

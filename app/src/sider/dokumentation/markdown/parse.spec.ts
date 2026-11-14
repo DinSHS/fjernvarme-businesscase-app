@@ -119,7 +119,7 @@ describe("links", () => {
         expect(omskrivLink("../README.md", { rute: "dokumentation/koersel", mappe: "doc" }).href).toBe("#/dokumentation/readme");
     });
     it("ubundtet fil -> GitHub ved den pinnede commit; mappe -> tree; regneark -> raw", () => {
-        const c = "eef950a2ac7b3808a9456dcf48742ce08e52366a";
+        const c = "90fb16eb1e2d5aa8e619b5a951b93760fa803985";
         expect(omskrivLink("doc/rapport_billund_v4.pdf", { rute: "dokumentation/readme", mappe: "" }))
             .toEqual({ href: `https://github.com/skj-1964/fjernvarme-businesscase/blob/${c}/doc/rapport_billund_v4.pdf`, ekstern: true });
         expect(omskrivLink("doc/arkiv/", { rute: "dokumentation/readme", mappe: "" }).href)

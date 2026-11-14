@@ -8,8 +8,8 @@
 export const MODELREPO = {
     navn: "skj-1964/fjernvarme-businesscase",
     url: "https://github.com/skj-1964/fjernvarme-businesscase",
-    commit: "eef950a2ac7b3808a9456dcf48742ce08e52366a",
-    kort: "eef950a",
+    commit: "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
+    kort: "90fb16e",
     licens: "MIT",
 } as const;
 

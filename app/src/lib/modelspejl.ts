@@ -8,7 +8,7 @@ import { MODELSPEJL } from "./modelspejl.data";
 
 /** Én kørselskommando, modelrepoet selv angiver for en case (casens hoved eller README's referencetabel). */
 export interface Modelkoersel {
-    /** fil:linje i modelrepoet, fx "README.md:177" eller "cases/billund_sporB.yaml:17-19". */
+    /** fil:linje i modelrepoet, fx "README.md:186" eller "cases/billund_sporB.yaml:17-19". */
     kilde: string;
     kommando: string;
     med_balancering: boolean;
@@ -47,7 +47,7 @@ export function modelKoersel(rodKode: string | undefined): Modelkoersel | undefi
     return spejlcase(rodKode)?.standard ?? undefined;
 }
 
-/** "README.md:177 @ eef950a" */
+/** "README.md:186 @ 90fb16e" */
 export function kildeMedCommit(kilde: string): string {
     return `${kilde} @ ${kort(SPEJL_COMMIT)}`;
 }
@@ -60,7 +60,7 @@ export function koerselskilde(rodKode: string | undefined): string {
     return `Som modelrepoet kører ${c.fil}: ${c.standard.med_balancering ? "med" : "uden"} balancemarked, ${c.standard.heat_csv ? `målt varmelast ${c.standard.heat_csv}` : "syntetisk varmelast"} (${kildeMedCommit(c.standard.kilde)}).`;
 }
 
-/** Kilde til et blad i en repo-case: "cases/andeby.yaml:181 @ eef950a" (undefined, hvis stien ikke står i casen). */
+/** Kilde til et blad i en repo-case: "cases/andeby.yaml:181 @ 90fb16e" (undefined, hvis stien ikke står i casen). */
 export function bladkilde(rodKode: string | undefined, sti: string): string | undefined {
     const c = spejlcase(rodKode);
     const b = c?.blade[sti];

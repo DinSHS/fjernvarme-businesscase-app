@@ -1,12 +1,12 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_viden.py fra viden/knapper.json og viden/felt_katalog.json
 // (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: eef950a2ac7b3808a9456dcf48742ce08e52366a · 16 knapper · 151 felter
+// Modelcommit: 90fb16eb1e2d5aa8e619b5a951b93760fa803985 · 16 knapper · 151 felter
 //-----------------------------------------------------------------------
 
 import type { Feltpost, Knap, FastVindue, Regel } from "./viden";
 
-export const MODEL_COMMIT = "eef950a2ac7b3808a9456dcf48742ce08e52366a";
+export const MODEL_COMMIT = "90fb16eb1e2d5aa8e619b5a951b93760fa803985";
 
 export const FAELLES_REGLER: readonly Regel[] = [
  {
@@ -51,7 +51,7 @@ export const ANBEFALET_GAB = {
  "mip_rel_gap": 0.0002,
  "mip_abs_gap": 100,
  "begrundelse": "Det absolutte gab må ikke binde før det relative: abs ≤ 0,0002 × objektiv. 100 kr. opfylder det for ethvert objektiv over 0,5 mio. kr. (alle repoets værker og vinduer). Målt 2026-10-16: med 0,0002 og 100 kr. løste alle otte Andeby-vinterkørsler til gab 0 på under 1 s; Billund Spor B (4 måneder, abs 1.000) nåede 0,013–0,019 %.",
- "kilde": "doc/KOERSEL.md:57-60 og README.md:152 (kun det relative gab 0,0002); src/config.py:742-751 (HiGHS får begge gab); det absolutte gab på 100 kr. er appens egen antagelse, bygget på egen måling (appens udvikling, 16.10.2026 ved b49aeb0; står ikke i modelrepoet)",
+ "kilde": "doc/KOERSEL.md:57-60 og README.md:161 (kun det relative gab 0,0002); src/config.py:742-751 (HiGHS får begge gab); det absolutte gab på 100 kr. er appens egen antagelse, bygget på egen måling (appens udvikling, 16.10.2026 ved b49aeb0; står ikke i modelrepoet)",
  "egen_antagelse": "Modelrepoet siger kun --mip-gap 0.0002 til differenser og lader det absolutte gab stå (casens eller kodens 5.000 kr.). Appen sætter også det absolutte gab ned til 100 kr., fordi HiGHS stopper ved det første af de to gab."
 } as const;
 
@@ -107,7 +107,7 @@ export const FASTE_VINDUER: readonly FastVindue[] = [
   "periode_start": "2025-07-01",
   "periode_slut": "2026-06-30",
   "note": "Kursets faste år: efter PICASSO, begge endepunkter om sommeren. Tager minutter til en time; regn på forhånd.",
-  "kilde": "cases/andeby.yaml:93-117; README.md:148-152"
+  "kilde": "cases/andeby.yaml:93-117; README.md:157-161"
  }
 ];
 
@@ -414,7 +414,7 @@ export const KNAPPER: readonly Knap[] = [
    "Modellen regner kun driften. Investering, afskrivning og rente ligger uden for (investment.enabled bruges ikke).",
    "En ny el-enhed skal også have prækvalifikation og lofter, hvis den skal byde i balancemarkedet."
   ],
-  "kilde": "README.md:59; doc/KOERSEL.md:38",
+  "kilde": "README.md:68; doc/KOERSEL.md:38",
   "utilgaengelig_tekst": "Værket mangler et felt, knappen kræver.",
   "anbefaling": {
    "type": "beslutning",
@@ -791,7 +791,7 @@ export const KNAPPER: readonly Knap[] = [
   ],
   "advarsler": [
    "activation_value kræver bid_strategy i værket.",
-   "Har værket en activation-blok med andet end clear/realized (andeby, billund_spora_rullende_bud, billund_sporb), afviser config.py method legacy i casen. Via scenariefeltet (CLI --balancing-method) sker kontrollen ikke, fordi metoden overskrives efter indlæsning (run_case.py:661-668); activation-blokken bruges så slet ikke, da aktiveringsparametrene kun bygges ved activation_value (src/data_loader_github.py:690-698). Differensen blander derfor metode og aktiveringsmodel på de tre værker."
+   "Har værket en activation-blok med andet end clear/realized (andeby, billund_spora_rullende_bud, billund_sporb), afviser config.py method legacy i casen. Via scenariefeltet (CLI --balancing-method) sker kontrollen ikke, fordi metoden overskrives efter indlæsning (run_case.py:661-668); activation-blokken bruges så slet ikke, da aktiveringsparametrene kun bygges ved activation_value (src/data_loader_github.py:693-701). Differensen blander derfor metode og aktiveringsmodel på de tre værker."
   ],
   "kilde": "doc/KOERSEL.md:40; doc/BALANCEMARKED.md:52-66; src/config.py:1067-1071",
   "utilgaengelig_tekst": "Værket har ingen budstrategi (balancing.bid_strategy), som indtægtsmetoden activation_value kræver.",
@@ -917,7 +917,7 @@ export const KNAPPER: readonly Knap[] = [
    "Valget alene kan flytte objektivet op til ca. 4 %.",
    "fyn og vestkyst mangler timer 28. februar 2026 (fyn også 1. januar 2026); perioder hen over dem stopper på dækningen."
   ],
-  "kilde": "README.md:235-237; cases/andeby.yaml:89; doc/KOERSEL.md:110-111",
+  "kilde": "README.md:244-246; cases/andeby.yaml:89; doc/KOERSEL.md:110-111",
   "utilgaengelig_tekst": "Værket har ingen data-blok med DMI-område.",
   "anbefaling": {
    "type": "foelsomhed",

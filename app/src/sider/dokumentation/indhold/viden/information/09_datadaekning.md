@@ -3,7 +3,7 @@
 Markeds- og vejrdata kommer fra datarepoet **df-data**, som opdateres hver mandag: spot (kvarterpriser
 fra 1. oktober 2025), aFRR, mFRR-kapacitet, mFRR-aktivering, ubalancepris og DMI-observationer.
 Kilden er api.sysapp.dk, kontrolleret mod Energi Data Service. Hver kørsel gemmer, hvilken version
-af data den brugte. (Kilde: README.md:222-228; KONTRAKT §3.6)
+af data den brugte. (Kilde: README.md:231-237; KONTRAKT §3.6)
 
 ## Kendte huller og grænser
 
@@ -17,11 +17,11 @@ af data den brugte. (Kilde: README.md:222-228; KONTRAKT §3.6)
 Målt 16. oktober 2026 ved df-data `392992c` med modellens egen dækningsregel. Ældre versioner af df-data havde
 flere huller (fyn og vestkyst 28. februar 2026, aFRR fra 4. september 2026), som casens kommentarer stadig nævner;
 de er fyldt siden. Hvad der gælder for en kørsel, afgøres af den version af df-data, kørslen bruger.
-(Kilde: viden/data_krav.json; cases/andeby.yaml:97-113; src/data_loader_github.py:62-83)
+(Kilde: viden/data_krav.json; cases/andeby.yaml:97-113; src/data_loader_github.py:63-86)
 
 **Huller i markedsdata fyldes aldrig** (tomme temperaturtimer undtaget). Mangler data i perioden, stopper kørslen
 med en dækningsfejl, der siger hvilke timer der mangler. Det er med vilje: tidligere gav et hul tavst nul balanceindtægt eller nul
-sol. (Kilde: src/data_loader.py:83-110; rapport v4, bilag C)
+sol. (Kilde: src/data_loader.py:112-139; rapport v4, bilag C)
 
 **Det rullende år** 1. juli 2025 – 30. juni 2026 er standardperioden: det seneste hele år efter
 PICASSO, med begge endepunkter om sommeren, hvor tanken betyder mindst. (Kilde: cases/andeby.yaml:93-113)

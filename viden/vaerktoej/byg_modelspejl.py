@@ -270,7 +270,7 @@ def skalering_vektorer(tekst: str) -> list[dict]:
     """Orakel (K8 F1): modelrepoets EGNE tre tildelinger udført uændret i Python for udvalgte G — de faste, plus hver
     hundrededel i 1,01-500, der rammer et halvtilfælde i f, gaf, nettab eller profilen, plus hver 499. Appens
     TypeScript (nyt-vaerk.ts) prøves mod dem i vitest; [2] sikrer, at filen er det, modelrepoet giver."""
-    kode = compile(ast.Module(body=_skalering_noder(tekst), type_ignores=[]), f"eef950a:{SK}", "exec")
+    kode = compile(ast.Module(body=_skalering_noder(tekst), type_ignores=[]), f"{PIN[:7]}:{SK}", "exec")
     regel = varmelast_skalering(tekst)
     d = regel["decimaler"]
 

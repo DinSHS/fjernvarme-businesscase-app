@@ -95,8 +95,11 @@ def fejlbesked_fra_log(log: str, rc: int) -> str:
         if m:
             navn, tekst = m.group(1).split(".")[-1], m.group(2)
             hint = {
-                "CoverageError": " (df-data dækker ikke hele perioden - vælg en anden "
-                                 "periode eller en nyere data-SHA)",
+                # To slags: df-data mangler for perioden, eller (fra modelrepoets 5021a5e) en time har
+                # kun 2-3 af sine fire spotkvarterer (spot_paa_akse, src/data_loader.py:85-91 @ 90fb16e).
+                # Den sidste dækker df-data perioden; en tekst om "hele perioden" alene vildleder.
+                "CoverageError": " (df-data dækker ikke hele perioden, eller en time har kun nogle af "
+                                 "sine kvarterpriser - vælg en anden periode eller en nyere data-SHA)",
             }.get(navn, "")
             return f"{navn}: {tekst}{hint}"[:3900]
     if "infeasible" in log.lower():

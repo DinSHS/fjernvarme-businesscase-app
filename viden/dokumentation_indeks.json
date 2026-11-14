@@ -1,13 +1,13 @@
 {
-  "_om": "Hvilke dokumenter appens Dokumentation-side viser, i hvilken rækkefølge, og hvorfra. Repo-dokumenter hentes ved build fra modelrepoet ved model_commit (git show <commit>:<sti>), aldrig fra arbejdsmappen: den indeholder utrackede filer (CLAUDE.md, .claude/, doc/AUTOMATISERING.*, doc/*.html), som ikke er en del af den pinnede udgivelse.",
-  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+  "_om": "Hvilke dokumenter appens Dokumentation-side viser, i hvilken rækkefølge, og hvorfra. Repo-dokumenter hentes ved build fra modelrepoet ved model_commit (git show <commit>:<sti>), aldrig fra arbejdsmappen: den indeholder utrackede filer (.claude/, doc/AUTOMATISERING.*, doc/*.html), som ikke er en del af den pinnede udgivelse.",
+  "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
   "licens": {
     "navn": "MIT",
     "indehaver": "Copyright (c) 2026 Dansk Fjernvarme",
     "kilde": "LICENSE:1-3",
     "krav": "MIT tillader brug, ændring og videredistribution, også kommercielt, når copyright- og tilladelsesteksten følger med alle kopier. Bundt derfor LICENSE uændret sammen med de bundtede dokumenter, og vis den i appen (punkt 'licens' nedenfor).",
     "bundtes_ved_build": true,
-    "note": "Dokumenterne er offentlige. Værksdata, der oprettes i appen, er ikke; de må aldrig skrives tilbage til det offentlige repo (KONTRAKT §2; README.md:136-140)."
+    "note": "Dokumenterne er offentlige. Værksdata, der oprettes i appen, er ikke; de må aldrig skrives tilbage til det offentlige repo (KONTRAKT §2; README.md:145-149)."
   },
   "links_i_dokumenterne": "Repo-dokumenterne linker relativt til hinanden (fx '](BALANCEMARKED.md)', '](EGET_VAERK.md#helår-og-løsetid)', README: '](doc/...)'). Appen skal omskrive links til bundtede dokumenter til interne visninger og links til filer, der ikke bundtes, til https://github.com/skj-1964/fjernvarme-businesscase/blob/<model_commit>/<sti>.",
   "dokumenter": [
@@ -180,15 +180,19 @@
     },
     {
       "sti": "doc/notat_bestyrelse_datasikkerhed.pdf",
-      "grund": "Notat om GDPR, fortrolighed og jurisdiktion ved brug af Claude; stadig 'Udkast v1, maj 2026' (forsiden; README.md:259). Handler om modellens arbejdsform med Claude, ikke om appen."
+      "grund": "Notat om GDPR, fortrolighed og jurisdiktion ved brug af Claude; stadig 'Udkast v1, maj 2026' (forsiden; README.md:226). Handler om modellens arbejdsform med Claude, ikke om appen."
     },
     {
       "sti": "noter/",
       "grund": "Udviklernes interne gate-notater; ikke brugerdokumentation."
     },
     {
-      "sti": "CLAUDE.md, .claude/, doc/AUTOMATISERING.*, doc/*.html",
-      "grund": "Utrackede filer i arbejdsmappen; ikke en del af commit eef950a."
+      "sti": "CLAUDE.md",
+      "grund": "Tracket fra 90fb16e, men noter til Claude, ikke til brugerne (filens første linje: 'Vejledningen til brugerne står i README.md'). Det brugeren skal vide, at tallene i README-tabellen, doc/ og rapport v4 er fra før spotrettelsen 5021a5e, står også i README.md:20-27, som er bundtet. Afsnittet er midlertidigt ('Slet dette afsnit, når dokumenterne er opdateret')."
+    },
+    {
+      "sti": ".claude/, doc/AUTOMATISERING.*, doc/*.html",
+      "grund": "Utrackede filer i arbejdsmappen; ikke en del af den pinnede commit."
     }
   ]
 }

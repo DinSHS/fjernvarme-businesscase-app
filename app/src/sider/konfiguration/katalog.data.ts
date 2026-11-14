@@ -1,12 +1,12 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_katalog.py fra viden/felt_katalog.json og
 // viden/enhedstyper.json (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: eef950a2ac7b3808a9456dcf48742ce08e52366a · 151 felter · 7 enhedstyper
+// Modelcommit: 90fb16eb1e2d5aa8e619b5a951b93760fa803985 · 151 felter · 7 enhedstyper
 //-----------------------------------------------------------------------
 
 import type { FeltPost, Enhedstype } from "./katalog";
 
-export const MODEL_COMMIT = "eef950a2ac7b3808a9456dcf48742ce08e52366a";
+export const MODEL_COMMIT = "90fb16eb1e2d5aa8e619b5a951b93760fa803985";
 
 export const FELTER: readonly FeltPost[] = [
  {
@@ -515,7 +515,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Parametre til at syntetisere varmebehovet af DMI-temperaturen. Blokken skal findes ved kørsel med rigtige data, også når målt varmelast (heat-csv) bruges — så læses den, men ignoreres.",
-  "kilde": "src/data_loader.py:781",
+  "kilde": "src/data_loader.py:810",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": false,
@@ -534,7 +534,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Ekstra varmebehov pr. grad under t_ref (graddagsleddet), beregnet på et glidende gennemsnit af udetemperaturen.",
-  "kilde": "src/data_loader.py:676",
+  "kilde": "src/data_loader.py:705",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -553,7 +553,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Udetemperatur, hvorunder der regnes rumvarme.",
-  "kilde": "src/data_loader.py:677",
+  "kilde": "src/data_loader.py:706",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -573,7 +573,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Tidskonstant for det glidende gennemsnit af udetemperaturen (bygningernes træghed).",
-  "kilde": "src/data_loader.py:678",
+  "kilde": "src/data_loader.py:707",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -593,7 +593,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Hældningsmodellens nettab: ekstra MW pr. grad under t_net. 0 = intet temperaturafhængigt nettab-led. Ignoreres, hvis nettab-blokken findes.",
-  "kilde": "src/data_loader.py:679",
+  "kilde": "src/data_loader.py:708",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -613,7 +613,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Udetemperatur, hvorunder hældningsmodellens nettab-led regnes.",
-  "kilde": "src/data_loader.py:680",
+  "kilde": "src/data_loader.py:709",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -633,7 +633,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "24 tal: varmebehovet uden rumvarme (brugsvand og konstant nettab) for time 0–23 i UTC — modellens tidsakse, ikke dansk tid (time 0 = kl. 01 dansk vintertid, kl. 02 sommertid).",
-  "kilde": "src/data_loader.py:682",
+  "kilde": "src/data_loader.py:711",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -681,7 +681,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Andel varmebehovet sænkes lørdag og søndag (0,02 = 2 %). Ugedagen bestemmes på UTC-aksen.",
-  "kilde": "src/data_loader.py:684",
+  "kilde": "src/data_loader.py:713",
   "avanceret": true,
   "laeses_af_koden": true,
   "blad": true,
@@ -701,7 +701,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Sporbarhed fra kalibreringsscriptet. Felter med '_' foran læses ikke af modellen.",
-  "kilde": "src/data_loader.py:674",
+  "kilde": "src/data_loader.py:703",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -720,7 +720,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Sporbarhed fra kalibreringsscriptet. Felter med '_' foran læses ikke af modellen.",
-  "kilde": "src/data_loader.py:674",
+  "kilde": "src/data_loader.py:703",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -739,7 +739,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Sporbarhed fra kalibreringsscriptet. Felter med '_' foran læses ikke af modellen.",
-  "kilde": "src/data_loader.py:674",
+  "kilde": "src/data_loader.py:703",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -758,7 +758,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Sporbarhed fra kalibreringsscriptet. Felter med '_' foran læses ikke af modellen.",
-  "kilde": "src/data_loader.py:674",
+  "kilde": "src/data_loader.py:703",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -777,7 +777,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Sporbarhed fra kalibreringsscriptet. Felter med '_' foran læses ikke af modellen.",
-  "kilde": "src/data_loader.py:674",
+  "kilde": "src/data_loader.py:703",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -796,7 +796,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Valgfri blok. Når den findes, erstatter den hældningsmodellen: nettab = a·(T_rør − T_jord) + c·last. Påvirker kun den syntetiske varmelast; med målt varmelast er nettabet allerede i målingen.",
-  "kilde": "src/data_loader.py:685",
+  "kilde": "src/data_loader.py:714",
   "avanceret": true,
   "laeses_af_koden": true,
   "blad": false,
@@ -1311,7 +1311,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Prisområdet, aFRR- og mFRR-priserne hentes for. Hold det lig data.price_zone.",
-  "kilde": "src/data_loader_github.py:701",
+  "kilde": "src/data_loader_github.py:704",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,

@@ -165,9 +165,13 @@ export function datagrundlag(k: Koersel, vaerkNavn: string, profil: Profil, inpu
         udfyldSkabelon(alternativ(skabelon, "tidsserie"), { navn: (t.id && navne.get(t.id)) || "navn ikke fundet", sha256: t.sha256 });
 
     const ud: DataLinje[] = [];
+    const mc = typeof v.model_commit === "string" ? v.model_commit : null;
     for (const l of DATA_LINJER) {
+        // En kørsel regnet ved en ældre modelversion får den fodnote, der gjaldt dér (fx spot før 5021a5e:
+        // timens første kvarter), aldrig pinnens. Ukendt version: pinnens.
+        const fn = l.fodnote_aeldre_model && mc && l.fodnote_aeldre_model.model_commits.includes(mc) ? l.fodnote_aeldre_model.fodnote : l.fodnote;
         const linje = (vaerdi: string, ekstra: Partial<DataLinje> = {}) =>
-            ud.push({ etiket: l.etiket, vaerdi, fuld: null, fodnote: l.fodnote ? `${l.fodnote.replace(/\s*\(se [^)]*\)/, "").replace(/\.?$/, ".")}` : null, med: true, ...ekstra });
+            ud.push({ etiket: l.etiket, vaerdi, fuld: null, fodnote: fn ? `${fn.replace(/\s*\(se [^)]*\)/, "").replace(/\.?$/, ".")}` : null, med: true, ...ekstra });
         if (l.kun_hvis && !betingelse(l.kun_hvis, (s) => slå(s))) {
             if (l.ellers) linje(l.ellers, { med: false, fodnote: null });
             continue;
@@ -194,7 +198,8 @@ export function datagrundlag(k: Koersel, vaerkNavn: string, profil: Profil, inpu
         const forkortet = /\{(data_commit|model_commit)\[:\d+\]\}/.exec(l.vaerdi);
         linje(vaerdi, { fuld: forkortet ? fuld(forkortet[1]) : null });
     }
-    // Spotprisens fodnote (første kvarter) gælder kun perioder, der rækker ind efter 1. oktober 2025.
+    // Spotprisens fodnote (kvarterpriser: middel, eller første kvarter før 5021a5e) gælder kun perioder,
+    // der rækker ind efter 1. oktober 2025; før var spot timepris.
     const spot = ud.find((x) => x.etiket === "Spotpris");
     if (spot && profil.periode_til && profil.periode_til < "2025-10-01") spot.fodnote = null;
     return ud;

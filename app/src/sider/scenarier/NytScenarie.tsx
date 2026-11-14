@@ -288,7 +288,7 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
                 <Gitter form="8-4">
                     <Kort titel="3 · Reference og scenarie" afgraensning={knap.gruppe}
                         budskab={par.par ? parSaetning(par.par, fælles, blade, vaerk.navn, serier) : par.fejl}
-                        fod={`Kilde: ${knap.kilde}. Gab: ${gabProcent(STRAMT_GAB.mip_rel_gap)} (modelrepoet: --mip-gap 0.0002 til differenser, README.md:152) og højst ${tal(STRAMT_GAB.mip_abs_gap)} kr. — egen antagelse: ${ANBEFALET_GAB.egen_antagelse}`}>
+                        fod={`Kilde: ${knap.kilde}. Gab: ${gabProcent(STRAMT_GAB.mip_rel_gap)} (modelrepoet: --mip-gap 0.0002 til differenser, README.md:161) og højst ${tal(STRAMT_GAB.mip_abs_gap)} kr. — egen antagelse: ${ANBEFALET_GAB.egen_antagelse}`}>
                         <p className="fs-tekst">{knap.forklaring}</p>
                         <div className="fs-felter">
                             {valgtKnap!.st.valg.map((v) => (

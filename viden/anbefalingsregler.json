@@ -1,6 +1,6 @@
 {
   "_om": "Regler for at gøre en differens mellem to kørsler til en ærlig anbefaling og en historie i klartekst (brief 15, afsnit A og A2). Gælder et par reference (a) og scenarie (b) af samme værk; Δ = objektiv(b) − objektiv(a), negativ = scenariet er billigere. Formuleringen pr. knap står i knapper.json → anbefaling. Kilder er fil:linje i modelrepoet @ eef950a eller appens egne målinger, markeret 'egen måling' med dato og modelversion (de står ikke i modelrepoet)",
-  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+  "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
   "t0_defekte_model_commits": ["b49aeb0af097be42938b80a0fea6acdd77162836"],
   "t0_defekte_model_commits_om": "Modelversioner, hvor lagerbalancen ikke gjaldt i periodens første time (rettet i modelrepoet 3c2afa6, 19/10-2026; første pinnede version med rettelsen er eef950a). Kun kørsler regnet ved disse commits får forbeholdet t0_lager. Listen er de commits, appen har været pinnet til før eef950a.",
   "kontrakt_version": "2.2",
@@ -59,7 +59,7 @@
     {"id": "en_saeson", "virkning": "note", "betingelse": "Alle periodens måneder ligger i oktober–marts (vinter) eller i april–september (sommer).",
      "tekst": "Perioden dækker kun {saeson}. Tankens værdi er størst i forår og sommer, hvor døgnets prisspænd er størst; en vinterperiode alene undervurderer eller overvurderer året.", "kilde": "rapport v4, bilag A"},
     {"id": "spor_a", "virkning": "nedgrader", "betingelse": "Mindst én af kørslerne har balancemarked og er Spor A (intet månedsloft; ikke driven-gate).",
-     "tekst": "Balancetallet er Spor A: en øvre grænse ved fuld tilgængelighed, ikke en prognose.", "kilde": "README.md:156-158; doc/BALANCEMARKED.md:113-121"},
+     "tekst": "Balancetallet er Spor A: en øvre grænse ved fuld tilgængelighed, ikke en prognose.", "kilde": "README.md:165-167; doc/BALANCEMARKED.md:113-121"},
     {"id": "kender_aktiveringerne", "virkning": "nedgrader", "betingelse": "Mindst én kørsel har balancemarked med effektivt balancing.activation.foresight = realized (også standarden, når blokken mangler).",
      "tekst": "Modellen kender aktiveringerne på forhånd; det er et loft, ingen kan nå. Kør med en prognose (trailing30, settle realized).", "kilde": "doc/BUDSTRATEGI.md:76-86; doc/BUDSTRATEGI.md:337; src/config.py:232"},
     {"id": "bekraeft", "virkning": "nedgrader", "betingelse": "Et af de ændrede felter — eller et felt på en enhed/et lager, scenariet slår til eller fra — er markeret [BEKRÆFT] i værket (VaerkParameter.bekraeft).",
@@ -67,7 +67,7 @@
     {"id": "gab_loest", "virkning": "nedgrader", "betingelse": "Ønsket relativt gab > 0,0002 eller ønsket absolut gab > 1.000 kr. i en af kørslerne.",
      "tekst": "Kørslerne er regnet med et løst gab ({gab}). Til differenser: 0,0002 og højst 100 kr.", "kilde": "doc/KOERSEL.md:57-60; knapper.json → anbefalet_differens"},
     {"id": "ikke_optimal", "virkning": "nedgrader", "betingelse": "En af kørslerne har solve_status ≠ optimal (fx stoppet ved tidsgrænsen).",
-     "tekst": "{rolle} stoppede ved tidsgrænsen med gab {gab}; tallet er ikke bevist optimalt.", "kilde": "README.md:146"},
+     "tekst": "{rolle} stoppede ved tidsgrænsen med gab {gab}; tallet er ikke bevist optimalt.", "kilde": "README.md:155"},
     {"id": "profilbunden", "virkning": "nedgrader", "betingelse": "Scenariet ændrer en enhed med production_profile_path (fx solvarme).",
      "tekst": "{enhed} følger en produktionsprofil; resultatet afhænger af profilens skalering og dækning.", "kilde": "cases/andeby.yaml:53-60"},
     {"id": "t0_lager", "virkning": "nedgrader_begge", "betingelse": "Scenariet ændrer et lager, perioden er under 90 døgn, og mindst én af kørslerne er regnet ved en modelversion i t0_defekte_model_commits (før rettelsen 19/10-2026).",
@@ -87,7 +87,7 @@
 
   "investering": {
     "tekst": "Modellen regner kun driften. Investeringsbeløbet findes ikke i modellen, og det årlige beløb er driftsbesparelsen før kapitalomkostning, skat og faste D&V.",
-    "kilde": "README.md:59; src/config.py:763 (investment.enabled læses, men bruges ikke)",
+    "kilde": "README.md:68; src/config.py:763 (investment.enabled læses, men bruges ikke)",
     "annuitet": {
       "formel": "A = I × r / (1 − (1 + r)^(−n))",
       "forklaring": "I = investering (kr.), r = real kalkulationsrente, n = levetid (år). Investeringen betaler sig, når den årlige driftsbesparelse fra et helår er større end A plus enhedens faste årlige omkostninger.",

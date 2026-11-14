@@ -10,7 +10,7 @@
   [2] Repoets egne fire datafiler validerer GYLDIGT med præcis de forventede fund
   [3] Hver regel med en fixture udløses af den og kun af de forventede fejl (en mutation pr. regel)
   [4] tal_tekst-testvektorerne + normaliseret fil = fabric/fjv/tidsserie.py's bytes for repofilerne
-  [5] Alle fil:linje-henvisninger i data_krav.json/.md og data.md findes ved eef950a
+  [5] Alle fil:linje-henvisninger i data_krav.json/.md og data.md findes ved 90fb16e
   [6] tjek_koersel: dækning ved bestilling (huller, uden for serien, kapacitet)
   [7] modellens apply_heat_csv_override / _attach_unit_profiles læser den normaliserede fil
       BIT-identisk med originalen
@@ -35,7 +35,7 @@ HER = Path(__file__).resolve().parent
 VIDEN = HER.parent
 PRODUKT = VIDEN.parent
 REPO = Path(os.environ.get("FJV_MODELREPO", PRODUKT.parent / "fjernvarme-businesscase"))
-PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
+PIN = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
 sys.path.insert(0, str(HER))
 import valider_tidsserie as V  # noqa: E402
 
@@ -87,7 +87,7 @@ for kode, niv in LAAST.items():
         meld(f"[1b] {kode} skal være {niv} (beslutning i data_krav.md), er {REGLER.get(kode, {}).get('niveau')}")
 G = K["tidsserier"]["graenser"]
 if G["model_max_hulandel"] != 0.05:
-    meld("[1b] model_max_hulandel skal være modellens 0,05 (src/data_loader.py:929)")
+    meld("[1b] model_max_hulandel skal være modellens 0,05 (src/data_loader.py:958)")
 print(f"[1b] {len(LAAST)} besluttede niveauer + modellens 5 %-grænse")
 
 # ------------------------------------------------------------------ [2] repofilerne
@@ -322,7 +322,7 @@ s = resultater["data/solar_andeby_dmi_karup.csv"]
 TILF = [
     ("inden for serien", "varmelast", b, "2026-01-05T00:00:00Z", "2026-01-16T23:00:00Z", {}, set()),
     # Filen slutter 24. juni 06:00: til 25. juni mangler 41 af 2.784 timer (1,5 %) - til 30. juni 161 (5,5 %),
-    # derfor slutter README's Spor A-anker 23. juni (README.md:182).
+    # derfor slutter README's Spor A-anker 23. juni (README.md:191).
     ("lidt ud over seriens slut", "varmelast", b, "2026-03-02T00:00:00Z", "2026-06-25T23:00:00Z", {}, {"koersel_varmelast_huller"}),
     ("Spor B-perioden med den usplejsede fil", "varmelast", b, "2026-03-02T00:00:00Z", "2026-06-30T23:00:00Z", {}, {"koersel_varmelast_daekning"}),
     ("langt ud over slut", "varmelast", b, "2026-06-01T00:00:00Z", "2026-07-31T23:00:00Z", {}, {"koersel_varmelast_daekning"}),
@@ -372,7 +372,7 @@ if "--model" in sys.argv:
                         meld(f"[7] {sti}: {e}")
                 if x is not None and not np.array_equal(x, y):
                     meld(f"[7] {sti} {a_}: heat_demand afviger (maks {np.nanmax(np.abs(x - y))})")
-        # Solprofil: profil-læserens egne linjer (src/data_loader.py:988-990)
+        # Solprofil: profil-læserens egne linjer (src/data_loader.py:1017-1019)
         for sti in ("data/solar_andeby_dmi_karup.csv",):
             def laes(p):
                 df = pd.read_csv(p, parse_dates=["time"])

@@ -86,7 +86,7 @@ forklaring). En kørsel i kø kan annulleres; en kørsel, der regner, stopper ve
 
 Typiske regnetider målt i Fabric: et vindue på 12 døgn ca. 10 sekunder; Billund Spor B (4 måneder)
 1½ minut uden og knap 3 minutter med balancemarked; Andeby et helt år uden balancemarked knap 5
-minutter og med balancemarked op til en time. (Kilde: README.md:148-151; demo_scenarier.json)
+minutter og med balancemarked op til en time. (Kilde: README.md:157-160; demo_scenarier.json)
 
 Status opdateres, mens fanen er åben og du har en kørsel i gang. Tryk **Opdatér** øverst til højre,
 hvis du har været væk. (Kilde: KONTRAKT §6)

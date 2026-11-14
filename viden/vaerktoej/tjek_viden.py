@@ -35,7 +35,7 @@ HER = Path(__file__).resolve().parent
 VIDEN = HER.parent
 REPO = Path(os.environ.get("FJV_MODELREPO",
                            VIDEN.parent.parent / "fjernvarme-businesscase"))
-PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
+PIN = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
 
 fejl: dict[str, list[str]] = {}
 

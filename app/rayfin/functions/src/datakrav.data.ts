@@ -5,7 +5,7 @@
 
 export const DATAKRAV = {
  "version": 1,
- "sha256_data_krav": "f873f11303d63640ee8677f7f96fdc86d67ecbe094103833dd77d83dd11abff5",
+ "sha256_data_krav": "691dd33ed3b9c678fbe0520de3c2da5c47e8a7a9970f4915a3652b67ccbf4c1c",
  "graenser": {
   "max_bytes": 8000000,
   "max_raekker": 120000,

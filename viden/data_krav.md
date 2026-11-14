@@ -2,7 +2,7 @@
 
 Kilde for maskinerne: `data_krav.json` (genereret af `vaerktoej/byg_data_krav.py`). Orakel:
 `vaerktoej/valider_tidsserie.py` (kun standardbibliotek). Port: `vaerktoej/tjek_data_krav.py`. Modelrepoet er
-pinnet på `eef950a`; df-data er målt ved `392992c` (2026-10-12; januar–juni 2026 og 2025 har samme værdier ved den pinnede `106b9fc`). Denne fil er *hvorfor*; JSON'en er *hvad*.
+pinnet på `90fb16e`; df-data er målt ved `392992c` (2026-10-12; januar–juni 2026 og 2025 har samme værdier ved den pinnede `106b9fc`). Denne fil er *hvorfor*; JSON'en er *hvad*.
 
 ## 1. Hvilke data modellen bruger — og hvornår
 
@@ -15,7 +15,7 @@ pinnet på `eef950a`; df-data er målt ved `392992c` (2026-10-12; januar–juni 
 | Solprofil | aktive enheder med `production_profile_path` | tidsserie eller repoets `data/` | `units.*.production_profile_path` / `_koersel.tidsserie.solprofil` |
 | Værksparametre | altid | VaerkParameter ved den frosne revision | — |
 
-Kilder: src/data_loader_github.py:599-717 (hele vejen), src/data_loader_github.py:62-83 (krav pr. datasæt),
+Kilder: src/data_loader_github.py:602-720 (hele vejen), src/data_loader_github.py:63-86 (krav pr. datasæt),
 run_case.py:374-458 (valget af kilde).
 
 Fire ting, man ikke ser uden at læse koden:
@@ -24,13 +24,16 @@ Fire ting, man ikke ser uden at læse koden:
    (src/model.py:177-193) og i resultatet. En periode uden DMI-dækning stopper derfor også en kørsel med målt last.
 2. **`heat_load_params` kræves altid** (run_case.py:377), selv om den ignoreres ved målt last.
 3. **`price_zone` ≠ `spot_area` er tilladt.** Spot læses fra `data.price_zone`, balancepriser fra
-   `electricity.spot_area` (src/data_loader_github.py:699-705). Ingen kontrol af, at de er ens → vis begge.
+   `electricity.spot_area` (src/data_loader_github.py:702-708). Ingen kontrol af, at de er ens → vis begge.
    DK2 har intet aFRR-marked: balance med `spot_area: DK2` stopper med `FileNotFoundError`.
-4. **Spot efter 1. oktober 2025 er timens første kvarter.** `spot_raw.reindex(idx)` (src/data_loader_github.py:659)
-   på en timeakse vælger stemplet hh:00 blandt fire kvarterpriser. Målt på DK1, 1. okt. 2025 – 11. okt. 2026:
-   gennemsnitlig numerisk forskel mod timegennemsnittet 79 kr./MWh, skævhed +6,8 kr./MWh. Ubalance- og
-   mFRR-datasættene midles derimod (src/data_loader_github.py:467). Ikke vores at rette (modelrepoet er
-   read-only) — men en kørsel skal vise det, og det er sendt som spørgsmål til forfatteren.
+4. **Spot efter 1. oktober 2025 er middel af timens kvarterer** (fra modelrepoets 5021a5e, 3. nov. 2026).
+   `spot_paa_akse` (src/data_loader.py:70-92, kaldt i src/data_loader_github.py:662) grupperer kvarterpriserne
+   pr. tidsskridt og midler, som ubalance- og mFRR-datasættene (src/data_loader_github.py:470). Et tidsskridt med
+   2–3 af sine fire kvarterer er en `CoverageError` ("Spot: N tidsskridt har kun en del af deres kvarterer …").
+   Versionerne før (appens pins b49aeb0 og eef950a) tog timens første kvarter: `spot_raw.reindex(idx)` valgte
+   stemplet hh:00. Målt for dem på DK1, 1. okt. 2025 – 11. okt. 2026: gennemsnitlig numerisk forskel mod
+   timegennemsnittet 79 kr./MWh, skævhed +6,8 kr./MWh. Spørgsmålet til forfatteren er besvaret med rettelsen;
+   *Data i denne kørsel* viser reglen efter kørslens modelversion (`fodnote_aeldre_model`).
 
 ### Målt dækning ved df-data `392992c`
 
@@ -39,19 +42,19 @@ Alle seks datasæt slutter 2026-10-11 23:00 UTC. Ingen huller med modellens egen
 hele danske døgn er 5. marts 2025. **De huller, casens kommentarer nævner** (fyn/vestkyst 28. februar 2026,
 aFRR fra 4. september 2026, cases/andeby.yaml:89), **findes ikke længere** ved `392992c`; information-siden
 `09_datadaekning.md` beskriver derfor et ældre datasæt. Dækningsvagten tæller rækker, ikke værdier: DMI har få tomme
-temperaturer (karup 14 timer 2023–26), som udfyldes ved interpolation (src/data_loader_github.py:655-658).
+temperaturer (karup 14 timer 2023–26), som udfyldes ved interpolation (src/data_loader_github.py:658-661).
 
 Dækningen flytter sig hver mandag. Tallene i `data_krav.json → maalt_daekning` er en måling ved én version; den
-frosne `data_commit` og arbejderens dækningsvagt (src/data_loader.py:83-197) har det sidste ord.
+frosne `data_commit` og arbejderens dækningsvagt (src/data_loader.py:112-226) har det sidste ord.
 
 ## 2. Værkets tidsserier
 
 ### Roller
 
 - **varmelast** — samlet varmeproduktion **ab værk** i MW (middel over timen), inkl. nettab. Erstatter syntesen.
-  Modellen tåler huller på ≤ 5 % af *kørslens* timer (lineær interpolation) og stopper over (src/data_loader.py:926-939).
+  Modellen tåler huller på ≤ 5 % af *kørslens* timer (lineær interpolation) og stopper over (src/data_loader.py:955-968).
 - **solprofil** — mulig solvarme i MW pr. time; et loft `min(profil, p_max_heat)` (src/model.py:155-172). Ingen huller
-  tilladt: profil-læseren stopper på én manglende time (src/data_loader.py:997-1010).
+  tilladt: profil-læseren stopper på én manglende time (src/data_loader.py:1026-1039).
 
 ### Den normaliserede fil
 
@@ -63,7 +66,7 @@ til 5 % udfyldes ved upload (0, når solen er nede; ellers en ret linje), som v�
 
 **Bevist i port [7]:** modellens egen `apply_heat_csv_override` læser den normaliserede Billund-fil med `--heat-csv-column mw`
 **bit-identisk** med originalfilen (`timestamp,heat_mw_abvaerk`, naive stempler), og profil-læserens linjer
-(src/data_loader.py:988-990) læser den normaliserede solprofil bit-identisk med `solar_andeby_dmi_karup.csv`. Samme
+(src/data_loader.py:1017-1019) læser den normaliserede solprofil bit-identisk med `solar_andeby_dmi_karup.csv`. Samme
 `heat_demand` ⇒ samme MILP ⇒ fv-fabric2's live-bevis (Spor B via upload = 3.964.585,72) har intet andet at være
 forskelligt på end miljøet.
 
@@ -81,7 +84,7 @@ til det, Functions faktisk tager imod — og skal skrive tallet.
 være rigtige, men er usædvanlige. Tre valg, der kan diskuteres, er truffet bevidst:
 
 - **Dubletter er en fejl** (fv-tidsserie's forhåndstjek har dem som advarsel). Modellen beholder tavst den første
-  (src/data_loader.py:911-913); to værdier for samme time er en fejl i udtrækket, og "første vinder" er et gæt.
+  (src/data_loader.py:940-942); to værdier for samme time er en fejl i udtrækket, og "første vinder" er et gæt.
   Efterårets dobbelttime i dansk tid er *ikke* en dublet, når tidszonen er valgt rigtigt.
 - **Huller i varmelasten er en advarsel ved upload, en fejl ved bestilling** — kun hvis > 5 % af *den kørsels* timer
   mangler. En serie med et hul i januar er fin til en kørsel i marts.
@@ -121,7 +124,7 @@ Port [6] beviser, at vejen via `validering_json` giver præcis samme resultat so
 
 Eksempel fra porten: `data/billund_abvaerk_hourly.csv` slutter 24. juni 06:00. Spor B-perioden (2. marts – 30. juni)
 mangler 161 af 2.904 timer = 5,5 % → fejl; det er grunden til, at README's Spor A-anker slutter 23. juni og Spor B
-bruger den splejsede fil (README.md:139-144).
+bruger den splejsede fil (README.md:148-153).
 
 ## 4. Værksarket — kontrakten, målt
 
@@ -148,16 +151,16 @@ Kørt lokalt 2026-10-16 (`scripts/vaerksark_til_yaml.py` uændret, output i egen
 ## 5. "Data i denne kørsel" (til fv-analyse2)
 
 `data_krav.json → data_i_koersel.linjer` er den præcise liste: df-data- og modelcommit, værksrevision, periode,
-spot-område (med fodnoten om første kvarter), DMI-område, balancedata kun når med, varmelast (syntetisk med
+spot-område (med fodnoten om kvarterpriserne, efter kørslens modelversion), DMI-område, balancedata kun når med, varmelast (syntetisk med
 DMI-område · tidsserie-navn + sha256 · repo-fil), solprofil, og en linje når `price_zone ≠ spot_area`. Alt fra det
 frosne input; vis det frosne sha256, også hvis tidsserien siden er ændret.
 
 ## 6. Mindre fund
 
-- `load_heat_load_params` læser casen med `read_text()` uden encoding (src/data_loader.py:825): på Windows
+- `load_heat_load_params` læser casen med `read_text()` uden encoding (src/data_loader.py:854): på Windows
   (cp1252) fejler den på `cases/andeby.yaml`. I Fabric (UTF-8) ikke. Lokalt: `PYTHONUTF8=1`.
 - Modellens varmelast-læser genkender `hour_dk` som tidskolonne, men læser den som UTC uden `--heat-csv-tz`
-  (src/data_loader.py:878-909) → reglen `hour_dk_som_utc`.
+  (src/data_loader.py:907-938) → reglen `hour_dk_som_utc`.
 
 <!-- REGLER START -->
 

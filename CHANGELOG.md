@@ -11,6 +11,13 @@ sammenlignes med tal efter.
 
 ## [Ikke udgivet] — 0.4.0
 
+Model **`90fb16e`** (før `eef950a`), df-data **`106b9fc`** (uændret). **Tallene kan ikke sammenlignes med før:** modellen
+regner nu spotprisen som middel af timens fire kvarterer, hvor den før tog timens første kvarter (modelrepoets `5021a5e`).
+Det ændrer alle kørsler, der omfatter perioden fra 1. oktober 2025; perioder før er uændrede (målt: Andeby 4.–5. august
+2025 giver 7.688,88 kr. ved begge versioner). Andeby 5.–6. januar 2026 uden balancemarked: **866.567,72 kr.** (før
+867.031,23). Fabric for modelskiftet: `deploy.py kode` og `deploy.py koer fjv_importer_vaerker`
+([`doc/FABRIC.md`](doc/FABRIC.md#opdatér-en-eksisterende-installation)); versionens øvrige trin står under punkterne.
+
 ### Tilføjet
 - Farvestyring i tabellerne med Δ-tal (kørsel og sammenligning): *Ingen*, *Retning* og *Heatmap*, med farver efter
   IBCS-polaritet og WCAG AA-kontrast. Arbejdet foregår på grenen `runde9/heatmap`.
@@ -54,6 +61,16 @@ sammenlignes med tal efter.
   ved en fejlet `sp_getapplock` (returkode < 0).
 
 ### Ændret
+- **Modelversion `90fb16e`** (spot midles over timens kvarterer). En time, der kun har to eller tre kvarterpriser, stopper
+  kørslen med en dækningsfejl; arbejderens hjælpetekst og appens råd siger det. Information › Data og fodnoten i *Data i
+  denne kørsel* følger kørslens modelversion: kørsler ved `eef950a`/`b49aeb0` beholder "timens første kvarter".
+- Modelrepoets README-tabel, `doc/` og rapport v4 er ved `90fb16e` stadig regnet før spotrettelsen (modelrepoets
+  README.md:20-27). Information › Referencetal, Budstrategi og METODE §7 viser dem som det og sætter vores egne målinger
+  ved `90fb16e` ved siden af. Sammenligningen *README mod Fabric* tæller fortsat kun kørsler ved `eef950a`, den version
+  README-tallene er regnet ved (`viden/referencetal.json` › `model_commit`, `regnet_ved`). Billunds rullende år og Andeby
+  helår med balancering nåede ikke optimum lokalt (gab 2,59 % og 0,13 %) og er ikke nye referencetal.
+- Demo-scenarierne (`viden/demo_scenarier.json`) har objektiver og differenser ved `90fb16e`; tallene ved `eef950a` står
+  under `koersel_status_eef950a`. Mængder (MWh, CO₂, balanceindtægter) er ikke målt igen.
 - Scenarielisten (`#/scenarier`) har ikke længere farvevalg eller heatmap: ΔRef står som almindeligt tal med fortegn.
 - Navnet på en kørsels tidsserie slås op på sha256, når id'et ikke findes i installationen (importerede kørsler).
 - `uploadVaerksark` tager en valgfri tredje parameter `basisBase64`, og `upload_vaerksark`-anmodningen et valgfrit
