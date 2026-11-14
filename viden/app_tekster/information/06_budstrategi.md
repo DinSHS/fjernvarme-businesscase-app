@@ -23,6 +23,12 @@ Regnet ved modelversion eef950a, efter rettelserne 19. oktober 2026 (tankens fø
 aktiveringsværdien uden spotpris); genskabt til kronen 26. oktober 2026 med df-data 106b9fc. Tal fra
 før rettelserne kan ikke sammenlignes. (Kilde: doc/BUDSTRATEGI.md:328-335)
 
+**Tabellen er fra før spotrettelsen** (3. november 2026: spotprisen midles over timens kvarterer).
+Regnet igen ved appens modelversion 90fb16e (14. november 2026, gab 0) blev de fire kørsler afregnet
+til 3.441.004, 3.011.915, 3.220.386 og 3.346.957 kr., og balancens værdi til 429.089, 220.618 og
+94.047 kr. Rækkefølgen holder. Kolonnen "Prognosen lovede" er ikke regnet igen.
+(Kilde: referencetal.json › budstrategi_andeby_vinter › regnet_igen; README.md:20-27)
+
 Den første er et loft, ingen kan nå. Den anden lover mest, men skuffer mest: modellen kører
 elkedlen for at fange aktiveringer, der ikke kommer. Den sidste lover mindre, men holder.
 (Kilde: doc/BUDSTRATEGI.md:337)
