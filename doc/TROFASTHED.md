@@ -128,8 +128,8 @@ argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.cs
 |---|---|---:|---|
 | andeby | uden balancemarked, syntetisk last (`cases/andeby.yaml:9`) | 224.960 | byte-ens |
 | billund_idag | med, målt last (`cases/billund_idag.yaml:24-25`) | 127.642 | byte-ens |
-| billund_sporA | med, syntetisk (`README.md:176`) | 181.392 | byte-ens |
-| billund_sporA_rullende | med, målt (`README.md:178`) | 181.218 | byte-ens |
+| billund_sporA | med, syntetisk (`README.md:185`) | 181.392 | byte-ens |
+| billund_sporA_rullende | med, målt (`README.md:187`) | 181.218 | byte-ens |
 | billund_sporA_rullende_bud | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.659 | byte-ens |
 | billund_sporB | med, målt (`cases/billund_sporB.yaml:17-19`) | 51.764 | byte-ens |
 | billund_sporB_rullende | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.659 | byte-ens |
@@ -182,7 +182,7 @@ balancemarked: **867.031,23 kr.** Samme tal giver den ægte arbejder uden server
 
 | Hvor | Appens valg | Modelrepoet | Hvorfor |
 |---|---|---|---|
-| Parforslag (scenarie mod reference) | relativt gab 0,02 % **og** absolut gab 100 kr. | `--mip-gap 0.0002` (README.md:152); det absolutte gab er casens (fx 5.000 kr.) | en differens på få tusinde kroner drukner ellers i det absolutte gab (se [nedenfor](#highs)) |
+| Parforslag (scenarie mod reference) | relativt gab 0,02 % **og** absolut gab 100 kr. | `--mip-gap 0.0002` (README.md:161); det absolutte gab er casens (fx 5.000 kr.) | en differens på få tusinde kroner drukner ellers i det absolutte gab (se [nedenfor](#highs)) |
 | Cases uden kørselskommando (`billund_sporA_rullende_bud`, `billund_sporB_rullende`) og egne værker | uden balancemarked, syntetisk varmelast | ingen kommando | appen skal vælge noget; valget står som *egen antagelse* i scenariet |
 | "Nyt værk" | årsbehov 50 GWh som udgangspunkt; gaskedel `round(50 × f)` MW; enhedstypernes pladsholdere | skalering `f = round(G/100, 4)` og Andebys tal (brugt uændret) | et minimalt gyldigt værk; hvert felt bærer sin kilde ind i databasen |
 | Månedstal | dansk lokaltid, alle N intervaller | `_monthly.csv` i UTC | sammenlignes med værkets egne måneder |

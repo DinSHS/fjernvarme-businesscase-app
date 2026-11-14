@@ -364,7 +364,7 @@
     {
       "hvornaar": "altid ved balancetal",
       "tekst": "Balancetal vises pr. marked (aFRR/mFRR) og pr. produkt (kapacitet/aktivering). Spor A er en øvre grænse.",
-      "kilde": "README.md:148-158"
+      "kilde": "README.md:157-167"
     },
     {
       "hvornaar": "ved sammenligning med og uden tank",
@@ -379,7 +379,7 @@
     {
       "hvornaar": "ved Andeby med balancering",
       "tekst": "Andebys balancetal er et potentiale ved fuld tilgængelighed, ikke hvad et værk vil tjene.",
-      "kilde": "README.md:199-201"
+      "kilde": "README.md:208-210"
     }
   ],
   "maaleregister_noegler": {
@@ -472,7 +472,7 @@
       "etiket": "Sparet tarif og afgift ved aktivering",
       "enhed": "kr.",
       "forklaring": "Den tarif og elafgift, enheden ikke betaler, når den aktiveres = brutto − netto. Spotprisen er ikke med: strømmen er købt dagen før og betales alligevel (rettet i modellen 19/10-2026). Regnet med den FASTE tarif (tariff_consumption_flat), også når værket har en båndprofil — derfor ikke direkte sammenlignelig med 'Elomkostning: nettarif'.",
-      "kilde": "src/data_loader_github.py:690-698"
+      "kilde": "src/data_loader_github.py:693-701"
     },
     "noegletal:balancering.aktiveret_mwh": {
       "etiket": "Forventet aktiveret energi",

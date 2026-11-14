@@ -23,7 +23,7 @@ Målt 16. oktober 2026 på Spor A, marts 2026 med balancering, ønsket gab 0,000
 
 **Ønsket og opnået gab er to ting.** Scenariet angiver det ønskede gab. Det opnåede står i
 solverens log; rammer kørslen tidsgrænsen, kan det være større end ønsket. Andeby helår med
-balancering stoppede ved 0,12 % mod målet 0,1 %. (Kilde: README.md:146; doc/KOERSEL.md:170-171)
+balancering stoppede ved 0,12 % mod målet 0,1 %. (Kilde: README.md:155; doc/KOERSEL.md:170-171)
 
 Strammere gab koster tid. På Andebys helår gav 0,5 % svaret på 64 sekunder, 0,1 % på 415 og
 0,02 % på 747 sekunder — og 0,1 % og 0,02 % gav samme objektiv. (Kilde: cases/andeby.yaml:127-137)

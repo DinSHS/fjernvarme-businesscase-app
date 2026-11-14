@@ -2,12 +2,12 @@
 // Modellens syntetiske varmelast, regnet i browseren — så en målt serie kan
 // lægges ved siden af det, modellen ville have regnet med uden filen.
 //
-// Port af (modelrepo @ b49aeb0):
-//   src/data_loader_github.py:656-659  DMI-temperatur → modellens akse
+// Port af (modelrepo @ b49aeb0; linjerne ved 90fb16e, hvor koden er uændret):
+//   src/data_loader_github.py:658-661  DMI-temperatur → modellens akse
 //                                       (tidsinterpolation, så ffill/bfill)
-//   src/data_loader.py:702-778         synthesize_heat_load, grenene
+//   src/data_loader.py:731-807         synthesize_heat_load, grenene
 //                                       "dual-slope" og "ingen nettab"
-//   src/data_loader.py:673-686         HeatLoadParams.from_yaml_dict (standardværdier)
+//   src/data_loader.py:702-715         HeatLoadParams.from_yaml_dict (standardværdier)
 // Den fysiske to-leds nettab-model (heat_load_params.nettab) er IKKE porteret:
 // et værk med den blok får en forklaring i stedet for et tal.
 // Testet mod modellens egen Python (syntese-vektorer.json, _byg/syntese_vektorer.py).

@@ -440,7 +440,7 @@ class TestRepoTidsserier(unittest.TestCase):
                 fund[f.stem] = [(x["rolle"], x["fil"], x["aktiv"]) for x in TDB.repo_tidsserier(t, flad(t), f.name, readme)]
         self.assertEqual(fund["andeby"], [("solprofil", "solar_andeby_dmi_karup.csv", True)])
         # Kun den fil, modelrepoet selv kører casen med (casens hoved / README), aldrig en nedarvet kommentar
-        # for en anden casefil (runde 8): Spor A kører syntetisk (README.md:176), de rullende med splejset fil.
+        # for en anden casefil (runde 8): Spor A kører syntetisk (README.md:185), de rullende med splejset fil.
         splejset = [("varmelast", "billund_abvaerk_hourly_splejset_jun2026.csv", False)]
         self.assertEqual(fund["billund_sporB"], splejset)
         self.assertEqual(fund["billund_idag"], splejset)

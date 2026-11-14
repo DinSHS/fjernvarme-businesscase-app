@@ -8,7 +8,7 @@ import { MODELSPEJL } from "./modelspejl.data";
 
 /** Én kørselskommando, modelrepoet selv angiver for en case (casens hoved eller README's referencetabel). */
 export interface Modelkoersel {
-    /** fil:linje i modelrepoet, fx "README.md:177" eller "cases/billund_sporB.yaml:17-19". */
+    /** fil:linje i modelrepoet, fx "README.md:186" eller "cases/billund_sporB.yaml:17-19". */
     kilde: string;
     kommando: string;
     med_balancering: boolean;

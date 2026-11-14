@@ -12,7 +12,7 @@ I vil — balancemarkederne aFRR og mFRR. (Kilde: README.md:1-11)
 2. **Lav et scenarie.** Ét spørgsmål = én knap: slå tanken fra, sæt halmprisen op, slå
    balancemarkedet til.
 3. **Bestil en kørsel.** Modellen regner i Fabric, ikke i browseren. Et kort vindue tager
-   sekunder til et minut; et helt år fra minutter til en time. (Kilde: README.md:148-151)
+   sekunder til et minut; et helt år fra minutter til en time. (Kilde: README.md:157-160)
 4. **Sammenlign to kørsler.** Differensen er svaret — ikke det enkelte tal.
 
 ## Tre regler for tallene
@@ -22,7 +22,7 @@ I vil — balancemarkederne aFRR og mFRR. (Kilde: README.md:1-11)
 - **Balancetal pr. marked og pr. produkt**, aldrig kun som total.
 - **Spor A er en øvre grænse**, ikke en prognose.
 
-(Kilde: README.md:148-160)
+(Kilde: README.md:157-169)
 
 Et modeltal gælder for en periode, under nogle antagelser, med en metode. Skifter en af de tre,
-skifter tallet. (Kilde: README.md:159-160)
+skifter tallet. (Kilde: README.md:168-169)

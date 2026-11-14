@@ -2,7 +2,7 @@
 // GENERERET af _byg/byg_sammensaetning.py fra viden/demo_scenarier.json,
 // viden/referencetal.json (gruppen readme) og viden/app_tekster/ordliste.md
 // (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: eef950a2ac7b3808a9456dcf48742ce08e52366a · 12 demo-kørsler · 9 par · 5 README-referencer
+// Modelcommit: 90fb16eb1e2d5aa8e619b5a951b93760fa803985 · 12 demo-kørsler · 9 par · 5 README-referencer
 //-----------------------------------------------------------------------
 
 export const DEMO_KOERSLER: readonly { id: string; navn: string; vaerk_kode: string }[] = [
@@ -139,7 +139,7 @@ export const README_REFERENCER_JSON = "{\"grupper\":[{\"id\":\"readme\",\"navn\"
 
 /** README-referencetallenes pins (Codex K5-F9): modelcommit, df-data fra-dato og målte df-data-commits med dato. */
 export const README_PINS: { model_commit: string; df_data_fra: string; df_data_kendt: Readonly<Record<string, string>> } = {
- "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+ "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
  "df_data_fra": "2026-10-05",
  "df_data_kendt": {
   "392992c7fe35992e79fba8d1ba7b91967e8d1481": "2026-10-12"

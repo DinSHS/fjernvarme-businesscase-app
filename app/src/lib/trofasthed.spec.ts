@@ -20,15 +20,15 @@ describe("modelspejlet", () => {
 });
 
 describe("standardkørslen er modelrepoets egen kommando for casen (B2)", () => {
-    it("Spor B: med balancemarked og målt varmelast (cases/billund_sporB.yaml:17-19, README.md:177)", () => {
+    it("Spor B: med balancemarked og målt varmelast (cases/billund_sporB.yaml:17-19, README.md:186)", () => {
         expect(modelKoersel("billund_sporb")).toMatchObject({ med_balancering: true, heat_csv: SPLEJSET, kilde: "cases/billund_sporB.yaml:17-19" });
     });
-    it("Spor A-ankeret: med balancemarked, syntetisk varmelast (README.md:176)", () => {
-        expect(modelKoersel("billund_spora")).toMatchObject({ med_balancering: true, heat_csv: null, kilde: "README.md:176" });
+    it("Spor A-ankeret: med balancemarked, syntetisk varmelast (README.md:185)", () => {
+        expect(modelKoersel("billund_spora")).toMatchObject({ med_balancering: true, heat_csv: null, kilde: "README.md:185" });
     });
     it("Billund i dag og Billund rullende år: målt varmelast", () => {
         expect(modelKoersel("billund_idag")).toMatchObject({ med_balancering: true, heat_csv: SPLEJSET });
-        expect(modelKoersel("billund_spora_rullende")).toMatchObject({ med_balancering: true, heat_csv: SPLEJSET, kilde: "README.md:178" });
+        expect(modelKoersel("billund_spora_rullende")).toMatchObject({ med_balancering: true, heat_csv: SPLEJSET, kilde: "README.md:187" });
     });
     it("Andeby: casens egen kommando er uden balancemarked (cases/andeby.yaml:9)", () => {
         expect(modelKoersel("andeby")).toMatchObject({ med_balancering: false, heat_csv: null, kilde: "cases/andeby.yaml:9" });

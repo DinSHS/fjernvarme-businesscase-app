@@ -1,7 +1,7 @@
 # El: spotpris, tarif og afgift
 
 **Spotprisen** kommer time for time fra datarepoet df-data for værkets priszone (DK1 vest for
-Storebælt, DK2 øst for). Fra 1. oktober 2025 findes kvarterpriser. (Kilde: README.md:224-227;
+Storebælt, DK2 øst for). Fra 1. oktober 2025 findes kvarterpriser. (Kilde: README.md:233-236;
 cases/andeby.yaml:22)
 
 ## Hvad en MWh varme koster pr. enhedstype
@@ -40,4 +40,4 @@ afvises værket. (Kilde: src/tariff.py:165-184)
 - I balancemarkedets aktiveringsværdi regnes den sparede tarif med den **faste** sats plus elafgift,
   også når en båndprofil er sat. Den faste sats er derfor ikke ligegyldig. Spotprisen spares ikke ved
   aktivering: strømmen er købt dagen før (rettet i modellen 19. oktober 2026, src/activation_value.py:18-28).
-  (Kilde: src/data_loader_github.py:690-698)
+  (Kilde: src/data_loader_github.py:693-701)

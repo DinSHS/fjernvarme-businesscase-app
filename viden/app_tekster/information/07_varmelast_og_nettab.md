@@ -6,11 +6,11 @@
 **Uden måling syntetiseres varmelasten** af DMI-temperaturen: en grundlast pr. time på døgnet
 (brugsvand og konstant nettab) plus rumvarme, der stiger under en referencetemperatur og følger et
 glidende gennemsnit af udetemperaturen, plus et nettabsled. Weekenden sænkes en smule.
-(Kilde: src/data_loader.py:632-661) Andeby bruger syntesen, skaleret fra Billund til ca. 100 GWh om
+(Kilde: src/data_loader.py:661-690) Andeby bruger syntesen, skaleret fra Billund til ca. 100 GWh om
 året. (Kilde: cases/andeby.yaml:148-151)
 
 **Klimaområdet** vælges blandt fyn, vestkyst, karup og ringsted. Valget alene kan flytte objektivet
-op til ca. 4 %. (Kilde: README.md:235-237)
+op til ca. 4 %. (Kilde: README.md:244-246)
 
 ## Nettab
 

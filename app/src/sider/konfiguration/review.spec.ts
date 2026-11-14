@@ -80,7 +80,7 @@ describe("K4 (Middel) — solvarmens nameplate er ikke styrbar effekt", () => {
     });
 });
 
-describe("K5 (Lav) — grundprofilen er på UTC-aksen (src/data_loader.py:712-727)", () => {
+describe("K5 (Lav) — grundprofilen er på UTC-aksen (src/data_loader.py:741-756)", () => {
     it("budskabet siger UTC, og kataloget forklarer det", () => {
         expect(varmelastBudskab(andeby)).toMatch(/topper kl\. 07 UTC\./);
         expect(findFelt("heat_load_params.baseline_profile_mw")?.forklaring).toMatch(/i UTC/);

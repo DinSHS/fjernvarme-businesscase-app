@@ -6,7 +6,7 @@
 import type { Modelspejl } from "./modelspejl";
 
 export const MODELSPEJL: Modelspejl = {
- "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+ "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
  "cases": {
   "andeby": {
    "fil": "cases/andeby.yaml",
@@ -45,7 +45,7 @@ export const MODELSPEJL: Modelspejl = {
      "ekstra": []
     },
     {
-     "kilde": "README.md:179",
+     "kilde": "README.md:188",
      "kommando": "python run_case.py cases/andeby.yaml --data-source github --with-balancing",
      "med_balancering": true,
      "heat_csv": null,
@@ -56,7 +56,7 @@ export const MODELSPEJL: Modelspejl = {
      "ekstra": []
     },
     {
-     "kilde": "README.md:180",
+     "kilde": "README.md:189",
      "kommando": "python run_case.py cases/andeby.yaml --data-source github",
      "med_balancering": false,
      "heat_csv": null,
@@ -1815,7 +1815,7 @@ export const MODELSPEJL: Modelspejl = {
   "billund_spora": {
    "fil": "cases/billund_sporA.yaml",
    "standard": {
-    "kilde": "README.md:176",
+    "kilde": "README.md:185",
     "kommando": "python run_case.py cases/billund_sporA.yaml --data-source github --with-balancing",
     "med_balancering": true,
     "heat_csv": null,
@@ -1827,7 +1827,7 @@ export const MODELSPEJL: Modelspejl = {
    },
    "kommandoer": [
     {
-     "kilde": "README.md:176",
+     "kilde": "README.md:185",
      "kommando": "python run_case.py cases/billund_sporA.yaml --data-source github --with-balancing",
      "med_balancering": true,
      "heat_csv": null,
@@ -2604,7 +2604,7 @@ export const MODELSPEJL: Modelspejl = {
   "billund_spora_rullende": {
    "fil": "cases/billund_sporA_rullende.yaml",
    "standard": {
-    "kilde": "README.md:178",
+    "kilde": "README.md:187",
     "kommando": "python run_case.py cases/billund_sporA_rullende.yaml --data-source github --with-balancing --heat-csv data/billund_abvaerk_hourly_splejset_jun2026.csv",
     "med_balancering": true,
     "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
@@ -2616,7 +2616,7 @@ export const MODELSPEJL: Modelspejl = {
    },
    "kommandoer": [
     {
-     "kilde": "README.md:178",
+     "kilde": "README.md:187",
      "kommando": "python run_case.py cases/billund_sporA_rullende.yaml --data-source github --with-balancing --heat-csv data/billund_abvaerk_hourly_splejset_jun2026.csv",
      "med_balancering": true,
      "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",
@@ -4207,7 +4207,7 @@ export const MODELSPEJL: Modelspejl = {
      "ekstra": []
     },
     {
-     "kilde": "README.md:177",
+     "kilde": "README.md:186",
      "kommando": "python run_case.py cases/billund_sporB.yaml --data-source github --with-balancing --heat-csv data/billund_abvaerk_hourly_splejset_jun2026.csv",
      "med_balancering": true,
      "heat_csv": "billund_abvaerk_hourly_splejset_jun2026.csv",

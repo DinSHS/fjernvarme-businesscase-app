@@ -118,7 +118,7 @@ export function varmelastBudskab(v: V): string {
     const gafTekst = gaf !== null ? ` Lasten stiger ${dkFri(gaf, 3)} MW pr. grad koldere.` : "";
     if (prof.length !== 24) return `Grundprofilen har ${prof.length} værdier (skal være 24).${gafTekst}`;
     const maks = Math.max(...prof), min = Math.min(...prof);
-    return `Grundprofilen ligger mellem ${dk(min, 1)} og ${dk(maks, 1)} MW og topper kl. ${String(prof.indexOf(maks)).padStart(2, "0")} UTC.${gafTekst}`; // modellens UTC-akse (src/data_loader.py:712-727)
+    return `Grundprofilen ligger mellem ${dk(min, 1)} og ${dk(maks, 1)} MW og topper kl. ${String(prof.indexOf(maks)).padStart(2, "0")} UTC.${gafTekst}`; // modellens UTC-akse (src/data_loader.py:741-756)
 }
 
 /** "2025-07-01T00:00:00Z" -> "1. jul. 2025" (fra strengens cifre; ingen zonekonvertering). */

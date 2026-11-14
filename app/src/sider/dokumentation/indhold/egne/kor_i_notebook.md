@@ -40,7 +40,7 @@ står i køen, og intet andet. (Kilde: fabric/README.md)
 Billund Spor B og Billund rullende år er regnet med **målt varmelast** og kan kun genskabes, hvis `heat_csv` er sat til
 `billund_abvaerk_hourly_splejset_jun2026.csv`. Andeby og Billund Spor A bruger syntetisk varmelast: lad `heat_csv` stå tom.
 Sæt du den forkerte (eller glemmer den), regner modellen fint — men på en anden varmelast, så tallet er ikke README-tallet.
-(Kilde: README.md:138-140)
+(Kilde: README.md:147-149)
 
 ## Værkets egne tidsserier og værksark
 

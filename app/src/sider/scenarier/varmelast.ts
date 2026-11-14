@@ -230,7 +230,7 @@ export function varmelastTekst(valg: Varmelastvalg, serier: readonly TidsserieIn
 
 /**
  * Standardvarmelasten for et nyt par: værkets aktive tidsserie, hvis det har en (et bevidst valg på værket); ellers
- * modelrepoets målte fil for casen (fx Spor B: billund_abvaerk_hourly_splejset_jun2026.csv, README.md:177), hvis den
+ * modelrepoets målte fil for casen (fx Spor B: billund_abvaerk_hourly_splejset_jun2026.csv, README.md:186), hvis den
  * er en mulighed; ellers "følg værkets aktive" (= syntetisk).
  */
 export function standardVarmelastvalg(mk: Modelkoersel | undefined, serier: readonly TidsserieInfo[],
