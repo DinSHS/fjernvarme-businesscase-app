@@ -17,23 +17,23 @@ eller via værksarket. (Kilde: KONTRAKT §6d)
 | Brændsels- og CO₂-priser, elafgift, tarif | altid | værkets parametre (faste tal, ingen tidsserier) |
 
 Temperaturen indgår også med målt varmelast, fordi varmepumpens ydelse følger udetemperaturen.
-(Kilde: src/data_loader_github.py:644-661; src/data_loader_github.py:684-705; src/model.py:177-193)
+(Kilde: src/data_loader_github.py:647-664; src/data_loader_github.py:687-708; src/model.py:177-193)
 
 ## Varmelast: syntetisk eller målt
 
 **Syntetisk** varmelast regnes af DMI-temperaturen med værkets `heat_load_params`: en døgnprofil, rumvarme og
 nettab. Døgnprofilens timer er UTC-timer. Parametrene skal altid findes — også når varmelasten er målt.
-(Kilde: src/data_loader.py:702-778; run_case.py:377)
+(Kilde: src/data_loader.py:731-807; run_case.py:377)
 
 **Målt** varmelast er den sikreste: samlet varmeproduktion ab værk i MW, time for time, *inklusive* nettab —
 ikke salget an forbruger. Den erstatter syntesen i hele kørslen. Mangler op til 5 % af kørslens timer, udfylder
-modellen dem med en ret linje; mangler flere, stopper kørslen. (Kilde: src/data_loader.py:835-961; doc/VARMELAST_OG_NETTAB.md:43-46)
+modellen dem med en ret linje; mangler flere, stopper kørslen. (Kilde: src/data_loader.py:864-990; doc/VARMELAST_OG_NETTAB.md:43-46)
 
 ## Solprofil
 
 En solprofil er solvarmeanlæggets mulige varmeproduktion i MW hver time. Modellen bruger den laveste af profilen og
 enhedens maks varme som loft. Profilen skal dække **hver** time i kørslen — én manglende time stopper kørslen.
-Varme sendt ud i solfeltet for at undgå frost er ikke produktion. (Kilde: src/model.py:155-172; src/data_loader.py:997-1010)
+Varme sendt ud i solfeltet for at undgå frost er ikke produktion. (Kilde: src/model.py:155-172; src/data_loader.py:1026-1039)
 
 ## Sådan skal en tidsserie se ud
 
@@ -63,7 +63,7 @@ at data kan være rigtige, men er usædvanlige; serien kan bruges, men se efter.
 | Solvarme om natten, eller middagstoppen en time forskudt | advarsel — tjek tidszonen og timens start/slut |
 
 Grænserne er målt på repoets egne data: Billunds målte varmelast har højst 3 ens timer i træk og ingen time over
-to gange niveauet omkring den. (Kilde: viden/data_krav.json; src/data_loader.py:911-939)
+to gange niveauet omkring den. (Kilde: viden/data_krav.json; src/data_loader.py:940-968)
 
 ## Værksarket
 
@@ -91,10 +91,14 @@ bestilt, så det står fast, selv om værket senere ændres. (Kilde: KONTRAKT §
 
 ## Kendte forhold
 
-- **Spotprisen efter 1. oktober 2025** er kvarterpriser, og en timekørsel bruger prisen for timens *første*
-  kvarter, ikke timens gennemsnit. Målt over et år er forskellen i gennemsnit 79 kr./MWh pr. time og +6,8 kr./MWh
-  i alt. Det gælder alle kørsler i denne version. (Kilde: src/data_loader_github.py:659)
+- **Spotprisen efter 1. oktober 2025** er kvarterpriser, og en timekørsel bruger middel af timens fire kvarterer.
+  Mangler en time nogle af sine kvarterer (2–3 af 4), stopper kørslen med en fejl i stedet for at regne på en halv
+  time. (Kilde: src/data_loader.py:70-92)
+- **Kørsler regnet før modelversion 5021a5e** (appens tidligere versioner b49aeb0 og eef950a) brugte prisen for
+  timens *første* kvarter. Målt over et år var forskellen til timens gennemsnit 79 kr./MWh pr. time og +6,8 kr./MWh
+  i alt. Sammenlign derfor ikke en ny kørsel med en gammel, hvis perioden rækker ind efter 1. oktober 2025;
+  *Data i denne kørsel* viser, hvilken regel en kørsel er regnet med.
 - **Tomme temperaturer** i DMI-data udfyldes ved interpolation; det drejer sig om få timer pr. område.
-  (Kilde: src/data_loader_github.py:655-658)
+  (Kilde: src/data_loader_github.py:658-661)
 - **Markedsdata slutter**, hvor df-data slutter (opdateres mandage). Andebys solprofil slutter 3. oktober 2026, så
   Andeby kan ikke køres efter den dato. (Kilde: cases/andeby.yaml:52-60)

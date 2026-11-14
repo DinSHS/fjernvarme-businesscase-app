@@ -37,13 +37,17 @@ DATAKILDER = [
         "opløsning": "1h til 2025-09-30 22:00 UTC, derefter 15 min",
         "min_obs_pr_time": 1,
         "bemaerkning": (
-            "En timekørsel tager spotprisen for timens FØRSTE kvarter, ikke timens gennemsnit: "
-            "spot_raw.reindex(idx) vælger stemplet hh:00 (src/data_loader_github.py:659). Målt på DK1 "
-            "1. oktober 2025 - 11. oktober 2026: gennemsnitlig numerisk forskel 79 kr./MWh pr. time, "
-            "gennemsnitlig skævhed +6,8 kr./MWh (første kvarter er dyrere). Ubalance- og mFRR-data "
-            "midles derimod over timen (src/data_loader_github.py:467). Gælder alle kørsler efter "
-            "1. oktober 2025 i version 1."),
-        "kode": ["src/data_loader_github.py:289-320", "src/data_loader_github.py:648-659"],
+            "En timekørsel bruger middel af timens kvarterpriser: spot_paa_akse grupperer kvartererne pr. "
+            "tidsskridt og midler (src/data_loader.py:70-92, kaldt i src/data_loader_github.py:662). Et "
+            "tidsskridt med kun 2-3 af sine fire kvarterer (en halv time i df-data) er en fejl: CoverageError "
+            "'Spot: N tidsskridt har kun en del af deres kvarterer, foerste ...' (src/data_loader.py:85-91). "
+            "Ubalance- og mFRR-data midles også over timen (src/data_loader_github.py:470). "
+            "Modelversioner før 5021a5e (3. november 2026), herunder appens tidligere pins b49aeb0 og eef950a, "
+            "tog timens FØRSTE kvarter (spot_raw.reindex(idx) valgte stemplet hh:00). Målt for de versioner "
+            "på DK1 1. oktober 2025 - 11. oktober 2026: gennemsnitlig numerisk forskel mod timegennemsnittet "
+            "79 kr./MWh pr. time, gennemsnitlig skævhed +6,8 kr./MWh (første kvarter er dyrere). Kørsler "
+            "regnet ved de versioner over perioder fra 1. oktober 2025 kan derfor ikke sammenlignes med nye."),
+        "kode": ["src/data_loader.py:70-92", "src/data_loader_github.py:292-323", "src/data_loader_github.py:651-662"],
     },
     {
         "id": "dmi",
@@ -56,10 +60,10 @@ DATAKILDER = [
         "min_obs_pr_time": 1,
         "bemaerkning": (
             "Dækningsvagten tæller RÆKKER, ikke værdier: en række med tom temperatur passerer og "
-            "udfyldes ved tidsinterpolation (src/data_loader_github.py:655-658). Målt ved df-data "
+            "udfyldes ved tidsinterpolation (src/data_loader_github.py:658-661). Målt ved df-data "
             "392992c: fyn 4, karup 14, ringsted 1, vestkyst 9 tomme timer i alt 2023-2026 (bl.a. "
             "2026-01-01 00:00 i alle fire)."),
-        "kode": ["src/data_loader_github.py:323-345", "src/data_loader_github.py:644-647",
+        "kode": ["src/data_loader_github.py:326-348", "src/data_loader_github.py:647-650",
                  "src/model.py:177-193", "src/config.py:655-696"],
     },
     {
@@ -71,7 +75,7 @@ DATAKILDER = [
         "opløsning": "1h",
         "min_obs_pr_time": 1,
         "bemaerkning": "Findes kun for DK1 (DK2 har intet aFRR-marked): balancering med spot_area DK2 stopper med FileNotFoundError.",
-        "kode": ["src/data_loader_github.py:425-440", "src/data_loader_github.py:699-705"],
+        "kode": ["src/data_loader_github.py:428-443", "src/data_loader_github.py:702-708"],
     },
     {
         "id": "imbalance",
@@ -81,7 +85,7 @@ DATAKILDER = [
         "styres_af": ["electricity.spot_area"],
         "opløsning": "15 min (midles til time; alle fire kvarterer kræves)",
         "min_obs_pr_time": 4,
-        "kode": ["src/data_loader_github.py:442-471", "src/data_loader_github.py:76-83"],
+        "kode": ["src/data_loader_github.py:445-474", "src/data_loader_github.py:79-86"],
     },
     {
         "id": "mfrr_cap",
@@ -91,7 +95,7 @@ DATAKILDER = [
         "styres_af": ["electricity.spot_area"],
         "opløsning": "1h",
         "min_obs_pr_time": 1,
-        "kode": ["src/data_loader_github.py:473-483"],
+        "kode": ["src/data_loader_github.py:476-486"],
     },
     {
         "id": "mfrr_act",
@@ -101,7 +105,7 @@ DATAKILDER = [
         "styres_af": ["electricity.spot_area"],
         "opløsning": "15 min (midles til time; alle fire kvarterer kræves)",
         "min_obs_pr_time": 4,
-        "kode": ["src/data_loader_github.py:485-497"],
+        "kode": ["src/data_loader_github.py:488-500"],
     },
     {
         "id": "varmelast_syntetisk",
@@ -111,8 +115,8 @@ DATAKILDER = [
         "styres_af": ["heat_load_params.*", "data.dmi_area"],
         "bemaerkning": (
             "heat_load_params kræves ALTID - også med målt varmelast, hvor den indlæses og ignoreres "
-            "(run_case.py:377). Grundprofilens 24 timer er UTC-timer (src/data_loader.py:726-730)."),
-        "kode": ["src/data_loader.py:702-778", "src/data_loader_github.py:661"],
+            "(run_case.py:377). Grundprofilens 24 timer er UTC-timer (src/data_loader.py:755-759)."),
+        "kode": ["src/data_loader.py:731-807", "src/data_loader_github.py:664"],
     },
     {
         "id": "varmelast_maalt",
@@ -124,9 +128,9 @@ DATAKILDER = [
             "Læses af apply_heat_csv_override: tidsstempel reindekseres EKSAKT til modellens akse, "
             "huller på højst 5 % af kørslens timer interpoleres lineært, over 5 % stopper kørslen; "
             "negative værdier stopper kørslen; dubletter: første værdi vinder uden besked "
-            "(src/data_loader.py:911-939). Nettabet er indeholdt i målingen ab værk; "
+            "(src/data_loader.py:940-968). Nettabet er indeholdt i målingen ab værk; "
             "nettabsmodellen bruges ikke."),
-        "kode": ["src/data_loader.py:835-961", "src/data_loader_github.py:710-713", "run_case.py:183-194"],
+        "kode": ["src/data_loader.py:864-990", "src/data_loader_github.py:713-716", "run_case.py:183-194"],
     },
     {
         "id": "solprofil",
@@ -137,9 +141,9 @@ DATAKILDER = [
         "bemaerkning": (
             "Loftet er min(profil(t), p_max_heat) hver time (src/model.py:155-172). Profilen skal "
             "dække HVER time i kørslen - én manglende time stopper kørslen; den nulfyldes og "
-            "interpoleres ikke (src/data_loader.py:997-1010). En relativ sti opløses mod "
-            "kørslens arbejdsmappe (src/data_loader.py:985-987)."),
-        "kode": ["src/data_loader.py:968-1014", "src/model.py:155-172"],
+            "interpoleres ikke (src/data_loader.py:1026-1039). En relativ sti opløses mod "
+            "kørslens arbejdsmappe (src/data_loader.py:1014-1016)."),
+        "kode": ["src/data_loader.py:997-1043", "src/model.py:155-172"],
     },
     {
         "id": "vaerksparametre",
@@ -167,7 +171,7 @@ DATASAET_PR_INDSTILLING = {
     },
     "bemaerkning": (
         "data.price_zone styrer spotprisen, electricity.spot_area balancepriserne; modellen tjekker "
-        "ikke, at de er ens (src/data_loader_github.py:699-705). Vis begge, når de afviger. "
+        "ikke, at de er ens (src/data_loader_github.py:702-708). Vis begge, når de afviger. "
         "data.eur_dkk bruges ikke på df-data-vejen (spot læses i DKK)."),
 }
 
@@ -251,8 +255,8 @@ INPUTFORMAT = {
     "oploesning": {
         "tilladte": ["1h", "15min"],
         "bestemmes_af": "den hyppigste afstand mellem på hinanden følgende stempler",
-        "15min": "Midles til timer, når alle fire kvarterer findes; en time med 1-3 kvarterer er et hul (samme regel som modellen bruger for 15-min-markedsdata, src/data_loader_github.py:62-83).",
-        "gemmes_som": "1h - version 1 regner kun i timer, og modellens læser vælger ellers kun hh:00-kvarteret uden at midle (src/data_loader.py:923-925).",
+        "15min": "Midles til timer, når alle fire kvarterer findes; en time med 1-3 kvarterer er et hul (samme regel som modellen bruger for 15-min-markedsdata, src/data_loader_github.py:63-86).",
+        "gemmes_som": "1h - version 1 regner kun i timer, og modellens læser vælger ellers kun hh:00-kvarteret uden at midle (src/data_loader.py:952-954).",
     },
     "enheder": {
         "MW": {"faktor_til_mw": 1.0, "visning": "MW (middeleffekt i intervallet)"},
@@ -366,8 +370,8 @@ regel("flere_kolonner", "info", "upload", B, "flere talkolonner; den foretrukne 
       "Filen har {antal} talkolonner; '{kolonne}' bruges. Vælg en anden, hvis det er forkert.", "")
 regel("hour_dk_som_utc", "advarsel", "upload", B, "tidskolonnen hedder hour_dk, men tidszonen er UTC",
       "Tidskolonnen hedder hour_dk (dansk tid), men tidszonen er sat til UTC. Er stemplerne dansk tid, så vælg dansk lokaltid.",
-      "Modellen finder også en hour_dk-kolonne, men læser den som UTC, medmindre --heat-csv-tz sættes (src/data_loader.py:878-909).",
-      ["src/data_loader.py:878-909"])
+      "Modellen finder også en hour_dk-kolonne, men læser den som UTC, medmindre --heat-csv-tz sættes (src/data_loader.py:907-938).",
+      ["src/data_loader.py:907-938"])
 
 # --- tid og tal
 regel("ugyldig_tid", "fejl", "upload", B, "et tidsstempel kan ikke læses",
@@ -386,8 +390,8 @@ regel("zone_i_fil", "info", "upload", B, "stemplerne har selv en zone; valget af
       "Tidsstemplerne har selv en tidszone; dit valg af tidszone bruges ikke.", "")
 regel("dst_time_findes_ikke", "advarsel", "upload", B, "dansk tid: et stempel ligger i forårets manglende time",
       "{antal} tidsstempler ligger i en time, der ikke findes ved skift til sommertid (linje {linjer}). De er flyttet frem til kl. 03.",
-      "Som modellens --heat-csv-tz (nonexistent='shift_forward', src/data_loader.py:904-909). Støder de sammen med kl. 03, afvises filen som dublet.",
-      ["src/data_loader.py:904-909"])
+      "Som modellens --heat-csv-tz (nonexistent='shift_forward', src/data_loader.py:933-938). Støder de sammen med kl. 03, afvises filen som dublet.",
+      ["src/data_loader.py:933-938"])
 regel("alle_tomme", "fejl", "upload", B, "alle værdier er tomme", "Filen har tidsstempler, men ingen værdier.", "")
 regel("oploesning", "fejl", "upload", B, "opløsningen er hverken 1 time eller 15 minutter",
       "Opløsningen er {minutter} minutter. Kun timeværdier og kvarterværdier understøttes.",
@@ -409,24 +413,24 @@ regel("dst_dobbelttime_en_gang", "advarsel", "upload", B, "dansk tid: efteråret
       "Et år skåret til 8.760 timer mangler dobbelttimen (scripts/vaerksark_til_yaml.py:350-357).", ["scripts/vaerksark_til_yaml.py:350-357"])
 regel("skaev_tid", "fejl", "upload", B, "et stempel ligger ikke på et helt interval",
       "{antal} tidsstempler ligger ikke på et helt {enhed} (linje {linjer}).",
-      "Modellen reindekserer på EKSAKT tidsstempel; et skævt stempel bliver et tavst hul (src/data_loader.py:923-925).", ["src/data_loader.py:923-925"])
+      "Modellen reindekserer på EKSAKT tidsstempel; et skævt stempel bliver et tavst hul (src/data_loader.py:952-954).", ["src/data_loader.py:952-954"])
 regel("dubletter", "fejl", "upload", B, "samme interval står mere end én gang (efter omregning til UTC)",
       "{antal} tidsstempler står mere end én gang (linje {linjer}). Ret udtrækket - vi vælger ikke selv, hvilken værdi der gælder.",
-      "Modellen beholder tavst den første (src/data_loader.py:911-913). To værdier for samme time er en fejl i udtrækket. Efterårets dobbelttime i dansk tid er ikke en dublet.",
-      ["src/data_loader.py:911-913"])
+      "Modellen beholder tavst den første (src/data_loader.py:940-942). To værdier for samme time er en fejl i udtrækket. Efterårets dobbelttime i dansk tid er ikke en dublet.",
+      ["src/data_loader.py:940-942"])
 regel("kvarter_aggregeret", "info", "upload", B, "kvarterværdier er midlet til timer",
       "Kvarterværdierne er midlet til timeværdier (version 1 regner i timer). Originalen gemmes ikke.",
-      "Modellens læser ville ellers kun bruge kvarteret kl. hh:00 (src/data_loader.py:923-925).")
+      "Modellens læser ville ellers kun bruge kvarteret kl. hh:00 (src/data_loader.py:952-954).")
 regel("delvise_timer", "advarsel", "upload", B, "15 min: timer med færre end fire kvarterer",
       "{antal} timer har færre end fire kvarterværdier og er regnet som huller.",
-      "Et gennemsnit af et ufuldstændigt grundlag ses ikke bagefter (src/data_loader_github.py:72-75).", ["src/data_loader_github.py:72-75"])
+      "Et gennemsnit af et ufuldstændigt grundlag ses ikke bagefter (src/data_loader_github.py:75-78).", ["src/data_loader_github.py:75-78"])
 regel("enhed_omregnet", "info", "upload", B, "værdierne er omregnet til MW",
       "Værdierne er omregnet fra {enhed} til MW.", "")
 
 # --- værdier
 regel("negativ", "fejl", "upload", B, "en værdi er negativ",
       "{antal} værdier er negative (første {foerste}: {vaerdi}). Varmeproduktion kan ikke være under nul; frostsikring i solfeltet er ikke produktion - skriv 0 eller lad cellen stå tom.",
-      "Modellen stopper på negativ varmelast (src/data_loader.py:915-921); en negativ solprofil giver et negativt loft.", ["src/data_loader.py:915-921"])
+      "Modellen stopper på negativ varmelast (src/data_loader.py:944-950); en negativ solprofil giver et negativt loft.", ["src/data_loader.py:944-950"])
 regel("alle_nul", "fejl", "upload", B, "alle værdier er 0", "Alle værdier er 0.",
       "Et værk uden varmebehov eller en solprofil uden sol er ikke en måling.")
 regel("urimelig_stor", "fejl", "upload", B, "største værdi over 5.000 MW",
@@ -440,14 +444,14 @@ regel("kort_serie", "advarsel", "upload", B, "serien spænder under 28 døgn",
       "Værksarket kræver fire uger (scripts/vaerksark_til_yaml.py:309).", ["scripts/vaerksark_til_yaml.py:309"])
 regel("huller", "advarsel", "upload", V, "timer mangler mellem første og sidste time",
       "{antal} timer mangler ({andel}), længste hul {laengste} timer. En kørsel stopper, hvis mere end 5 % af dens timer mangler; under det udfylder modellen hullerne med en ret linje.",
-      "Modellen interpolerer lineært op til 5 % af kørslens timer og stopper derover (src/data_loader.py:926-939).", ["src/data_loader.py:926-939"])
+      "Modellen interpolerer lineært op til 5 % af kørslens timer og stopper derover (src/data_loader.py:955-968).", ["src/data_loader.py:955-968"])
 regel("langt_hul", "advarsel", "upload", V, "længste hul over 48 timer",
       "Et hul på {laengste} timer bliver en ret linje hen over vejrskift, hvis en kørsel rammer det. Vælg en periode uden om hullet, eller brug syntetisk varmelast for den.",
       "scripts/vaerksark_til_yaml.py:479-481", ["scripts/vaerksark_til_yaml.py:479-481"])
 regel("sol_huller", "fejl", "upload", S, "solprofil: over 5 % af timerne mangler",
       "Solprofilen mangler {antal} timer ({andel}). Over 5 % udfyldes ikke, og en kørsel kan ikke bruge en profil med huller.",
-      "Profil-læseren stopper på en eneste manglende time (src/data_loader.py:997-1010); værksarket udfylder højst 5 % (scripts/vaerksark_til_yaml.py:1043-1049).",
-      ["src/data_loader.py:997-1010", "scripts/vaerksark_til_yaml.py:1043-1049"])
+      "Profil-læseren stopper på en eneste manglende time (src/data_loader.py:1026-1039); værksarket udfylder højst 5 % (scripts/vaerksark_til_yaml.py:1043-1049).",
+      ["src/data_loader.py:1026-1039", "scripts/vaerksark_til_yaml.py:1043-1049"])
 regel("sol_huller_udfyldt", "advarsel", "upload", S, "solprofil: huller på højst 5 % er udfyldt",
       "{antal} manglende timer i solprofilen er udfyldt (længste hul {laengste} timer): 0, når solen er nede, ellers en ret linje.",
       "Samme som værksarket (scripts/vaerksark_til_yaml.py:1043-1049); den normaliserede solprofil har derfor ingen huller.", ["scripts/vaerksark_til_yaml.py:1043-1049"])
@@ -496,13 +500,13 @@ regel("koersel_tidsserie_ikke_gyldig", "fejl", "bestilling", B, "den valgte tids
       "Den valgte tidsserie har status '{status}' og kan ikke bruges.", "")
 regel("koersel_varmelast_daekning", "fejl", "bestilling", V, "over 5 % af kørslens timer mangler i varmelasten",
       "Varmelasten mangler {mangler} af kørslens {vindue} timer ({andel}). Modellen stopper over 5 %. Serien dækker {serie}.",
-      "src/data_loader.py:926-935", ["src/data_loader.py:926-935"])
+      "src/data_loader.py:955-964", ["src/data_loader.py:955-964"])
 regel("koersel_varmelast_huller", "advarsel", "bestilling", V, "1-5 % af kørslens timer mangler i varmelasten",
       "{mangler} af kørslens {vindue} timer mangler i varmelasten; modellen udfylder dem med en ret linje.",
-      "src/data_loader.py:936-939", ["src/data_loader.py:936-939"])
+      "src/data_loader.py:965-968", ["src/data_loader.py:965-968"])
 regel("koersel_sol_daekning", "fejl", "bestilling", S, "solprofilen dækker ikke hver time i kørslen",
       "Solprofilen mangler {mangler} af kørslens {vindue} timer. Den skal dække hver time; serien dækker {serie}.",
-      "src/data_loader.py:997-1010", ["src/data_loader.py:997-1010"])
+      "src/data_loader.py:1026-1039", ["src/data_loader.py:1026-1039"])
 regel("koersel_huller_afkortet", "info", "bestilling", B, "hullisten i validering_json er afkortet",
       "Tidsseriens hulliste er afkortet; dækningen kontrolleres endeligt i regnemotoren.", "4000-tegnsgrænsen (KONTRAKT §3.0).")
 regel("koersel_over_kapacitet", "fejl", "bestilling", V, "en time i kørslen over værkets effektive kapacitet",
@@ -513,8 +517,8 @@ regel("koersel_sol_flere_enheder", "fejl", "bestilling", S, "flere aktive solvar
       "Tvetydigt; arbejderen afviser det også (fabric/fjv/byg_case.py).", kraever_vaerk=True)
 regel("koersel_df_data", "advarsel", "bestilling", B, "perioden ligger uden for den målte df-data-dækning",
       "Perioden ligger uden for markeds- eller vejrdata ({datasaet} dækker {fra} - {til}). Kørslen stopper sandsynligvis med en dækningsfejl.",
-      "Arbejderens dækningsvagt har det sidste ord; tallene her er målt ved en bestemt df-data-version (src/data_loader.py:83-197).",
-      ["src/data_loader.py:83-197"])
+      "Arbejderens dækningsvagt har det sidste ord; tallene her er målt ved en bestemt df-data-version (src/data_loader.py:112-226).",
+      ["src/data_loader.py:112-226"])
 regel("maalt_mod_syntetisk", "advarsel", "visning", V, "målt/syntetisk energi uden for 0,85-1,15 eller døgnkorrelation under 0,85",
       "Den målte varmelast er {forhold} gange værkets syntetiske (døgnkorrelation {korrelation}). Måler serien an forbruger (uden nettab), dækker den hele værket, og passer heat_load_params og DMI-området?",
       "Billund: 0,99-1,03 og 0,97-0,98 (målt). Kræver DMI-temperatur, så den regnes, hvor den findes (fanen Tidsserier eller motoren).")
@@ -551,9 +555,9 @@ VALIDERING_JSON = {
 MAALT_MOD_SYNTETISK = {
     "formaal": "Fanen Tidsserier: viser den målte varmelast ved siden af den, værkets heat_load_params ville give.",
     "syntese": "Q(t) = grundprofil(UTC-time) + gaf x max(0, t_ref - EMA_span(T_ude)) x weekend + nettab_slope x max(0, t_net - T_ude); EMA er pandas ewm(span=thermal_inertia_hours, adjust=False); weekend = 1 - weekly_dip lørdag-søndag (UTC). Ingen af de 7 repo-værker har en nettab:-blok.",
-    "temperatur": "df-data dmi/<dmi_area> kolonne temp_mean_past1h, interpoleret i tid til modellens akse og ffill/bfill i enderne (src/data_loader_github.py:655-658).",
+    "temperatur": "df-data dmi/<dmi_area> kolonne temp_mean_past1h, interpoleret i tid til modellens akse og ffill/bfill i enderne (src/data_loader_github.py:658-661).",
     "sammenlign": "energiforhold (målt/syntetisk) og korrelation af døgnmiddel over de timer, begge har",
-    "kilde": ["src/data_loader.py:702-778"],
+    "kilde": ["src/data_loader.py:731-807"],
 }
 
 # ---------------------------------------------------------------- værksark
@@ -626,7 +630,13 @@ DATA_I_KOERSEL = {
         {"etiket": "Model", "vaerdi": "fjernvarme-businesscase @ {model_commit[:7]}", "kilde": "Koersel.model_commit"},
         {"etiket": "Værk", "vaerdi": "{vaerk.navn}, revision {vaerk_revision}", "kilde": "Koersel.vaerk_revision"},
         {"etiket": "Periode", "vaerdi": "{start} - {slut} (dansk tid), {antal_interval_model} timer", "kilde": "_koersel.start/_koersel.slut, Koersel.antal_interval_model"},
-        {"etiket": "Spotpris", "vaerdi": "spot {data.price_zone}", "altid": True, "fodnote": "Efter 1. oktober 2025: timens første kvarter (se datakilder.spot)"},
+        {"etiket": "Spotpris", "vaerdi": "spot {data.price_zone}", "altid": True,
+         "fodnote": "Efter 1. oktober 2025: middel af timens kvarterer (se datakilder.spot)",
+         # Kørsler regnet før modelrepoets 5021a5e (appens tidligere pins) tog timens første kvarter; deres
+         # fodnote skal sige det, så en gammel kørsel ikke vises med den nye regel (datagrundlag.ts).
+         "fodnote_aeldre_model": {
+             "model_commits": ["b49aeb0af097be42938b80a0fea6acdd77162836", "eef950a2ac7b3808a9456dcf48742ce08e52366a"],
+             "fodnote": "Efter 1. oktober 2025: timens første kvarter, modelversion før 5021a5e (se datakilder.spot)"}},
         {"etiket": "Udetemperatur", "vaerdi": "DMI {data.dmi_area} ({data.dmi_temp_shortname})", "altid": True},
         {"etiket": "Balancemarked", "vaerdi": "aFRR, mFRR-kapacitet, mFRR-aktivering og ubalancepris for {electricity.spot_area}", "kun_hvis": "_koersel.med_balancering = true", "ellers": "ikke med"},
         {"etiket": "Varmelast", "vaerdi": "syntetisk (heat_load_params, DMI {data.dmi_area}) | tidsserie '{navn}' (sha256 {sha256[:12]}) | repo-fil {heat_csv}", "kilde": "_koersel.tidsserie.varmelast / _koersel.heat_csv"},

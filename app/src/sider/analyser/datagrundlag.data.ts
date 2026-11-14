@@ -1,11 +1,11 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_sammensaetning.py fra viden/data_krav.json (fv-data):
 // data_i_koersel og datakilder. Ret ikke i hånden.
-// data_krav version 1 · 2026-10-16 · modelrepo eef950a2ac7b3808a9456dcf48742ce08e52366a
+// data_krav version 1 · 2026-10-16 · modelrepo 90fb16eb1e2d5aa8e619b5a951b93760fa803985
 //-----------------------------------------------------------------------
 
 /** Linjerne i "Data i denne kørsel". `vaerdi` er en skabelon; alternativer er adskilt af " | ". */
-export const DATA_LINJER: readonly { etiket: string; vaerdi: string; kilde?: string; fodnote?: string; altid?: boolean; kun_hvis?: string; ellers?: string }[] = [
+export const DATA_LINJER: readonly { etiket: string; vaerdi: string; kilde?: string; fodnote?: string; fodnote_aeldre_model?: { model_commits: readonly string[]; fodnote: string }; altid?: boolean; kun_hvis?: string; ellers?: string }[] = [
  {
   "etiket": "Markeds- og vejrdata",
   "vaerdi": "df-data @ {data_commit[:7]}",
@@ -30,7 +30,14 @@ export const DATA_LINJER: readonly { etiket: string; vaerdi: string; kilde?: str
   "etiket": "Spotpris",
   "vaerdi": "spot {data.price_zone}",
   "altid": true,
-  "fodnote": "Efter 1. oktober 2025: timens første kvarter (se datakilder.spot)"
+  "fodnote": "Efter 1. oktober 2025: middel af timens kvarterer (se datakilder.spot)",
+  "fodnote_aeldre_model": {
+   "model_commits": [
+    "b49aeb0af097be42938b80a0fea6acdd77162836",
+    "eef950a2ac7b3808a9456dcf48742ce08e52366a"
+   ],
+   "fodnote": "Efter 1. oktober 2025: timens første kvarter, modelversion før 5021a5e (se datakilder.spot)"
+  }
  },
  {
   "etiket": "Udetemperatur",

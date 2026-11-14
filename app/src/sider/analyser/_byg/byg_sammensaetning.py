@@ -71,7 +71,7 @@ def main() -> None:
     ord_ = ordliste()
     # Codex K5-F9: README-mærket kræver også referencetallenes pins. Modellen er referencetal.json's
     # model_commit; df-data skal være "fra 5. oktober 2026 eller senere" (referencetal.json -> datakrav,
-    # README.md:130-134 - prosa, derfor skrevet her) og må kun godtages, når commit'ens dato er målt
+    # README.md:139-143 - prosa, derfor skrevet her) og må kun godtages, når commit'ens dato er målt
     # (data_krav.json -> maalt_daekning).
     dk = laes("data_krav.json")["maalt_daekning"]
     readme_pins = {"model_commit": ref["model_commit"], "df_data_fra": "2026-10-05",
@@ -110,7 +110,7 @@ def datagrundlag() -> None:
     """datagrundlag.data.ts: fv-datas data_krav.json -> data_i_koersel (KONTRAKT §6d sidste punkt)."""
     d = laes("data_krav.json")
     dik = d["data_i_koersel"]
-    felter = ("etiket", "vaerdi", "kilde", "fodnote", "altid", "kun_hvis", "ellers")
+    felter = ("etiket", "vaerdi", "kilde", "fodnote", "fodnote_aeldre_model", "altid", "kun_hvis", "ellers")
     linjer = [{k: v for k, v in x.items() if k in felter} for x in dik["linjer"]]
     kilder = [{"id": x["id"], "navn": x["navn"], "bruges": x["bruges"]} for x in d["datakilder"]]
     standard_temp = "temp_mean_past1h"
@@ -121,7 +121,9 @@ def datagrundlag() -> None:
     def ts(v) -> str:
         return json.dumps(v, ensure_ascii=False, indent=1)
 
-    linje_type = "readonly { etiket: string; vaerdi: string; kilde?: string; fodnote?: string; altid?: boolean; kun_hvis?: string; ellers?: string }[]"
+    linje_type = ("readonly { etiket: string; vaerdi: string; kilde?: string; fodnote?: string; "
+                  "fodnote_aeldre_model?: { model_commits: readonly string[]; fodnote: string }; "
+                  "altid?: boolean; kun_hvis?: string; ellers?: string }[]")
     dele = [
         "//-----------------------------------------------------------------------",
         "// GENERERET af _byg/byg_sammensaetning.py fra viden/data_krav.json (fv-data):",
