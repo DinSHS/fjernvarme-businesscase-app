@@ -1,6 +1,7 @@
 {
   "_om": "Referencetal fra modelrepoet, udtrykt som værk + scenarie i appens datamodel (KONTRAKT v2 §3.1, §3.4, §3.5), så de kan genskabes i Fabric. 'vaerk.kode' er lowercase-normaliseret fra filnavnet (KONTRAKT §3.1). Tom periode = værkets time-blok. 'tolerance_dkk' = max(mip_abs_gap, mip_rel_gap × objektiv) med casens egne gab: HiGHS stopper, når ét af de to gab er nået, så en ny kørsel kan ligge så langt fra tallet uden at være forkert. Tallene afhænger af df-data; README kræver df-data fra 5. oktober 2026 eller senere.",
-  "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
+  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+  "model_commit_betyder": "regnet_ved: den modelversion, tallene er regnet ved (README-tabellen og vores målinger), ikke pinnen. Appen genkender kun kørsler ved den version som målinger af tallene (referencer.ts, README_PINS). Sættes til pinnen, når tallene er regnet igen; tjek_trofasthed.py kræver, at den er pinnen eller en forfader til den.",
   "kontrakt_version": 2,
   "datakrav": {
     "df_data": "fra 5. oktober 2026 eller senere; nye dataopdateringer ændrer ikke januar–juni 2026 (målt 26/10: 10be997→106b9fc har samme værdier for 2025 og januar–juni 2026)",

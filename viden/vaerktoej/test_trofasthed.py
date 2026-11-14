@@ -193,6 +193,30 @@ class Modproever(unittest.TestCase):
         finally:
             self._gendan(g)
 
+    def test_P1_gammel_model_commit_uden_maerke_er_roed(self):
+        # En viden-fil, der LÆSER modelrepoet ved pinnen (her knapper.json), skal have pinnen.
+        p = self.app / "viden" / "knapper.json"
+        g = self._gem(p)
+        try:
+            self._ret(p, f'"model_commit": "{BM.PIN}"', '"model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a"')
+            self.assertRoed(self.gate(), r"FEJL \[pins\].*knapper\.json")
+        finally:
+            self._gendan(g)
+
+    def test_P2_regnet_ved_skal_vaere_en_forfader_til_pinnen(self):
+        # referencetal.json: model_commit er den version, tallene er REGNET ved (referencer.ts, README_PINS) og
+        # må være ældre end pinnen — men kun en commit i pinnens historie, ikke et vilkårligt SHA.
+        p = self.app / "viden" / "referencetal.json"
+        g = self._gem(p)
+        try:
+            t = p.read_text(encoding="utf-8")
+            t2 = re.sub(r'"model_commit": "[0-9a-f]{40}"', '"model_commit": "' + "0" * 40 + '"', t, count=1)
+            self.assertNotEqual(t, t2)
+            p.write_text(t2, encoding="utf-8", newline="\n")
+            self.assertRoed(self.gate(), r"FEJL \[pins\].*referencetal\.json")
+        finally:
+            self._gendan(g)
+
     def test_F7_tom_model_sektion_er_roed(self):
         p = self.app / "community" / "pyproject.toml"
         g = self._gem(p)

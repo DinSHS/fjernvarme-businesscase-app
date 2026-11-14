@@ -3,7 +3,8 @@
 Modelrepoet er sandheden. Testen fejler, hvis en modelopdatering ændrer en antagelse, appen bruger — i stedet for at
 lade den glide igennem:
 
-  [1] pins       viden/modelspejl.json, konstanter.py og hver viden/*.json's model_commit er den samme commit.
+  [1] pins       viden/modelspejl.json, konstanter.py og hver viden/*.json's model_commit er den samme commit — undtagen
+                 filer med "model_commit_betyder": "regnet_ved" (referencetal.json), hvor den er en tidligere pin.
   [2] spejl      modelspejl.json, app/src/lib/modelspejl.data.ts, skalering.vektorer.json og eksportens
                  vaerksdata_skabelon.xlsx (runde 12, byte for byte) er præcis, hvad modelrepoet
                  giver ved commit'en (cases som blade, kørselskommandoer læst STRENGT, kodens standarder, solver, vinduer,
@@ -84,11 +85,31 @@ if SPEJL["model_commit"] != K.MODEL_COMMIT:
                  "- kør byg_modelspejl.py og gennemgå forskellene")
 if SPEJL["data_commit"] != K.DF_DATA_SHA:
     meld("pins", f"modelspejl.json har df-data {SPEJL['data_commit'][:7]}, konstanter.py {K.DF_DATA_SHA[:7]}")
+#: Appens tidligere pins. En viden-fil med "model_commit_betyder": "regnet_ved" (referencetal.json) bærer den version,
+#: TALLENE er regnet ved — referencer.ts og README_PINS genkender kun kørsler ved den — og må derfor være ældre end
+#: pinnen. Står der pinnen, mens tallene er fra en ældre version, måles nye kørsler mod gamle tal (målt ved 90fb16e:
+#: referencer.spec.ts og information.spec.tsx viste README-referencerne som "uden for tolerancen"/"ikke kørt").
+TIDLIGERE_PINS = ("b49aeb0af097be42938b80a0fea6acdd77162836", "eef950a2ac7b3808a9456dcf48742ce08e52366a")
+regnet_ved: list[str] = []
 for p in sorted(VIDEN.glob("*.json")):
     d = json.loads(p.read_text(encoding="utf-8"))
-    if isinstance(d, dict) and "model_commit" in d and d["model_commit"] != K.MODEL_COMMIT:
-        meld("pins", f"viden/{p.name}: model_commit {str(d['model_commit'])[:7]} ≠ {K.MODEL_COMMIT[:7]}")
+    if not (isinstance(d, dict) and "model_commit" in d) or d["model_commit"] == K.MODEL_COMMIT:
+        continue
+    c = str(d["model_commit"])
+    if str(d.get("model_commit_betyder", "")).startswith("regnet_ved"):
+        forfader = c in TIDLIGERE_PINS
+        if forfader and kilde is not None and kilde.repo is not None:
+            forfader = subprocess.run(["git", "-C", str(kilde.repo), "merge-base", "--is-ancestor", c, K.MODEL_COMMIT],
+                                      capture_output=True).returncode == 0
+        if forfader:
+            regnet_ved.append(f"viden/{p.name}: tallene er regnet ved {c[:7]}, ikke ved pinnen {K.MODEL_COMMIT[:7]}")
+        else:
+            meld("pins", f"viden/{p.name}: model_commit {c[:7]} (regnet_ved) er hverken pinnen eller en tidligere pin")
+    else:
+        meld("pins", f"viden/{p.name}: model_commit {c[:7]} ≠ {K.MODEL_COMMIT[:7]}")
 print(f"[1] pins: {K.MODEL_COMMIT[:7]} / df-data {K.DF_DATA_SHA[:7]}, {len(fejl.get('pins', []))} fejl")
+for t in regnet_ved:
+    print(f"    oplysning: {t}")
 
 # --- [2] spejlet er modelrepoet -----------------------------------------------------------------------------
 tekster: dict[str, str] = {}
