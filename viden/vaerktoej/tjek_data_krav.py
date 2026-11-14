@@ -10,7 +10,7 @@
   [2] Repoets egne fire datafiler validerer GYLDIGT med præcis de forventede fund
   [3] Hver regel med en fixture udløses af den og kun af de forventede fejl (en mutation pr. regel)
   [4] tal_tekst-testvektorerne + normaliseret fil = fabric/fjv/tidsserie.py's bytes for repofilerne
-  [5] Alle fil:linje-henvisninger i data_krav.json/.md og data.md findes ved eef950a
+  [5] Alle fil:linje-henvisninger i data_krav.json/.md og data.md findes ved 90fb16e
   [6] tjek_koersel: dækning ved bestilling (huller, uden for serien, kapacitet)
   [7] modellens apply_heat_csv_override / _attach_unit_profiles læser den normaliserede fil
       BIT-identisk med originalen
@@ -35,7 +35,7 @@ HER = Path(__file__).resolve().parent
 VIDEN = HER.parent
 PRODUKT = VIDEN.parent
 REPO = Path(os.environ.get("FJV_MODELREPO", PRODUKT.parent / "fjernvarme-businesscase"))
-PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
+PIN = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
 sys.path.insert(0, str(HER))
 import valider_tidsserie as V  # noqa: E402
 

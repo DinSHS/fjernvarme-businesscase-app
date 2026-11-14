@@ -1,6 +1,6 @@
 {
   "_om": "Demo-bibliotek: et lille sæt reference/scenarie-par, der viser differensmetoden på rigtige værker. 'koersler' er de unikke kørsler (hver = én Scenarie + ScenarieAendring-rækker i appens form, KONTRAKT v2.1 §3.4–3.5: enable/disable har enhedens NAVN i sti). 'par' parrer dem til spørgsmål med en forventning, der kan efterprøves. Kør i rækkefølgen 'koer_raekkefoelge' (Andeby helår med balancering til sidst). Valideret af viden/vaerktoej/tjek_demo.py mod værkernes stier og motorens egen byg_case + modellens load_case.",
-  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+  "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
   "kontrakt_version": "2.1",
   "faelles": {
     "vintervindue": {

@@ -24,7 +24,7 @@ sys.stdout.reconfigure(errors="replace")
 
 HER = Path(__file__).resolve().parent
 VIDEN = HER.parent
-PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
+PIN = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
 REPO = Path(os.environ.get("FJV_MODELREPO",
                            VIDEN.parent.parent / "fjernvarme-businesscase"))
 COMMIT = PIN
@@ -968,7 +968,7 @@ def enhedstyper() -> dict:
         },
     }
     return {
-        "_om": "Enhedstyper i fjernvarmemodellen @ eef950a. Typen er en etiket; "
+        "_om": "Enhedstyper i fjernvarmemodellen @ 90fb16e. Typen er en etiket; "
                "økonomien styres af fuel og alpha. Standardværdier fra src/config.py "
                "(dataclass Unit).",
         "kilde": {

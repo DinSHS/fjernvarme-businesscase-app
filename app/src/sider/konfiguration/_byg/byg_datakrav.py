@@ -28,7 +28,7 @@ OMRAADE = HER.parent
 PRODUKT = HER.parents[4]
 VIDEN = PRODUKT / "viden"
 REPO = PRODUKT.parent / "fjernvarme-businesscase"
-PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
+PIN = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
 sys.path.insert(0, str(VIDEN / "vaerktoej"))
 import valider_tidsserie as V  # noqa: E402
 

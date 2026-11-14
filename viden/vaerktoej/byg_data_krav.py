@@ -7,7 +7,7 @@ samme tal. Kør:
 
     python viden/vaerktoej/byg_data_krav.py
 
-Kildehenvisninger ``fil:linje`` peger på modelrepoet @ eef950a og kontrolleres af
+Kildehenvisninger ``fil:linje`` peger på modelrepoet @ 90fb16e og kontrolleres af
 tjek_viden.py [6] og tjek_data_krav.py. Målte tal er målt 2026-10-16 (se
 rapporter/fv-data.md for kommandoerne).
 """
@@ -22,7 +22,7 @@ sys.stdout.reconfigure(errors="replace")
 HER = Path(__file__).resolve().parent
 UD = HER.parent / "data_krav.json"
 
-PIN = "eef950a2ac7b3808a9456dcf48742ce08e52366a"
+PIN = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
 DF_DATA = "392992c7fe35992e79fba8d1ba7b91967e8d1481"
 
 # ---------------------------------------------------------------- datakilder
@@ -559,7 +559,7 @@ MAALT_MOD_SYNTETISK = {
 # ---------------------------------------------------------------- værksark
 
 VAERKSARK = {
-    "script": "scripts/vaerksark_til_yaml.py (uændret, modelrepoet @ eef950a)",
+    "script": "scripts/vaerksark_til_yaml.py (uændret, modelrepoet @ 90fb16e)",
     "kald": "python scripts/vaerksark_til_yaml.py <ark.xlsx> --cases-dir <ud>/cases --data-dir <ud>/data [--timeslut] [--overskriv]",
     "flag": {
         "--timeslut": "stemplerne i Timedata (og Solvarme) er timens slut; flyttes en time tilbage efter UTC-omregning",

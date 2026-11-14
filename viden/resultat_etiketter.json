@@ -1,6 +1,6 @@
 {
   "_om": "Danske etiketter og forklaringer til modellens resultatfelter, til fv-fabric's maaleregister.json (KONTRAKT v2 §3, Måleregister) og fv-app's visninger. fv-fabric ejer registeret (kilde, gruppe, aggregering); dette er fv-ekspert's faglige del. <enhed>, <lager> og <marked> er pladsholdere i kolonnenavnet. Kilder er fil:linje i modelrepoet @ eef950a.",
-  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+  "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
   "manifest_noegletal": [
     {
       "noegle": "objektiv_dkk",

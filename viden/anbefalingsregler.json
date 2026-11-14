@@ -1,6 +1,6 @@
 {
   "_om": "Regler for at gøre en differens mellem to kørsler til en ærlig anbefaling og en historie i klartekst (brief 15, afsnit A og A2). Gælder et par reference (a) og scenarie (b) af samme værk; Δ = objektiv(b) − objektiv(a), negativ = scenariet er billigere. Formuleringen pr. knap står i knapper.json → anbefaling. Kilder er fil:linje i modelrepoet @ eef950a eller appens egne målinger, markeret 'egen måling' med dato og modelversion (de står ikke i modelrepoet)",
-  "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+  "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
   "t0_defekte_model_commits": ["b49aeb0af097be42938b80a0fea6acdd77162836"],
   "t0_defekte_model_commits_om": "Modelversioner, hvor lagerbalancen ikke gjaldt i periodens første time (rettet i modelrepoet 3c2afa6, 19/10-2026; første pinnede version med rettelsen er eef950a). Kun kørsler regnet ved disse commits får forbeholdet t0_lager. Listen er de commits, appen har været pinnet til før eef950a.",
   "kontrakt_version": "2.2",

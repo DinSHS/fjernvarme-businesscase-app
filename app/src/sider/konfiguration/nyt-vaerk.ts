@@ -19,7 +19,7 @@ import { validerVaerk, type Fund } from "./validering";
 /** Et blad i skabelonen eller i det færdige værk. */
 export interface NytBlad {
     sti: string; vaerdi_json: string; bekraeft: boolean; kommentar?: string | null;
-    /** Hvor værdien kommer fra: modelrepoet ("Andeby, cases/andeby.yaml:184 @ eef950a") eller "egen antagelse: …". */
+    /** Hvor værdien kommer fra: modelrepoet ("Andeby, cases/andeby.yaml:184 @ 90fb16e") eller "egen antagelse: …". */
     kilde?: string | null;
 }
 

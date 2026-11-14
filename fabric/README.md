@@ -12,7 +12,7 @@ SQL-database; notebooken `fjv_koer_scenarie` regner dem og skriver resultaterne 
 
 | Ting | Tilstand |
 |---|---|
-| Modelkode | `eef950a2ac7b3808a9456dcf48742ce08e52366a` (pinnet, `fjv/konstanter.py`; før 2026-10-26: `b49aeb0`) |
+| Modelkode | `90fb16eb1e2d5aa8e619b5a951b93760fa803985` (pinnet, `fjv/konstanter.py`; før 2026-11-14: `eef950a`, før 2026-10-26: `b49aeb0`) |
 | df-data | `106b9fce9a2e3610090b1a542559024056449b88` (pinnet; opdateres om mandagen — skift bevidst; før 2026-10-26: `392992c`) |
 
 Installationens workspace, lakehouse og item-id'er står **ikke** i kernen: udrulningen læser dem fra

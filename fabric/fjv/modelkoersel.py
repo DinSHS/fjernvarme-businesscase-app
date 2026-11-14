@@ -33,7 +33,7 @@ _README_RAEKKE = re.compile(r"^\|.*`([^`]*run_case\.py\s+cases/[^`]*)`")
 FORTOLKER = "python"
 #: Flag, appens bestilling oversætter til scenariefelter (byg_case/startBestilling). Alt andet havner i ``ekstra``.
 APP_FLAG = {"--data-source", "--with-balancing", "--heat-csv", "--start", "--end", "--balancing-method"}
-#: Uden flagtabel (motoren): run_case.py's flag uden værdi @ eef950a.
+#: Uden flagtabel (motoren): run_case.py's flag uden værdi @ 90fb16e (målt: run_case.py er samme blob e416ceb ved eef950a og 90fb16e).
 _NUL_ARITET = {"--with-balancing", "--legacy-nettab", "--dummy", "--external", "--force-refresh"}
 #: Flag, der ikke påvirker resultatet (kun output/visning).
 UDEN_BETYDNING = {"--days", "--out-dir"}

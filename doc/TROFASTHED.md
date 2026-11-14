@@ -12,7 +12,7 @@ viser, hvordan du selv kan efterprøve det på en halv time (det meste er instal
 
 | | Commit | Står i |
 |---|---|---|
-| Modellen | `eef950a2ac7b3808a9456dcf48742ce08e52366a` ("FINAL version …", oktober 2026) | `MODEL_COMMIT` i [`fabric/fjv/konstanter.py`](../fabric/fjv/konstanter.py) |
+| Modellen | `90fb16eb1e2d5aa8e619b5a951b93760fa803985` ("Note om nye spotpriser …", november 2026; spot midles over tidsskridtet fra `5021a5e`) | `MODEL_COMMIT` i [`fabric/fjv/konstanter.py`](../fabric/fjv/konstanter.py) |
 | df-data | `106b9fce9a2e3610090b1a542559024056449b88` | `DF_DATA_SHA` samme sted |
 
 Pinnen står også i [`CREDITS.md`](../CREDITS.md), `app/src/sider/dokumentation/kilde.ts` og `viden/*.json`, og gaten
@@ -43,7 +43,7 @@ cases/<værk>.yaml ── fjv/flad.py ──► blade i databasen (sti → værd
 ## 3. Modelspejlet — appen læser dine filer, den afskriver dem ikke
 
 [`viden/vaerktoej/byg_modelspejl.py`](../viden/vaerktoej/byg_modelspejl.py) læser modelrepoet ved den pinnede commit
-(`git show eef950a:<fil>`) og skriver tre genererede filer:
+(`git show 90fb16e:<fil>`) og skriver tre genererede filer:
 
 | Fil | Indhold |
 |---|---|
@@ -65,7 +65,7 @@ filnavne er lange).
 ```bash
 git clone https://github.com/DinSHS/fjernvarme-businesscase-app.git app
 git clone https://github.com/skj-1964/fjernvarme-businesscase.git model
-git -C model checkout eef950a2ac7b3808a9456dcf48742ce08e52366a
+git -C model checkout 90fb16eb1e2d5aa8e619b5a951b93760fa803985
 git clone https://github.com/skj-1964/df-data.git model/data/df-data
 git -C model/data/df-data checkout 106b9fce9a2e3610090b1a542559024056449b88
 
