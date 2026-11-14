@@ -1,6 +1,6 @@
 # Validering — alle fejl, modellen rejser, og hvem der kan fange dem
 
-Kilde: modelrepoet @ `eef950a`. Linjehenvisninger er `fil:linje` ved den commit.
+Kilde: modelrepoet @ `90fb16e`. Linjehenvisninger er `fil:linje` ved den commit.
 Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 
 - **Klient** — kan afgøres alene ud fra værkets parametre og scenariet. Appen bør
