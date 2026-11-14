@@ -1,8 +1,9 @@
 # El: spotpris, tarif og afgift
 
 **Spotprisen** kommer time for time fra datarepoet df-data for værkets priszone (DK1 vest for
-Storebælt, DK2 øst for). Fra 1. oktober 2025 findes kvarterpriser. (Kilde: README.md:233-236;
-cases/andeby.yaml:22)
+Storebælt, DK2 øst for). Fra 1. oktober 2025 findes kvarterpriser; en timekørsel bruger middel af timens fire
+kvarterer (fra modelversion 5021a5e; før tog modellen timens første kvarter). (Kilde: README.md:233-236;
+cases/andeby.yaml:22; src/data_loader.py:70-92)
 
 ## Hvad en MWh varme koster pr. enhedstype
 

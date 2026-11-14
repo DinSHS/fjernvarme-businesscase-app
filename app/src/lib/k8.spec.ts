@@ -1,5 +1,5 @@
 // Codex K8 (review af runde 8), F1, F2, F3, F5 og F6 — skrevet FØR rettelsen.
-// Facit kommer fra modelrepoets egne linjer: f, andeby_profil og heat_params i scripts/vaerksark_til_yaml.py @ eef950a
+// Facit kommer fra modelrepoets egne linjer: f, andeby_profil og heat_params i scripts/vaerksark_til_yaml.py @ 90fb16e
 // udført uændret i Python (samme metode som Codex' orakel i K8).
 import { describe, expect, it } from "vitest";
 import { MODELSPEJL } from "./modelspejl.data";
@@ -78,7 +78,7 @@ describe("F5 — standardkommandoens hele betydning følger med til appen", () =
 describe("F6 — proveniens følger enhedsbladene ind i værket", () => {
     it("gaskedlens D&V er Andebys med kilde; dens effekt er appens egen antagelse", () => {
         const blade = new Map(bygVaerk({ ...udkast("50"), kode: "vesterby" }, s).blade.map((b) => [b.sti, b]));
-        expect(blade.get("units.gaskedel.var_om")).toMatchObject({ vaerdi_json: "89.0", kommentar: expect.stringMatching(/Kilde: Andeby, cases\/andeby\.yaml:\d+ @ eef950a/) });
+        expect(blade.get("units.gaskedel.var_om")).toMatchObject({ vaerdi_json: "89.0", kommentar: expect.stringMatching(/Kilde: Andeby, cases\/andeby\.yaml:\d+ @ 90fb16e/) });
         expect(blade.get("units.gaskedel.p_max_heat")?.kommentar).toMatch(/egen antagelse/);
         const u = { ...udkast("50"), kode: "vesterby" };
         u.enheder[0].værdier.set("var_om", "70");
