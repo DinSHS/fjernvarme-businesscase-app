@@ -219,8 +219,9 @@ Kørslen med tank fik dermed gratis varme, som kørslen uden tank ikke fik — p
 stor del af differensen: i Andeby 5.–16. januar 2026 leverede tankene 33 MWh gratis i første time,
 omkring halvdelen af tankværdien på 44.220 kr. (egen måling (appens udvikling, Andeby D01/D02 ved b49aeb0, 16.10.2026; står ikke i modelrepoet)). Fra `eef950a` gælder
 lagerbalancen også i første time (src/model.py:267-271; tests/test_lager_foerste_time.py), og
-tankværdien i samme vindue blev ca. halvt så stor: 21.915,92 kr., målt 26. oktober 2026 som D02 − D01 i
-demo_scenarier.json (samme tal som tests/test_lager_foerste_time.py:5-6).
+tankværdien i samme vindue blev ca. halvt så stor: 21.915,92 kr., målt 26. oktober 2026 ved `eef950a` som D02 − D01 i
+demo_scenarier.json (samme tal som tests/test_lager_foerste_time.py:5-6). Ved `90fb16e`, efter spotrettelsen, er samme
+differens 23.515,96 kr. (demo_scenarier.json › par P1 › maalt_2026_11_14).
 Kørsler regnet før `eef950a` har stadig fejlen; appen sammenligner kun kørsler ved samme
 modelversion. Timefilen har fortsat én række færre end perioden — modellens rapport udelader
 første interval (src/reporting.py:314-338) — mens objektivet medregner den.
@@ -278,8 +279,8 @@ størst forår og sommer. (Kilde: rapport v4, bilag A)
 konsekvenser i MWh, kroner og ton CO₂, og hvor sikkert det er. Fx: "I dette scenarie slår vi begge
 tanke fra. Det flytter ca. 87 MWh til gaskedlen, øger CO₂-udledningen med 17 t og gør driften
 22.000 kr. dyrere i perioden 5.–16. januar 2026. Begge kørsler er løst til optimum; perioden er kun
-12 døgn, så tallet viser retningen, ikke årets størrelse."
-(Kilde: anbefalingsregler.json; demo_scenarier.json)
+12 døgn, så tallet viser retningen, ikke årets størrelse." (Eksemplets tal er demo-parret P1 ved modelversion
+`eef950a`.) (Kilde: anbefalingsregler.json; demo_scenarier.json)
 
 ## 7. Referencetal
 
