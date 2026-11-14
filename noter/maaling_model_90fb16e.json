@@ -289,7 +289,7 @@
    "data_commit": "106b9fce9a2e3610090b1a542559024056449b88",
    "tidspunkt": "2026-11-14T11:27:31",
    "status": "faerdig",
-   "note": ""
+   "note": "ikke optimum: gab 2,59 %, nedre grænse ca. 21.910.000 (22.492.900,32 x (1 - 0,0259)); README 21.773.827 ligger UNDER intervallet, mindst ca. 135.000 kr. (rettet efter Codex-review)"
   },
   {
    "id": "UP_IDAG_SPOT",

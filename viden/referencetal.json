@@ -187,7 +187,7 @@
               "dato": "2026-11-14",
               "objektiv_dkk": 22492900.32,
               "opnaaet_gab": 0.0259,
-              "status": "IKKE optimum: kodens tidsgrænse 600 s ramt med gab 2,59 % (1.261 s i alt); objektivet er en øvre grænse. README-tallet 21.773.827 (før spotrettelsen) ligger inden for intervallet, så en ændring kan hverken påvises eller afvises. Ikke et nyt referencetal.",
+              "status": "IKKE optimum: kodens tidsgrænse 600 s ramt med gab 2,59 % (1.261 s i alt); objektivet er en øvre grænse; optimum ved 90fb16e ligger mellem ca. 21.910.000 kr. (nedre grænse) og 22.492.900 kr. (løsningen), altså mindst ca. 135.000 kr. over README's 21.773.827, som er fra før spotrettelsen. Tallet er ikke et optimum og ikke et referencetal.",
               "kilde": "noter/maaling_model_90fb16e.md"
             }
           ]

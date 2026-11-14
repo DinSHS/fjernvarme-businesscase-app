@@ -300,8 +300,9 @@ Modelrepoet skriver selv, at README-tabellen, tallene i `doc/` og rapport v4 er 
 | Andeby helår, med balancering | jul 2025–jun 2026 | 24.188.471 | intet optimum ² | 0,13 % | 17 min (24 kerner), ca. 3,5 GB |
 | Andeby helår, uden balancering | jul 2025–jun 2026 | 30.431.535 | 30.495.431 | 0,0209 % | 1 min (24 kerner) |
 
-¹ Kodens tidsgrænse på 600 s ramt med gab 2,59 %: løsningen 22.492.900 kr. er en øvre grænse, ikke et referencetal.
-README-tallet ligger i intervallet, så en ændring kan hverken påvises eller afvises. Ved eef950a ramte samme kørsel
+¹ Kodens tidsgrænse på 600 s ramt med gab 2,59 %: optimum ved 90fb16e ligger mellem ca. 21.910.000 kr. (nedre
+grænse) og 22.492.900 kr. (løsningen), altså mindst ca. 135.000 kr. over README-tallet. Tallet er ikke et optimum og
+ikke et referencetal. Ved eef950a ramte samme kørsel
 også tidsgrænsen (gab 2,03 %). (Kilde: referencetal.json › readme › billund_rullende)
 
 ² Tidsgrænsen 3.600 s ramt med gab 0,13 %, over casens 0,1 %: løsningen 24.235.822 kr. er en øvre grænse, ikke

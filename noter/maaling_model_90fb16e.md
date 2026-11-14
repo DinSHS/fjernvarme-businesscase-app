@@ -95,7 +95,7 @@ Et vindue før 1. oktober 2025 må ikke flytte sig. Andeby 4.–5. aug 2025, ude
 - **Mængdetal i `vurdering`-felterne** (MWh, aFRR/mFRR-indtægter, CO₂, brutto/netto, tankens første interval): ikke gjort op igen. Kun objektiv og differenser er målt.
 - **BUDSTRATEGI-kolonnen "Prognosen lovede"** (2.932.972 og 3.303.953): ikke regnet igen.
 - **Billund-firkanten og Andeby §9 i METODE.md** (rapport v4, fx 5.002.707 og 4.175.596): kommer fra rapporten, ikke fra appens kæde, og er ikke regnet igen. De er fra før begge rettelser.
-- **Billund rullende år**: løseren stoppede med gab 2,59 %, så 22.492.900 er en øvre grænse (nedre ca. 21.910.000). Det gamle README-tal 21.773.827 ligger i intervallet, så en ændring kan hverken påvises eller afvises. Ikke et optimum.
+- **Billund rullende år**: løseren stoppede med gab 2,59 %, så 22.492.900 er en øvre grænse og nedre grænse ca. 21.910.000 (22.492.900,32 × (1 − 0,0259) = 21.910.334; gabet er afrundet, ±1.100 kr.). Det gamle README-tal 21.773.827 ligger **under** intervallet, mindst ca. 135.000 kr. (rettet 14/11 efter Codex-review; første udgave sagde fejlagtigt, at det lå i intervallet). Ikke et optimum og ikke et referencetal.
 - **D12 / Andeby helår med balancering**: ramte tidsgrænsen (gab 0,13 %). En stor maskine kan måske nå optimum; ikke prøvet.
 - **Afvigelser, jeg ikke kan forklare med spotrettelsen**: ingen i referencetal, de tre upstream-kontroltal eller kontrollen før 1. oktober. Uforklaret er kun,
   at BUDSTRATEGI (4) går op (+27.772 kr.), hvor (1)–(3) går ned. Mønstret ellers: Andeby-vinter falder 4–13.000 kr. pr. kørsel, Billund marts–juni og
