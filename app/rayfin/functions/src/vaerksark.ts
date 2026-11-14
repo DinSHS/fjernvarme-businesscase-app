@@ -9,19 +9,27 @@
 //   - jobstarten reserveres betinget (kun én kalder POST'er), og en fejlet start frigiver reservationen, så et nyt
 //     kald med samme anmodning genoptager den. Notebooken uden parametre tager desuden alle `koe`-importer FIFO.
 // K5-F3: ZIP-kataloget tjekkes (zip.ts), før filen gemmes og importen startes.
+//
+// Runde 12: genupload af et ark, appen har eksporteret, er en ny revision af værket (anmodningens vaerk_id og
+// forventet_revision). Med arket følger BASIS — appens nye eksport af værkets revision — bundet af `basis_sha256`;
+// importen kører modelscriptet på begge og gemmer kun forskellen. Værkets revision tjekkes allerede her, så en
+// konflikt siges med det samme (og igen i importens transaktion). Basis gemmes som `<id>_basis.xlsx`.
 //-----------------------------------------------------------------------
 
 import { Afvisning, læsAnmodning, type UploadVaerksark } from './logik.js';
 import { MAKS_VAERKSARK_BYTES, sha256Hex } from './tidsserie.js';
 import { tjekZip } from './zip.js';
 
-export interface AnmodningsRad { id: string; status: string; svar: string | null; aendringer_json: string; anmodet_af: string }
+export interface AnmodningsRad { id: string; status: string; svar: string | null; aendringer_json: string; anmodet_af: string; vaerk_id?: string | null; forventet_revision?: number | null }
 export interface ImportRad { id: string; status: string; fabric_job_id: string | null; log: string | null }
+export interface VaerkRad { id: string; kode: string; revision: number; arkiveret: boolean }
 export interface Jobsvar { ok: boolean; jobId?: string; status: number; fejl?: string }
 
 export interface VaerksarkDeps {
     læsAnmodning(id: string): Promise<AnmodningsRad | undefined>;
     læsImport(id: string): Promise<ImportRad | undefined>;
+    /** Runde 12: værket, en revision gælder. */
+    læsVaerk(id: string): Promise<VaerkRad | undefined>;
     skrivFil(filesRelativSti: string, bytes: Uint8Array): Promise<void>;
     /** I ÉN transaktion: lås og genlæs anmodningen; er den stadig `ny`, opret importen (id = anmodningens) og sæt anmodningen `udfoert`. */
     opretImport(a: AnmodningsRad, upload: UploadVaerksark, sti: string, log: string | null): Promise<'oprettet' | 'allerede_behandlet'>;
@@ -36,7 +44,18 @@ export interface VaerksarkDeps {
 
 export interface Vaerksarksvar { ok: boolean; status: string; svar: string; import_id?: string }
 
-export async function behandlVaerksark(d: VaerksarkDeps, anmodningId: string, indholdBase64: string): Promise<Vaerksarksvar> {
+/** Base64 -> bytes med arkets egne kontroller (størrelse, xlsx-signatur, ZIP-katalog). Basis-arket nævnes i fejlen. */
+function arkbytes(b64: string, basis: boolean): Uint8Array {
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(b64)) throw new Afvisning(`${basis ? 'Basis-arket' : 'Filen'} er ikke base64-kodet.`);
+    const bytes = new Uint8Array(Buffer.from(b64, 'base64'));
+    if (bytes.byteLength > MAKS_VAERKSARK_BYTES) throw new Afvisning(`${basis ? 'Basis-arket' : 'Værksarket'} er for stort (${Math.round(bytes.byteLength / 1000)} kB; højst ${MAKS_VAERKSARK_BYTES / 1000} kB).`);
+    if (!(bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04)) throw new Afvisning(`${basis ? 'Basis-arket' : 'Filen'} er ikke et Excel-ark (.xlsx).`);
+    const z = tjekZip(bytes);
+    if (!z.ok) throw new Afvisning(z.fejl!);
+    return bytes;
+}
+
+export async function behandlVaerksark(d: VaerksarkDeps, anmodningId: string, indholdBase64: string, basisBase64 = ''): Promise<Vaerksarksvar> {
     const a = await d.læsAnmodning(anmodningId);
     if (!a) return { ok: false, status: 'afvist', svar: 'Anmodningen findes ikke.' };
     if (a.status === 'afvist') return { ok: false, status: 'afvist', svar: a.svar ?? '' };
@@ -46,6 +65,8 @@ export async function behandlVaerksark(d: VaerksarkDeps, anmodningId: string, in
         if (x.type !== 'upload_vaerksark') throw new Afvisning('Anmodningen er ikke en værksark-upload.');
         upload = x.upload;
         if (sha256Hex(indholdBase64) !== upload.sha256) throw new Afvisning('Filens indhold passer ikke med anmodningens sha256 — upload filen igen.');
+        if (upload.basis_sha256 !== null && sha256Hex(basisBase64) !== upload.basis_sha256) throw new Afvisning('Basis-arket passer ikke med anmodningens sha256 — upload arket igen.');
+        if (upload.basis_sha256 === null && basisBase64) throw new Afvisning('Et basis-ark hører kun til en genupload som revision.');
     } catch (e) {
         if (e instanceof Afvisning) return { ok: false, status: 'afvist', svar: e.message };
         throw e;
@@ -54,15 +75,20 @@ export async function behandlVaerksark(d: VaerksarkDeps, anmodningId: string, in
     const id = a.id.toLowerCase();
     if (a.status === 'ny') {
         try {
-            if (!/^[A-Za-z0-9+/]+={0,2}$/.test(indholdBase64)) throw new Afvisning('Filen er ikke base64-kodet.');
-            const bytes = new Uint8Array(Buffer.from(indholdBase64, 'base64'));
-            if (bytes.byteLength > MAKS_VAERKSARK_BYTES) throw new Afvisning(`Værksarket er for stort (${Math.round(bytes.byteLength / 1000)} kB; højst ${MAKS_VAERKSARK_BYTES / 1000} kB).`);
-            if (!(bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04)) throw new Afvisning('Filen er ikke et Excel-ark (.xlsx).');
-            const z = tjekZip(bytes);
-            if (!z.ok) throw new Afvisning(z.fejl!);
+            const bytes = arkbytes(indholdBase64, false);
+            const basis = upload.basis_sha256 === null ? null : arkbytes(basisBase64, true);
+            if (basis) {
+                const v = await d.læsVaerk(String(a.vaerk_id ?? '').toLowerCase());
+                if (!v) throw new Afvisning('Værket, arket er eksporteret fra, findes ikke længere. Fjern det skjulte ark "_app" for at uploade arket som et nyt værk.');
+                if (v.arkiveret) throw new Afvisning(`Værket "${v.kode}" er arkiveret og kan ikke ændres.`);
+                if (Number(v.revision) !== Number(a.forventet_revision)) {
+                    throw new Afvisning(`Værket "${v.kode}" er ændret, siden arket blev eksporteret (revision ${a.forventet_revision} → ${v.revision}). Intet er gemt — eksportér værket igen, og læg dine ændringer ind i det nye ark.`);
+                }
+            }
             const sti = `Files/fjv/uploads/${id}.xlsx`;
             // Samme anmodning = samme sti og samme indhold (sha256 er bundet), så et samtidigt kald skriver det samme.
             await d.skrivFil(sti.slice('Files/'.length), bytes);
+            if (basis) await d.skrivFil(`fjv/uploads/${id}_basis.xlsx`, basis);
             await d.opretImport(a, upload, sti, d.startJob ? null : 'Importnotebooken fjv_importer_vaerksark er ikke deployet endnu; importen venter i kø.');
         } catch (e) {
             if (!(e instanceof Afvisning)) throw e;

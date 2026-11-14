@@ -19,6 +19,7 @@ import { usePakke, type Pakke } from "./data";
 import { PERIODE, andel, celleTekst, pct1, visteAndele } from "./andele";
 import { DataIKoersel } from "./data-kort";
 import { Commit, Fakta, SporMaerke } from "./dele";
+import { importTekst, useArkivimporter } from "@/lib/arkiv/markering";
 import DispatchKort from "./dispatch-kort";
 import { egneRaekker, useKandidatInfo } from "./kandidat-data";
 import Kandidatliste from "./kandidatliste";
@@ -122,6 +123,7 @@ function IkkeFaerdig({ d }: { d: Pakke }) {
 function Spoergsmaal({ d }: { d: Pakke }) {
     const linjer = spoergsmaal(d.input);
     const v = koerselsVarighed(d.k);
+    const imp = useArkivimporter().data?.get(d.k.id);
     return (
         <Kort titel="Hvad kørslen svarer på" afgraensning={d.scenarie?.navn} budskab={`${linjer.join("; ")}.`}>
             {linjer.length > 3 && <ul className="fjv-a-liste">{linjer.map((l) => <li key={l}>{l}</li>)}</ul>}
@@ -133,6 +135,7 @@ function Spoergsmaal({ d }: { d: Pakke }) {
                 ["Data (df-data)", <Commit sha={d.k.data_commit} />],
                 ["Bestilt", `${tidspunkt(d.k.bestilt)} af ${d.k.bestilt_af}${d.k.kilde === "notebook" ? " (notebook)" : ""}`],
                 v != null && ["Varighed", varighed(v)],
+                !!imp && ["Oprindelse", `${importTekst(imp)} af ${imp.af}${imp.filnavn ? ` (${imp.filnavn})` : ""} — en historisk kørsel; den er ikke kørt i denne installation`],
             ]} />
         </Kort>
     );

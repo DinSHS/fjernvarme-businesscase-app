@@ -22,6 +22,7 @@ import { TidsserieFane } from "./Tidsserier";
 import { ModelrepoKort } from "./Modelrepo";
 import { VaerdikildeKontekst, vaerdikilde } from "./modelrepo-logik";
 import { rodKode } from "../scenarier/hjaelp";
+import { EksportKort } from "./eksport/EksportKort";
 
 const EKSTRA = [
     { id: "tidsserier", navn: "Tidsserier" },
@@ -69,6 +70,8 @@ export function VaerkSide({ kode, fane, valg, gåTil, bruger }: { kode: string; 
             budskab={parametre.data ? vaerkBudskab(g, enheder, lagre) : undefined}
             handlinger={<>
                 <a className="fjv-knap" data-variant="sekundaer" href={rutehref("konfiguration")}>Alle værker</a>
+                {vaerk && <a className="fjv-knap" data-variant="sekundaer" href={rutehref("konfiguration", kode, "eksport")}
+                    aria-current={aktiv === "eksport" ? "page" : undefined}>Eksportér værksark (.xlsx)</a>}
                 <label className="kf-kontakt"><input type="checkbox" checked={visAlle} onChange={(e) => setVisAlle(e.target.checked)} />Vis alle felter</label>
                 {vaerk && <Maerke>{vaerk.kode} · revision {vaerk.revision}</Maerke>}
                 {rt.red.aktiv && <Maerke tone="advarsel">Redigerer — {rt.ændringer.length} {rt.ændringer.length === 1 ? "ændring" : "ændringer"} i udkastet</Maerke>}
@@ -105,8 +108,9 @@ export function VaerkSide({ kode, fane, valg, gåTil, bruger }: { kode: string; 
                 {(blade) => {
                     if (!vaerk) return null;
                     const fælles = { g, rt, visAlle };
-                    switch (aktiv as AfsnitId | "log" | "aendringer" | "kilde" | "ny-enhed" | "kom-i-gang" | "tidsserier") {
+                    switch (aktiv as AfsnitId | "log" | "aendringer" | "kilde" | "ny-enhed" | "kom-i-gang" | "tidsserier" | "eksport") {
                         case "kom-i-gang": return <KomIGang vaerk={vaerk} g={g} bruger={bruger} gåTil={gåTil} />;
+                        case "eksport": return <EksportKort vaerk={vaerk} />;
                         case "enheder":
                             return <Enheder {...fælles} kode={kode} valgt={valg} blade={blade} gåTil={gåTil}
                                 scenarieAendringer={scenarieAendringer.data?.map((x) => x.aendring)}

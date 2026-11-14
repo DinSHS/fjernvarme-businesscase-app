@@ -9,6 +9,8 @@ Spejlet er ikke en kopi af modellens kode, men de antagelser appen hviler på, u
 * ``solver``: ``class Solver``'s standarder (``src/config.py``).
 * ``vinduer``: README's "vintervinduet"/"sommervinduet".
 * ``krav``: ``requirements.txt``.
+* ``vaerksdata_skabelon.xlsx`` (runde 12): modelrepoets eget værksark ved pinnen, kopieret byte for byte til
+  ``app/src/sider/konfiguration/eksport/`` — eksporten udfylder netop den fil (MIT, modelforfatterens).
 * ``varmelast_skalering``: hvordan ``scripts/vaerksark_til_yaml.py`` skalerer Andebys syntese til et årsbehov
   (divisor, afrunding, grundtal) — guiden "Nyt værk" skal bruge samme regel.
 
@@ -46,6 +48,9 @@ UD = VIDEN / "modelspejl.json"
 UD_TS = ROD / "app" / "src" / "lib" / "modelspejl.data.ts"
 #: Orakelvektorer for skaleringen (K8 F1): modelrepoets egne linjer udført i Python; vitest prøver nyt-vaerk.ts mod dem.
 UD_VEK = ROD / "app" / "src" / "sider" / "konfiguration" / "skalering.vektorer.json"
+#: Modelrepoets værksark ved pinnen (runde 12): appens eksport udfylder præcis denne fil.
+SKABELON_KILDE = "vaerksdata_skabelon.xlsx"
+UD_SKABELON = ROD / "app" / "src" / "sider" / "konfiguration" / "eksport" / "vaerksdata_skabelon.xlsx"
 STANDARD_FILER = ("src/config.py", "src/data_loader.py", "src/tariff.py", "src/nettab.py", "src/balancing.py")
 
 
@@ -73,6 +78,11 @@ class Kilde:
             return subprocess.check_output(["git", "-C", str(self.repo), "show", f"{PIN}:{fil}"],
                                            text=True, encoding="utf-8")
         return (self.mappe / fil).read_text(encoding="utf-8")
+
+    def bytes(self, fil: str) -> bytes:
+        if self.repo:
+            return subprocess.check_output(["git", "-C", str(self.repo), "show", f"{PIN}:{fil}"])
+        return (self.mappe / fil).read_bytes()
 
     def filer(self, mappe: str) -> list[str]:
         if self.repo:
@@ -353,14 +363,19 @@ def main(argv: list[str]) -> int:
         return 2
     spejl = byg(kilde)
     ny, ny_ts, ny_vek = tekst_af(spejl), ts_af(spejl), vektorer_af(kilde)
+    ny_skabelon = kilde.bytes(SKABELON_KILDE)
     if "--tjek" in argv:
         fejl = [f.name for f, t in ((UD, ny), (UD_TS, ny_ts), (UD_VEK, ny_vek))
                 if (f.read_text(encoding="utf-8") if f.exists() else "") != t]
+        if (UD_SKABELON.read_bytes() if UD_SKABELON.exists() else b"") != ny_skabelon:
+            fejl.append(UD_SKABELON.name)
         if fejl:
             print(f"FEJL: {', '.join(fejl)} er ikke, hvad modelrepoet ({kilde.beskriv()}) giver - kør byg_modelspejl.py")
             return 1
-        print(f"OK: {UD.name}, {UD_TS.name} og {UD_VEK.name} = modelrepoet ({kilde.beskriv()})")
+        print(f"OK: {UD.name}, {UD_TS.name}, {UD_VEK.name} og {UD_SKABELON.name} = modelrepoet ({kilde.beskriv()})")
         return 0
+    UD_SKABELON.parent.mkdir(parents=True, exist_ok=True)
+    UD_SKABELON.write_bytes(ny_skabelon)
     UD.write_text(ny, encoding="utf-8", newline="\n")
     UD_TS.write_text(ny_ts, encoding="utf-8", newline="\n")
     UD_VEK.write_text(ny_vek, encoding="utf-8", newline="\n")

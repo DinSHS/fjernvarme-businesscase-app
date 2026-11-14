@@ -46,12 +46,20 @@ export type AppFunctionsSchema = {
     output: { ok: boolean; fejl?: undefined | string; positioner?: undefined | number; id?: undefined | string; navn?: undefined | string; rolle?: undefined | string; start?: undefined | string; oploesning?: undefined | string; enhed?: undefined | string; vaerdier?: undefined | (null | number)[] };
   };
   uploadVaerksark: {
-    input: { anmodningId: string; indholdBase64: string };
+    input: { anmodningId: string; indholdBase64: string; basisBase64: undefined | string };
     output: { ok: boolean; status: string; svar: string; tidsserie_id?: undefined | string; import_id?: undefined | string; validering_json?: undefined | string };
   };
   hentDmiTemperatur: {
     input: { omraade: string; fra: string; til: string; kolonne: string };
     output: { ok: boolean; fejl?: undefined | string; data_commit?: undefined | string; kolonne?: undefined | string; tider?: undefined | string[]; vaerdier?: undefined | (null | number)[] };
+  };
+  importerArkiv: {
+    input: { anmodningId: string; del: string };
+    output: { ok: boolean; status: string; svar: string; oprettet?: undefined | number; fandtes?: undefined | number };
+  };
+  arkivTal: {
+    input: { scenarieIder: string };
+    output: { ok: boolean; fejl?: undefined | string; scenarier?: undefined | Record<string, { ScenarieAendring: number; Bestilling: number; Koersel: number }>; koersler?: undefined | Record<string, { KoerselInput: number; KoerselNoegletal: number; KoerselMaaned: number; KoerselTime: number }>; vaerker?: undefined | Record<string, { Aendringslog: number; Tidsserie: number }> };
   };
   skemaInfo: {
     input: Record<string, never>;

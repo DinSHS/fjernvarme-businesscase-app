@@ -1,0 +1,127 @@
+{
+ "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
+ "kilder": {
+  "app/rayfin/functions/src/arkiv.ts": "403b9a92037d85ac321e5f777a8e3dc2aa688f08e311cf4e4cd666d0ae57f629",
+  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
+ },
+ "tilfaelde": [
+  {
+   "navn": "#0",
+   "input": {
+    "raekker": [
+     [
+      867031.2345792934
+     ]
+    ]
+   },
+   "ud": "a5652a7d2219d09ecc0277d628d0e00f1e4a750bcf51a62853be280a95152d72"
+  },
+  {
+   "navn": "#1",
+   "input": {
+    "raekker": [
+     [
+      867031.2345792935
+     ]
+    ]
+   },
+   "ud": "3535fd1625c719528a33ef09da222a15cabe2240c8ce1cb23b8fe5697d3ab1ea"
+  },
+  {
+   "navn": "#2",
+   "input": {
+    "raekker": []
+   },
+   "ud": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "navn": "#3",
+   "input": {
+    "raekker": [
+     [
+      "a",
+      1,
+      null
+     ]
+    ]
+   },
+   "ud": "0c046c1d73a65ea73516acb34ca1320f8167db16cd356f243992454a04fbcae3"
+  },
+  {
+   "navn": "#4",
+   "input": {
+    "raekker": [
+     [
+      "b",
+      1,
+      null
+     ],
+     [
+      "a",
+      2.5,
+      "x"
+     ]
+    ]
+   },
+   "ud": "a57e1d865e39aff24fd72a1462fc2232744eddf3d3a3b7a04a6790d6f6dc57e9"
+  },
+  {
+   "navn": "#5",
+   "input": {
+    "raekker": [
+     [
+      "a",
+      0.30000000000000004,
+      1e+21,
+      1e-7,
+      -5,
+      123.456,
+      true,
+      false
+     ]
+    ]
+   },
+   "ud": "750f9f2077ccb0aafa647dfa9220959bb87c3ea2faa6146af0c2079ffd027c81"
+  },
+  {
+   "navn": "#6",
+   "input": {
+    "raekker": [
+     [
+      "～"
+     ],
+     [
+      "😀"
+     ],
+     [
+      "æ"
+     ],
+     [
+      "Z"
+     ],
+     [
+      "\"\\\n\u0001"
+     ]
+    ]
+   },
+   "ud": "abdbdf4e534d687556d90c0820e1605305037c9b6d9576664437c327a4852b4b"
+  },
+  {
+   "navn": "#7",
+   "input": {
+    "raekker": [
+     [
+      "a",
+      "b"
+     ],
+     [
+      "a",
+      "b"
+     ]
+    ]
+   },
+   "ud": "b4133cb43bf51e682b4a9778552628c36ce4ebd2a161d4489a3b3227fe85635f"
+  }
+ ]
+}

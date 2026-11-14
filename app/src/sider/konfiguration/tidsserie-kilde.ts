@@ -125,8 +125,12 @@ export async function aktiverTidsserie(vaerkId: string, tidsserieId: string, akt
     return { ok: s.ok && s.status === "udfoert", svar: s.svar };
 }
 
-/** `timeslut`: arkets timedata er stemplet med timens slut (scriptets `--timeslut`). */
-export async function uploadVaerksark(filnavn: string, indholdBase64: string, timeslut: boolean, bruger: string | undefined): Promise<{ ok: boolean; import_id?: string; svar: string }> {
-    const s = await skriv.uploadVaerksark({ navn: filnavn, base64: indholdBase64 }, bruger, { timeslut });
+/**
+ * `timeslut`: arkets timedata er stemplet med timens slut (scriptets `--timeslut`). `revision` (runde 12): arket er
+ * eksporteret af appen fra `vaerkId` ved `revision`; `basisBase64` er appens nye eksport af den revision.
+ */
+export async function uploadVaerksark(filnavn: string, indholdBase64: string, timeslut: boolean, bruger: string | undefined,
+    revision?: { vaerkId: string; revision: number; basisBase64: string }): Promise<{ ok: boolean; import_id?: string; svar: string }> {
+    const s = await skriv.uploadVaerksark({ navn: filnavn, base64: indholdBase64 }, bruger, { timeslut, ...(revision ? { revision } : {}) });
     return { ok: s.ok, import_id: s.import_id, svar: s.svar };
 }

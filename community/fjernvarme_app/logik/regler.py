@@ -570,9 +570,13 @@ def laes_anmodning(aendringer_json: str) -> dict:
             ts_ = J.felt(f0, "timeslut")
             if not J.nullish(ts_) and not isinstance(ts_, bool):
                 raise Afvisning('"timeslut" skal være true, false eller udeladt.')
+            bs = J.felt(f0, "basis_sha256")
+            basis = None if J.nullish(bs) else J.streng(bs).lower()
+            if basis is not None and not _SHA64.fullmatch(basis):
+                raise Afvisning("Basis-arkets sha256 er ugyldig.")
             return {"type": "upload_vaerksark",
                     "upload": {"handling": "upload_vaerksark", "filnavn": filnavn, "sha256": sha,
-                               "timeslut": None if J.nullish(ts_) else ts_}}
+                               "timeslut": None if J.nullish(ts_) else ts_, "basis_sha256": basis}}
         rolle = J.felt(f0, "rolle")
         if rolle not in ("varmelast", "solprofil") or not isinstance(rolle, str):
             raise Afvisning(f'Ukendt rolle "{J.streng(rolle)}" (varmelast eller solprofil).')

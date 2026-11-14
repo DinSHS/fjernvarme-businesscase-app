@@ -414,5 +414,88 @@ class LokalImportLager:
             k.advarsler.append(f"kilde.yaml kunne ikke gemmes: {e}")
         return {"vaerk_id": vid, "kode": k.kode, "parametre": len(blade), "tidsserier": ts_ud, "log": log}
 
+    def revision_for(self, import_id: str) -> dict | None:
+        """Anmodningen bag importen (samme id): revision, hvis den bærer ``basis_sha256`` (runde 12)."""
+        from fjv.vaerksark import laes_revision
+        a = self.db.t("Aendringsanmodning")
+        with self.db.laes() as cn:
+            r = cn.execute(select(a.c.vaerk_id, a.c.forventet_revision, a.c.aendringer_json)
+                           .where(a.c.id == import_id.lower())).first()
+        b = laes_revision(r.aendringer_json) if r else None
+        return {"vaerk_id": str(r.vaerk_id).lower(), "forventet_revision": int(r.forventet_revision),
+                "basis_sha256": b} if b else None
+
+    def gem_revision(self, imp: dict, rev: dict, laesning: dict, serier: dict, scriptlog: str,
+                     files: str | None = None) -> dict:
+        """Revisionen i ÉN transaktion — samme regler som ``fjv.vaerksark.gem_revision`` (Fabric)."""
+        from fjv.vaerksark import ArkFejl, _log_tekst, forbered_revision, serielog
+        from . import vaerksskriv as VS
+
+        hvem = (imp.get("uploadet_af") or "fjv_importer_vaerksark")[:200]
+        i, v_, p_, ts = self.i, self.db.t("Vaerk"), self.db.t("VaerkParameter"), self.db.t("Tidsserie")
+        with self.db.skriv() as cn:
+            r = cn.execute(self.db.laas_raekke(select(i.c.status).where(i.c.id == imp["id"]))).first()
+            if not r or r.status != "koerer":
+                raise ArkFejl(f"importen er ikke længere i gang (status {r.status if r else None})")
+            vr = cn.execute(self.db.laas_raekke(select(v_.c.id, v_.c.kode, v_.c.navn, v_.c.revision, v_.c.arkiveret)
+                                                .where(v_.c.id == rev["vaerk_id"]))).first()
+            v = {"id": vr.id, "kode": vr.kode, "navn": vr.navn, "revision": int(vr.revision),
+                 "arkiveret": bool(vr.arkiveret)} if vr else None
+            nuv, naeste, aktive = {}, 1, {}
+            if v:
+                rk = cn.execute(select(p_.c.sti, p_.c.vaerdi_json, p_.c.raekkefoelge).where(p_.c.vaerk_id == v["id"])).fetchall()
+                nuv = {x.sti: x.vaerdi_json for x in rk}
+                if len(nuv) != len(rk):
+                    raise ArkFejl("værket har dobbelte parametre - det skal ryddes op, før det kan ændres")
+                naeste = max((int(x.raekkefoelge or 0) for x in rk), default=0) + 1
+                aktive = {x.rolle: {"sti": x.sti, "sha256": x.sha256, "id": str(x.id).lower()}
+                          for x in cn.execute(select(ts.c.rolle, ts.c.sti, ts.c.sha256, ts.c.id).where(and_(
+                              ts.c.vaerk_id == v["id"], ts.c.aktiv.is_(True), ts.c.status == "gyldig"))).fetchall()}
+            f = forbered_revision(v, rev, nuv, aktive, laesning, serier, files)
+            plan, ny_rev = f["plan"], f["ny_rev"]
+            log = []
+            if ny_rev is not None:
+                for x in plan["ret"]:
+                    n = cn.execute(p_.update().where(and_(p_.c.vaerk_id == v["id"], p_.c.sti == x["sti"]))
+                                   .values(vaerdi_json=x["ny_json"], aendret_af=hvem, aendret=nu())).rowcount
+                    if n != 1:
+                        raise RuntimeError(f"Uventet: {n} rækker ramt for {x['sti']}")
+                    log.append((x["sti"], "ret", x["gammel_json"], x["ny_json"]))
+                for x in plan["slet"]:
+                    cn.execute(p_.delete().where(and_(p_.c.vaerk_id == v["id"], p_.c.sti == x["sti"])))
+                    log.append((x["sti"], "slet", x["gammel_json"], None))
+                for x in plan["opret"]:
+                    VS.skriv_blade(self.db, cn, v["id"], [{"sti": x["sti"], "vaerdi_json": x["ny_json"], "sektion": x["sektion"],
+                                                          "objekt": x["objekt"], "raekkefoelge": naeste}], hvem)
+                    naeste += 1
+                    log.append((x["sti"], "opret", None, x["ny_json"]))
+                if cn.execute(v_.update().where(and_(v_.c.id == v["id"], v_.c.revision == v["revision"]))
+                              .values(revision=ny_rev, aendret_af=hvem, aendret=nu())).rowcount != 1:
+                    raise ArkFejl("værket blev ændret samtidig af en anden - eksportér igen")
+            ts_id = None
+            for rolle, sr in f["serier"].items():
+                cn.execute(ts.update().where(and_(ts.c.vaerk_id == v["id"], ts.c.rolle == rolle, ts.c.aktiv.is_(True)))
+                           .values(aktiv=False))
+                tid = None
+                if sr["res"] is not None:
+                    tid, udfald = VS.indsaet_tidsserie(
+                        self.db, cn, v["id"], v["kode"], rolle,
+                        f"Værksark: {rolle} rettet i arket ({imp.get('filnavn') or ''})", imp.get("filnavn") or "vaerksark.xlsx",
+                        sr["res"], "vaerksark", True, hvem, tidsstempel=sr["tidsstempel"], tidszone="UTC", files=files)
+                    if udfald == "uaendret":
+                        cn.execute(ts.update().where(ts.c.id == tid).values(aktiv=True))
+                    ts_id = ts_id or tid
+                log.append(serielog(rolle, aktive.get(rolle), tid, sr["res"]))
+            if log:
+                VS.skriv_log(self.db, cn, v["id"], ny_rev, log, hvem, anmodning_id=imp["id"])
+            loggen = _log_tekst(f["log"], scriptlog)
+            if cn.execute(i.update().where(and_(i.c.id == imp["id"], i.c.status == "koerer"))
+                          .values(status="faerdig", vaerk_id=v["id"], tidsserie_id=ts_id, log=loggen)).rowcount != 1:
+                raise ArkFejl("importens status blev ændret under importen")
+        return {"vaerk_id": v["id"], "kode": v["kode"], "revision": ny_rev, "log": loggen,
+                "aendringer": len(plan["ret"]) + len(plan["slet"]) + len(plan["opret"]),
+                "tidsserier": {r_: (sr["res"].sha256 if sr["res"] else None) for r_, sr in f["serier"].items()},
+                "ikke_gemt": f["ikke_gemt"]}
+
     def motor_pins(self) -> dict:
         return motor_pins(self.db)

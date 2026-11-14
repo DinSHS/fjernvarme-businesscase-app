@@ -152,6 +152,7 @@ describe("K5-F4: én anmodning -> højst én import og én jobstart; en fejlet s
         const d: VaerksarkDeps = {
             læsAnmodning: async (id) => { await tick(); const a = anm.get(id); return a ? { ...a } : undefined; },
             læsImport: async (id) => { await tick(); const i = imp.get(id); return i ? { ...i } : undefined; },
+            læsVaerk: async () => undefined,
             skrivFil: async (sti) => { await tick(); filer.push(sti); },
             opretImport: (a, _u, _sti, log) => { const kør = lås.then(async () => {
                 await tick();

@@ -29,6 +29,7 @@ import { ScenarieHistorie } from "./HistorieKort";
 import { KoerselDetaljer } from "./KoerselKort";
 import { difference, differenceTekst } from "../analyser/beregn";
 import { sammenlignHref } from "./koersel-logik";
+import { importTekst, useArkivimporter } from "@/lib/arkiv/markering";
 import {
     datoTilFelt, effektivTidsgraense, erTil, feltTilDato, forventetVarighed, objekter, parretsReference, tjekPeriode, tjekÆndringer, visBeskrivelse,
     type Blade, type Fund, type Scenariefelter, type Ændring,
@@ -187,6 +188,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
 
     const koersler = useKoersler({ scenarieId: s.id });
     const levende = useKoerselStatus(koersler.data);
+    const importer = useArkivimporter();
     const refKoersler = useKoersler({ scenarieId: refId });
     const refLevende = useKoerselStatus(refId ? refKoersler.data : undefined);
     const seneste = levende[0];
@@ -248,6 +250,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                 <Knap onClick={gem} disabled={!ændret || blokeret || gemmer}>{gemmer ? "Gemmer…" : ændret ? "Gem ændringer" : "Gemt"}</Knap>
                 {ændret && <Knap sekundaer onClick={() => setK(start)}>Fortryd</Knap>}
                 <Knap sekundaer onClick={() => gåTil("scenarier")}>Oversigten</Knap>
+                <Knap sekundaer onClick={() => gåTil(`scenarier/arkiv/${s.id}`)} title="Scenariet, dets reference og kørslerne som Excel-arkiv (backup og flytning)">Eksportér til Excel</Knap>
                 {s.arkiveret
                     ? <Knap sekundaer onClick={() => arkivér(false)}>Genskab</Knap>
                     : arkivTrin
@@ -388,7 +391,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                             <Tabel rækker={levende} nøgle={(x) => x.id} tom="Scenariet er ikke kørt endnu."
                                 kolonner={[
                                     { navn: "Bestilt", vis: (x) => tidspunkt(x.bestilt) },
-                                    { navn: "Status", vis: (x) => <StatusMaerke status={x.status} /> },
+                                    { navn: "Status", vis: (x) => { const i = importer.data?.get(x.id); return <><StatusMaerke status={x.status} />{i && <> <Maerke>{importTekst(i)}</Maerke></>}</>; } },
                                     { navn: "Revision", tal: true, vis: (x) => x.vaerk_revision },
                                     { navn: "Driftsomkostning (t.kr.)", tal: true, vis: (x) => tkr(x.objektiv_dkk) },
                                     { navn: "Opnået gab", tal: true, vis: (x) => (x.opnaaet_gap != null ? `${(x.opnaaet_gap * 100).toLocaleString("da-DK", { maximumFractionDigits: 3 })} %` : "–") },

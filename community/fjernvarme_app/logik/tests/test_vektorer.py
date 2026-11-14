@@ -168,6 +168,10 @@ class OptagendeDeps:
         self.spor.append(["laes_import", id])
         return self.s.get("importEfter")
 
+    def laes_vaerk(self, id):
+        self.spor.append(["laes_vaerk", id])
+        return self.s.get("vaerk")
+
     def skriv_fil(self, sti, data):
         self.spor.append(["skriv_fil", sti, len(data), hashlib.sha256(data).hexdigest()])
         if self.s.get("skrivKaster"):
@@ -238,7 +242,7 @@ class TestVektorer(unittest.TestCase):
         for t in laes("behandl_vaerksark")["tilfaelde"]:
             i = t["input"]
             d = OptagendeDeps(i)
-            py = koer(lambda: V.behandl_vaerksark(d, i["anmodning_id"], i["indhold"]))
+            py = koer(lambda: V.behandl_vaerksark(d, i["anmodning_id"], i["indhold"], i.get("basis", "")))
             f = samme(t, py)
             if f:
                 fejl.append(f"[{t['navn']}] {f}")

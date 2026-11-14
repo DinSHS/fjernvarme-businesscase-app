@@ -41,6 +41,7 @@ spørg kun tilbage, hvis noget ikke kan afgøres herfra. Kør fra repoets rod.
 | "hvad koster det at …", "hvad sparer vi ved …" | Differensmetoden: et par kørsler med samme værk, periode og data, kun ændringen forskellig. Appen laver parret under *Scenarier* og viser forskellen under *Analyser*. Læs differensen, ikke de absolutte tal. |
 | "helåret", "hele året" | Tager 1–40 minutter og op til 3,5 GB hukommelse. Sig det, før du bestiller; kør ikke to helår samtidig. |
 | "regner appen rigtigt?", "test trofastheden" | [`doc/TROFASTHED.md`](doc/TROFASTHED.md) §4: `tjek_trofasthed.py` og `bevis_app_vej.py`. |
+| "tag backup", "flyt historikken", "gem kørslerne i Excel" | *Scenarier › Backup og flytning* (`#/scenarier/arkiv`): eksportér arkivet (.xlsx pr. familie / .zip), importér med forhåndsvisning. Værkerne er ikke med: upload værksarket først. Et rettet arkiv afvises (sha256 pr. tabel). Se *Sådan bruger du appen* §7. |
 | "installér i Fabric", "udrul" | [`doc/FABRIC.md`](doc/FABRIC.md). Brugeren skal selv logge ind (`fab auth login`, `az login`, `npx rayfin login`) i en rigtig konsol. **Udrul aldrig uden at blive bedt om det.** |
 | "ny modelversion", "opdatér modellen" | [`CONTRIBUTING.md`](CONTRIBUTING.md#ny-modelversion). Pinnen skiftes bevidst; tallene ændrer sig. |
 
@@ -76,6 +77,7 @@ cd community && python -m unittest discover -s tests -t tests       # kræver sq
 python viden/vaerktoej/byg_modelspejl.py [--tjek]
 python viden/vaerktoej/tjek_trofasthed.py
 python viden/vaerktoej/bevis_app_vej.py --model <modelrepo ved pinnen> --ud <kort mappe>
+FJV_MODELPYTHON=<python med modellens pakker> python viden/vaerktoej/tjek_eksport_rundtur.py --koer   # eksport -> værksark -> script
 ```
 
 ---
@@ -94,7 +96,8 @@ python viden/vaerktoej/bevis_app_vej.py --model <modelrepo ved pinnen> --ud <kor
 - **Pinnen** (`MODEL_COMMIT`, `DF_DATA_SHA` i `fabric/fjv/konstanter.py`) står flere steder; `scripts/tjek.py` fejler,
   hvis de ikke er ens. Modellens kode hentes som zip ved pinnen ved første kørsel.
 - **Genererede filer** (ret ikke i hånden): `viden/modelspejl.json`, `app/src/lib/modelspejl.data.ts`,
-  `app/src/sider/konfiguration/skalering.vektorer.json` (fra `byg_modelspejl.py`), `viden/felt_katalog.json`,
+  `app/src/sider/konfiguration/skalering.vektorer.json`, `app/src/sider/konfiguration/eksport/vaerksdata_skabelon.xlsx`
+  (fra `byg_modelspejl.py`), `viden/felt_katalog.json`,
   `viden/nyt_vaerk_skabelon.json`, `viden/data_krav.json`, `app/src/ibcs/tokens.*.ts` (`npm run tokens`) og
   dokumentationskopierne under `app/src/sider/dokumentation/indhold/` (`kopier-indhold.mjs`).
 
@@ -114,6 +117,13 @@ python viden/vaerktoej/bevis_app_vej.py --model <modelrepo ved pinnen> --ud <kor
 - **Vitest kan tabe en testfil under hukommelsespres og stadig være grøn.** Gaten sammenligner antallet af tests i
   de to udgaver. Kør ikke to tunge ting ad gangen.
 - **Konsollen er cp1252 på Windows.** Scripts kalder `sys.stdout.reconfigure(errors="replace")`.
+- **Værksarkets genupload stoler ikke på klienten** (Codex K11). Importen binder arket til værket i sin transaktion via
+  markeringens `grundlag`, som er defineret to steder: `grundlagstekst` (`eksport/eksporter.ts`) og `grundlag`
+  (`fabric/fjv/revision.py`). Ændres den ene, fejler den delte vektor i `k11.spec.ts` og `test_revision.py`.
+- **Modelscriptets `slug()` er ikke injektiv** (`halm__kedel` og `halm_kedel` giver samme navn). Nye navne skal være
+  slug-faste (`tjekNavn`); importen fører scriptets navne tilbage med `fjv.revision.objektkort` og afviser tvetydighed.
+- **Oraklet udfylder selv små huller i en solprofil**, når en kilde valideres. Et hul i en gemt serie laves derfor i den
+  normaliserede fil, ikke ved at validere en kilde med et hul (`tjek_eksport_rundtur.py`, `andeby_hul`).
 
 ---
 

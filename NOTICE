@@ -23,6 +23,8 @@ Licenstekster (ordret fra kilderne):                      LICENSES/
   LICENSES/fjernvarme-businesscase_LICENSE.txt
   LICENSES/df-data_LICENSE.txt
   LICENSES/ibcs-web-charts_LICENSE.txt    (IBCS-graferne, Sonni Simmelsgaard, MIT)
+Værksarket vaerksdata_skabelon.xlsx (forfatterens, MIT):  app/src/sider/konfiguration/eksport/
+  (byte for byte fra den pinnede commit; eksporten udfylder den)
 Appens egen licens:                                       LICENSE
 Rayfin-app-skabelonen (Microsoft, MIT):                   app/LICENSE
 IBCS-graferne (Sonni Simmelsgaard, MIT):                  app/src/ibcs/LICENSE

@@ -7,6 +7,10 @@ SQLAlchemy + lokal mappe + lokal importkø. Forløbet — og dermed rækkefølge
 
 K5-F4 (fra TS-filens hoved): importens id ER anmodningens id; anmodningen genlæses låst, før importen oprettes;
 jobstarten reserveres betinget, og en fejlet start frigiver reservationen, så samme kald genoptager den.
+
+Runde 12: med ``basis_sha256`` er uploaden en ny revision af anmodningens ``vaerk_id`` — basis-arket (appens nye
+eksport af værkets revision) bindes, tjekkes som arket og gemmes som ``<id>_basis.xlsx``; værkets revision tjekkes
+mod ``forventet_revision`` allerede her.
 """
 
 from __future__ import annotations
@@ -31,6 +35,9 @@ class VaerksarkDeps(Protocol):
     def laes_import(self, id: str) -> dict | None: ...
     """Vaerksarkimport: ``{id, status, fabric_job_id, log}`` eller None."""
 
+    def laes_vaerk(self, id: str) -> dict | None: ...
+    """Runde 12: Vaerk ``{id, kode, revision, arkiveret}`` eller None."""
+
     def skriv_fil(self, files_relativ_sti: str, data: bytes) -> None: ...
 
     def opret_import(self, a: dict, upload: dict, sti: str, log: str | None) -> str: ...
@@ -52,7 +59,32 @@ _TEKST = {"koe": None, "koerer": "Værksarket importeres.", "faerdig": "Værksar
           "fejl": "Importen fejlede — se loggen."}
 
 
-def behandl_vaerksark(d, anmodning_id: str, indhold_base64: str) -> dict:
+def _tal(x) -> float:
+    """JS ``Number(x)`` for et tal eller en tekst (revisionen kommer som int fra databasen)."""
+    if isinstance(x, bool):
+        return float(x)
+    if isinstance(x, (int, float)):
+        return float(x)
+    return J.tal("" if J.nullish(x) else J.streng(x))
+
+
+def _arkbytes(b64: str, basis: bool) -> bytes:
+    """``arkbytes`` i vaerksark.ts: base64, størrelse, xlsx-signatur, ZIP-katalog."""
+    if not _BASE64.fullmatch(b64):
+        raise Afvisning(f"{'Basis-arket' if basis else 'Filen'} er ikke base64-kodet.")
+    data = base64_bytes(b64)
+    if len(data) > MAKS_VAERKSARK_BYTES:
+        raise Afvisning(f"{'Basis-arket' if basis else 'Værksarket'} er for stort ({J.js_str(J.rund(len(data) / 1000))} kB; højst "
+                        f"{J.js_str(MAKS_VAERKSARK_BYTES / 1000)} kB).")
+    if data[:4] != b"PK\x03\x04":
+        raise Afvisning(f"{'Basis-arket' if basis else 'Filen'} er ikke et Excel-ark (.xlsx).")
+    z = tjek_zip(data)
+    if not z["ok"]:
+        raise Afvisning(z["fejl"])
+    return data
+
+
+def behandl_vaerksark(d, anmodning_id: str, indhold_base64: str, basis_base64: str = "") -> dict:
     """Returnerer ``{ok, status, svar[, import_id]}`` som TS' ``Vaerksarksvar``."""
     a = d.laes_anmodning(anmodning_id)
     if not a:
@@ -66,26 +98,34 @@ def behandl_vaerksark(d, anmodning_id: str, indhold_base64: str) -> dict:
         upload = x["upload"]
         if sha256_hex(indhold_base64) != upload["sha256"]:
             raise Afvisning("Filens indhold passer ikke med anmodningens sha256 — upload filen igen.")
+        if upload["basis_sha256"] is not None and sha256_hex(basis_base64) != upload["basis_sha256"]:
+            raise Afvisning("Basis-arket passer ikke med anmodningens sha256 — upload arket igen.")
+        if upload["basis_sha256"] is None and basis_base64:
+            raise Afvisning("Et basis-ark hører kun til en genupload som revision.")
     except Afvisning as e:
         return {"ok": False, "status": "afvist", "svar": str(e)}
 
     id_ = a["id"].lower()
     if a["status"] == "ny":
         try:
-            if not _BASE64.fullmatch(indhold_base64):
-                raise Afvisning("Filen er ikke base64-kodet.")
-            data = base64_bytes(indhold_base64)
-            if len(data) > MAKS_VAERKSARK_BYTES:
-                raise Afvisning(f"Værksarket er for stort ({J.js_str(J.rund(len(data) / 1000))} kB; højst "
-                                f"{J.js_str(MAKS_VAERKSARK_BYTES / 1000)} kB).")
-            if data[:4] != b"PK\x03\x04":
-                raise Afvisning("Filen er ikke et Excel-ark (.xlsx).")
-            z = tjek_zip(data)
-            if not z["ok"]:
-                raise Afvisning(z["fejl"])
+            data = _arkbytes(indhold_base64, False)
+            basis = None if upload["basis_sha256"] is None else _arkbytes(basis_base64, True)
+            if basis is not None:
+                v = d.laes_vaerk(("" if J.nullish(a.get("vaerk_id")) else J.streng(a.get("vaerk_id"))).lower())
+                if not v:
+                    raise Afvisning('Værket, arket er eksporteret fra, findes ikke længere. Fjern det skjulte ark "_app" '
+                                    "for at uploade arket som et nyt værk.")
+                if v.get("arkiveret"):
+                    raise Afvisning(f'Værket "{v["kode"]}" er arkiveret og kan ikke ændres.')
+                if _tal(v["revision"]) != _tal(a.get("forventet_revision")):
+                    raise Afvisning(f'Værket "{v["kode"]}" er ændret, siden arket blev eksporteret (revision '
+                                    f'{J.streng(a.get("forventet_revision"))} → {J.streng(v["revision"])}). Intet er gemt — '
+                                    "eksportér værket igen, og læg dine ændringer ind i det nye ark.")
             sti = f"Files/fjv/uploads/{id_}.xlsx"
             # Samme anmodning = samme sti og samme indhold (sha256 er bundet), så et samtidigt kald skriver det samme.
             d.skriv_fil(sti[len("Files/"):], data)
+            if basis is not None:
+                d.skriv_fil(f"fjv/uploads/{id_}_basis.xlsx", basis)
             d.opret_import(a, upload, sti, None if d.start_job else
                            "Importnotebooken fjv_importer_vaerksark er ikke deployet endnu; importen venter i kø.")
         except Afvisning as e:

@@ -35,6 +35,16 @@ datarepoet og uploades aldrig. (Kilde: KONTRAKT §6d)
 Et værk og en tidsserie oprettes af arket, og importen viser sin status og log. Hvad der skal stå hvor, står i
 *Information → Hvilke data skal med?*. (Kilde: KONTRAKT §6d)
 
+**Ret et værk i Excel:** tryk **Eksportér værksark (.xlsx)** på værkets side (eller i værkslisten). Appen udfylder
+modellens egen skabelon med værket og viser først en liste over det, arket *ikke* kan bære — fx balancemarkedet,
+slåede-fra enheder og de værdier, modellens script sætter selv. Ret arket i Excel, og upload det under *Upload
+værksark*: appen genkender det, viser hvert ændret felt (gammel → ny) og timedata som en opsummering, og gemmer det som
+**næste revision af samme værk**. Kun det, du har ændret, ændres; felterne på listen røres ikke. En rettet time i
+timedata eller solvarme er også en ny revision. Felter, der ikke gemmes ved genupload (fx årsproduktionen i Timedata og
+værkets navn), markeres *gemmes ikke*, før du bekræfter. Er værket ændret, siden du eksporterede, afvises arket —
+eksportér igen. Uden appens markering (det skjulte ark `_app`) bliver arket et nyt
+værk som før. (Kilde: KONTRAKT §6d)
+
 **Enheder:** "Ny enhed" laver en enhed ud fra en skabelon for typen; "Fjern enheden" kan kun bruges,
 når intet scenarie bruger enheden. Vil du bare regne uden en enhed, så brug et scenarie i stedet —
 så forbliver værket urørt.
@@ -111,3 +121,33 @@ af de kørsler, der findes i appen. **Dokumentation** har modelrepoets vejlednin
 Notebooken `fjv_koer_scenarie` i workspacet kan også startes direkte med et værk, ændringer og en
 periode. Kørslen oprettes da selv i appen og kan ses og sammenlignes som alle andre. Se
 "Kør i en notebook" under Dokumentation. (Kilde: KONTRAKT §5.1)
+
+## 7. Backup og flytning
+
+Under **Scenarier › Backup og flytning** gemmer du scenarier og kørsler som et Excel-arkiv og importerer
+det igen — som backup, eller for at flytte historikken fra en testinstallation til produktion (en ny
+Fabric-installation starter med en tom database). **Eksportér arkiv** giver en .zip med én Excel-fil pr.
+scenariefamilie (et scenarie og dets reference) og et manifest; på et scenarie giver **Eksportér til Excel**
+én fil med scenariet, dets reference og de kørsler, du vælger. Kun færdige, fejlede og annullerede kørsler
+kommer med. (Kilde: KONTRAKT §6e)
+
+Arket **Læs mig** forklarer indholdet: app-version, modellens pin, hvem og hvornår. Hver tabel har sit eget
+ark med danske overskrifter; tal står som tal, og hver tid står to gange — som Excel-dato i dansk tid og som
+UTC-tekst, der er den, genimporten læser. Arket er en backup, ikke et redigeringsformat: hver tabel har en
+kontrolsum i det skjulte ark `_manifest`, og et arkiv, hvor et tal er rettet, afvises. Åbn det skrivebeskyttet.
+Eksporten tæller hver tabel i databasen og stopper, hvis en række mangler. Tal bevares med dobbelt præcision
+(ca. 15–17 betydende cifre) — præcis som appen og regnemotoren læser og skriver dem. (Kilde: KONTRAKT §6e)
+
+**Importér arkiv** viser først, hvad der vil ske — oprettes, findes allerede, konflikt eller kan ikke
+importeres og hvorfor — og skriver intet, før du bekræfter. En kørsel importeres som historisk kørsel med
+sit frosne input, sine pins og resultater uændret; den køres ikke om og kan sammenlignes som før. Den er
+markeret *importeret fra arkiv* med dato og hvem. Samme indhold to gange springes over; en række, der
+findes med andet indhold, er en konflikt og overskrives aldrig — det gælder også en kørsel, hvis tal er
+ændret, og et scenarie, hvis ændringer er rettet her. Afbrydes en import, så importér igen — det, der
+allerede er skrevet, springes over; en kørsel bliver først synlig, når alle dens rækker er på plads og
+passer med arkivet. (Kilde: KONTRAKT §6e)
+
+Værkerne er ikke med i arkivet. Upload værksarket først (Konfiguration); arkivet finder værket på dets
+kode og tjekker, at værket her har haft præcis de parametre, kørslen bygger på. Det samme gælder en
+varmelast eller solprofil, som kørslen bruger: den skal være uploadet med samme indhold og i samme rolle.
+(Kilde: KONTRAKT §6e)

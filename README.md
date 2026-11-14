@@ -24,7 +24,7 @@ regnet med. Graferne følger IBCS® Standards.
 
 | Kan | Kan ikke |
 |---|---|
-| Vise og rette værker med revisionsspor; et nyt værk fra modellens regneark, fra en guide eller som kopi | Regne selv: alle tal kommer fra modellen; appen har ingen egen optimering |
+| Vise og rette værker med revisionsspor; et nyt værk fra modellens regneark, fra en guide eller som kopi; eksportere et værk til regnearket, rette det i Excel og uploade det igen som ny revision | Regne selv: alle tal kommer fra modellen; appen har ingen egen optimering |
 | Bestille kørsler (et værk + ændringer + periode, med eller uden balancemarked), én solver ad gangen i kø | Køre modellen i browseren — den kræver Python, op til 3,5 GB hukommelse og minutter pr. kørsel |
 | Sammenligne to kørsler (differensmetoden) og foreslå par, der besvarer et spørgsmål | Kvartersopløsning og perioder over 366 døgn (modellen kan begge dele) |
 | Tage målt varmelast og solprofil ind som CSV, med tjek før kørslen | Det, modellen ikke kan: se modelrepoets [*Hvad modellen kan, og hvad den ikke kan*](https://github.com/skj-1964/fjernvarme-businesscase#hvad-modellen-kan-og-hvad-den-ikke-kan) |

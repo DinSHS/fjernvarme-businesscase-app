@@ -46,7 +46,8 @@ class Modproever(unittest.TestCase):
             else:
                 shutil.copy(src, dst)
         raa = subprocess.check_output(["git", "-C", str(kilde.repo), "archive", "--format=zip", BM.PIN,
-                                       "README.md", "requirements.txt", "run_case.py", "cases", "src", "scripts"])
+                                       "README.md", "requirements.txt", "run_case.py", "cases", "src", "scripts",
+                                       "vaerksdata_skabelon.xlsx"])
         with zipfile.ZipFile(io.BytesIO(raa)) as z:
             z.extractall(cls.model)
         cls.miljoe = {**os.environ, "PYTHONUTF8": "1", "PYTHONDONTWRITEBYTECODE": "1", "FJV_MODELMAPPE": str(cls.model)}
@@ -94,6 +95,16 @@ class Modproever(unittest.TestCase):
     def test_0_uaendret_kopi_er_groen(self):
         r = self.gate()
         self.assertEqual(r.returncode, 0, r.stdout[-3000:] + r.stderr[-2000:])
+
+    def test_R12_aendret_vaerksark_i_modelrepoet_er_roedt(self):
+        """Runde 12: eksporten udfylder modelrepoets værksark; en ny skabelon i modelrepoet skal gøre spejlet rødt."""
+        p = self.model / "vaerksdata_skabelon.xlsx"
+        g = self._gem(p)
+        try:
+            p.write_bytes(p.read_bytes() + b" ")
+            self.assertRoed(self.gate(), r"FEJL \[spejl\].*vaerksdata_skabelon\.xlsx")
+        finally:
+            self._gendan(g)
 
     def test_F4_skaleringsgraense_uden_genbygning(self):
         p = self.model / "scripts" / "vaerksark_til_yaml.py"

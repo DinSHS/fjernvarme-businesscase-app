@@ -76,6 +76,12 @@ afviser scriptet arket. Er timedata tomme, men årsproduktionen udfyldt, bliver 
 Et værk fra værksarket kan kun køres i den periode, dets data dækker: den målte varmelast 1. juli 2025 – 30. juni
 2026, og en syntetisk solprofil de kalenderår, perioden rører. (Kilde: scripts/vaerksark_til_yaml.py:1084-1135)
 
+Et værk i appen kan også eksporteres til værksarket og uploades igen som en ny revision af samme værk. Arket kan ikke
+bære alt: balancemarkedet, nettilslutningen, slåede-fra enheder og tanke, timer uden for perioden og en kalibreret
+varmelastmodel står ikke i skabelonen, og modellens script sætter selv bl.a. tankenes startfyldning og gasenhedernes
+CO2-faktor. Eksporten viser listen før download; ved genupload røres de felter ikke. (Kilde: KONTRAKT §6d;
+scripts/vaerksark_til_yaml.py:586-918)
+
 ## Hvad står der om data på en kørsel
 
 Hver kørsel viser sit datagrundlag: hvilken version af df-data og af modellen den brugte, værkets revision,

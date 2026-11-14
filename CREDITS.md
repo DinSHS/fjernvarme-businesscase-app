@@ -37,6 +37,11 @@ Rapporten om metode, antagelser og validering, [`doc/rapport_billund_v4.pdf`](ht
 og vejledningerne i `doc/` er forfatterens. De tekster fra modelrepoet, appen viser på dokumentationssiderne, er
 kopieret **uændret** fra den pinnede commit og bærer deres kildelinje.
 
+Værksarket `vaerksdata_skabelon.xlsx` (skabelon, vejledning og eksempelrækker) er forfatterens. Appen bundter det
+**byte for byte** fra den pinnede commit (`app/src/sider/konfiguration/eksport/`, kopieret og kontrolleret af
+`viden/vaerktoej/byg_modelspejl.py`), så *Eksportér værksark* kan udfylde netop den fil; et eksporteret ark er
+forfatterens skabelon med værkets tal, og vejledningen står uændret i det.
+
 ### Vi distribuerer ikke modellens kode
 
 Dette repo indeholder **ikke** modellens kode (`run_case.py`, `src/` …). Appen **afhænger af den på en pinnet
@@ -98,7 +103,8 @@ brugeren og er ikke omfattet af denne kredit.
 ## 4. Tredjepartskomponenter
 
 Appens frontend og backend bygger på Rayfin-app-skabelonen (Microsoft, MIT — `app/LICENSE` bevares uændret) og
-open source-pakker (React, Vite m.fl.), hvis licenser står i deres pakker (`app/package-lock.json`). Regnemotoren
+open source-pakker (React, Vite m.fl.), hvis licenser står i deres pakker (`app/package-lock.json`). Eksporten til
+værksark pakker xlsx-filen med fflate (101arrowz, MIT) og retter cellerne i skabelonens egen XML. Regnemotoren
 installerer modellens egne pakkepins (modelrepoets `requirements.txt`: Linopy, HiGHS m.fl.) med deres respektive licenser.
 
 Graferne, tabeltallene og nøgletalskortene i Analyser og Scenarier følger IBCS® Standards (International Business
