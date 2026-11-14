@@ -19,8 +19,10 @@ Lig leads direkte måling på modelrepoet (866.567,72): appens kæde afviger ikk
 10.–11. marts 2026, uden balancemarked): **7 af 7 cases ens** (objektiv, `_hourly.csv` og `_kpi.csv` byte for byte).
 andeby 224.912 · billund_idag 132.766 · billund_sporA 183.920 · billund_sporA_rullende 183.494 ·
 billund_sporA_rullende_bud 236.859 · billund_sporB 54.619 · billund_sporB_rullende 236.859 kr.
-Scriptet melder `df-data hentes (appens pin 106b9fc)`; modelrepoets egen klon `data/df-data` står på `a859b8b`, men begge veje
-bruger samme klon, så sammenligningen holder. Gamle tal for netop dette vindue har jeg ikke set i repoet (ikke sammenlignet).
+**Rettet 14/11 efter Codex-review:** denne første kørsel læste modelrepoets egen klon `data/df-data` ved `a859b8b`, ikke
+pinnen 106b9fc (scriptet meldte kun `df-data hentes (appens pin 106b9fc)`). Lead har kørt beviset om med df-data **106b9fc**
+(scriptet melder `df-data 106b9fc, appens pin 106b9fc`; `--ud C:/fjvb2`): **7 af 7 ens, samme objektiver** som ovenfor
+(`C:/fjvb2/resultat.json`; posten `BEVIS` i JSON'en). Gamle tal for netop dette vindue har jeg ikke set i repoet (ikke sammenlignet).
 
 ## 2. Demo-scenarierne (`viden/demo_scenarier.json › koersel_status`)
 

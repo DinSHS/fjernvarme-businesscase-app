@@ -368,6 +368,77 @@
    "tidspunkt": "2026-11-14T11:49:03",
    "status": "faerdig",
    "note": "gammelt tal er ogsaa maalt nu (ved eef950a); identisk, som det skal"
+  },
+  {
+   "id": "BEVIS",
+   "navn": "Beviset appens vej = run_case.py, 7 cases, 10.-11. marts 2026",
+   "bruges_i": "doc/TROFASTHED.md §4b",
+   "kommando": "python viden/vaerktoej/bevis_app_vej.py --model ../fjernvarme-businesscase --ud C:/fjvb2 (lead, genkørsel)",
+   "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
+   "data_commit": "106b9fce9a2e3610090b1a542559024056449b88",
+   "data_commit_melding": "df-data 106b9fc, appens pin 106b9fc",
+   "tidspunkt": "2026-11-14",
+   "status": "faerdig",
+   "enhed": "kr.",
+   "objektiver": {
+    "andeby": {
+     "direkte": 224912.0,
+     "app": 224912.0,
+     "ens": true,
+     "kommando": "cases/andeby.yaml:9",
+     "hourly": "5b8a8ed840a4bf4c",
+     "kpi": "fa3987e2c8bd1cb1"
+    },
+    "billund_idag": {
+     "direkte": 132766.0,
+     "app": 132766.0,
+     "ens": true,
+     "kommando": "cases/billund_idag.yaml:24-25",
+     "hourly": "f0d57fd93feb7221",
+     "kpi": "8d92828f7abdc085"
+    },
+    "billund_sporA": {
+     "direkte": 183920.0,
+     "app": 183920.0,
+     "ens": true,
+     "kommando": "README.md:185",
+     "hourly": "d6b07e320d113638",
+     "kpi": "4dc589b2f6f08003"
+    },
+    "billund_sporA_rullende": {
+     "direkte": 183494.0,
+     "app": 183494.0,
+     "ens": true,
+     "kommando": "README.md:187",
+     "hourly": "20e32eaba57850f3",
+     "kpi": "9e5ba4ff8cd65dcc"
+    },
+    "billund_sporA_rullende_bud": {
+     "direkte": 236859.0,
+     "app": 236859.0,
+     "ens": true,
+     "kommando": "egen antagelse (ingen kommando i modelrepoet)",
+     "hourly": "c4114f215458cf1f",
+     "kpi": "f895b1bde143a783"
+    },
+    "billund_sporB": {
+     "direkte": 54619.0,
+     "app": 54619.0,
+     "ens": true,
+     "kommando": "cases/billund_sporB.yaml:17-19",
+     "hourly": "06b3231212abacd3",
+     "kpi": "9e80017df7f31cd9"
+    },
+    "billund_sporB_rullende": {
+     "direkte": 236859.0,
+     "app": 236859.0,
+     "ens": true,
+     "kommando": "egen antagelse (ingen kommando i modelrepoet)",
+     "hourly": "c4114f215458cf1f",
+     "kpi": "f895b1bde143a783"
+    }
+   },
+   "note": "7 af 7 ens (objektiv, _hourly.csv og _kpi.csv). Første kørsel samme dag læste df-data a859b8b (modelrepoets klon) og gav samme objektiver; den tæller ikke som beviset."
   }
  ]
 }

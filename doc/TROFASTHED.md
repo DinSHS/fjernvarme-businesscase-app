@@ -122,8 +122,9 @@ python app/viden/vaerktoej/bevis_app_vej.py --model model --ud bevis
 For hver af de 7 cases køres 10.–11. marts 2026 to gange med modelrepoets egen kommando for casen: **A** direkte
 (`python run_case.py cases/<fil> --data-source github …`) og **B** ad appens vej (blade → frosset input → `case.yaml` +
 argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.csv` byte for byte. Målt 2026-11-14 ved
-`90fb16e` (`bevis_app_vej.py --model ../fjernvarme-businesscase --ud C:/fjvb`; linopy 0.10.0, highspy 1.15.1, df-data
-`106b9fc` efter scriptets egen melding; begge veje læser samme klon):
+`90fb16e` med df-data **`106b9fc`** (= appens pin; scriptet melder `df-data 106b9fc, appens pin 106b9fc`), linopy 0.10.0,
+highspy 1.15.1 (`bevis_app_vej.py --model ../fjernvarme-businesscase --ud C:/fjvb2`). En første kørsel samme dag læste
+modelrepoets egen df-data-klon ved `a859b8b`, ikke pinnen; den gav de samme 7 objektiver, men tæller ikke som beviset:
 
 | Case | Kommando (kilde) | Objektiv A = B, kr. | `_hourly.csv`, `_kpi.csv` | Ved `eef950a` (2026-10-27) |
 |---|---|---:|---|---:|
