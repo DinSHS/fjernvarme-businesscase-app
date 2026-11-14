@@ -98,6 +98,10 @@ describe("hvilken kørsel er referencen", () => {
         // en kørsel ved README-tallets version vinder, også når den anden er nyere
         const begge = byggRaekker(refs, vaerker, scen, [ny, koersel("k-ren", "v-bil", "s-ren", 5069700.33)], new Map()).find((x) => x.ref.id === "spora_anker")!;
         expect([begge.tilstand, begge.kandidat?.koersel.id]).toEqual(["indenfor", "k-ren"]);
+        // Codex-efterreview: en ÆNDRET kørsel ved README-tallets version må ikke skjule en REN ved en anden version
+        const gammelÆndret = koersel("k-tank-eef", "v-bil", "s-tank", 9999999);
+        const blandet = byggRaekker(refs, vaerker, scen, [gammelÆndret, ny], new Map([["s-tank", 1]])).find((x) => x.ref.id === "spora_anker")!;
+        expect([blandet.tilstand, blandet.kandidat?.koersel.id]).toEqual(["anden-version", "k-90"]);
         // ved en anden version med ændringer i scenariet: ikke referencen
         const ændret = byggRaekker(refs, vaerker, scen, [{ ...ny, scenarie_id: "s-tank" }], new Map([["s-tank", 1]])).find((x) => x.ref.id === "spora_anker")!;
         expect(ændret.tilstand).toBe("aendret");

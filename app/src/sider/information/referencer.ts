@@ -221,7 +221,9 @@ export function byggRaekker(refs: readonly Reference[], vaerker: readonly Vaerk[
         if (!ren) {
             const andre = kandidaterVedAndenVersion(ref, vaerker, scenarier, koersler);
             const andenRen = andre.find((k) => (aendringer.get(k.scenarie.id) ?? 0) === 0);
-            if (!alle.length && andenRen) return { ref, kandidat: andenRen, tilstand: "anden-version" } satisfies RefRække;
+            // Rækkefølgen: ren ved referencens version > ren ved en anden > ændret > ikke kørt. En ÆNDRET kørsel ved
+            // referencens version må ikke skjule en REN ved en anden (Codex-efterreview 14/11-2026).
+            if (andenRen) return { ref, kandidat: andenRen, tilstand: "anden-version" } satisfies RefRække;
             return { ref, kandidat: alle[0] ?? andre[0], tilstand: alle.length || andre.length ? "aendret" : "ikke-koert" } satisfies RefRække;
         }
         const vurdering = vurder(ref, ren.koersel.objektiv_dkk as number);
