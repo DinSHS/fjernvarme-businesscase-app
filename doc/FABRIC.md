@@ -110,7 +110,37 @@ de samme ved de to versioner (målt: `git diff --stat eef950a 90fb16e` i modelre
 `src/data_loader_github.py`, `README.md`, `CLAUDE.md` og to tests). Efter koden melder importen derfor hvert uændret
 repoværk som `uaendret`, og værket beholder sin `repo_commit` (`fabric/fjv/importer.py:146-149`). En bestilling, der ligger i
 køen med de gamle pins, afvises (status `fejl`); bestil den igen. Tal fra kørsler ved `eef950a` kan ikke sammenlignes med
-nye. Ikke udrullet endnu: ingen installation er opdateret til `90fb16e`, og intet er målt i Fabric.
+nye. Udrullet i én installation 16. november 2026: `deploy.py kode` (pins læst tilbage som `90fb16e` / `106b9fc`) og
+`deploy.py koer fjv_importer_vaerker` (rækketallene i `Vaerks`, `VaerkParameters` og `Aendringslogs` uændrede). Appen
+kunne ikke udrulles med `rayfin-up` (skemaafvigelse, se nedenfor) og blev udrullet med de to deltrin. Ingen kørsel er
+endnu bestilt i Fabric ved `90fb16e`; referencetallet er kun målt lokalt.
+
+### Udrul appen i deltrin (uden databasetrinnet)
+
+`rayfin up` gør fire ting i rækkefølge: indstillinger, databaseskema, Functions og brugerflade. Fejler databasetrinnet,
+stopper resten. Er skemaet uændret (`app/rayfin/data/` er den samme som ved sidste udrulning), kan de to sidste udrulles
+hver for sig, fra `app/`:
+
+```
+python ../scripts/installation.py paafoer     # installationens værdier i konfig.ts og rayfin.yml
+npx rayfin up switch <deployment>             # kun hvis app/rayfin/.env mangler RAYFIN_PUBLIC_API_URL (se nedenfor)
+npx rayfin up functions deploy                # bygger og udruller Functions
+npx rayfin up staticapp deploy                # bygger (build:fabric) og udruller brugerfladen
+```
+
+Målt 16. november 2026 med Rayfin CLI 1.36.1: begge gennemført, databasen urørt. Deltrinene anvender ikke
+indstillingerne i `rayfin.yml` (fx redirect-adresser); er de ændret, skal `rayfin up` køre.
+
+**Udrul fra en mappe, der har installationens git-ignorerede filer.** En frisk klon eller et `git worktree` mangler dem,
+og bygget lykkes alligevel:
+
+* `config/installation.json` — uden den fejler `paafoer`.
+* `app/src/styles/temaer/privat/` — uden den bygges brugerfladen med standardtemaet. Målt: en udrulning fra et
+  arbejdstræ uden mappen fjernede installationens eget tema, indtil brugerfladen blev udrullet igen.
+* `app/rayfin/.deployments.json` — uden den melder deltrinene *No remote endpoint configured*. Kopiér den fra den
+  mappe, der sidst udrullede, og kør `npx rayfin up switch <deployment>`; den skriver `RAYFIN_PUBLIC_*` i
+  `app/rayfin/.env`, som brugerfladen bygges med.
+* `app/node_modules` — uden den leder `npx rayfin` efter en offentlig pakke ved navn `rayfin` (404). Kør `npm ci`.
 
 ## Det der gælder altid
 
@@ -146,6 +176,41 @@ nye. Ikke udrullet endnu: ingen installation er opdateret til `90fb16e`, og inte
 | `fab: kommando findes ikke` | `fab` er ikke på PATH — sæt `FJV_FAB` til den fulde sti |
 | Appen starter, men en kørsel bliver stående i `koe` | `notebooks.koer_scenarie` er tom eller forkert i `konfig.ts` — kør `paafoer` + `rayfin-up` igen |
 | *The field `x` does not exist on the type `Query`* efter et deploy | databaseskemaet blev ikke anvendt — kør `rayfin-db-apply` (en fejlet `db apply` inde i `rayfin up` er ikke fatal for CLI'en; `installation.py` melder den nu med exit 1) |
+| `rayfin-up`/`rayfin-db-apply`: *409 Schema drift detected; no migration SQL was applied* | Rayfin-tjenesten sammenligner databasen med sin egen registrering af skemaet og fandt en forskel. CLI 1.36.1 viser kun overskriften; se *Skemaafvigelse* nedenfor |
+| `rayfin up db apply`: *No remote endpoint configured* | `app/rayfin/.deployments.json` mangler i denne mappe — se *Udrul appen i deltrin* |
+| Appen har mistet installationens tema efter en udrulning | brugerfladen blev bygget uden `app/src/styles/temaer/privat/` — læg mappen ind og kør `npx rayfin up staticapp deploy` |
 | `rayfin-up`: *mangler app/rayfin/functions/host.json* | filen er committet; hent den med `git checkout -- app/rayfin/functions/host.json` |
 | En kørsel ender i `fejl`: *bestilt med andre versioner end den motor, der skal regne den* | bestillingen frøs den forrige motors pins — kør `deploy.py pins` (hvis `dbo.Motors` ikke er opdateret) og bestil igen |
 | `git pull` brokker sig over `konfig.ts`/`rayfin.yml` | kør `python scripts/installation.py fjern`, pull, og `paafoer` igen |
+
+### Skemaafvigelse (409 Schema drift detected)
+
+Målt 16. november 2026 i en installation, hvis skema ikke var ændret siden sidste vellykkede udrulning (28. oktober):
+den genererede `dab-config.json` var identisk med den forrige, og kolonner, typer, nøgler og CHECK-regler stemte med
+entiteterne. Tjenestens svar (kun `message` vises af CLI 1.36.1; resten af JSON-svaret har listen) nævnte seks
+standardværdier, som findes i databasen, men ikke i entiteterne:
+
+| Tabel | Kolonne | Standardværdi i databasen |
+|---|---|---|
+| `Vaerks` | `revision` | `0` |
+| `Aendringslogs` | `revision` | `0` |
+| `Koersels` | `bestilling_id` | `00000000-0000-0000-0000-000000000000` |
+| `Koersels` | `forsoeg`, `vaerk_revision` | `0` |
+| `Koersels` | `input_hash` | tom tekst |
+
+De er systemnavngivne (`DF__…`) og oprettet 16. oktober 2026 kl. 06:05:02 UTC, i samme sekund som Rayfin oprettede
+`Bestillings` og `KoerselInputs`. Appens egen antagelse: de stammer fra Rayfins migration, da kolonnerne blev tilføjet
+til tabeller med rækker. Ingen kode bruger dem; motoren og Functions skriver alle seks kolonner ved hver indsættelse.
+
+Hvad der er prøvet:
+
+* At skrive `default` ind i de seks dekoratorer fjerner **ikke** fejlen. Tjenesten sammenligner databasen med sin
+  registrering, ikke med entiteterne.
+* `--force` er ikke prøvet. Den tillader destruktive skemaændringer; spørg installationens ejer først.
+* Rayfin CLI 2.0.0 (forhåndsudgave) har `rayfin up db repair`, som overtager databasens afvigelser i entiteterne og i
+  tjenestens registrering uden at ændre databasen. En tørkørsel (`--all --dry-run`) lod alle tre tabeller stå: den kan
+  ikke læse `@set(...KONSTANT)`. Samme CLI har `rayfin up db apply --skip-drift-check`; ikke prøvet.
+
+Indtil afvigelsen er løst, kan en skemaændring ikke udrulles i en sådan installation. En app uden skemaændring udrulles
+med deltrinene ovenfor. En nyoprettet database har ikke de seks standardværdier, så længe ingen påkrævet kolonne er
+tilføjet til en tabel med rækker.
