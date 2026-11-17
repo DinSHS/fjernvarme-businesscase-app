@@ -23,7 +23,7 @@ import { genkend, læsArkmodel, sammenlign } from "./genkend";
 import { planlæg, type Eksportkilde } from "./kort";
 import { APPENS_FANER, BALANCEMARKED, celleFor, FINDES_IKKE, KUN_HVIS, LAES_FOERST, læsCelle, læsLag, OEVRIGE, sammeTal, START_OG_DRIFT, STI_OVERSKRIFT, ukendteOverskrifter } from "./lag";
 import { andeby, ANDEBY_ID, skabelon } from "./testdata";
-import { Arbejdsbog, delRef, læsCeller } from "./xlsx";
+import { Arbejdsbog, delRef, læsCeller, type Læstværdi } from "./xlsx";
 
 const NU = new Date(Date.UTC(2026, 10, 17, 12));
 const blade = (k: Eksportkilde) => new Map(k.blade.map((b) => [b.sti, b.vaerdi_json]));
@@ -88,6 +88,9 @@ const TILFAELDE: [string, number | string | boolean | null][] = [
     ["balancing.activation.settle", "efter det der skete (realized)"], ["balancing.activation.afrr.model", "andel af systemets aktivering gange k (system_share)"],
     ["balancing.reservation_gate.mode", "reservér højst blokken (bound)"], ["balancing.availability.mode", "loft på månedens MWh (energy)"],
     ["data.dmi_area", "Karup (karup)"],
+    // En ægte boolsk celle (TRUE/FALSE): ja/1 og nej/0 — også i et 0/1-felt; et tal- eller tekstfelt tager den ikke.
+    ["units.x.initial_status", true], ["units.x.initial_status", false], ["units.x.enabled", false], ["units.x.uc_enabled", true],
+    ["storage.t.cycle_binding", false], ["units.x.min_uptime", true], ["units.x.notes", false], ["units.x.ancillary.bid_window.months", true],
 ];
 
 describe("celle <-> vaerdi_json (fælles vektorer med importen)", () => {
@@ -425,7 +428,7 @@ describe("browserens læser", () => {
         class Tæller<K, V> extends Map<K, V> { override get(k: K) { opslag++; return super.get(k); } }
         const fane = new Tæller<string, string | number>([["A4", "felt"], ["B4", "værdi"], ["F4", STI_OVERSKRIFT], ["A5", "x"], ["F5", "grid.max_consumption_mw"], ["B5", 3], ["A1048576", "slut"]]);
         const td = new Tæller<string, string | number>([["A6", 46000], ["B6", 1], ["A1048576", 46001], ["B1048576", 2]]);
-        const ark = new Map<string, ReadonlyMap<string, string | number>>([[OEVRIGE, fane], ["Timedata", td]]);
+        const ark = new Map<string, ReadonlyMap<string, Læstværdi>>([[OEVRIGE, fane], ["Timedata", td]]);
         expect(læsLag(ark).get("grid.max_consumption_mw")?.v).toBe(3);
         læsArkmodel(ark as Map<string, Map<string, string | number>>);
         expect(opslag).toBeLessThan(5000);
@@ -445,13 +448,13 @@ const HENT: Hentere = { kilde: async () => andeby(), skabelon: async () => skabe
 
 const FANEVEKTORFIL = resolve(import.meta.dirname, "../../../../../skema/vektorer/arklag/faner.json");
 /** Fanens celler med én celle ændret (null = slettet). */
-const med = (c: ReadonlyMap<string, string | number>, ret: Record<string, string | number | null>) => {
+const med = (c: ReadonlyMap<string, Læstværdi>, ret: Record<string, string | number | null>) => {
     const ud = new Map(c);
     for (const [k, v] of Object.entries(ret)) { if (v === null) ud.delete(k); else ud.set(k, v); }
     return ud;
 };
 /** Den første række med `tekst` i kolonne A (en feltbloks overskrift, en tabels sti-række). */
-const overskrift = (c: ReadonlyMap<string, string | number>, tekst: string) => {
+const overskrift = (c: ReadonlyMap<string, Læstværdi>, tekst: string) => {
     const r = [...c].filter(([k, v]) => /^A\d+$/.test(k) && v === tekst).map(([k]) => Number(k.slice(1))).sort((a, b) => a - b);
     return r[0];
 };
@@ -472,7 +475,7 @@ describe("Codex' andet review: formler uden resultat og ukendte faneformer afvis
         }
         const wb = new Arbejdsbog(e.bytes);
         sætRå(wb, fane, ref, `<c r="${ref}" t="b"><f>TRUE()</f><v>1</v></c>`);
-        expect(læsCeller(wb.bytes()).get(fane)!.get(ref)).toBe(1);                     // gemt resultat: læses som det
+        expect(læsCeller(wb.bytes()).get(fane)!.get(ref)).toBe(true);                  // gemt resultat: læses som det
         // En formel uden resultat i modelrepoets faner afviser ikke her: dem læser modelscriptet (som før).
         const wb2 = new Arbejdsbog(e.bytes);
         sætRå(wb2, "Anlaeg", "H9", `<c r="H9"><f>30</f></c>`);
@@ -495,7 +498,7 @@ describe("Codex' andet review: formler uden resultat og ukendte faneformer afvis
     it("de fælles vektorer for fanernes form: appens egen eksport har ingen ukendte overskrifter", async () => {
         const c = læsCeller((await eksporter(andeby(), skabelon(), NU)).bytes);
         const start = c.get(START_OG_DRIFT)!, bal = c.get(BALANCEMARKED)!, oev = c.get(OEVRIGE)!;
-        const tilfaelde: [string, string, ReadonlyMap<string, string | number>][] = [
+        const tilfaelde: [string, string, ReadonlyMap<string, Læstværdi>][] = [
             ["Andebys eksport", START_OG_DRIFT, start], ["Andebys eksport", BALANCEMARKED, bal], ["Andebys eksport", OEVRIGE, oev],
             ["tidligere Øvrige felter", OEVRIGE, new Map<string, string | number>([["A1", "Øvrige felter"], ["A4", "sti"], ["B4", "værdi"], ["C4", KUN_HVIS], ["A5", "electricity.tariff_consumption_flat"], ["B5", 125], ["C5", 129.8]])],
             ["tabellens sti-række omdøbt", START_OG_DRIFT, med(start, { [`A${overskrift(start, STI_OVERSKRIFT)}`]: "sti" })],
@@ -514,6 +517,43 @@ describe("Codex' andet review: formler uden resultat og ukendte faneformer afvis
         expect(beregnet.tilfaelde.slice(3, 7).map((t) => t.ud.length)).toEqual([1, 1, 1, 1]);
         expect(beregnet.tilfaelde[3].ud).toEqual([{ ref: "A4", ældre: true }]);
         expect(beregnet.tilfaelde[4].ud).toEqual([{ ref: expect.stringMatching(/^A\d+$/), ældre: false }]);
+    }, 30_000);
+});
+
+describe("en ægte boolsk celle (TRUE/FALSE) betyder ja/nej — ens i forhåndsvisningen og importen", () => {
+    it("feltreglen: TRUE/FALSE er 1/0 i et 0/1-felt og true/false i et ja/nej-felt (som fjv.feltkatalog)", () => {
+        expect(læsCelle("units.x.initial_status", true)).toEqual({ json: "1" });
+        expect(læsCelle("units.x.initial_status", false)).toEqual({ json: "0" });
+        expect(læsCelle("units.x.enabled", true)).toEqual({ json: "true" });
+        expect(læsCelle("units.x.enabled", false)).toEqual({ json: "false" });
+        expect(læsCelle("units.x.min_uptime", true)).toEqual({ fejl: expect.stringMatching(/helt tal \(cellen indeholder sand\)/) });
+    });
+
+    it("læseren giver en boolsk celle som sand/falsk (ikke 1/0), og forhåndsvisningen ser på betydningen", async () => {
+        const e = await eksporter(andeby(), skabelon(), NU);
+        const lag = læsLag(læsCeller(e.bytes));
+        const STIER = ["units.gasmotor.enabled", "units.gasmotor.initial_status"];
+        // Eksportens ja/nej skrevet om til TRUE/FALSE med samme betydning: ingen ændring (importen gemmer intet).
+        const wb = new Arbejdsbog(e.bytes);
+        const før = new Map<string, boolean>();
+        for (const sti of STIER) {
+            const x = lag.get(sti)!, [fane, ref] = x.hvor.split("!");
+            const j = læsCelle(sti, x.v);
+            expect("json" in j, `${sti}: ${JSON.stringify(j)}`).toBe(true);
+            const b = "json" in j && (j.json === "true" || j.json === "1");
+            før.set(sti, b);
+            sætRå(wb, fane, ref, `<c r="${ref}" t="b"><v>${b ? 1 : 0}</v></c>`);
+            expect(læsCeller(wb.bytes()).get(fane)!.get(ref)).toBe(b);
+        }
+        expect(await analyserUpload(wb.bytes(), VAERKER, HENT)).toMatchObject({ art: "ingen_aendringer" });
+        // Den modsatte værdi i 0/1-feltet er en ændring, vist som ja/nej — den samme, importen gemmer.
+        const sti = "units.gasmotor.initial_status", [fane, ref] = lag.get(sti)!.hvor.split("!");
+        const wb2 = new Arbejdsbog(e.bytes);
+        sætRå(wb2, fane, ref, `<c r="${ref}" t="b"><v>${før.get(sti) ? 0 : 1}</v></c>`);
+        const a = await analyserUpload(wb2.bytes(), VAERKER, HENT);
+        expect(a.art).toBe("revision");
+        if (a.art !== "revision") return;
+        expect(a.forskel.felter).toEqual([expect.objectContaining({ hvor: START_OG_DRIFT, felt: expect.stringMatching(/initial_status/), nu: før.get(sti) ? "nej" : "ja" })]);
     }, 30_000);
 });
 

@@ -363,29 +363,34 @@ export class Arbejdsbog {
  * En formel UDEN gemt resultat (intet `<v>`, eller et tomt `<v/>` — også en boolsk) udelades også, men står i
  * `udenResultat` som "Ark!A1", så den, der læser appens faner, kan afvise den i stedet for at læse den som tom
  * (Codex' andet review: `<c t="b"><f>TRUE()</f><v/></c>` blev læst som 0 = nej). Samme regel som `fjv.arklaes`.
+ *
+ * En boolsk celle (`t="b"`, TRUE/FALSE) er sand/falsk, ikke 1/0 — som `fjv.arklaes`. Før gav den 1/0 her, så
+ * forhåndsvisningen og importen var uenige: TRUE i "i drift" (ja/nej) blev en ændring her og ingen i importen.
  */
-export function læsCeller(bytes: Uint8Array, udenResultat?: string[]): Map<string, Map<string, number | string>> {
+/** En læst celle: tal, tekst eller sand/falsk. */
+export type Læstværdi = number | string | boolean;
+export function læsCeller(bytes: Uint8Array, udenResultat?: string[]): Map<string, Map<string, Læstværdi>> {
     const wb = new Arbejdsbog(bytes);
     let delte: string[] = [];
     try {
         const ss = wb.tekst("xl/sharedStrings.xml");
         delte = [...ss.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) => [...m[1].matchAll(/<t(?: [^>]*)?>([\s\S]*?)<\/t>/g)].map((t) => fraXml(t[1])).join(""));
     } catch { /* ingen delte strenge */ }
-    const ud = new Map<string, Map<string, number | string>>();
+    const ud = new Map<string, Map<string, Læstværdi>>();
     for (const navn of wb.arknavne()) {
         const a = wb.regneark(navn);
-        const celler = new Map<string, number | string>();
+        const celler = new Map<string, Læstværdi>();
         for (const [nr, r] of a.rækker) {
             for (const [kol, x] of r.celler) {
                 const t = /\bt="([^"]+)"/.exec(x.slice(0, x.indexOf(">")))?.[1] ?? "n";
                 const v = /<v>([\s\S]*?)<\/v>/.exec(x)?.[1];
                 // Først om der er et resultat, så dets type: et tomt <v></v> er intet resultat (ikke 0).
                 const harV = v !== undefined && v.trim() !== "";
-                let værdi: number | string | undefined;
+                let værdi: Læstværdi | undefined;
                 if (t === "inlineStr") værdi = [...x.matchAll(/<t(?: [^>]*)?>([\s\S]*?)<\/t>/g)].map((m) => fraXml(m[1])).join("");
                 else if (t === "s") værdi = harV ? delte[Number(v)] : undefined;
                 else if (t === "str" || t === "e") værdi = v === undefined ? undefined : fraXml(v);
-                else if (t === "b") værdi = harV ? Number(v) : undefined;
+                else if (t === "b") værdi = harV ? v!.trim() === "1" : undefined;
                 else if (harV) værdi = Number(v);
                 if (værdi === undefined || værdi === "" || (typeof værdi === "number" && Number.isNaN(værdi))) {
                     if (udenResultat && /<f[\s>/]/.test(x)) udenResultat.push(`${navn}!${ref(kol, nr)}`);

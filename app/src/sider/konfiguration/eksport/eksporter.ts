@@ -20,7 +20,7 @@
 //-----------------------------------------------------------------------
 
 import { MODELSPEJL } from "@/lib/modelspejl.data";
-import { Arbejdsbog, excelSerie } from "./xlsx";
+import { Arbejdsbog, excelSerie, type Læstværdi } from "./xlsx";
 import { planlæg, type Celle, type Eksportkilde, type Eksportplan } from "./kort";
 import { planlægLag } from "./lag";
 
@@ -150,10 +150,10 @@ export function tomSkabelon(skabelon: Uint8Array): Uint8Array {
 export const TOM_SKABELON_FILNAVN = "vaerksdata_skabelon_med_appens_faner.xlsx";
 
 /** Markeringen fra et uploadet arks celler (`_app`), eller null. */
-export function læsMarkering(celler: Map<string, Map<string, number | string>>): Markering | null {
+export function læsMarkering(celler: ReadonlyMap<string, ReadonlyMap<string, Læstværdi>>): Markering | null {
     const a = celler.get(MARKOER_ARK);
     if (!a) return null;
-    const kv = new Map<string, number | string>();
+    const kv = new Map<string, Læstværdi>();
     for (let r = 1; r <= 40; r++) {
         const k = a.get(`A${r}`);
         if (typeof k === "string") kv.set(k, a.get(`B${r}`) ?? "");

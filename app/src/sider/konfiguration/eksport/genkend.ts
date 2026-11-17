@@ -16,11 +16,11 @@
 //-----------------------------------------------------------------------
 
 import { findFelt } from "../katalog";
-import { LAGFANER, læsLag, ukendteOverskrifter, ukendtOverskriftTekst, type Lagcelle } from "./lag";
-import { fraExcelSerie, læsCeller } from "./xlsx";
+import { LAGFANER, læsCelle, læsLag, ukendteOverskrifter, ukendtOverskriftTekst, type Lagcelle } from "./lag";
+import { fraExcelSerie, læsCeller, type Læstværdi } from "./xlsx";
 import { læsMarkering, type Markering } from "./eksporter";
 
-type V = number | string;
+type V = Læstværdi;
 type Celler = Map<string, V>;
 
 export interface Arkmodel {
@@ -150,7 +150,17 @@ export const GEMMES_IKKE = {
     cop: "COP ved 0 °C bruges ikke af modelscriptet, når varmepumpen har målepunkter i arket Varmepumpe. Ret målepunkterne i stedet.",
 } as const;
 
-const vis = (v: V | undefined) => (v === undefined ? "–" : typeof v === "number" ? v.toLocaleString("da-DK", { maximumFractionDigits: 6 }) : v);
+const vis = (v: V | undefined) => (v === undefined ? "–" : typeof v === "number" ? v.toLocaleString("da-DK", { maximumFractionDigits: 6 }) : typeof v === "boolean" ? (v ? "ja" : "nej") : v);
+
+/**
+ * To celler i appens faner er ens, når de betyder det samme for feltet (`læsCelle`, importens regel): eksportens "ja"
+ * og en TRUE-celle er samme værdi, og importen gemmer intet. Ellers som før: samme celle.
+ */
+function sammeBetydning(sti: string, a: V | undefined, b: V | undefined): boolean {
+    if (lig(a, b)) return true;
+    const x = læsCelle(sti, a), y = læsCelle(sti, b);
+    return "json" in x && "json" in y && x.json === y.json;
+}
 
 function sammenlignFelter(hvor: string, a: Map<string, V> | undefined, b: Map<string, V> | undefined, kol: Record<string, { sti?: string; navn: string }>, ud: Ændring[],
     gemmesIkke: (kolonne: string) => string | undefined = () => undefined) {
@@ -203,8 +213,8 @@ export function sammenlign(basis: Arkmodel, ark: Arkmodel): Forskel {
         const objekt = ["units", "storage"].includes(d[0]) && d.length > 2 ? ` · ${d[1]}` : "";
         const navn = `${findFelt(sti)?.etiket ?? sti}${objekt} (${sti})`;
         if (!x || !y) felter.push({ hvor: fane, felt: navn, før: x ? vis(x.v) : "–", nu: y ? vis(y.v) : "rækken er slettet" });
-        else if (!lig(x.v, y.v)) felter.push({ hvor: fane, felt: navn, før: vis(x.v), nu: vis(y.v) });
-        else if (!lig(x.betingelse, y.betingelse)) felter.push({ hvor: fane, felt: `${navn}: kun hvis modelscriptet giver`, før: vis(x.betingelse), nu: vis(y.betingelse) });
+        else if (!sammeBetydning(sti, x.v, y.v)) felter.push({ hvor: fane, felt: navn, før: vis(x.v), nu: vis(y.v) });
+        else if (!sammeBetydning(sti, x.betingelse, y.betingelse)) felter.push({ hvor: fane, felt: `${navn}: kun hvis modelscriptet giver`, før: vis(x.betingelse), nu: vis(y.betingelse) });
     }
     const serier = [serie("varmelast", basis.timedata, ark.timedata), serie("solprofil", basis.solvarme, ark.solvarme)].filter((x): x is Serieændring => !!x);
     const gemmes = felter.filter((x) => !x.gemmesIkke).length + serier.length;
@@ -223,6 +233,11 @@ export function genkend(bytes: Uint8Array): Genkendt {
     const uden: string[] = [];
     const celler = læsCeller(bytes, uden);
     const faner = new Set<string>(LAGFANER);
+    // Modelrepoets faner læses som før (TRUE = 1): kun appens faner har ja/nej-felter, hvor sand/falsk betyder noget.
+    for (const [navn, c] of celler) {
+        if (faner.has(navn)) continue;
+        for (const [k, v] of c) if (typeof v === "boolean") c.set(k, v ? 1 : 0);
+    }
     const afvist = uden.filter((x) => faner.has(x.split("!")[0])).map((x) => `${x}: cellen har en formel uden et gemt resultat (arket er gemt af et program, der ikke regner formler ud). Åbn arket i Excel og gem det igen, eller skriv tallet i cellen i stedet for formlen`);
     if (!afvist.length) {
         for (const navn of LAGFANER) {

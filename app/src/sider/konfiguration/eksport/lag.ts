@@ -42,7 +42,7 @@ import { tjekFelt } from "../validering";
 import type { Celle, Tab } from "./kort";
 import { pyFloatTekst } from "./pyjson";
 import { slug } from "./slug";
-import { ref, ulovligtXmlTegn, type Celleværdi } from "./xlsx";
+import { ref, ulovligtXmlTegn, type Celleværdi, type Læstværdi } from "./xlsx";
 
 export const LAES_FOERST = "Læs først";
 export const START_OG_DRIFT = "Start og drift";
@@ -194,7 +194,10 @@ export function jsonFraCelle(sti: string, celle: number | string | boolean): str
             throw new Error(`${navn}: skal være et tal (cellen indeholder ${vis})`);
         case "enum": {
             if (heltalsliste(post.tilladte)) {
-                if (lille in SAND && post.tilladte!.every((x) => x === 0 || x === 1)) return SAND[lille] ? "1" : "0";
+                const nulEt = post.tilladte!.every((x) => x === 0 || x === 1);
+                if (lille in SAND && nulEt) return SAND[lille] ? "1" : "0";
+                // En ægte boolsk celle (TRUE/FALSE) er ja/nej som teksten (som fjv.feltkatalog.fra_celle).
+                if (typeof celle === "boolean" && nulEt) return celle ? "1" : "0";
                 if (typeof celle === "number" && Number.isInteger(celle)) return String(celle);
                 throw new Error(`${navn}: skriv ja eller nej (cellen indeholder ${vis})`);
             }
@@ -882,7 +885,7 @@ function læsFørst(k: Lagkilde, afvigelser: Lagplan["afvigelser"]): Fane {
 
 // ------------------------------------------------------------------ læsning (til visningen af et uploadet ark)
 
-type V = number | string;
+type V = Læstværdi;
 const norm = (v: V | undefined) => (typeof v === "string" ? v.split(/\s+/).join(" ").trim().toLowerCase() : "");
 const UDEN_VAERDI = new Set(["", "felt", "enhed", "forklaring", "standard", STI_OVERSKRIFT]);
 

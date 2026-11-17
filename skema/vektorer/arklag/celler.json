@@ -826,6 +826,62 @@
    "ud": {
     "json": "\"karup\""
    }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": true,
+   "ud": {
+    "json": "1"
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": false,
+   "ud": {
+    "json": "0"
+   }
+  },
+  {
+   "sti": "units.x.enabled",
+   "celle": false,
+   "ud": {
+    "json": "false"
+   }
+  },
+  {
+   "sti": "units.x.uc_enabled",
+   "celle": true,
+   "ud": {
+    "json": "true"
+   }
+  },
+  {
+   "sti": "storage.t.cycle_binding",
+   "celle": false,
+   "ud": {
+    "json": "false"
+   }
+  },
+  {
+   "sti": "units.x.min_uptime",
+   "celle": true,
+   "ud": {
+    "fejl": "Min. driftstid: skal være et helt tal (cellen indeholder sand)"
+   }
+  },
+  {
+   "sti": "units.x.notes",
+   "celle": false,
+   "ud": {
+    "fejl": "Noter: skal være tekst (cellen indeholder falsk; skriv en apostrof foran, hvis Excel gør teksten til et tal eller en dato)"
+   }
+  },
+  {
+   "sti": "units.x.ancillary.bid_window.months",
+   "celle": true,
+   "ud": {
+    "fejl": "Budvindue: måneder: skal være en liste, fx [10,11,12] eller 10, 11, 12 (cellen indeholder sand)"
+   }
   }
  ]
 }
