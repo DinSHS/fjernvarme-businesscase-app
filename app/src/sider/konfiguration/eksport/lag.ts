@@ -379,7 +379,9 @@ export function planlægLag(k: Lagkilde): Lagplan {
         if (ekstraOverskrift) { f.sæt(2, ekstraOverskrift, STIL.overskrift, hoved); f.sæt(2, null, STIL.kode, teknik); }
         const poster = felter.map((x) => postFor(x));
         felter.forEach((skabelon, j) => {
-            f.sæt(2 + forskyd + j, overskrift(poster[j], skabelon), STIL.overskrift, hoved);
+            // To kolonner for samme felt pr. marked (…{enhed}.afrr og .mfrr) får markedets navn foran.
+            const marked = MARKEDER.find(([m]) => skabelon.endsWith(`.${m}`))?.[1];
+            f.sæt(2 + forskyd + j, `${marked ? `${marked}: ` : ""}${overskrift(poster[j], skabelon)}`, STIL.overskrift, hoved);
             f.sæt(2 + forskyd + j, skabelon, STIL.kode, teknik);
         });
         f.højder.push([hoved, 33.75]);
@@ -401,8 +403,11 @@ export function planlægLag(k: Lagkilde): Lagplan {
     const forklar = (f: Fane, titel: string, felter: readonly string[], poster: readonly (FeltPost | null)[], kolTekst: number) => {
         f.sæt(1, titel, STIL.afsnit);
         f.r++;
+        const set = new Set<string>();
         felter.forEach((skabelon, j) => {
             const p = poster[j];
+            if (set.has(p?.etiket ?? skabelon)) return;                     // samme felt pr. marked forklares én gang
+            set.add(p?.etiket ?? skabelon);
             f.sæt(1, p?.etiket ?? skabelon, STIL.etiket);
             f.sæt(kolTekst, `${p?.forklaring ?? ""}${standardtekst(p)}`.trim(), STIL.tekst);
             f.flet.push(`${ref(kolTekst, f.r)}:${ref(f.bredde, f.r)}`);

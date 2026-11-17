@@ -229,7 +229,6 @@ export function planlæg(k: Eksportkilde): Eksportplan {
     const biomasse = medtagne.some((n) => b.get(`units.${n}.type`) === "biomass_boiler");
     const vpPunkter: { navn: string; t: number; q: number; e: number }[] = [];
     const solenheder = medtagne.filter((n) => b.get(`units.${n}.type`) === "solar_thermal");
-    if (solenheder.length > 1) noter.push(`Værket har ${solenheder.length} aktive solvarmeenheder; modelscriptet giver dem samme syntetiske profil-regel hver for sig, og arket Solvarme kan kun bære én.`);
 
     // Solprofilen (målt -> arket Solvarme) og varmelasten (Timedata) — brug og vindue afgøres her.
     const vl = timeserie(k.varmelast, "varmelast");
@@ -294,13 +293,18 @@ export function planlæg(k: Eksportkilde): Eksportplan {
 
     // ---------------------------------------------------------------- Anlaeg: tanke
     // Runde 14: en slået-fra tank står også i Anlaeg ("i drift: nej" i Start og drift), når modelscriptet kan læse den.
-    const tanke = b.objekter("storage").filter((n) => {
-        if (aktiv(b, `storage.${n}`)) return true;
-        try { læsTank(b, n); return true; } catch (e) {
+    // De aktive tanke kommer altid med (er der for mange, nægter eksporten nedenfor); en slået-fra tank kun, når der
+    // er en ledig række — ellers bæres den hel af fanen Øvrige felter.
+    const alleTanke = b.objekter("storage");
+    const medTanke = new Set(alleTanke.filter((n) => aktiv(b, `storage.${n}`)));
+    for (const n of alleTanke) {
+        if (medTanke.has(n)) continue;
+        if (medTanke.size >= PLADS.tanke.til - PLADS.tanke.fra + 1) { grunde.set(`storage.${n}`, "slået fra, og skabelonen har ikke flere tankrækker"); continue; }
+        try { læsTank(b, n); medTanke.add(n); } catch (e) {
             grunde.set(`storage.${n}`, `slået fra, og modelscriptet kan ikke læse rækken (${e instanceof Error ? e.message : String(e)})`);
-            return false;
         }
-    }).slice(0, Math.max(PLADS.tanke.til - PLADS.tanke.fra + 1, b.objekter("storage").filter((n) => aktiv(b, `storage.${n}`)).length));
+    }
+    const tanke = alleTanke.filter((n) => medTanke.has(n));
     if (tanke.length === 0) nægter.push("Værket har ingen akkumuleringstank, arket kan bære — modelscriptet kræver mindst én.");
     if (tanke.length > PLADS.tanke.til - PLADS.tanke.fra + 1) nægter.push(`Værket har ${tanke.length} tanke; skabelonen har plads til ${PLADS.tanke.til - PLADS.tanke.fra + 1}.`);
     tanke.forEach((n, idx) => {

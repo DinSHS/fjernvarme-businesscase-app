@@ -249,6 +249,25 @@ describe("appens faner bærer det, modelrepoets skabelon ikke kan", () => {
         expect(p.celler.filter((c) => typeof c.v === "string" && c.v.includes("oliekedel"))).toEqual([]);
     });
 
+    it("en slået-fra tank står i Anlaeg med 'i drift: nej'; er der ikke plads, tager den aldrig en aktiv tanks række", () => {
+        const tank = (n: string, til: boolean) => ({ [`storage.${n}.enabled`]: til ? "true" : "false", [`storage.${n}.volume_m3`]: "5000", [`storage.${n}.delta_t_k`]: "33.0",
+            [`storage.${n}.e_initial_mwh`]: "90.0", [`storage.${n}.p_max_charge_mw`]: "25.0", [`storage.${n}.p_max_discharge_mw`]: "25.0", [`storage.${n}.self_discharge_per_hour`]: "0.0005" });
+        const slukket = planlæg(andebyMed({ "storage.tank_hoej.enabled": "false" }));
+        expect(slukket.nægter).toEqual([]);
+        expect(slukket.celler.filter((c) => c.ark === "Anlaeg" && c.v === "tank_hoej")).toHaveLength(1);
+        expect(slukket.endelig.get("storage.tank_hoej.enabled")).toBe("false");
+        // Andeby har to tanke. En slået-fra tank FØRST i værket og fire aktive mere: seks aktive i alt fylder skabelonens
+        // seks rækker, og den slåede-fra bæres af Øvrige felter i stedet for at skubbe en aktiv ud.
+        const k = andebyMed({ ...tank("t3", true), ...tank("t4", true), ...tank("t5", true), ...tank("t6", true) });
+        const mange = planlæg({ ...k, blade: [...Object.entries(tank("reserve", false)).map(([sti, v], j) => ({ sti, vaerdi_json: v, raekkefoelge: -100 + j })), ...k.blade] });
+        expect(mange.nægter).toEqual([]);
+        const iAnlaeg = mange.celler.filter((c) => c.ark === "Anlaeg" && /^A5[2-7]$/.test(c.ref) && typeof c.v === "string").map((c) => c.v);
+        expect(iAnlaeg.sort()).toEqual(["t3", "t4", "t5", "t6", "tank_hoej", "tank_lav"]);
+        expect(mange.endelig.get("storage.reserve.enabled")).toBe("false");
+        expect(mange.celler.filter((c) => c.ark === OEVRIGE && c.v === "storage.reserve.volume_m3")).toHaveLength(1);
+        expect(mange.ikkeMed.map((t) => t.sti)).toEqual(["units.solvarme.production_profile_path"]);
+    });
+
     it("det, en celle beviseligt ikke kan bære, står stadig på listen med grunden", () => {
         const p = planlæg(andebyMed({ "prices.fyringsolie.value": "900.0", "units.halmkedel.notes": '"linje\\u0001med kontroltegn"' }));
         expect(p.nægter).toEqual([]);
