@@ -4,11 +4,17 @@
 // (scripts/vaerksark_til_yaml.py: `if u["uc_enabled"]: u["initial_status"] = 0`),
 // så et værk fra arket starter med alle styrbare enheder slukket.
 //
-// Målt (lead, 17 enheder fra værksarket, 2026-11-17): uden tank, eller med
-// tanken slået fra, er kørslen uløselig i både januar og juni; med
-// `units.<elkedel>.initial_status: 1` løser den. Modellen regner, som den
-// skal — det er værkets starttilstand, der ikke kan lade sig gøre uden et
-// lager at tage den første time fra. Ren logik.
+// Målt 2026-11-17 ved 90fb16e / df-data 106b9fc:
+//  - lead, et værk med 17 enheder fra værksarket: uden tank, eller med tanken
+//    slået fra, uløselig i både januar og juni; med
+//    `units.<elkedel>.initial_status: 1` løser den;
+//  - runde 14c, Andeby fra værksarket (appens eksport → modelrepoets script,
+//    lokal udgave): 5.–6. januar 2026 med tankene slået fra er uløselig
+//    (infeasible), med `units.halmkedel.initial_status: 1` løser den
+//    (869.828,49 kr.); 8.–9. juni løser begge (78.990,36 / 69.638,60 kr.).
+// Advarslen siger derfor "kan blive uløselig", ikke "er". Modellen regner, som
+// den skal — det er værkets starttilstand, der ikke kan lade sig gøre uden et
+// lager at tage de første timer fra. Ren logik.
 //-----------------------------------------------------------------------
 
 import { findFelt } from "./katalog";
@@ -34,7 +40,7 @@ export function startAdvarsel(nu: ReadonlyMap<string, string>): StartAdvarsel | 
     return {
         enheder: uc, stier,
         tekst: `Ingen enhed med unit commitment er tændt ved start: initial_status er 0 på ${uc.join(", ")}. `
-            + "Målt på et værk fra værksarket: en kørsel uden tank, eller med tanken slået fra, kan da ikke løses (januar og juni 2026). "
+            + "En kørsel uden tank, eller med tanken slået fra, kan da blive uløselig — målt på værker fra værksarket i januar 2026 (på det ene også i juni). "
             + "Sæt initial_status til 1 på den enhed, der kører, når perioden begynder (Enheder › vælg enheden › Redigér).",
     };
 }
