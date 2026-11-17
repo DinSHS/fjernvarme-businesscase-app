@@ -17,7 +17,7 @@ import {
 import { MOTOR_ID } from "../../../rayfin/data/fjv.constants";
 import { læs, læsÉn } from "@/lib/data/laes";
 import { hentArkivTal } from "@/lib/data/skriv";
-import { timedeleAntal } from "@/lib/data/timedele";
+import { fletTimedele, timedeleAntal, timekolonner } from "@/lib/data/timedele";
 import { MODEL_COMMIT } from "@/sider/konfiguration/katalog.data";
 import { bygArkivBog, tomtIndhold, type ArkivIndhold, type ArkivMeta, type ArkivTabel, type Manifest } from "./bog";
 import { APP_COMMIT, APP_VERSION } from "./version";
@@ -110,6 +110,15 @@ export async function hentArkivindhold(valg: Eksportvalg, fremdrift: Fremdrift =
             tjekAntal(`Kørslen ${k.id}s timedele`, timedele.length, kt?.KoerselTimeDel);
             if (timedele.length !== timedeleAntal(k.manifest_json)) {
                 throw new ArkivAfvisning(`Kørslen ${k.id} har ${timedele.length} timedele i databasen, men kørslen siger ${timedeleAntal(k.manifest_json)}. Eksporten stopper hellere end at gemme en afkortet kørsel.`);
+            }
+            // Hver time skal være hel (manifestets time_kolonner): det samlede antal opdager ikke en time, der har
+            // mistet sin sidste del, mens en anden har fået en for meget (Codex, runde 14-review).
+            if (timedele.length || timekolonner(k.manifest_json) !== null) {
+                try {
+                    fletTimedele(timer, timedele, timekolonner(k.manifest_json));
+                } catch (e) {
+                    throw new ArkivAfvisning(`Kørslen ${k.id}: ${(e as Error).message} Eksporten stopper hellere end at gemme en afkortet kørsel.`);
+                }
             }
             if (inputHashRen(input) !== k.input_hash) {
                 throw new ArkivAfvisning(`Kørslen ${k.id}: det læste input passer ikke med kørslens input_hash. Eksporten stopper — prøv igen, og meld fejlen, hvis den står fast.`);

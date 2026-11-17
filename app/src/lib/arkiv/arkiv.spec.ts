@@ -328,6 +328,17 @@ describe("rundtur eksport -> import", () => {
         expect(fletTimedele(tm, td).map((r) => Object.keys(JSON.parse(r.vaerdier_json)))).toEqual(tm.map(() => ["p_halmkedel_mw", "soc_tank_mwh", "solgt"]));
     });
 
+    it("eksporten afviser en time uden sin sidste del, selv når det samlede antal passer (Codex, runde 14-review)", async () => {
+        const kilde = eksempelDb(5);
+        gørBred(kilde);
+        // Udefra: én times del er slettet, og en anden time har fået en ekstra - antallet er det samme som før.
+        const [første, anden] = [...kilde.KoerselTimeDel.values()];
+        kilde.KoerselTimeDel.delete(String(første.id));
+        const id = `${String(anden.id).slice(0, 9)}e0e0${String(anden.id).slice(13)}`;
+        kilde.KoerselTimeDel.set(id, { ...anden, id, delnr: 2, vaerdier_json: '{"ekstra":1.0}' });
+        await expect(eksportérFra(kilde)).rejects.toThrow(/ufuldstændige: 2 af 3 kolonner/);
+    });
+
     it("et bredt værks Timedele-ark, der ikke passer med Timer, afvises", async () => {
         const kilde = eksempelDb(5);
         gørBred(kilde);

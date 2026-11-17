@@ -345,7 +345,8 @@ def koer_en(raekker: list[dict], koersel_id: str, lager, rap, *,
             highs = RES.parse_highs(log)
             nt, mn = RES.noegletal(out, reg), RES.maaneder(out, reg)
             tm, td = RES.timer(out, reg)
-            felter = RES.koersel_felter(out, highs, time_dele=len(td))
+            felter = RES.koersel_felter(out, highs, time_dele=len(td),
+                                        time_kolonner=RES.kolonner_pr_time(tm, td) if td else 0)
         except RES.ResultatFejl as e:
             return fejl(f"Resultaterne kunne ikke læses: {e}", "indlaeser")
         # Et bredt værk (runde 14b) kræver KoerselTimeDels; en Fabric-database fra før skemaversion 2 har den

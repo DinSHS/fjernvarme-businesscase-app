@@ -164,6 +164,20 @@ class TestKoerEn(unittest.TestCase):
         self.assertEqual(res["antal"]["timedele"], len(lag.dele))
         self.assertEqual(json.loads(lag.slutfelter["manifest_json"])["time_dele"], len(lag.dele))
 
+    def test_manifestet_siger_hvor_mange_kolonner_hver_time_har(self):
+        """Codex (runde 14-review): læseren skal kunne opdage en manglende SIDSTE del og en time uden alle sine dele.
+
+        `_hourly.csv` har de samme kolonner i hver time, så antallet står én gang i manifestet (`time_kolonner`), og
+        læseren (`app/src/lib/data/timedele.ts`) kræver det for hver sammensat time.
+        """
+        _, lag = self.koer(True)
+        m = json.loads(lag.slutfelter["manifest_json"])
+        with open(next(BRED.glob("*_hourly.csv")), encoding="utf-8", newline="") as f:
+            hoved = next(__import__("csv").reader(f))
+        faste = {"timestamp", *RES.register()["tid"]["kolonner"].values()}
+        self.assertEqual(m["time_kolonner"], len([h for h in hoved if h not in faste]))
+        self.assertEqual(m["time_kolonner"], 499 - 4)      # målt: 499 kolonner, heraf tidsstempel + 3 faste
+
     def test_database_uden_tabellen_giver_brugerens_besked(self):
         res, lag = self.koer(False)
         self.assertEqual(res["status"], "fejl")
@@ -178,6 +192,7 @@ class TestManifest(unittest.TestCase):
         h = RES.parse_highs((F1 / "log.txt").read_text(encoding="utf-8"))
         self.assertEqual(RES.koersel_felter(out, h), RES.koersel_felter(out, h, time_dele=0))
         self.assertNotIn("time_dele", json.loads(RES.koersel_felter(out, h)["manifest_json"]))
+        self.assertNotIn("time_kolonner", json.loads(RES.koersel_felter(out, h)["manifest_json"]))
 
 
 if __name__ == "__main__":
