@@ -15,7 +15,7 @@ fælles ud over kodebasen; at deres data "passer i samme skema", betyder: begge 
 | `vektorer/*.json` | Fælles testvektorer for den betroede logik (TS-Functions og Python-porten) — se `vektorer/README.md` |
 | `byg.py` | Skriver de afledte filer; `--tjek` fejler, hvis noget er ude af takt |
 
-## De 15 tabeller
+## De 16 tabeller
 
 Fabric-databasen har desuden Rayfins egne `Users` og `objects` (de "+2" i briefen). De er ikke en del af
 kontrakten, og community-udgaven har dem ikke.
@@ -32,6 +32,7 @@ kontrakten, og community-udgaven har dem ikke.
 | `Koersel` | `Koersels` | læse | Én kørsel: status, frosset hash, resultatmetadata |
 | `KoerselInput` | `KoerselInputs` | læse | Det frosne input (hashbeskyttet) |
 | `KoerselNoegletal` · `KoerselMaaned` · `KoerselTime` | `…s` | læse | Resultater i langt format / pr. interval |
+| `KoerselTimeDel` | `KoerselTimeDels` | læse | Et bredt værks intervalværdier ud over 4000 tegn (version 2) |
 | `Motor` | `Motors` | læse | Regnemotorens tilstand, én række med `MOTOR_ID` |
 | `Tidsserie` | `Tidsseries` | læse | Værkets egne tidsserier (uforanderlige filer + metadata) |
 | `Vaerksarkimport` | `Vaerksarkimports` | læse | Én upload af et værksark og dens gang |
@@ -87,6 +88,7 @@ Dem håndhæver serveren/Functions ved skrivning og `valider-db` (`fjv_skema.tje
    | `VaerkParameter` | én værdi pr. (`vaerk_id`, `sti`) | ja |
    | `KoerselInput` | én værdi pr. (`koersel_id`, `kilde`, `sti`) — samme sti må stå som `vaerk` **og** `aendring` | ja |
    | `KoerselTime` | ét interval pr. (`koersel_id`, `tid`) | ja |
+   | `KoerselTimeDel` | én del pr. (`koersel_id`, `tid`, `delnr`) | ja |
    | `Tidsserie` | højst én `aktiv` pr. (`vaerk_id`, `rolle`) | ja, filtreret (`WHERE aktiv`). Slå de andre fra **før** den nye slås til |
    | `KoerselNoegletal` · `KoerselMaaned` | naturlig nøgle med `NULL` som værdi | **nej**: dialekterne er uenige om `NULL` i et unikt indeks (mssql: lig; sqlite/postgresql: forskellige) |
    | `ScenarieAendring` | én ændring pr. (`scenarie_id`, `sti`) | nej: klienten må skrive en dublet; den afvises ved bestilling |
@@ -131,6 +133,18 @@ Community-udgaven kører på SQLite som standard; vil du bruge din egen database
 - Databasens version står i `_skema` (aktuel = `MAX(version)`); en migration indsætter sin egen række.
 - Fabric-databasen migreres **ikke** herfra: Rayfin (`rayfin up db apply`) gør det ud fra entiteterne. Derfor skal en
   ændring altid ske begge steder — og overensstemmelsestesten fejler, indtil den er det.
+- **Version 2** (runde 14b): tabellen `KoerselTimeDel`. Et intervals øvrige kolonner ud over 4000 tegn står der som del
+  1, 2, … (`KoerselTime` har stadig præcis én række pr. interval), og `Koersel.manifest_json.time_dele` er antallet.
+  Målt: et værk med 40 elenheder og balancemarked fylder ca. 21.000 tegn i én time og 4.612 uden kolonnenavnene, så
+  hverken en anden kodning inden for 4000 tegn eller `NVARCHAR(MAX)` (DAB) kan bære det
+  (`noter/maaling_timebredde_r14b.md`). Migrationen `0002` er en ren tilføjelse.
+- **Løft en community-database:** `python -m fjernvarme_app migrer` (med samme `--data`/`--db` som serveren). Den kører
+  `migrationer/<nnnn>.<dialekt>.sql` fra databasens version til serverens, ét trin pr. transaktion, og kopierer en
+  SQLite-database til `<fil>.skemaversion<n>.kopi` først. Serveren nægter at starte på en anden version og siger det.
+  En database, du selv har oprettet, kan også løftes med scriptet direkte (`psql -f`, `sqlcmd -i`).
+- **Et arkiv** (runde 13) fra version 1 læses stadig: det har ingen `KoerselTimeDel`, og manifestet og den samlede
+  sha256 er over version 1's tabeller (`TABELLER_I_VERSION` i `app/src/lib/arkiv/bog.ts`). Et arkiv fra en nyere
+  version end appen afvises.
 
 ## Tests
 

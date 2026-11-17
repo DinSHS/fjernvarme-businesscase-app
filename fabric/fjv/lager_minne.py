@@ -184,7 +184,7 @@ class MinneKoerselLager:
         return any(self.skift(fra, "annulleret", afsluttet="nu", fase="Annulleret efter anmodning")
                    for fra in AKTIVE)
 
-    def publicer(self, noegletal, maaneder, timer, slutfelter: dict | None = None) -> dict:
+    def publicer(self, noegletal, maaneder, timer, slutfelter: dict | None = None, timedele=()) -> dict:
         f = _felter(self.db, dict(slutfelter or {}))
         with self.db._mutex:                      # "transaktionen": alt eller intet
             r = self._raekke()
@@ -193,14 +193,15 @@ class MinneKoerselLager:
                 raise Afbrudt(f"kørslen er ikke længere vores at publicere: {r and r['status']}")
             for navn, rk, noegle in (("noegletal", noegletal, ("gruppe", "objekt", "marked", "noegle")),
                                      ("maaneder", maaneder, ("maaned", "objekt", "noegle")),
-                                     ("timer", timer, ("tid",))):
+                                     ("timer", timer, ("tid",)),
+                                     ("timedele", timedele, ("tid", "delnr"))):
                 if len({tuple(x.get(n) for n in noegle) for x in rk}) != len(rk):
                     raise RuntimeError(f"{navn}: dubletter i den naturlige nøgle")
             self.db.resultater[self.id] = {"noegletal": list(noegletal), "maaneder": list(maaneder),
-                                           "timer": list(timer)}
+                                           "timer": list(timer), "timedele": list(timedele)}
             r.update(f, status="faerdig", afsluttet=self.db.nu(), fase=f.get("fase", "Færdig"))
             return {"KoerselNoegletals": len(noegletal), "KoerselMaaneds": len(maaneder),
-                    "KoerselTimes": len(timer)}
+                    "KoerselTimes": len(timer), "KoerselTimeDels": len(timedele)}
 
 
 class MinneKoe:

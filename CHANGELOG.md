@@ -18,6 +18,15 @@ Det ændrer alle kørsler, der omfatter perioden fra 1. oktober 2025; perioder f
 867.031,23). Fabric for modelskiftet: `deploy.py kode` og `deploy.py koer fjv_importer_vaerker`
 ([`doc/FABRIC.md`](doc/FABRIC.md#opdatér-en-eksisterende-installation)); versionens øvrige trin står under punkterne.
 
+**Skemaversion 2 — kræver migrering** (runde 14b). Et værk med mange enheder og balancemarked kunne regnes, men ikke
+gemmes: én time fyldte mere end databasens 4.000 tegn (målt i Fabric: 17 enheder 4.002 tegn; 40 elenheder ca. 21.000).
+Resten af timen står nu i den nye tabel `KoerselTimeDel`, og intet tal ændres eller afrundes. Ingen kodning inden for
+4.000 tegn kunne bære 40 enheder, og `NVARCHAR(MAX)` kan DAB ikke bruge (`noter/maaling_timebredde_r14b.md`). Kørsler og
+arkiver fra før læses uændret. **Lokal udgave:** `python -m fjernvarme_app migrer --data <mappe>` én gang (SQLite-filen
+kopieres først). **Fabric:** `rayfin-db-apply`. I en installation med skemaafvigelsen (409) virker det først, når
+afvigelsen er løst; indtil da kan koden udrulles med deltrinene. Så afvises kun brede værker, og beskeden siger
+hvorfor ([`doc/FABRIC.md`](doc/FABRIC.md#opdatér-en-eksisterende-installation)).
+
 ### Tilføjet
 - Farvestyring i tabellerne med Δ-tal (kørsel og sammenligning): *Ingen*, *Retning* og *Heatmap*, med farver efter
   IBCS-polaritet og WCAG AA-kontrast. Arbejdet foregår på grenen `runde9/heatmap`.

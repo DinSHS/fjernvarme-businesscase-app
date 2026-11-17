@@ -38,9 +38,11 @@ class ArkivAfvisning(Exception):
 DEL_FORMAT = "fjv-arkiv-del"
 NIL_UUID = "00000000-0000-0000-0000-000000000000"
 IMPORT_TABELLER = ("Scenarie", "ScenarieAendring", "Bestilling", "KoerselInput", "KoerselNoegletal", "KoerselMaaned",
-                   "KoerselTime", "Koersel")
-DEL_TABELLER = ("Scenarie", "Bestilling", "KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime", "Koersel")
-KOERSEL_BOERN = ("KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime")
+                   "KoerselTime", "KoerselTimeDel", "Koersel")
+DEL_TABELLER = ("Scenarie", "Bestilling", "KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime",
+                "KoerselTimeDel", "Koersel")
+#: KoerselTimeDel (skemaversion 2, runde 14b): kun brede værker har rækker der.
+KOERSEL_BOERN = ("KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime", "KoerselTimeDel")
 AFSLUTTEDE_STATUS = ("faerdig", "fejl", "annulleret")
 MAKS_KOERSLER_PR_DEL = 60
 BOERNESIDE = 2000
@@ -520,7 +522,7 @@ def tjek_koersel(x: dict) -> None:
 
 _NAVN = {"Scenarie": "scenarier", "ScenarieAendring": "scenarieændringer", "Bestilling": "bestillinger",
          "Koersel": "kørsler", "KoerselInput": "inputrækker", "KoerselNoegletal": "nøgletal",
-         "KoerselMaaned": "månedsrækker", "KoerselTime": "timerækker"}
+         "KoerselMaaned": "månedsrækker", "KoerselTime": "timerækker", "KoerselTimeDel": "timedele"}
 
 
 def boernetilstand(tx, koersel_id: str) -> dict:

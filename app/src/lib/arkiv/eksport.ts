@@ -17,6 +17,7 @@ import {
 import { MOTOR_ID } from "../../../rayfin/data/fjv.constants";
 import { læs, læsÉn } from "@/lib/data/laes";
 import { hentArkivTal } from "@/lib/data/skriv";
+import { timedeleAntal } from "@/lib/data/timedele";
 import { MODEL_COMMIT } from "@/sider/konfiguration/katalog.data";
 import { bygArkivBog, tomtIndhold, type ArkivIndhold, type ArkivMeta, type ArkivTabel, type Manifest } from "./bog";
 import { APP_COMMIT, APP_VERSION } from "./version";
@@ -98,11 +99,18 @@ export async function hentArkivindhold(valg: Eksportvalg, fremdrift: Fremdrift =
             const noegletal = await læs("KoerselNoegletal", f);
             const maaneder = await læs("KoerselMaaned", f);
             const timer = await læs("KoerselTime", { ...f, sortering: { tid: "asc" } });
+            // Et bredt værks timedele (runde 14b) - kun spurgt efter, når manifestet siger, at de findes: en
+            // database fra før skemaversion 2 har ikke tabellen.
+            const timedele = timedeleAntal(k.manifest_json) > 0 ? await læs("KoerselTimeDel", { ...f, sortering: { tid: "asc" } }) : [];
             const kt = tal.koersler[k.id];
             tjekAntal(`Kørslen ${k.id}s input`, input.length, kt?.KoerselInput);
             tjekAntal(`Kørslen ${k.id}s nøgletal`, noegletal.length, kt?.KoerselNoegletal);
             tjekAntal(`Kørslen ${k.id}s månedsrækker`, maaneder.length, kt?.KoerselMaaned);
             tjekAntal(`Kørslen ${k.id}s timerækker`, timer.length, kt?.KoerselTime);
+            tjekAntal(`Kørslen ${k.id}s timedele`, timedele.length, kt?.KoerselTimeDel);
+            if (timedele.length !== timedeleAntal(k.manifest_json)) {
+                throw new ArkivAfvisning(`Kørslen ${k.id} har ${timedele.length} timedele i databasen, men kørslen siger ${timedeleAntal(k.manifest_json)}. Eksporten stopper hellere end at gemme en afkortet kørsel.`);
+            }
             if (inputHashRen(input) !== k.input_hash) {
                 throw new ArkivAfvisning(`Kørslen ${k.id}: det læste input passer ikke med kørslens input_hash. Eksporten stopper — prøv igen, og meld fejlen, hvis den står fast.`);
             }
@@ -116,6 +124,7 @@ export async function hentArkivindhold(valg: Eksportvalg, fremdrift: Fremdrift =
             for (const r of noegletal) tilføj("KoerselNoegletal", kan("KoerselNoegletal", r));
             for (const r of maaneder) tilføj("KoerselMaaned", kan("KoerselMaaned", r));
             for (const r of timer) tilføj("KoerselTime", kan("KoerselTime", r));
+            for (const r of timedele) tilføj("KoerselTimeDel", kan("KoerselTimeDel", r));
             const sha = vaerkSha(input.filter((r) => r.kilde === "vaerk"));
             revisioner.set(`${k.vaerk_id}:${k.vaerk_revision}:${sha}`, [k.vaerk_id, k.vaerk_revision, sha]);
             vaerker.add(k.vaerk_id);

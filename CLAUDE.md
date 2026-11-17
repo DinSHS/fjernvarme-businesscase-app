@@ -62,6 +62,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install setuptools     # POS
 .venv/Scripts/python community/pakke.py --ud _lokal/wheel                  # kræver setuptools (pip wheel --no-build-isolation)
 .venv/Scripts/python -m pip install "_lokal/wheel/fjernvarme_app-<version>-py3-none-any.whl[model]"
 .venv/Scripts/python -m fjernvarme_app --demo --data C:\fjv
+.venv/Scripts/python -m fjernvarme_app migrer --data C:\fjv                # kun når serveren siger "skemaversion 1 … kræver 2"
 
 # Gaten (begge udgaver, 10–15 min; trofasthed kræver modelrepoet i ../fjernvarme-businesscase eller FJV_MODELREPO)
 cd app && npm run gate

@@ -39,6 +39,9 @@ sammenlignes.
 * Første kørsel henter modelkoden (zip, ~1 MB) og df-data (zip, ~60 MB) på de pinnede commits til datamappen.
 * **Windows:** Brug en kort datamappe (`--data C:\fjv`). Kørslernes filnavne er lange, og Windows' grænse er
   260 tegn pr. sti.
+* **Opdaterer du fra en ældre version**, og siger serveren *"databasen har skemaversion 1, serveren kræver 2"*, så kør
+  `python -m fjernvarme_app migrer --data <samme mappe>` én gang. Version 2 (0.4.0) tilføjer en tabel til brede
+  værkers timeresultater; intet eksisterende ændres, og SQLite-filen kopieres først.
 
 ## Kommandoer
 
@@ -54,6 +57,7 @@ sammenlignes.
 | `python -m fjernvarme_app import <fil.zip> [--kode <ny>]` | importér en værkspakke |
 | `python -m fjernvarme_app ddl sqlite\|postgresql\|mssql` | CREATE-scriptet til din egen database |
 | `python -m fjernvarme_app demo` | indlæs modelrepoets cases og stop |
+| `python -m fjernvarme_app migrer` | løft en database fra en ældre skemaversion (en SQLite-database kopieres først) |
 
 ## Data ind og ud
 

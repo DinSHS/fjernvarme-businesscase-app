@@ -139,17 +139,20 @@ class LokalKoerselLager:
                 return True
         return False
 
-    def publicer(self, noegletal, maaneder, timer, slutfelter: dict | None = None) -> dict:
+    def publicer(self, noegletal, maaneder, timer, slutfelter: dict | None = None, timedele=()) -> dict:
         _, KS = _fjv()
         f = _felter(dict(slutfelter or {}))
         k = self.k
         tn, tm, tt = self.db.t("KoerselNoegletal"), self.db.t("KoerselMaaned"), self.db.t("KoerselTime")
+        # Et bredt værks øvrige kolonner ud over 4000 tegn (runde 14b). Databasen har altid tabellen: serveren
+        # starter kun på skemaversion 2 (Database.kontroller).
+        td = self.db.t("KoerselTimeDel")
         with self.db.skriv() as cn:
             r = cn.execute(self.db.laas_raekke(select(k.c.status, k.c.arbejder_id, k.c.annuller_anmodet)
                                                 .where(k.c.id == self.id))).first()
             if r is None or r.status != "indlaeser" or r.arbejder_id != self.mig or r.annuller_anmodet is not None:
                 raise KS.Afbrudt(f"kørslen er ikke længere vores at publicere: {tuple(r) if r else None}")
-            for t in (tn, tm, tt):
+            for t in (tn, tm, tt, td):
                 cn.execute(t.delete().where(t.c.koersel_id == self.id))
             _indsaet(cn, tn, self.id, [{
                 "gruppe": str(x["gruppe"]), "objekt": x.get("objekt"), "marked": x.get("marked"),
@@ -163,10 +166,13 @@ class LokalKoerselLager:
                 "spotpris": _tal(x.get("spotpris"), 6), "t_ude": _tal(x.get("t_ude"), 6),
                 "vaerdier_json": None if x.get("vaerdier_json") is None else str(x["vaerdier_json"])}
                 for x in timer])
+            _indsaet(cn, td, self.id, [{"tid": x["tid"], "delnr": int(x["delnr"]),
+                                         "vaerdier_json": str(x["vaerdier_json"])} for x in timedele])
             antal = {}
             for t, forventet, noegle in ((tn, len(noegletal), ("gruppe", "objekt", "marked", "noegle")),
                                          (tm, len(maaneder), ("maaned", "objekt", "noegle")),
-                                         (tt, len(timer), ("tid",))):
+                                         (tt, len(timer), ("tid",)),
+                                         (td, len(timedele), ("tid", "delnr"))):
                 n = cn.execute(select(func.count()).select_from(t).where(t.c.koersel_id == self.id)).scalar()
                 d = select(*(t.c[x] for x in noegle)).where(t.c.koersel_id == self.id) \
                     .group_by(*(t.c[x] for x in noegle)).having(func.count() > 1).subquery()

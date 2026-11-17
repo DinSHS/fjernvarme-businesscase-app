@@ -1,7 +1,7 @@
 // GENERERET af skema/byg.py fra skema/skema.json — ret ikke her.
 // Bruges af arkivet (arkiv.ts) til at validere rækker i browseren og i Function importerArkiv.
 
-export const SKEMAVERSION = 1;
+export const SKEMAVERSION = 2;
 
 export const SKEMA_TABELLER = {
     Vaerk: { tabel: "Vaerks", kolonner: [
@@ -162,6 +162,13 @@ export const SKEMA_TABELLER = {
         {"navn": "varmelast_mw", "type": "decimal", "nullable": false, "precision": 18, "scale": 6},
         {"navn": "spotpris", "type": "decimal", "nullable": true, "precision": 18, "scale": 6},
         {"navn": "t_ude", "type": "decimal", "nullable": true, "precision": 18, "scale": 6},
+        {"navn": "vaerdier_json", "type": "text", "nullable": false, "max": 4000, "min": 1},
+    ] },
+    KoerselTimeDel: { tabel: "KoerselTimeDels", kolonner: [
+        {"navn": "id", "type": "uuid", "nullable": false, "pk": true},
+        {"navn": "koersel_id", "type": "uuid", "nullable": false},
+        {"navn": "tid", "type": "datetime", "nullable": false},
+        {"navn": "delnr", "type": "int", "nullable": false},
         {"navn": "vaerdier_json", "type": "text", "nullable": false, "max": 4000, "min": 1},
     ] },
     Motor: { tabel: "Motors", kolonner: [

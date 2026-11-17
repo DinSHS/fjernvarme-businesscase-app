@@ -115,6 +115,15 @@ nye. Udrullet i én installation 16. november 2026: `deploy.py kode` (pins læst
 kunne ikke udrulles med `rayfin-up` (skemaafvigelse, se nedenfor) og blev udrullet med de to deltrin. Ingen kørsel er
 endnu bestilt i Fabric ved `90fb16e`; referencetallet er kun målt lokalt.
 
+**Skemaversion 2: tabellen `KoerselTimeDels` (runde 14b, version 0.4.0).** Et værk med mange enheder og balancemarked
+fylder mere end 4.000 tegn pr. time (målt: 17 enheder 4.002, 40 elenheder ca. 21.000; `noter/maaling_timebredde_r14b.md`).
+Resten af timen står nu i den nye tabel. Den kommer i databasen med `rayfin-db-apply` (eller `rayfin-up`). Det er en
+ny tabel uden rækker, så den giver ingen nye standardværdier, men **i en installation med skemaafvigelsen kan den ikke
+anvendes, før afvigelsen er løst** (se nedenfor). Indtil da kan koden alligevel udrulles: `deploy.py kode` og de to deltrin.
+Appens egen antagelse, ikke afprøvet i Fabric: en database uden tabellen virker som før for alle værker, hvis timer kan stå
+i én række. Et bredt værk afvises ved indlæsningen med beskeden *"… databasen mangler tabellen KoerselTimeDels …"*, og
+intet publiceres. Et arkiv med timedele afvises ved importen med samme grund. Kørsler fra før skemaversion 2 læses uændret.
+
 ### Udrul appen i deltrin (uden databasetrinnet)
 
 `rayfin up` gør fire ting i rækkefølge: indstillinger, databaseskema, Functions og brugerflade. Fejler databasetrinnet,
