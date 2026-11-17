@@ -4,7 +4,9 @@
 // bundletjek af begge · trofasthed (runde 8: appens værdier og bestillingsvej mod modelrepoet ved den pinnede commit,
 // viden/vaerktoej/tjek_trofasthed.py; Python med PyYAML, FJV_PYTHON vælger fortolkeren) · eksport-rundtur (runde 12:
 // hvert katalogværk eksporteret af appens egen kode -> modelrepoets scripts/vaerksark_til_yaml.py -> sammenlignet felt for
-// felt + genupload som revision gennem importens kode + run_case før/efter + modprøver; kræver modellens pakker, så
+// felt + upload som NYT værk gennem importens kode (runde 14: scriptets læsning + appens egne faner = det oprindelige
+// værk blad for blad, bortset fra en begrundet liste) + genupload som revision + run_case på originalen og det nye
+// værk, også med balancemarked + modprøver; kræver modellens pakker, så
 // FJV_MODELPYTHON vælger et Python med modelrepoets requirements.txt). Layout/skærmbilleder er separate
 // (skaermbilleder/), fordi de tager minutter.
 import { spawnSync } from "node:child_process";
@@ -24,6 +26,7 @@ const trin = [
     // Codex K8: modprøverne (ændrede antagelser i en kopi af modelrepoet) skal gøre gaten rød — ellers er en grøn gate intet bevis.
     ["trofasthed modprøver", process.env.FJV_PYTHON ?? "python", ["../viden/vaerktoej/test_trofasthed.py"], { PYTHONUTF8: "1" }],
     // Runde 12: eksporten er den præcise inverse af værksark-importen (begge udgaver deler eksport og import).
+    // Runde 14: med appens egne faner giver eksport -> upload som nyt værk det samme værk og samme objektiv.
     ["eksport rundtur", process.env.FJV_MODELPYTHON ?? process.env.FJV_PYTHON ?? "python", ["../viden/vaerktoej/tjek_eksport_rundtur.py", "--koer"], { PYTHONUTF8: "1" }],
 ];
 
