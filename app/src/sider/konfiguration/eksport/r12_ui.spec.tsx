@@ -28,9 +28,13 @@ afterEach(cleanup);
 
 async function vælgArk(bytes: Uint8Array, vaerker = [ANDEBY]) {
     const r = render(<VaerksarkKort vaerker={vaerker} bruger="test@example.org" />);
+    await vælgFil(bytes);
+    return r;
+}
+/** Et (nyt) filvalg i det kort, der allerede vises. */
+async function vælgFil(bytes: Uint8Array) {
     const fil = new File([bytes as BlobPart], "andeby_rev1.xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     await act(async () => { fireEvent.change(screen.getByLabelText("Vælg værksark"), { target: { files: [fil] } }); });
-    return r;
 }
 
 describe("eksportfanen", () => {
@@ -128,6 +132,36 @@ describe("upload-kortet genkender et eksporteret ark", () => {
         await act(async () => { fireEvent.click(knap); });
         expect(t.upload).toHaveBeenCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org");
     }, 30_000);
+    it("Codex' andet review: et tidligere 'timens slut' følger ikke med til et ark fra appen og nulstilles ved nyt filvalg", async () => {
+        await vælgArk(skabelon());
+        await screen.findByRole("button", { name: "Upload og importér" }, { timeout: 15_000 });
+        await act(async () => { fireEvent.click(screen.getByLabelText(/timens slut/)); });
+        expect((screen.getByLabelText(/timens slut/) as HTMLInputElement).checked).toBe(true);
+        // Brugeren vælger nu en eksport fra appen og opretter den som nyt værk: stemplerne er timens start i UTC.
+        const e = await eksporter(andeby(), skabelon());
+        const wb = new Arbejdsbog(e.bytes);
+        wb.regneark("Priser").sæt("B30", "Mit Værk");
+        await vælgFil(wb.bytes());
+        const valg = await screen.findByLabelText(/Opret som nyt værk i stedet/, {}, { timeout: 15_000 });
+        await act(async () => { fireEvent.click(valg); });
+        expect(screen.queryByLabelText(/timens slut/)).toBeNull();
+        await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Upload og importér" })); });
+        expect(t.upload).toHaveBeenLastCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org");
+        // Et nyt filvalg starter forfra: valget er ikke sat.
+        await vælgFil(skabelon());
+        const igen = await screen.findByLabelText(/timens slut/, {}, { timeout: 15_000 });
+        expect((igen as HTMLInputElement).checked).toBe(false);
+    }, 60_000);
+    it("et ark fra appen, hvis værk ikke findes her: nyt værk, men altid med timens start", async () => {
+        await vælgArk(skabelon(), []);
+        await screen.findByRole("button", { name: "Upload og importér" }, { timeout: 15_000 });
+        await act(async () => { fireEvent.click(screen.getByLabelText(/timens slut/)); });
+        await vælgFil((await eksporter(andeby(), skabelon())).bytes);
+        await screen.findByText(/som ikke findes her/, {}, { timeout: 15_000 });
+        expect(screen.queryByLabelText(/timens slut/)).toBeNull();
+        await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Upload og importér" })); });
+        expect(t.upload).toHaveBeenLastCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org");
+    }, 60_000);
     it("Codex' andet review: en formel uden gemt resultat i appens faner spærrer, før noget sendes", async () => {
         const e = await eksporter(andeby(), skabelon());
         const wb = new Arbejdsbog(e.bytes);

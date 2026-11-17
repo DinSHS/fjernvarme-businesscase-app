@@ -71,6 +71,8 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
     const forældet = !!valg && valg.nøgle !== nøgleFor(vaerker);
     const læser = !!fil && !filFejl && !analyse && !analyseFejl;
     const markeret = !!analyse && analyse.art !== "nyt" && analyse.art !== "afvist";
+    // Et ark fra appen er stemplet med timens start i UTC: timeslut-valget vises ikke og sendes aldrig (Codex' andet review).
+    const fraAppen = !!analyse?.fraAppen;
     const somNyt = markeret && !!valg?.somNyt;
     const revision = !somNyt && analyse?.art === "revision" ? analyse : undefined;
     // Et nyt værk får koden af 'værkets navn' i Priser; findes den, skal værket have et nyt navn først.
@@ -95,6 +97,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
     const vælg = async (f: File | undefined) => {
         const id = ++næsteId.current;
         setSvar(undefined);
+        setTimeslut(false);                            // valget hører til det forrige ark, ikke til dette
         if (!f) { setValg(undefined); return; }
         const liste = vaerker;
         setValg({ id, fil: f, nøgle: nøgleFor(liste) });
@@ -133,7 +136,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
             // En revision sammenlignes med en eksport, der er stemplet med timens START i UTC — derfor intet --timeslut.
             const s = a.art === "revision" && !v.somNyt
                 ? await uploadVaerksark(v.fil.name, b64, false, bruger, { vaerkId: a.vaerk.id, revision: a.vaerk.revision, basisBase64: tilBase64(a.basis) })
-                : await uploadVaerksark(v.fil.name, b64, timeslut, bruger);
+                : await uploadVaerksark(v.fil.name, b64, timeslut && !a.fraAppen, bruger);
             setSvar({ ok: s.ok, tekst: s.svar });
             if (s.ok) { importer.genindlæs(); opdaterAlt(); }
         } catch (e) {
@@ -178,7 +181,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
                         Et værk er ændret, siden arket blev læst — analysen gælder ikke længere. <Knap sekundaer onClick={læsIgen}>Læs arket igen</Knap>
                     </p>
                 )}
-                {!revision && !blokeret && !markeret && (
+                {!revision && !blokeret && !markeret && !fraAppen && (
                     <label className="kf-kontakt"><input type="checkbox" checked={timeslut} onChange={(e) => setTimeslut(e.target.checked)} />Tidsstemplerne i arkets timedata er timens slut</label>
                 )}
                 <div className="kf-handlinger">
