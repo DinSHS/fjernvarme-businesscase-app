@@ -82,8 +82,8 @@ forbrugstarif), med forklaringen og modellens standardværdi som udgangspunkt. M
 før; feltet kan bagefter rettes og bruges i scenarier. Felter i en blok, hvis blotte tilstedeværelse ændrer regningen
 (COP-kurven, tarifprofilen, nettab), tilbydes ikke enkeltvis.
 
-**Starttilstand:** står alle enheder med start/stop-logik til slukket ved start, som værksarkets script sætter dem,
-viser værkets side en advarsel: uden tank, eller med tanken slået fra, kan en kørsel så blive uløselig (målt i januar
+**Starttilstand:** står alle enheder med start/stop-logik til slukket ved start, som værksarkets script sætter dem
+(scripts/vaerksark_til_yaml.py:856), viser værkets side en advarsel: uden tank, eller med tanken slået fra, kan en kørsel så blive uløselig (målt i januar
 2026 på værker fra værksarket). Sæt **Tændt ved periodens start** til tændt på den enhed, der kører, når perioden
 begynder: 1 under Konfiguration › Enheder, *ja* i værksarkets fane *Start og drift*.
 
