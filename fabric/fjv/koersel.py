@@ -349,7 +349,7 @@ def koer_en(raekker: list[dict], koersel_id: str, lager, rap, *,
         except RES.ResultatFejl as e:
             return fejl(f"Resultaterne kunne ikke læses: {e}", "indlaeser")
         # Et bredt værk (runde 14b) kræver KoerselTimeDels; en Fabric-database fra før skemaversion 2 har den
-        # ikke. Det skal brugeren have at vide i et sprog, hun kan handle på - ikke som en SQL-fejl.
+        # ikke. Det skal brugeren have at vide som noget, der kan handles på - ikke som en SQL-fejl.
         if td and not getattr(lager, "har_timedele", True):
             return fejl(f"Resultaterne kunne ikke gemmes: {RES.TIMEDELE_MANGLER}", "indlaeser")
         felter["antal_interval_csv"] = len(tm)

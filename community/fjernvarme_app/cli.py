@@ -51,6 +51,9 @@ def _parser() -> argparse.ArgumentParser:
     i.add_argument("--kode", default=None, help="ny kode til værket (standard: pakkens)")
     i.add_argument("--bruger", default=None)
 
+    sub.add_parser("migrer", help="løft databasen til serverens skemaversion (skema/migrationer; kun tilføjelser, "
+                                  "en SQLite-database får en kopi først)")
+
     d = sub.add_parser("ddl", help="udskriv CREATE-scriptet for en dialekt (sqlite|postgresql|mssql)")
     d.add_argument("dialekt", choices=["sqlite", "postgresql", "mssql"])
 
@@ -159,6 +162,24 @@ def _main(a) -> int:
     if k == "ddl":
         from . import skema as S
         sys.stdout.write(S.ddl(a.dialekt))
+        return 0
+    if k == "migrer":
+        from . import skema as S
+        from .database import Database, sqlite_url
+        url = a.db or sqlite_url(Path(a.data).resolve() / "fjernvarme.db")
+        db = Database(url, S.laes())
+        fra = db.gemt_version()
+        if fra == db.skemaversion:
+            print(f"Databasen har allerede skemaversion {fra}; intet at gøre.")
+            return 0
+        if fra is not None and fra < db.skemaversion:
+            kopi = db.sikkerhedskopi()
+            print(f"Kopi før migrering: {kopi}" if kopi else
+                  f"Ingen automatisk kopi af en {db.dialekt}-database (migrationerne er kun tilføjelser; "
+                  "tag selv en backup efter jeres egne regler).")
+        trin = db.migrer()
+        db.kontroller()
+        print(f"Skemaversion {fra} -> {db.skemaversion} ({', '.join(f'migration {n:04d}' for n in trin)}).")
         return 0
     if k == "valider-db":
         from . import valider_db

@@ -3,7 +3,7 @@
 Målt i Fabric: et værk med 17 enheder og balancemarked blev løst, men resultaterne kunne ikke gemmes
 (``vaerdier_json er 4002 tegn … maks 4000``). Testene her binder skrivevejen: delene publiceres i samme
 transaktion som resten, tælles som resten, og en Fabric-database fra før skemaversion 2 giver brugeren en
-besked, hun kan handle på - ikke en SQL-fejl og ikke en halv kørsel.
+besked, der kan handles på - ikke en SQL-fejl og ikke en halv kørsel.
 """
 
 from __future__ import annotations

@@ -35,6 +35,8 @@ KOPIER = [
     ("skema/skema.json", "fjernvarme_app/_ressourcer/skema/skema.json"),
     ("skema/fjv_skema.py", "fjernvarme_app/_ressourcer/skema/fjv_skema.py"),
     ("skema/ddl", "fjernvarme_app/_ressourcer/skema/ddl"),
+    # Runde 14b: `python -m fjernvarme_app migrer` løfter en eksisterende database med disse.
+    ("skema/migrationer", "fjernvarme_app/_ressourcer/skema/migrationer"),
     ("offentlig/kredit.json", "fjernvarme_app/_ressourcer/offentlig/kredit.json"),
     ("LICENSES", "fjernvarme_app/_ressourcer/LICENSES"),
 ]

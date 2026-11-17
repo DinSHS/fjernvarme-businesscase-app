@@ -132,3 +132,11 @@ def laes() -> Skema:
 
 def ddl(dialekt: str) -> str:
     return fjv_skema().ddl(dialekt)
+
+
+def migration_sql(n: int, dialekt: str) -> str:
+    """``migrationer/<nnnn>.<dialekt>.sql``: løftet fra version n-1 til n (genereret af skema/byg.py, kun tilføjelser)."""
+    sti = skema_mappe() / "migrationer" / f"{n:04d}.{dialekt}.sql"
+    if not sti.is_file():
+        raise RuntimeError(f"migrationen {sti.name} findes ikke ({sti.parent})")
+    return sti.read_text(encoding="utf-8")
