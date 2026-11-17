@@ -52,7 +52,7 @@ export function EksportKort({ vaerk }: { vaerk: Vaerkhoved }) {
             <Gitter>
                 <Kort titel="Eksportér værksark" afgraensning={`${vaerk.kode} · revision ${vaerk.revision}`}
                     budskab="Værket kan ikke eksporteres til værksarket."
-                    fod="Skabelonen er modelrepoets vaerksdata_skabelon.xlsx ved den pinnede commit; arket skal kunne læses af scripts/vaerksark_til_yaml.py uændret. Appens egne faner (Start og drift, Balancemarked, Øvrige felter) læses af appen, ikke af modelscriptet.">
+                    fod="Skabelonen er modelrepoets vaerksdata_skabelon.xlsx ved den pinnede commit; arket skal kunne læses af scripts/vaerksark_til_yaml.py uændret. Appens egne faner (Start og drift, Balancemarked, Øvrige felter) læses af appen, ikke af modelscriptet; Læs først er kun vejledning.">
                     <p className="kf-svar" data-tone="fejl" role="alert">{fejl}</p>
                 </Kort>
             </Gitter>

@@ -378,7 +378,7 @@ export function planlæg(k: Eksportkilde): Eksportplan {
         sæt("Solvarme", "A1", "Solvarme ab værk — målte timeværdier (eksporteret af appen)", 1);
         sæt("Solvarme", "A2", "tidszone:", 4); sæt("Solvarme", "B2", "UTC", 10);
         sæt("Solvarme", "A3", "årsproduktion ab værk:", 4); sæt("Solvarme", "B3", null, 11);
-        sæt("Solvarme", "A4", "Opbygget som Timedata (scripts/vaerksark_til_yaml.py, arket 'Solvarme'). Tidsstempel = timens start i UTC, MW i kolonne B.", 2);
+        sæt("Solvarme", "A4", "Én række pr. time, som i Timedata: tidsstempel = timens start i UTC, solvarmen ab værk i MW i kolonne B. Når timerne står her, bruger modellen dem og ikke årsproduktionen i Anlaeg.", 2);
         sæt("Solvarme", "A5", "tidsstempel", 12); sæt("Solvarme", "B5", "varme_mw", 12);
         sol.punkter.forEach(([ms, v], idx) => { sæt("Solvarme", `A${6 + idx}`, ms, 15); sæt("Solvarme", `B${6 + idx}`, v, 16); });
     }
