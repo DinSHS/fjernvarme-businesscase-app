@@ -13,6 +13,8 @@ Spejlet er ikke en kopi af modellens kode, men de antagelser appen hviler på, u
   ``app/src/sider/konfiguration/eksport/`` — eksporten udfylder netop den fil (MIT, modelforfatterens).
 * ``varmelast_skalering``: hvordan ``scripts/vaerksark_til_yaml.py`` skalerer Andebys syntese til et årsbehov
   (divisor, afrunding, grundtal) — guiden "Nyt værk" skal bruge samme regel.
+* ``budstrategi`` (runde 14c): ``doc/BUDSTRATEGI.md``'s færdige YAML-blokke som blade med linje og kommentar —
+  Konfigurationens "Tilføj balancemarked" bygger blokken af dem.
 
 Kør:   python byg_modelspejl.py          (skriver viden/modelspejl.json)
        python byg_modelspejl.py --tjek   (exit 1, hvis den skrevne fil ikke er det, modelrepoet giver nu)
@@ -156,10 +158,63 @@ def krav(tekst: str) -> dict:
 
 
 SK = "scripts/vaerksark_til_yaml.py"
+BS = "doc/BUDSTRATEGI.md"
 
 
 class RegelFejl(SystemExit):
     pass
+
+
+def budstrategi(tekst: str) -> dict:
+    """BUDSTRATEGI.md's afsnit "Færdige YAML-blokke" (runde 14c): hver ``### titel`` med sin ```yaml-blok som blade
+    (``fjv.flad``: sti -> [vaerdi_json, linje i BUDSTRATEGI.md, kommentar]). Konfigurationens "Tilføj balancemarked"
+    bygger blokken af præcis disse blade, så et værk, der mangler ``balancing``, får modelrepoets egne tal med kilde.
+
+    En profilblok står indrykket (``  reservation_gate:``) som fortsættelse af den fælles ``balancing:``; den læses
+    med ``balancing:`` foran, så stierne bliver fulde. Desuden linjerne, hvor afsnittet siger, at prækvalificerede
+    enheder skal have ``afrr_qualified``/``mfrr_qualified``, og at enhedsnavnene skal være værkets egne — appen
+    henviser til dem. Ændrer afsnittet form, stopper genbygningen (appen skal så gennemgås)."""
+    linjer = tekst.splitlines()
+
+    def form(betingelse: bool, hvad: str) -> None:
+        if not betingelse:
+            raise RegelFejl(f"FEJL: {BS} afsnittet med færdige YAML-blokke har ændret form ({hvad}) - "
+                            "app/src/sider/konfiguration/balancemarked.ts skal gennemgås, før spejlet bygges igen")
+
+    start = [i for i, l in enumerate(linjer) if re.match(r"^## \d+\. Færdige YAML-blokke\s*$", l)]
+    form(len(start) == 1, f"fandt {len(start)} overskrifter '## N. Færdige YAML-blokke'")
+    slut = next((i for i in range(start[0] + 1, len(linjer)) if linjer[i].startswith("## ")), len(linjer))
+    blokke, titel, i = [], None, start[0] + 1
+    kval = navne = None
+    while i < slut:
+        l = linjer[i]
+        if l.startswith("### "):
+            titel = l[4:].strip()
+        elif kval is None and "afrr_qualified" in l and "mfrr_qualified" in l:
+            kval = i + 1
+        elif navne is None and "Enhedsnavnene skal være værkets egne" in l:
+            navne = i + 1
+        elif l.strip() == "```yaml":
+            form(titel is not None, f"en yaml-blok uden ### titel (linje {i + 1})")
+            luk = next((j for j in range(i + 1, slut) if linjer[j].strip() == "```"), None)
+            form(luk is not None, f"yaml-blokken på linje {i + 1} lukkes ikke")
+            krop = linjer[i + 1:luk]
+            foerste = next((x for x in krop if x.strip() and not x.lstrip().startswith("#")), "")
+            fortsat = foerste.startswith(" ")
+            yaml_tekst = ("balancing:\n" if fortsat else "") + "\n".join(krop) + "\n"
+            # Linje r i yaml_tekst (1-baseret) er linje i + 1 + r i filen, én mindre med det tilføjede "balancing:".
+            forskyd = i + 1 - (1 if fortsat else 0)
+            blokke.append({"titel": titel, "linjer": [i + 1, luk + 1], "fortsaetter_balancing": fortsat,
+                           "blade": {p.sti: [p.vaerdi_json, p.raekkefoelge + forskyd, p.kommentar]
+                                     for p in flad(yaml_tekst)}})
+            titel, i = None, luk
+        i += 1
+    form(kval is not None, "linjen om afrr_qualified/mfrr_qualified findes ikke")
+    form(navne is not None, "linjen 'Enhedsnavnene skal være værkets egne' findes ikke")
+    form(any(not b["fortsaetter_balancing"] and any(s.startswith("balancing.") for s in b["blade"]) for b in blokke),
+         "ingen fælles balancing-blok")
+    return {"fil": BS, "afsnit": [start[0] + 1, slut], "kvalificering_linje": kval, "navne_linje": navne,
+            "blokke": blokke}
 
 
 def _skalering_noder(tekst: str):
@@ -326,6 +381,7 @@ def byg(kilde: Kilde) -> dict:
         "krav": krav(kilde.tekst("requirements.txt")),
         "run_case_flag": tabel,
         "varmelast_skalering": varmelast_skalering(kilde.tekst(SK)),
+        "budstrategi": budstrategi(kilde.tekst(BS)),
     }
 
 
@@ -340,7 +396,8 @@ def ts_af(spejl: dict) -> str:
                                                                "start", "slut", "balancing_method", "data_source", "ekstra")}
     cases = {kode: {"fil": c["fil"], "standard": k(c["standard"]), "kommandoer": [k(x) for x in c["kommandoer"]],
                     "blade": c["blade"]} for kode, c in spejl["cases"].items()}
-    data = json.dumps({"model_commit": spejl["model_commit"], "cases": cases}, ensure_ascii=False, indent=1)
+    data = json.dumps({"model_commit": spejl["model_commit"], "cases": cases, "budstrategi": spejl["budstrategi"]},
+                      ensure_ascii=False, indent=1)
     return ("//-----------------------------------------------------------------------\n"
             "// GENERERET af viden/vaerktoej/byg_modelspejl.py fra modelrepoet ved den pinnede commit.\n"
             "// Ret ikke i hånden; tjek_trofasthed.py fejler, hvis filen ikke er det, modelrepoet giver.\n"
