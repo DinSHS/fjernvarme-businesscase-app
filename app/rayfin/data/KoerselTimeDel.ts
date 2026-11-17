@@ -9,7 +9,9 @@
 // her står del 1, 2, … for samme (koersel_id, tid). Sat sammen i orden er de
 // præcis `_hourly.csv`'s kolonner; intet afrundes. `Koersel.manifest_json.
 // time_dele` er antallet af rækker her, så appen kun læser tabellen, når den
-// har noget (en database fra før version 2 har den ikke).
+// har noget (en database fra før version 2 har den ikke), og `time_kolonner`
+// antallet af kolonner pr. sammensat time - så en manglende sidste del eller
+// en time uden alle sine dele opdages af læseren (fletTimedele).
 //
 // SQL-tabel: "KoerselTimeDels". Omdøb ikke klassen.
 // ⚠️ Må KUN importeres med `import type` fra src/ — se fjv.constants.ts.

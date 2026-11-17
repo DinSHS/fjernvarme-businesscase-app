@@ -1304,7 +1304,7 @@
     {
       "entitet": "KoerselTimeDel",
       "tabel": "KoerselTimeDels",
-      "beskrivelse": "KoerselTimeDel — resten af et intervals øvrige kolonner, når de ikke kan stå i `KoerselTime.vaerdier_json` (4000 tegn; skemaversion 2, runde 14b). `delnr` = 1, 2, … pr. (`koersel_id`, `tid`); hver del er et kompakt JSON-objekt med de næste kolonner i `_hourly.csv`'s rækkefølge. Intervallets værdier er `{...KoerselTime.vaerdier_json, ...del 1, ...del 2, …}` — samme nøgler, rækkefølge og tal som modellens fil; intet afrundes. Kun brede værker har rækker her; `Koersel.manifest_json.time_dele` er deres antal, så en læser kun spørger efter dem, når de findes. Skrives kun af notebooken.",
+      "beskrivelse": "KoerselTimeDel — resten af et intervals øvrige kolonner, når de ikke kan stå i `KoerselTime.vaerdier_json` (4000 tegn; skemaversion 2, runde 14b). `delnr` = 1, 2, … pr. (`koersel_id`, `tid`); hver del er et kompakt JSON-objekt med de næste kolonner i `_hourly.csv`'s rækkefølge. Intervallets værdier er `{...KoerselTime.vaerdier_json, ...del 1, ...del 2, …}` — samme nøgler, rækkefølge og tal som modellens fil; intet afrundes. Kun brede værker har rækker her; `Koersel.manifest_json.time_dele` er deres antal, så en læser kun spørger efter dem, når de findes, og `time_kolonner` antallet af kolonner i hver sammensat time (`_hourly.csv` er rektangulær), så læseren kan opdage en manglende sidste del eller en time uden alle sine dele. Skrives kun af notebooken.",
       "klient": {
         "read": true,
         "create": false,

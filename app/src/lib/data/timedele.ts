@@ -34,6 +34,20 @@ export function timedeleAntal(manifestJson: string | null | undefined): number {
     }
 }
 
+/**
+ * Kolonner pr. sammensat time (`manifest_json.time_kolonner`, kun brede værker) - eller null, når manifestet ikke har
+ * tallet (smalle kørsler og brede kørsler fra før rettelsen). `_hourly.csv` har samme kolonner i hver time.
+ */
+export function timekolonner(manifestJson: string | null | undefined): number | null {
+    if (!manifestJson) return null;
+    try {
+        const n = (JSON.parse(manifestJson) as { time_kolonner?: unknown }).time_kolonner;
+        return typeof n === "number" && Number.isInteger(n) && n > 0 ? n : null;
+    } catch {
+        return null;
+    }
+}
+
 function indhold(json: string, hvor: string): string {
     if (!json.startsWith("{") || !json.endsWith("}")) throw new Error(`Intervaldata ${hvor} er ikke et JSON-objekt.`);
     return json.slice(1, -1);
@@ -57,19 +71,33 @@ export function fletTekst(hvor: string, vaerdierJson: string, dele: readonly Pic
 /**
  * Sætter hvert intervals dele sammen: `{...KoerselTime.vaerdier_json, ...del 1, ...del 2, …}` som tekst. Intervaller
  * uden dele returneres uændret. Et hul i delene eller en del uden sit interval er en fejl, ikke et halvt interval.
+ *
+ * `kolonner` (manifestets `time_kolonner`): hver sammensat time skal have netop så mange kolonner. Kun sådan opdages
+ * en manglende SIDSTE del eller en time, der har mistet alle sine dele - delnumrene alene kan ikke vise det
+ * (Codex, runde 14-review). Uden tallet (ældre kørsler) kontrolleres kun hullerne.
  */
-export function fletTimedele<T extends Pick<Time, "tid" | "vaerdier_json">>(timer: readonly T[], dele: readonly Pick<TimeDel, "tid" | "delnr" | "vaerdier_json">[]): T[] {
-    if (dele.length === 0) return [...timer];
+export function fletTimedele<T extends Pick<Time, "tid" | "vaerdier_json">>(
+    timer: readonly T[], dele: readonly Pick<TimeDel, "tid" | "delnr" | "vaerdier_json">[], kolonner: number | null = null,
+): T[] {
+    if (dele.length === 0 && kolonner === null) return [...timer];
     const pr = new Map<number, Pick<TimeDel, "delnr" | "vaerdier_json">[]>();
     for (const d of dele) {
         const k = d.tid.getTime();
         pr.set(k, [...(pr.get(k) ?? []), d]);
     }
     const ud = timer.map((r) => {
+        const hvor = `kl. ${r.tid.toISOString()}`;
         const mine = pr.get(r.tid.getTime());
-        if (!mine) return r;
         pr.delete(r.tid.getTime());
-        return { ...r, vaerdier_json: fletTekst(`kl. ${r.tid.toISOString()}`, r.vaerdier_json, mine) };
+        const hel = mine ? fletTekst(hvor, r.vaerdier_json, mine) : r.vaerdier_json;
+        if (kolonner !== null) {
+            let n: number;
+            try { n = Object.keys(JSON.parse(hel) as object).length; } catch { throw new Error(`Intervaldata ${hvor} er ikke gyldig JSON.`); }
+            if (n !== kolonner) {
+                throw new Error(`Intervaldata ${hvor} er ufuldstændige: ${n} af ${kolonner} kolonner (en del mangler eller er for meget).`);
+            }
+        }
+        return mine ? { ...r, vaerdier_json: hel } : r;
     });
     if (pr.size) {
         const t = new Date(Math.min(...pr.keys())).toISOString();
@@ -87,5 +115,5 @@ export async function læsTimer(koersel: Pick<FjvSchema["Koersel"], "id" | "mani
     const timer = await læs("KoerselTime", { filter, sortering: { tid: "asc" }, sidestørrelse: 1000 });
     if (timedeleAntal(koersel.manifest_json) === 0) return timer;
     const dele = await læs("KoerselTimeDel", { filter, sortering: { tid: "asc" }, sidestørrelse: 1000 });
-    return fletTimedele(timer, dele);
+    return fletTimedele(timer, dele, timekolonner(koersel.manifest_json));
 }

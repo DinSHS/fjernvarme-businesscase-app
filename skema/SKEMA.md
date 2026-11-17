@@ -134,7 +134,8 @@ Community-udgaven kører på SQLite som standard; vil du bruge din egen database
 - Fabric-databasen migreres **ikke** herfra: Rayfin (`rayfin up db apply`) gør det ud fra entiteterne. Derfor skal en
   ændring altid ske begge steder — og overensstemmelsestesten fejler, indtil den er det.
 - **Version 2** (runde 14b): tabellen `KoerselTimeDel`. Et intervals øvrige kolonner ud over 4000 tegn står der som del
-  1, 2, … (`KoerselTime` har stadig præcis én række pr. interval), og `Koersel.manifest_json.time_dele` er antallet.
+  1, 2, … (`KoerselTime` har stadig præcis én række pr. interval), og `Koersel.manifest_json.time_dele` er antallet;
+  `time_kolonner` er kolonner pr. sammensat time, som læseren kræver for hver time (en manglende sidste del opdages).
   Målt: et værk med 40 elenheder og balancemarked fylder ca. 21.000 tegn i én time og 4.612 uden kolonnenavnene, så
   hverken en anden kodning inden for 4000 tegn eller `NVARCHAR(MAX)` (DAB) kan bære det
   (`noter/maaling_timebredde_r14b.md`). Migrationen `0002` er en ren tilføjelse.

@@ -668,7 +668,8 @@ def genpubliser(db: Db, koersel_id: str) -> dict:
     log = (mappe / "log.txt").read_text(encoding="utf-8", errors="replace")
     nt, mn = RES.noegletal(out, reg), RES.maaneder(out, reg)
     tm, td = RES.timer(out, reg)
-    felter = RES.koersel_felter(out, RES.parse_highs(log), time_dele=len(td))
+    felter = RES.koersel_felter(out, RES.parse_highs(log), time_dele=len(td),
+                                time_kolonner=RES.kolonner_pr_time(tm, td) if td else 0)
     med_dele = har_timedele(db)
     if td and not med_dele:
         raise RuntimeError(RES.TIMEDELE_MANGLER)

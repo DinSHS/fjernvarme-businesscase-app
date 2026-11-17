@@ -361,6 +361,21 @@ def timer(out: Output, reg: dict) -> tuple[list[dict], list[dict]]:
     return ud, dele
 
 
+def kolonner_pr_time(timer: list[dict], dele: list[dict]) -> int:
+    """Antal øvrige kolonner i ét interval (KoerselTime + dets dele). `_hourly.csv` har samme kolonner i hver time,
+    så tallet gælder alle; det står i manifestet (`time_kolonner`), så læseren kan opdage en manglende sidste del eller
+    en time uden alle sine dele (Codex, runde 14-review). Er timerne ikke ens, er det en fejl her, ikke hos læseren."""
+    pr: dict[str, int] = {}
+    for t in timer:
+        pr[t["tid"]] = len(json.loads(t["vaerdier_json"]))
+    for d in dele:
+        pr[d["tid"]] += len(json.loads(d["vaerdier_json"]))
+    antal = set(pr.values())
+    if len(antal) > 1:
+        raise ResultatFejl(f"timerne har forskelligt antal kolonner ({sorted(antal)}) - _hourly.csv er ikke rektangulær")
+    return antal.pop() if antal else 0
+
+
 def _tjek_unik(raekker, noegle, tabel):
     set_ = set()
     for r in raekker:
@@ -370,11 +385,13 @@ def _tjek_unik(raekker, noegle, tabel):
         set_.add(k)
 
 
-def koersel_felter(out: Output, highs: dict, time_dele: int = 0) -> dict:
+def koersel_felter(out: Output, highs: dict, time_dele: int = 0, time_kolonner: int = 0) -> dict:
     """Felterne på Koersel, som kommer fra output (ikke fra bestillingen).
 
     ``time_dele``: antal KoerselTimeDel-rækker (runde 14b). Står i ``manifest_json`` som ``time_dele``, når der er
     nogen, så appen kun spørger efter tabellen for brede værker - en database fra før skemaversion 2 har den ikke.
+    ``time_kolonner``: kolonner pr. sammensat time (``kolonner_pr_time``); kun for brede værker, ved siden af
+    ``time_dele``, så læseren kan kontrollere hver time - også at ingen sidste del eller alle dele mangler.
     """
     man = out.manifest()
     info = out.info
@@ -419,6 +436,6 @@ def koersel_felter(out: Output, highs: dict, time_dele: int = 0) -> dict:
             # Mangler filen (kørsler før runde 5), udelades nøglen.
             **({"tidsserier": json.loads((out.mappe / "fjv_tidsserier.json").read_text(encoding="utf-8"))}
                if (out.mappe / "fjv_tidsserier.json").is_file() else {}),
-            **({"time_dele": time_dele} if time_dele else {}),
+            **({"time_dele": time_dele, "time_kolonner": time_kolonner} if time_dele else {}),
         }, ensure_ascii=False, separators=(",", ":")),
     }

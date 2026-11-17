@@ -196,7 +196,8 @@ export function gørBred(db: Tabeller, koerselId = ID.koersel): number {
         n++;
     }
     const k = db.Koersel.get(koerselId)!;
-    k.manifest_json = JSON.stringify({ ...(JSON.parse(String(k.manifest_json)) as object), time_dele: n });
+    // time_kolonner: kolonner pr. sammensat time (p_halmkedel_mw, soc_tank_mwh, solgt), som notebooken skriver det.
+    k.manifest_json = JSON.stringify({ ...(JSON.parse(String(k.manifest_json)) as object), time_dele: n, time_kolonner: 3 });
     return n;
 }
 
