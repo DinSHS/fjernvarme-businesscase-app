@@ -23,6 +23,14 @@ from .dansk_tid import lokal_maaned, parse_utc
 MAX_JSON = 4000
 
 
+#: Brugerens besked, når et bredt værk (runde 14b) møder en Fabric-database uden skemaversion 2.
+TIMEDELE_MANGLER = (
+    "Værket har for mange kolonner til én databaserække pr. time (højst 4000 tegn), og databasen mangler "
+    "tabellen KoerselTimeDels til resten — den kommer med skemaversion 2. Bed den, der driver appen, om at udrulle "
+    "databaseskemaet (doc/FABRIC.md › Skemaafvigelse). Indtil da kan værket køres uden balancemarked eller med "
+    "færre enheder slået til; modellens regning er ikke berørt.")
+
+
 class ResultatFejl(RuntimeError):
     pass
 
@@ -287,9 +295,54 @@ def maaneder(out: Output, reg: dict) -> list[dict]:
     return ud
 
 
-def timer(out: Output, reg: dict) -> list[dict]:
+def _utf16(s: str) -> int:
+    """Længden, som nvarchar og JS' ``.length`` tæller den (SKEMA.md, regel 1) - ikke Pythons ``len``."""
+    return len(s.encode("utf-16-le")) // 2
+
+
+def _kompakt(d: dict) -> str:
+    return json.dumps(d, separators=(",", ":"), allow_nan=False)
+
+
+def del_op(vaerdier: dict, t: str) -> list[str]:
+    """En times øvrige kolonner som ét eller flere kompakte JSON-objekter, hvert højst ``MAX_JSON`` tegn (runde 14b).
+
+    Kolonnerne fordeles grådigt i CSV'ens rækkefølge, så delene sat sammen i orden (``{**del0, **del1, …}``) er
+    præcis objektet - samme nøgler, samme rækkefølge, samme tal. Ingen værdi afrundes eller udelades: målt ved
+    90fb16e fylder 40 elenheder med balancemarked 4.612 tegn i én time, selv uden kolonnenavnene, så en anden
+    kodning inden for 4.000 tegn kan ikke bære værket. Et smalt værk giver én del, byte for byte som før.
+    """
+    hel = _kompakt(vaerdier)
+    if _utf16(hel) <= MAX_JSON:
+        return [hel]
+    dele: list[str] = []
+    nu: dict = {}
+    plads = 2                                   # "{" og "}"
+    for k, v in vaerdier.items():
+        led = _utf16(_kompakt({k: v})) - 2      # '"k":v'
+        if led + 2 > MAX_JSON:
+            raise ResultatFejl(f"kolonnen {k!r} fylder {led} tegn kl. {t} - mere end en hel række ({MAX_JSON})")
+        if nu and plads + 1 + led > MAX_JSON:   # +1: kommaet foran
+            dele.append(_kompakt(nu))
+            nu, plads = {}, 2
+        plads += led + (1 if nu else 0)
+        nu[k] = v
+    dele.append(_kompakt(nu))
+    # Værn mod en regnefejl ovenfor: grænsen er databasens, ikke et skøn.
+    if any(_utf16(d) > MAX_JSON for d in dele):
+        raise ResultatFejl(f"opdelingen kl. {t} gav en del over {MAX_JSON} tegn")
+    return dele
+
+
+def timer(out: Output, reg: dict) -> tuple[list[dict], list[dict]]:
+    """``_hourly.csv`` -> (KoerselTime-rækker, KoerselTimeDel-rækker).
+
+    Én KoerselTime pr. interval med de faste kolonner og de første øvrige kolonner i ``vaerdier_json``. Fylder
+    resten mere end ``MAX_JSON``, står det i KoerselTimeDel som del 1, 2, … for samme ``tid`` (``del_op``).
+    """
     navne = reg["tid"]["kolonner"]
-    ud = []
+    ud: list[dict] = []
+    dele: list[dict] = []
     with open(out.fil("_hourly.csv"), encoding="utf-8", newline="") as f:
         for r in csv.DictReader(f):
             t = parse_utc(r.pop("timestamp")).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -297,16 +350,15 @@ def timer(out: Output, reg: dict) -> list[dict]:
             for felt, kolonne in navne.items():
                 raekke[felt] = tal(r.pop(kolonne, None))
             resten = {k: tal(v) for k, v in r.items()}
-            js = json.dumps(resten, separators=(",", ":"), allow_nan=False)
-            if len(js) > MAX_JSON:
-                raise ResultatFejl(f"vaerdier_json er {len(js)} tegn kl. {t} (maks {MAX_JSON}) "
-                                   "- værket har for mange kolonner til formatet")
-            raekke["vaerdier_json"] = js
+            foerste, *oevrige = del_op(resten, t)
+            raekke["vaerdier_json"] = foerste
             ud.append(raekke)
+            dele += [{"tid": t, "delnr": nr, "vaerdier_json": js} for nr, js in enumerate(oevrige, 1)]
     if ud and ud[0]["varmelast_mw"] is None:
         raise ResultatFejl("heat_load_mw mangler i _hourly.csv")
     _tjek_unik(ud, ("tid",), "KoerselTime")
-    return ud
+    _tjek_unik(dele, ("tid", "delnr"), "KoerselTimeDel")
+    return ud, dele
 
 
 def _tjek_unik(raekker, noegle, tabel):
@@ -318,8 +370,12 @@ def _tjek_unik(raekker, noegle, tabel):
         set_.add(k)
 
 
-def koersel_felter(out: Output, highs: dict) -> dict:
-    """Felterne på Koersel, som kommer fra output (ikke fra bestillingen)."""
+def koersel_felter(out: Output, highs: dict, time_dele: int = 0) -> dict:
+    """Felterne på Koersel, som kommer fra output (ikke fra bestillingen).
+
+    ``time_dele``: antal KoerselTimeDel-rækker (runde 14b). Står i ``manifest_json`` som ``time_dele``, når der er
+    nogen, så appen kun spørger efter tabellen for brede værker - en database fra før skemaversion 2 har den ikke.
+    """
     man = out.manifest()
     info = out.info
     ens = (lambda a, b: a is not None and b is not None and abs(a - b) <= 1e-6 * max(1, abs(a)))
@@ -363,5 +419,6 @@ def koersel_felter(out: Output, highs: dict) -> dict:
             # Mangler filen (kørsler før runde 5), udelades nøglen.
             **({"tidsserier": json.loads((out.mappe / "fjv_tidsserier.json").read_text(encoding="utf-8"))}
                if (out.mappe / "fjv_tidsserier.json").is_file() else {}),
+            **({"time_dele": time_dele} if time_dele else {}),
         }, ensure_ascii=False, separators=(",", ":")),
     }

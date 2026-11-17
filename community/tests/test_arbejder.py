@@ -196,8 +196,29 @@ class TestKoe(unittest.TestCase):
         tn = self.app.db.t("KoerselNoegletal")
         with self.app.db.laes() as cn:
             self.assertEqual(cn.execute(select(tn).where(tn.c.koersel_id == kid)).fetchall(), [])
-        self.assertEqual(lg.publicer(dub[:1], [], []), {"KoerselNoegletals": 1, "KoerselMaaneds": 0, "KoerselTimes": 0})
+        self.assertEqual(lg.publicer(dub[:1], [], []),
+                         {"KoerselNoegletals": 1, "KoerselMaaneds": 0, "KoerselTimes": 0, "KoerselTimeDels": 0})
         self.assertEqual(status(self.app, kid)["status"], "faerdig")
+
+    def test_bredt_vaerks_timedele_publiceres_med_resten(self):
+        """Runde 14b: et intervals kolonner ud over 4000 tegn står i KoerselTimeDel, i samme transaktion."""
+        kid = H.koersel(self.app, status="indlaeser", arbejder_id="mig", hjerteslag=nu())
+        lg = LL.LokalKoerselLager(self.app.db, kid, "mig")
+        tm = [{"tid": "2026-01-05T01:00:00Z", "varmelast_mw": 3.25, "spotpris": None, "t_ude": None,
+               "vaerdier_json": '{"a":1.0}'}]
+        td = [{"tid": "2026-01-05T01:00:00Z", "delnr": 1, "vaerdier_json": '{"b":-0.0}'},
+              {"tid": "2026-01-05T01:00:00Z", "delnr": 2, "vaerdier_json": '{"c":0.08333333333333333}'}]
+        from sqlalchemy.exc import IntegrityError
+        with self.assertRaises(IntegrityError):          # samme del to gange: DDL'ens unikke indeks -> intet publiceres
+            lg.publicer([], [], tm, timedele=[td[0], td[0]])
+        self.assertEqual(status(self.app, kid)["status"], "indlaeser")
+        antal = lg.publicer([], [], tm, timedele=td)
+        self.assertEqual(antal["KoerselTimeDels"], 2)
+        t = self.app.db.t("KoerselTimeDel")
+        with self.app.db.laes() as cn:
+            rk = cn.execute(select(t.c.delnr, t.c.vaerdier_json).where(t.c.koersel_id == kid)
+                            .order_by(t.c.delnr)).fetchall()
+        self.assertEqual([tuple(r) for r in rk], [(1, '{"b":-0.0}'), (2, '{"c":0.08333333333333333}')])
 
     def test_tidsfelter_er_lagerets_egne_og_ukendte_felter_afvises(self):
         kid = H.koersel(self.app, status="koerer", arbejder_id="mig")

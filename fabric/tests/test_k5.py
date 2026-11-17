@@ -295,9 +295,9 @@ class TestF12UbrugtSolprofil(unittest.TestCase):
         class Optager(KS.IngenLager):
             slutfelter = None
 
-            def publicer(self, nt, mn, tm, slutfelter=None):
+            def publicer(self, nt, mn, tm, slutfelter=None, timedele=()):
                 self.slutfelter = dict(slutfelter or {})
-                return super().publicer(nt, mn, tm, slutfelter)
+                return super().publicer(nt, mn, tm, slutfelter, timedele)
         try:
             for n, f in erstat.items():
                 setattr(R, n, f)

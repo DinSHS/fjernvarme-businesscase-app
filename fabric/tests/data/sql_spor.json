@@ -494,6 +494,26 @@
   [
    "FORBIND",
    [
+    "True"
+   ]
+  ],
+  [
+   "CURSOR",
+   [
+    "True"
+   ]
+  ],
+  [
+   "SELECT OBJECT_ID(N'dbo.KoerselTimeDels', N'U')",
+   []
+  ],
+  [
+   "CLOSE",
+   []
+  ],
+  [
+   "FORBIND",
+   [
     "False"
    ]
   ],

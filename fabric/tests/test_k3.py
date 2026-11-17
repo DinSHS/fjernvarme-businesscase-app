@@ -229,7 +229,7 @@ class TestN9Slutmetadata(unittest.TestCase):
                 self.saet_kald.append(dict(felter))
                 super().saet(**felter)
 
-            def publicer(self, nt, mn, tm, slutfelter=None):
+            def publicer(self, nt, mn, tm, slutfelter=None, timedele=()):
                 self.slutfelter = dict(slutfelter or {})
                 self.status = "faerdig"
                 return {"ok": True}

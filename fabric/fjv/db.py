@@ -35,6 +35,7 @@ import time
 import uuid
 
 from . import konstanter as K
+from . import resultater as RES
 from .byg_case import InputFejl, byg, input_hash, raekker_fra_vaerk
 
 DRIVER = "ODBC Driver 18 for SQL Server"
@@ -324,6 +325,12 @@ class SqlLager:
         self._tabt = False
         self.faerdig_i_publicering = True     # publicer() sætter selv 'faerdig' (§6c)
 
+    @property
+    def har_timedele(self) -> bool:
+        """Har databasen ``KoerselTimeDels`` (skemaversion 2, runde 14b)? En Fabric-database fra før version 2
+        har den ikke, før skemaet er udrullet; et smalt værk publiceres alligevel, et bredt får en læsbar fejl."""
+        return har_timedele(self.db)
+
     def log(self) -> list:
         return LOG[-15:]
 
@@ -409,8 +416,12 @@ class SqlLager:
                 return True
         return False
 
-    def publicer(self, noegletal, maaneder, timer, slutfelter: dict | None = None) -> dict:
+    def publicer(self, noegletal, maaneder, timer, slutfelter: dict | None = None, timedele=()) -> dict:
         """Resultatrækker, ``faerdig`` OG slutmetadata i én transaktion (§6c, K2-F6, K3-N9)."""
+        timedele = list(timedele)
+        med_dele = har_timedele(self.db)
+        if timedele and not med_dele:
+            raise RuntimeError(RES.TIMEDELE_MANGLER)
         cn = self.db.forbind(autocommit=False)
         try:
             cur = cn.cursor()
@@ -419,16 +430,20 @@ class SqlLager:
             r = cur.fetchone()
             if r is None or r[0] != "indlaeser" or r[1] != self.mig or r[2] is not None:
                 raise Afbrudt(f"kørslen er ikke længere vores at publicere: {tuple(r) if r else None}")
-            for t in ("KoerselNoegletals", "KoerselMaaneds", "KoerselTimes"):
+            tabeller = ("KoerselNoegletals", "KoerselMaaneds", "KoerselTimes") + (
+                ("KoerselTimeDels",) if med_dele else ())
+            for t in tabeller:
                 cur.execute(f"DELETE FROM dbo.{t} WHERE koersel_id=?", self.id)
             _indsaet(cur, "KoerselNoegletals", self.id, noegletal, NOEGLETAL_KOL)
             _indsaet(cur, "KoerselMaaneds", self.id, maaneder, MAANED_KOL)
             _indsaet(cur, "KoerselTimes", self.id, timer, TIME_KOL)
+            _indsaet(cur, "KoerselTimeDels", self.id, timedele, TIME_DEL_KOL)
             antal = {}
             for t, forventet, noegle in (
                     ("KoerselNoegletals", len(noegletal), "gruppe, objekt, marked, noegle"),
                     ("KoerselMaaneds", len(maaneder), "maaned, objekt, noegle"),
-                    ("KoerselTimes", len(timer), "tid")):
+                    ("KoerselTimes", len(timer), "tid"),
+                    *((("KoerselTimeDels", len(timedele), "tid, delnr"),) if med_dele else ())):
                 cur.execute(f"SELECT COUNT(*) FROM dbo.{t} WHERE koersel_id=?", self.id)
                 n = cur.fetchone()[0]
                 cur.execute(f"SELECT COUNT(*) FROM (SELECT 1 x FROM dbo.{t} WHERE koersel_id=? "
@@ -469,11 +484,19 @@ MAANED_KOL = [("a", "maaned", "nvarchar(7)", str), ("o", "objekt", "nvarchar(120
 TIME_KOL = [("t", "tid", "datetime2", "tid"), ("l", "varmelast_mw", "decimal(18,6)", 6),
             ("s", "spotpris", "decimal(18,6)", 6), ("u", "t_ude", "decimal(18,6)", 6),
             ("j", "vaerdier_json", "nvarchar(4000)", str)]
+TIME_DEL_KOL = [("t", "tid", "datetime2", "tid"), ("d", "delnr", "int", None),
+                ("j", "vaerdier_json", "nvarchar(4000)", str)]
 _FELT = {"KoerselNoegletals": {"g": "gruppe", "o": "objekt", "m": "marked", "n": "noegle",
                                "v": "vaerdi", "e": "enhed"},
          "KoerselMaaneds": {"a": "maaned", "o": "objekt", "n": "noegle", "v": "vaerdi"},
          "KoerselTimes": {"t": "tid", "l": "varmelast_mw", "s": "spotpris", "u": "t_ude",
-                          "j": "vaerdier_json"}}
+                          "j": "vaerdier_json"},
+         "KoerselTimeDels": {"t": "tid", "d": "delnr", "j": "vaerdier_json"}}
+
+def har_timedele(db: "Db") -> bool:
+    """Findes ``dbo.KoerselTimeDels``? Spørges hver gang: tabellen kommer, når skemaet udrulles, ikke ved genstart."""
+    r = db.en("SELECT OBJECT_ID(N'dbo.KoerselTimeDels', N'U')")
+    return bool(r and r[0] is not None)
 
 
 def _indsaet(cur, tabel: str, koersel_id: str, raekker: list[dict], kol) -> None:
@@ -637,15 +660,18 @@ def genpubliser(db: Db, koersel_id: str) -> dict:
     transaktion, med rækken låst (UPDLOCK, HOLDLOCK) og status kontrolleret under låsen.
     """
     from pathlib import Path
-    from . import resultater as RES
 
     kid = koersel_id.lower()
     mappe = Path(K.FILES) / K.REL_KOERSLER / kid
     out = RES.Output(mappe)
     reg = RES.register()
     log = (mappe / "log.txt").read_text(encoding="utf-8", errors="replace")
-    felter = RES.koersel_felter(out, RES.parse_highs(log))
-    nt, mn, tm = RES.noegletal(out, reg), RES.maaneder(out, reg), RES.timer(out, reg)
+    nt, mn = RES.noegletal(out, reg), RES.maaneder(out, reg)
+    tm, td = RES.timer(out, reg)
+    felter = RES.koersel_felter(out, RES.parse_highs(log), time_dele=len(td))
+    med_dele = har_timedele(db)
+    if td and not med_dele:
+        raise RuntimeError(RES.TIMEDELE_MANGLER)
     cn = db.forbind(autocommit=False)
     try:
         cur = cn.cursor()
@@ -653,14 +679,16 @@ def genpubliser(db: Db, koersel_id: str) -> dict:
         r = cur.fetchone()
         if r is None or r[0] != "faerdig":
             raise RuntimeError(f"{kid}: kun færdige kørsler genpubliceres (status {r[0] if r else None})")
-        for t in ("KoerselNoegletals", "KoerselMaaneds", "KoerselTimes"):
+        for t in ("KoerselNoegletals", "KoerselMaaneds", "KoerselTimes") + (("KoerselTimeDels",) if med_dele else ()):
             cur.execute(f"DELETE FROM dbo.{t} WHERE koersel_id=?", kid)
         _indsaet(cur, "KoerselNoegletals", kid, nt, NOEGLETAL_KOL)
         _indsaet(cur, "KoerselMaaneds", kid, mn, MAANED_KOL)
         _indsaet(cur, "KoerselTimes", kid, tm, TIME_KOL)
+        _indsaet(cur, "KoerselTimeDels", kid, td, TIME_DEL_KOL)
         antal = {}
         for t, forventet in (("KoerselNoegletals", len(nt)), ("KoerselMaaneds", len(mn)),
-                             ("KoerselTimes", len(tm))):
+                             ("KoerselTimes", len(tm)),
+                             *((("KoerselTimeDels", len(td)),) if med_dele else ())):
             cur.execute(f"SELECT COUNT(*) FROM dbo.{t} WHERE koersel_id=?", kid)
             n = cur.fetchone()[0]
             if n != forventet:

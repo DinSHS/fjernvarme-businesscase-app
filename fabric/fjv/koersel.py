@@ -77,10 +77,10 @@ class IngenLager:
     def er_annulleret(self) -> bool:
         return self.status == "annulleret"
 
-    def publicer(self, noegletal, maaneder, timer, slutfelter=None):
+    def publicer(self, noegletal, maaneder, timer, slutfelter=None, timedele=()):
         self.felter.update(slutfelter or {})
         self.publiceret = {"noegletal": len(noegletal), "maaneder": len(maaneder),
-                           "timer": len(timer)}
+                           "timer": len(timer), "timedele": len(timedele)}
         return self.publiceret
 
 
@@ -343,19 +343,24 @@ def koer_en(raekker: list[dict], koersel_id: str, lager, rap, *,
             out = RES.Output(ud)
             reg = RES.register()
             highs = RES.parse_highs(log)
-            felter = RES.koersel_felter(out, highs)
-            nt, mn, tm = RES.noegletal(out, reg), RES.maaneder(out, reg), RES.timer(out, reg)
+            nt, mn = RES.noegletal(out, reg), RES.maaneder(out, reg)
+            tm, td = RES.timer(out, reg)
+            felter = RES.koersel_felter(out, highs, time_dele=len(td))
         except RES.ResultatFejl as e:
             return fejl(f"Resultaterne kunne ikke læses: {e}", "indlaeser")
+        # Et bredt værk (runde 14b) kræver KoerselTimeDels; en Fabric-database fra før skemaversion 2 har den
+        # ikke. Det skal brugeren have at vide i et sprog, hun kan handle på - ikke som en SQL-fejl.
+        if td and not getattr(lager, "har_timedele", True):
+            return fejl(f"Resultaterne kunne ikke gemmes: {RES.TIMEDELE_MANGLER}", "indlaeser")
         felter["antal_interval_csv"] = len(tm)
         resume.update({k: v for k, v in felter.items() if k != "manifest_json"},
                       highs=highs, antal={"noegletal": len(nt), "maaneder": len(mn),
-                                          "timer": len(tm)})
+                                          "timer": len(tm), "timedele": len(td)})
         if lager.er_annulleret():
             raise Afbrudt("annulleret før publicering - publicerer intet")
         # Slutmetadata skrives i publiceringens betingede slut-UPDATE - samme
         # transaktion som resultatrækkerne og 'faerdig' (§6c, K3-N9).
-        resume["publiceret"] = lager.publicer(nt, mn, tm, slutfelter=felter)
+        resume["publiceret"] = lager.publicer(nt, mn, tm, slutfelter=felter, timedele=td)
         # SqlLager sætter 'faerdig' i SAMME transaktion som resultaterne (§6c, K2-F6);
         # kun lagre uden den egenskab får et separat statusskift.
         if not getattr(lager, "faerdig_i_publicering", False):

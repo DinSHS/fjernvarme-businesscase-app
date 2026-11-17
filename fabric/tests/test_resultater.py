@@ -7,6 +7,7 @@ df-data 392992c (objektiv 3424407.9575291085, samme tal i Fabric).
 
 from __future__ import annotations
 
+import csv
 import json
 import shutil
 import sys
@@ -22,6 +23,12 @@ from fjv.dansk_tid import lokal_maaned, parse_utc, til_dansk  # noqa: E402
 from fjv.koersel import _solverlog, fejlbesked_fra_log  # noqa: E402
 
 F1 = HER / "data" / "f1_andeby"
+BRED = HER / "data" / "bred_40el"
+
+
+def utf16(s: str) -> int:
+    """Længden som nvarchar tæller den (SKEMA.md, regel 1)."""
+    return len(s.encode("utf-16-le")) // 2
 
 
 def utc(*a):
@@ -100,11 +107,53 @@ class TestUdtraek(unittest.TestCase):
         self.assertEqual(md[("periode", None, "antal_interval")], 288.0)   # N, ikke N-1
 
     def test_timer_er_n_minus_1_og_utc(self):
-        tm = R.timer(self.out, self.reg)
+        tm, dele = R.timer(self.out, self.reg)
         self.assertEqual(len(tm), 287)
+        self.assertEqual(dele, [])          # et smalt værk: én række pr. interval, som før runde 14b
         self.assertEqual(tm[0]["tid"], "2026-01-05T01:00:00Z")
         self.assertLess(max(len(t["vaerdier_json"]) for t in tm), 4000)
         self.assertNotIn("heat_load_mw", json.loads(tm[0]["vaerdier_json"]))
+
+    def test_bredt_vaerk_deles_i_raekker_uden_at_et_tal_aendres(self):
+        """Runde 14b: et værk med 40 enheder og balancemarked kunne ikke gemmes (`vaerdier_json er 20987 tegn`).
+
+        Fixturen er tre timer af modellens `_hourly.csv` ved 90fb16e for et syntetisk værk: Andeby + 34 elenheder,
+        alle prækvalificerede til aFRR og mFRR (``viden/vaerktoej/maal_timebredde.py``; se ``data/bred_40el/KILDE.md``).
+        Målt: 499 kolonner, 20.987 tegn i den bredeste time som objekt — 4.612 tegn selv uden nøglerne, så ingen
+        kodning inden for 4.000 tegn bærer værket uafrundet. Timen deles derfor i rækker: KoerselTime har de første
+        kolonner, KoerselTimeDel resten (del 1, 2, …), hver højst 4.000 UTF-16-tegn.
+        """
+        out = R.Output(BRED)
+        tm, dele = R.timer(out, R.register())
+        self.assertEqual([t["tid"] for t in tm],
+                         ["2026-01-05T01:00:00Z", "2026-01-05T16:00:00Z", "2026-01-05T17:00:00Z"])
+        for t in tm:
+            self.assertLessEqual(utf16(t["vaerdier_json"]), R.MAX_JSON)
+        for d in dele:
+            self.assertEqual(set(d), {"tid", "delnr", "vaerdier_json"})
+            self.assertLessEqual(utf16(d["vaerdier_json"]), R.MAX_JSON)
+        # Delene er nummereret 1, 2, … uden huller pr. time.
+        for t in tm:
+            nr = [d["delnr"] for d in dele if d["tid"] == t["tid"]]
+            self.assertEqual(nr, list(range(1, len(nr) + 1)))
+            self.assertGreaterEqual(len(nr), 4)      # mindst 18.574 tegn: KoerselTime + mindst 4 dele
+        # Sat sammen i delenes orden er timen PRÆCIS CSV'ens kolonner i CSV'ens rækkefølge, tal for tal.
+        with open(out.fil("_hourly.csv"), encoding="utf-8", newline="") as f:
+            r = csv.reader(f)
+            hoved = next(r)
+            csv_raekker = list(r)
+        faste = {"timestamp", *R.register()["tid"]["kolonner"].values()}
+        for t, raekke in zip(tm, csv_raekker):
+            samlet = json.loads(t["vaerdier_json"])
+            for d in sorted((d for d in dele if d["tid"] == t["tid"]), key=lambda d: d["delnr"]):
+                del_ = json.loads(d["vaerdier_json"])
+                self.assertFalse(set(del_) & set(samlet), "en kolonne står i to dele")
+                samlet.update(del_)
+            forventet = [(h, R.tal(v)) for h, v in zip(hoved, raekke) if h not in faste]
+            self.assertEqual(list(samlet.items()), forventet)
+            # Teksten, ikke kun værdien: -0.0 forbliver -0.0, 17 cifre forbliver 17 cifre.
+            self.assertEqual(json.dumps(samlet, separators=(",", ":")),
+                             json.dumps(dict(forventet), separators=(",", ":")))
 
     def test_koersel_felter(self):
         h = R.parse_highs((F1 / "log.txt").read_text(encoding="utf-8"))
