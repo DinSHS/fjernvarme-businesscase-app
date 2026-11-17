@@ -359,8 +359,12 @@ export class Arbejdsbog {
 /**
  * Alle arkenes celleværdier: arknavn -> ref -> værdi. Tal som tal, tekst (delte strenge, inline og formel-
  * tekst) som tekst; en formel giver sin gemte værdi (som pandas/openpyxl læser den). Tomme celler udelades.
+ *
+ * En formel UDEN gemt resultat (intet `<v>`, eller et tomt `<v/>` — også en boolsk) udelades også, men står i
+ * `udenResultat` som "Ark!A1", så den, der læser appens faner, kan afvise den i stedet for at læse den som tom
+ * (Codex' andet review: `<c t="b"><f>TRUE()</f><v/></c>` blev læst som 0 = nej). Samme regel som `fjv.arklaes`.
  */
-export function læsCeller(bytes: Uint8Array): Map<string, Map<string, number | string>> {
+export function læsCeller(bytes: Uint8Array, udenResultat?: string[]): Map<string, Map<string, number | string>> {
     const wb = new Arbejdsbog(bytes);
     let delte: string[] = [];
     try {
@@ -375,13 +379,18 @@ export function læsCeller(bytes: Uint8Array): Map<string, Map<string, number | 
             for (const [kol, x] of r.celler) {
                 const t = /\bt="([^"]+)"/.exec(x.slice(0, x.indexOf(">")))?.[1] ?? "n";
                 const v = /<v>([\s\S]*?)<\/v>/.exec(x)?.[1];
+                // Først om der er et resultat, så dets type: et tomt <v></v> er intet resultat (ikke 0).
+                const harV = v !== undefined && v.trim() !== "";
                 let værdi: number | string | undefined;
                 if (t === "inlineStr") værdi = [...x.matchAll(/<t(?: [^>]*)?>([\s\S]*?)<\/t>/g)].map((m) => fraXml(m[1])).join("");
-                else if (t === "s") værdi = v === undefined ? undefined : delte[Number(v)];
+                else if (t === "s") værdi = harV ? delte[Number(v)] : undefined;
                 else if (t === "str" || t === "e") værdi = v === undefined ? undefined : fraXml(v);
-                else if (t === "b") værdi = v === undefined ? undefined : Number(v);
-                else if (v !== undefined && v !== "") værdi = Number(v);
-                if (værdi === undefined || værdi === "" || (typeof værdi === "number" && Number.isNaN(værdi))) continue;
+                else if (t === "b") værdi = harV ? Number(v) : undefined;
+                else if (harV) værdi = Number(v);
+                if (værdi === undefined || værdi === "" || (typeof værdi === "number" && Number.isNaN(værdi))) {
+                    if (udenResultat && /<f[\s>/]/.test(x)) udenResultat.push(`${navn}!${ref(kol, nr)}`);
+                    continue;
+                }
                 celler.set(ref(kol, nr), værdi);
             }
         }

@@ -70,12 +70,14 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
     const filFejl = fil ? vaerksarkFejl(fil) : null;
     const forældet = !!valg && valg.nøgle !== nøgleFor(vaerker);
     const læser = !!fil && !filFejl && !analyse && !analyseFejl;
-    const markeret = !!analyse && analyse.art !== "nyt";
+    const markeret = !!analyse && analyse.art !== "nyt" && analyse.art !== "afvist";
+    // Et ark fra appen er stemplet med timens start i UTC: timeslut-valget vises ikke og sendes aldrig (Codex' andet review).
+    const fraAppen = !!analyse?.fraAppen;
     const somNyt = markeret && !!valg?.somNyt;
     const revision = !somNyt && analyse?.art === "revision" ? analyse : undefined;
     // Et nyt værk får koden af 'værkets navn' i Priser; findes den, skal værket have et nyt navn først.
     const kodeFindes = !!analyse && (somNyt || analyse.art === "nyt") && !!analyse.arkKode && vaerker.some((x) => x.kode === analyse.arkKode);
-    const blokeret = kodeFindes || (!somNyt && (analyse?.art === "konflikt" || analyse?.art === "anden_eksport" || analyse?.art === "ingen_aendringer"));
+    const blokeret = kodeFindes || analyse?.art === "afvist" || (!somNyt && (analyse?.art === "konflikt" || analyse?.art === "anden_eksport" || analyse?.art === "ingen_aendringer"));
     const kan = !!valg?.bytes && !filFejl && !!analyse && !blokeret && !forældet && !!bruger && !sender;
     const seneste = (importer.data ?? []).slice(0, 4);
     const aktive = seneste.filter((i) => i.status === "koe" || i.status === "koerer").length;
@@ -95,6 +97,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
     const vælg = async (f: File | undefined) => {
         const id = ++næsteId.current;
         setSvar(undefined);
+        setTimeslut(false);                            // valget hører til det forrige ark, ikke til dette
         if (!f) { setValg(undefined); return; }
         const liste = vaerker;
         setValg({ id, fil: f, nøgle: nøgleFor(liste) });
@@ -133,7 +136,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
             // En revision sammenlignes med en eksport, der er stemplet med timens START i UTC — derfor intet --timeslut.
             const s = a.art === "revision" && !v.somNyt
                 ? await uploadVaerksark(v.fil.name, b64, false, bruger, { vaerkId: a.vaerk.id, revision: a.vaerk.revision, basisBase64: tilBase64(a.basis) })
-                : await uploadVaerksark(v.fil.name, b64, timeslut, bruger);
+                : await uploadVaerksark(v.fil.name, b64, timeslut && !a.fraAppen, bruger);
             setSvar({ ok: s.ok, tekst: s.svar });
             if (s.ok) { importer.genindlæs(); opdaterAlt(); }
         } catch (e) {
@@ -178,7 +181,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
                         Et værk er ændret, siden arket blev læst — analysen gælder ikke længere. <Knap sekundaer onClick={læsIgen}>Læs arket igen</Knap>
                     </p>
                 )}
-                {!revision && !blokeret && !markeret && (
+                {!revision && !blokeret && !markeret && !fraAppen && (
                     <label className="kf-kontakt"><input type="checkbox" checked={timeslut} onChange={(e) => setTimeslut(e.target.checked)} />Tidsstemplerne i arkets timedata er timens slut</label>
                 )}
                 <div className="kf-handlinger">
@@ -206,6 +209,13 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
 
 /** Det, analysen fandt — før noget sendes. */
 function Analyse({ a }: { a: Uploadanalyse }) {
+    if (a.art === "afvist") {
+        return (
+            <p className="kf-svar" data-tone="fejl" role="alert" data-tilstand="afvist">
+                Appens faner i arket kan ikke bruges: {a.grund} Intet bliver gemt.
+            </p>
+        );
+    }
     if (a.art === "nyt") {
         return a.grund ? <p className="kf-svar" role="status"><Maerke>nyt værk</Maerke> {a.grund}</p> : null;
     }

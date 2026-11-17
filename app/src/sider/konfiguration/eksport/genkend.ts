@@ -16,7 +16,7 @@
 //-----------------------------------------------------------------------
 
 import { findFelt } from "../katalog";
-import { læsLag, type Lagcelle } from "./lag";
+import { LAGFANER, læsLag, ukendteOverskrifter, ukendtOverskriftTekst, type Lagcelle } from "./lag";
 import { fraExcelSerie, læsCeller } from "./xlsx";
 import { læsMarkering, type Markering } from "./eksporter";
 
@@ -211,11 +211,25 @@ export function sammenlign(basis: Arkmodel, ark: Arkmodel): Forskel {
     return { felter, serier, tom: felter.length === 0 && serier.length === 0, gemmes };
 }
 
-export interface Genkendt { markering: Markering | null; model: Arkmodel; celler: Map<string, Celler> }
+export interface Genkendt {
+    markering: Markering | null; model: Arkmodel; celler: Map<string, Celler>;
+    /** Grundene til, at appens faner ikke kan bruges (importen afviser samme): formler uden gemt resultat og rækker,
+     *  der ligner en overskrift uden at være en blok (Codex' andet review). Tom = fanerne kan læses. */
+    afvist: string[];
+}
 
-/** Et uploadet ark: markeringen (`_app`) og arket som model. */
+/** Et uploadet ark: markeringen (`_app`), arket som model, og om appens faner kan læses. */
 export function genkend(bytes: Uint8Array): Genkendt {
-    const celler = læsCeller(bytes);
-    return { markering: læsMarkering(celler), model: læsArkmodel(celler), celler };
+    const uden: string[] = [];
+    const celler = læsCeller(bytes, uden);
+    const faner = new Set<string>(LAGFANER);
+    const afvist = uden.filter((x) => faner.has(x.split("!")[0])).map((x) => `${x}: cellen har en formel uden et gemt resultat (arket er gemt af et program, der ikke regner formler ud). Åbn arket i Excel og gem det igen, eller skriv tallet i cellen i stedet for formlen`);
+    if (!afvist.length) {
+        for (const navn of LAGFANER) {
+            const c = celler.get(navn);
+            if (c) for (const u of ukendteOverskrifter(navn, c)) afvist.push(ukendtOverskriftTekst(navn, u, c.get(u.ref)));
+        }
+    }
+    return { markering: læsMarkering(celler), model: læsArkmodel(celler), celler, afvist };
 }
 

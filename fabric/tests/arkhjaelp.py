@@ -35,9 +35,16 @@ def skriv_xlsx(sti: Path, ark: dict, *, inline: bool = False, skjulte: tuple = (
         if isinstance(v, tuple):
             # En formel: ("=0.2", gemt resultat eller None). Uden resultat er cellen, som openpyxl gemmer den, før
             # Excel har regnet arket igennem.
-            formel, resultat = v
-            vaerdi = "" if resultat is None else f"<v>{resultat!r}</v>"
-            return f'<c r="{ref}"><f>{escape(formel.lstrip("="))}</f>{vaerdi}</c>'
+            # ("=TRUE()", None, "b") er en formel af typen t="b" med et tomt <v/> (Codex' andet review, P2: sådan
+            # gemmer et program uden genberegning en boolsk formel); ("=TRUE()", True) har resultatet gemt.
+            formel, resultat, *t = v
+            t = t[0] if t else ("b" if isinstance(resultat, bool) else None)
+            if resultat is None:
+                vaerdi = "<v/>" if t else ""
+            else:
+                vaerdi = f"<v>{int(resultat) if isinstance(resultat, bool) else repr(resultat)}</v>"
+            tattr = f' t="{t}"' if t else ""
+            return f'<c r="{ref}"{tattr}><f>{escape(formel.lstrip("="))}</f>{vaerdi}</c>'
         if isinstance(v, bool):
             return f'<c r="{ref}" t="b"><v>{int(v)}</v></c>'
         if isinstance(v, (int, float)):
