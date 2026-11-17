@@ -47,17 +47,22 @@ def skriv_log(db: Database, cn, vaerk_id: str, revision: int, aendringer: list, 
 
 def opret_vaerk(db: Database, cn, *, kode: str, navn: str, beskrivelse: str | None, kilde: str,
                 blade: list[dict], hvem: str, kilde_fil: str | None = None, repo_commit: str | None = None,
-                kopieret_fra_id: str | None = None, vaerk_id: str | None = None) -> str:
-    """Værk (revision 1) + blade + én ``opret``-logrække pr. blad. Kontrollerer antallet bagefter."""
+                kopieret_fra_id: str | None = None, vaerk_id: str | None = None,
+                revision: int = 1, spor: list | None = None) -> str:
+    """Værk (revision 1) + blade + én ``opret``-logrække pr. blad. Kontrollerer antallet bagefter.
+
+    ``revision``/``spor`` (runde 14, ``fjv.vaerksark.revisionsspor``): et værk fra et værksark med appens egne
+    faner oprettes som revision 2 — sporet er da ``[(1, scriptets læsning), (2, fanernes ændringer)]``."""
     v, p = db.t("Vaerk"), db.t("VaerkParameter")
     vid = vaerk_id or ny_uuid()
     t = nu()
     cn.execute(v.insert().values(id=vid, kode=kode, navn=navn[:200], beskrivelse=beskrivelse, kilde=kilde,
                                  kilde_fil=kilde_fil, repo_commit=repo_commit, kopieret_fra_id=kopieret_fra_id,
-                                 revision=1, arkiveret=False, oprettet_af=hvem, aendret_af=hvem,
+                                 revision=revision, arkiveret=False, oprettet_af=hvem, aendret_af=hvem,
                                  oprettet=t, aendret=t))
     skriv_blade(db, cn, vid, blade, hvem)
-    skriv_log(db, cn, vid, 1, [(b["sti"], "opret", None, b["vaerdi_json"]) for b in blade], hvem)
+    for rev_nr, raekker in (spor or [(1, [(b["sti"], "opret", None, b["vaerdi_json"]) for b in blade])]):
+        skriv_log(db, cn, vid, rev_nr, raekker, hvem)
     n = cn.execute(select(func.count()).select_from(p).where(p.c.vaerk_id == vid)).scalar()
     if n != len(blade):
         raise RuntimeError(f"Uventet: {n} parametre indsat, {len(blade)} forventet.")

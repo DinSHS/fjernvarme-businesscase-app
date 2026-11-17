@@ -31,6 +31,8 @@ KOPIER = [
     ("fabric/fjv", "fjernvarme_app/_motor/fjv"),
     ("fabric/maaleregister.json", "fjernvarme_app/_motor/maaleregister.json"),
     ("viden/data_krav.json", "fjernvarme_app/viden/data_krav.json"),
+    # Runde 14: feltkataloget validerer appens egne faner i værksarket (fjv.feltkatalog).
+    ("viden/felt_katalog.json", "fjernvarme_app/viden/felt_katalog.json"),
     ("viden/vaerktoej/valider_tidsserie.py", "fjernvarme_app/viden/vaerktoej/valider_tidsserie.py"),
     ("skema/skema.json", "fjernvarme_app/_ressourcer/skema/skema.json"),
     ("skema/fjv_skema.py", "fjernvarme_app/_ressourcer/skema/fjv_skema.py"),
