@@ -13,7 +13,7 @@ const andeby = new Map(Object.entries(MODELSPEJL.cases.andeby.blade).map(([s, [v
 const arkVaerk = new Map([...andeby].filter(([s]) => !s.startsWith("balancing.")));
 
 function rt(nu: Map<string, string>, aktiv = false) {
-    const send = vi.fn(async (_æ: readonly Parameterændring[]) => true);
+    const send = vi.fn<(æ: readonly Parameterændring[]) => Promise<boolean>>(async () => true);
     const t = { nu, grundFund: validerVaerk(nu), red: { aktiv, udkast: new Map(), sæt: () => {} }, sender: false, svar: undefined, send };
     return { t: t as unknown as RedigeringsTilstand, send };
 }

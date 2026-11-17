@@ -56,6 +56,8 @@ export interface Budstrategi {
 export interface Modelspejl { model_commit: string; cases: Record<string, Spejlcase>; budstrategi: Budstrategi }
 
 export const SPEJL_COMMIT = MODELSPEJL.model_commit;
+/** BUDSTRATEGI.md's færdige YAML-blokke ved pinnen (runde 14c). */
+export const BUDSTRATEGI: Budstrategi = MODELSPEJL.budstrategi;
 const kort = (sha: string | null | undefined) => (sha ?? "").slice(0, 7);
 
 /** Repo-casen et værk stammer fra (rodkoden: værket selv eller den repo-case, det er kopieret fra). */
