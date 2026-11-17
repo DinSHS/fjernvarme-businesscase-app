@@ -32,9 +32,32 @@ export interface Spejlcase {
     blade: Record<string, [string, number]>;
 }
 
-export interface Modelspejl { model_commit: string; cases: Record<string, Spejlcase> }
+/** Én af BUDSTRATEGI.md's færdige YAML-blokke (runde 14c): titlen og bladene med linje og YAML-kommentar. */
+export interface Budblok {
+    titel: string;
+    /** Første og sidste linje (kodehegnene) i BUDSTRATEGI.md. */
+    linjer: [number, number];
+    /** Blokken står indrykket som fortsættelse af den fælles `balancing:` (profilerne). */
+    fortsaetter_balancing: boolean;
+    /** sti -> [vaerdi_json, linje i BUDSTRATEGI.md, kommentar]. */
+    blade: Record<string, [string, number, string | null]>;
+}
+
+export interface Budstrategi {
+    fil: string;
+    afsnit: [number, number];
+    /** Linjen, der siger, at prækvalificerede enheder skal have afrr_qualified/mfrr_qualified: true. */
+    kvalificering_linje: number;
+    /** Linjen, der siger, at enhedsnavnene skal være værkets egne. */
+    navne_linje: number;
+    blokke: Budblok[];
+}
+
+export interface Modelspejl { model_commit: string; cases: Record<string, Spejlcase>; budstrategi: Budstrategi }
 
 export const SPEJL_COMMIT = MODELSPEJL.model_commit;
+/** BUDSTRATEGI.md's færdige YAML-blokke ved pinnen (runde 14c). */
+export const BUDSTRATEGI: Budstrategi = MODELSPEJL.budstrategi;
 const kort = (sha: string | null | undefined) => (sha ?? "").slice(0, 7);
 
 /** Repo-casen et værk stammer fra (rodkoden: værket selv eller den repo-case, det er kopieret fra). */

@@ -236,6 +236,23 @@ class TestUdfoerAendring(Grund):
         # Allerede behandlet -> samme svar, intet nyt.
         self.assertEqual(S.udfoer_aendring(self.l, a)["svar"], svar["svar"])
 
+    def test_balancemarkedsblok_tilfoejes_og_fjernes(self):
+        """Runde 14c, målt: den betroede logik opretter en hel balancing-blok, som værket ikke har, i ÉN revision
+        (``opret`` på stier under en ny sektion), og fjerner den igen med ``slet``. Det, der manglede, var en handling
+        i Konfiguration — ikke en regel her. Forhindrer, at planen begynder at afvise nye sektioner."""
+        blok = [("balancing.method", '"activation_value"'), ("balancing.bid_strategy.up_markup_dkk_mwh", "500"),
+                ("balancing.ancillary_caps.per_unit_mw.halmkedel", "6.0"), ("balancing.ancillary_caps.total_mw", "14.0")]
+        p0 = {r["sti"] for r in self.l.raekker("VaerkParameters", vaerk_id=self.v["id"])}
+        self.assertFalse(any(s.startswith("balancing.") for s in p0))
+        svar = S.udfoer_aendring(self.l, self.anmod([{"sti": s, "handling": "opret", "ny_json": v} for s, v in blok]))
+        self.assertEqual((svar["status"], svar["revision"]), ("udfoert", 2))
+        p = {r["sti"]: r for r in self.l.raekker("VaerkParameters", vaerk_id=self.v["id"])}
+        self.assertEqual({s: p[s]["vaerdi_json"] for s, _ in blok}, dict(blok))
+        self.assertEqual({p[s]["sektion"] for s, _ in blok}, {"balancing"})
+        svar = S.udfoer_aendring(self.l, self.anmod([{"sti": s, "handling": "slet"} for s, _ in blok], revision=2))
+        self.assertEqual((svar["status"], svar["revision"]), ("udfoert", 3))
+        self.assertEqual({r["sti"] for r in self.l.raekker("VaerkParameters", vaerk_id=self.v["id"])}, p0)
+
     def test_revisionskonflikt(self):
         a = self.anmod([{"sti": "prices.straw.value", "handling": "ret", "ny_json": "47.5"}], revision=0)
         svar = S.udfoer_aendring(self.l, a)

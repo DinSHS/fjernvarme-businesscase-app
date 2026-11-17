@@ -56,6 +56,26 @@ start, advarer importens log: uden tank kan værket ikke dække den første time
 når intet scenarie bruger enheden. Vil du bare regne uden en enhed, så brug et scenarie i stedet —
 så forbliver værket urørt.
 
+**Balancemarked på et værk uden:** et værk fra værksarket har ingen balancing-blok (modellens script skriver den
+ikke), så scenarier kan ikke regne med balancemarkedet. Under fanen **Balancering** står så **Tilføj
+balancemarked…**. Vælg et udgangspunkt — Andebys blok eller en af budprofilerne 1–4 i modellens
+`doc/BUDSTRATEGI.md` (fælles del + profil) — og tag stilling til det, der er værkets eget: hvilke el-enheder der er
+prækvalificeret, loftet pr. enhed og, for profil 4, den enhed budprisen regnes for. Enhedsnavnene er værkets egne.
+Appen viser hele blokken felt for felt med fil og linje i modelrepoet; tallene fra kilden er eksempler og kan rettes,
+før du bekræfter. Blokken gemmes som én revision, og de valgte enheder får `afrr_qualified`/`mfrr_qualified` sat til
+ja. **Fjern balancemarkedet…** sletter blokken igen (ikke mens et scenarie ændrer et felt i den). (Kilde:
+doc/BUDSTRATEGI.md:216-305; scripts/vaerksark_til_yaml.py)
+
+**Et felt, værket ikke har:** under hvert afsnits felter og under den valgte enhed kan **Tilføj et felt, værket ikke
+har** lægge et af modellens kendte felter til (fx en enheds `ancillary`-felter, `commissioned` eller
+`electricity.tariff_consumption_flat`), med forklaringen og modellens standardværdi som udgangspunkt. Med
+standardværdien regner modellen som før; feltet kan bagefter rettes og bruges i scenarier. Felter i en blok, hvis
+blotte tilstedeværelse ændrer regningen (COP-kurven, tarifprofilen, nettab), tilbydes ikke enkeltvis.
+
+**Starttilstand:** står alle enheder med unit commitment til slukket ved start (`initial_status: 0`, som værksarkets
+script sætter dem), viser værkets side en advarsel: uden tank, eller med tanken slået fra, kan en kørsel så blive
+uløselig (målt i januar 2026 på værker fra værksarket). Sæt `initial_status` til 1 på den enhed, der kører, når perioden begynder.
+
 ## 2. Scenarier — stil et spørgsmål
 
 Tryk **Nyt scenarie** under Scenarier og gå de fire trin igennem:
@@ -77,7 +97,8 @@ tidsseriens periode ikke scenariets, advarer appen. En kørsel gemmer, hvilken t
 kontrolsum — så to kørsler altid kan sammenlignes på samme data. (Kilde: KONTRAKT §6d)
 
 Et scenarie kan kun ændre felter, der allerede findes i værket. Periode, solvergab og tidsgrænse har
-egne felter på scenariet. Skal der en ny enhed eller blok til, er det en ændring af værket.
+egne felter på scenariet. Skal der en ny enhed, et nyt felt eller en blok til, er det en ændring af værket
+(Konfiguration: Ny enhed, Tilføj et felt, Tilføj balancemarked).
 (Kilde: KONTRAKT §3.5; KONTRAKT §6c)
 
 Til differenser: brug gabet 0,0002 og det absolutte gab 100 kr. i både reference og scenarie; det
