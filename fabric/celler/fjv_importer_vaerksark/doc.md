@@ -23,5 +23,13 @@ transaktionen — og at scriptets læsning af basis er værket bortset fra marke
 objektnavne (`slug()`) føres tilbage til værkets; to kandidater afvises. En tidsserieændring øger også revisionen
 (Aendringslog `tidsserie.<rolle>`).
 
+**Appens egne faner (runde 14).** Et ark, appen har eksporteret, bærer fanerne *Start og drift*, *Balancemarked* og
+*Øvrige felter* (markeringen er format 3). Scriptet læser dem ikke; importen læser dem (`fjv.arklag`, kun
+standardbiblioteket) og lægger værdierne oven på scriptets læsning — på arket og på basis ens. Hver værdi valideres
+mod feltkataloget (`felt_katalog.json`, lagt ved motoren af `deploy.py kode`) og det færdige værk mod modellens
+minimumskrav (`fjv.modelkrav`). Et nyt værk med faner er revision 2: revision 1 er scriptets læsning, revision 2
+fanernes ændringer. Før scriptet kører, afvises rækker, det ville springe over uden besked (navn uden type, tank uden
+volumen). Et ark uden fanerne importeres som før; et ark i format 2 afvises som revision.
+
 Uden `import_id` tages alle ventende importer (FIFO). Bruger ikke solver-låsen.
 Rapport: `Files/_run/fjv_importer_vaerksark.json`.

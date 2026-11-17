@@ -43,6 +43,31 @@ Det ændrer alle kørsler, der omfatter perioden fra 1. oktober 2025; perioder f
   - Upload-kortet binder fil, bytes og analyse med et valg-id; et sent analysesvar ignoreres.
   - Felter, genupload ikke gemmer (årsproduktionen i Timedata!B3, værkets navn …), markeres før bekræftelse.
   - Eksporten oplyser timer, modelscriptet selv udfylder i solprofilen, og nægter kontroltegn og `_xHHHH_`-tekst.
+- **Udvidet værksark** (runde 14): det eksporterede ark har tre faner mere, som er **appens egne** — *Start og drift*
+  (i drift, tændt ved start, start/stop-logik, CO₂-faktor, idriftsættelsesår og noter pr. enhed; indhold ved start,
+  varmetab og slut-som-start pr. tank), *Balancemarked* (hele `balancing`-blokken og enhedernes budfelter) og *Øvrige
+  felter* (hvert resterende felt med sti, værdi og forklaring fra feltkataloget). Modelrepoets skabelon og
+  `scripts/vaerksark_til_yaml.py` bruges uændret og læser ikke fanerne; importen lægger deres værdier oven på
+  scriptets læsning (`fabric/fjv/arklag.py`) — ved upload som nyt værk og ved genupload som revision — og validerer
+  hver værdi som en redigering i appen (feltkataloget, typen, modellens minimumskrav). Egen antagelse:
+  [`doc/TROFASTHED.md`](doc/TROFASTHED.md#5-egen-antagelse--hvor-appen-bevidst-afviger-eller-tilføjer).
+  - Listen "ikke med i arket" er målt gået fra 71–106 felter pr. katalogværk til 0 (Billund-værkerne) og 1 (Andeby:
+    solprofilens sti). Slåede-fra enheder og tanke står nu i Anlaeg med "i drift: nej".
+  - En række i *Øvrige felter* kan være betinget (*kun hvis modelscriptet giver*): den viger for en rettelse i
+    modelrepoets faner, og importens log siger det. Appens faner kan ikke tavst skjule en celle.
+  - Revisionssporet: et nyt værk fra et ark med appens faner er **revision 2** (revision 1 er modelscriptets læsning),
+    og hvert felt fra fanerne bærer kilden som kommentar. Markeringen `_app` er format 3 og bærer tallenes skrivemåde
+    (96 mod 96,0); et ark i format 2 afvises som revision med en klar besked og importeres som nyt værk som før.
+  - Gaten (`tjek_eksport_rundtur.py`) uploader hver eksport som nyt værk gennem importens egen kode og kræver det
+    oprindelige værk blad for blad (bortset fra en eksplicit, begrundet liste) og samme `run_case`-objektiv, også med
+    balancemarked. Nye fælles vektorer: `skema/vektorer/arklag/celler.json` (en celle som `vaerdi_json`).
+  - Ingen skemaændring. Fabric: `deploy.py kode` (nye motormoduler og `felt_katalog.json` ved motoren), `deploy.py
+    notebook` (kun dokumentationscellen i `fjv_importer_vaerksark` er ændret) og frontend (`rayfin up`); ingen `db apply`.
+- **Højlydt import af værksarket** (runde 14, gælder også ark uden appens faner): en række i Anlaeg med navn, men uden
+  type (eller omvendt, eller kun tal), en tank uden volumen eller under de seks tankrækker og et målepunkt under
+  varmepumpens tabel afviser importen med rækkenummer — modelscriptet springer dem over uden besked (målt: otte af et
+  værks 17 enheder forsvandt). Importens log advarer, når hver styrbar enhed står til slukket ved start: uden tank kan
+  værket ikke dække den første time (scriptet skriver `initial_status: 0`).
 - **Backup og flytning** (runde 13, `#/scenarier/arkiv`): scenarier og kørsler eksporteres til Excel og genimporteres
   tabsfrit — som backup og som vejen fra en testinstallation til produktion. Én .xlsx pr. scenariefamilie (et
   scenarie og dets reference) eller alt som .zip med manifest; ark *Læs mig*, ét ark pr. tabel med danske
