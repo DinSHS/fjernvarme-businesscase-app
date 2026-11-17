@@ -262,7 +262,7 @@ class SammenfletningF3(unittest.TestCase):
             db["Aendringsanmodning"][id] = {"id": id, "vaerk_id": s["vaerk_id"], "forventet_revision": 0, "aendringer_json": s["aendringer_json"],
                                             "anmodet_af": "v@example.org", "anmodet": "2026-10-28T09:00:00.000Z", "status": "ny", "svar": None}
         grund = ModelLager(db, laas)
-        for s in trin[:6]:                    # scenarier, bestilling og kørslens fire undertabeller
+        for s in trin[:7]:                    # scenarier, bestilling og kørslens fem undertabeller (inkl. KoerselTimeDel)
             anmod(s, s["anmodning_id"])
             self.assertTrue(A.importer_del(grund, s["anmodning_id"], s["tekst"])["ok"])
         # B: én timerække mere til samme kørsel (gyldig, eget id og eget tidspunkt).
@@ -275,9 +275,9 @@ class SammenfletningF3(unittest.TestCase):
         tekst_b = J.stringify({"format": "fjv-arkiv-del", "version": 2, "arkiv": arkiv, "tabel": "KoerselTime", "kolonner": ks, "raekker": [ekstra]})
         anm_b = J.stringify([{"handling": "importer_arkiv", "arkiv": arkiv, "sha256": A.sha256_tekst(tekst_b), "tabel": "KoerselTime",
                               "nr": 1, "af": 1, "koersel_ider": [], "filnavn": "b"}])
-        id_b, id_a = "f0000000-0000-4000-8000-0000000000b1", trin[6]["anmodning_id"]
+        id_b, id_a = "f0000000-0000-4000-8000-0000000000b1", trin[7]["anmodning_id"]
         anmod({"vaerk_id": A.NIL_UUID, "aendringer_json": anm_b}, id_b)
-        anmod(trin[6], id_a)
+        anmod(trin[7], id_a)
         i_pause, fortsaet = threading.Event(), threading.Event()
 
         def hold(tabel):
@@ -288,7 +288,7 @@ class SammenfletningF3(unittest.TestCase):
         b = threading.Thread(target=lambda: svar.__setitem__("b", A.importer_del(_med(grund, hold), id_b, tekst_b)))
         b.start()
         self.assertTrue(i_pause.wait(5))
-        a = threading.Thread(target=lambda: svar.__setitem__("a", A.importer_del(grund, id_a, trin[6]["tekst"])))
+        a = threading.Thread(target=lambda: svar.__setitem__("a", A.importer_del(grund, id_a, trin[7]["tekst"])))
         a.start()
         time.sleep(0.3)                       # A får chancen for at køre forbi B
         fortsaet.set()

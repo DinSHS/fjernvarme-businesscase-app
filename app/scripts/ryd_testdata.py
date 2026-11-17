@@ -47,6 +47,8 @@ DELETE FROM dbo.KoerselInputs WHERE koersel_id IN (SELECT id FROM @k);
 DELETE FROM dbo.KoerselNoegletals WHERE koersel_id IN (SELECT id FROM @k);
 DELETE FROM dbo.KoerselMaaneds WHERE koersel_id IN (SELECT id FROM @k);
 DELETE FROM dbo.KoerselTimes WHERE koersel_id IN (SELECT id FROM @k);
+-- Skemaversion 2 (runde 14b); en database fra før udrulningen har ikke tabellen.
+IF OBJECT_ID(N'dbo.KoerselTimeDels', N'U') IS NOT NULL DELETE FROM dbo.KoerselTimeDels WHERE koersel_id IN (SELECT id FROM @k);
 DELETE FROM dbo.Bestillings WHERE id IN (SELECT bestilling_id FROM dbo.Koersels WHERE id IN (SELECT id FROM @k)) OR scenarie_id IN ({s});
 DELETE FROM dbo.Koersels WHERE id IN (SELECT id FROM @k);
 DELETE FROM dbo.ScenarieAendrings WHERE scenarie_id IN ({s});

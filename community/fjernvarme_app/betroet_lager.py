@@ -333,7 +333,8 @@ class SqlTransaktion:
                                                  "Bestilling": tael("Bestilling", "scenarie_id", x["id"]),
                                                  "Koersel": tael("Koersel", "scenarie_id", x["id"])} for x in scen},
             "koersler": {str(x["id"]).lower(): {b: tael(b, "koersel_id", x["id"]) for b in
-                                                ("KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime")} for x in koer},
+                                                ("KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime",
+                                                 "KoerselTimeDel")} for x in koer},
             "vaerker": {v: {"Aendringslog": tael("Aendringslog", "vaerk_id", v), "Tidsserie": tael("Tidsserie", "vaerk_id", v)}
                         for v in vaerker},
         }

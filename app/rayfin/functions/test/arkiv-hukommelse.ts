@@ -12,7 +12,7 @@ export type Række = Record<string, unknown>;
 export type Tabeller = Record<string, Map<string, Række>>;
 
 export const TABELNAVNE = ["Vaerk", "VaerkParameter", "Aendringslog", "Aendringsanmodning", "Scenarie", "ScenarieAendring", "Bestilling",
-    "Koersel", "KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime", "Tidsserie"] as const;
+    "Koersel", "KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime", "KoerselTimeDel", "Tidsserie"] as const;
 
 export function tomDb(): Tabeller {
     return Object.fromEntries(TABELNAVNE.map((t) => [t, new Map<string, Række>()]));
@@ -179,6 +179,25 @@ export function eksempelDb(antalTimer = 250, medReference = false): Tabeller {
     });
     if (medReference) tilføjReferencekørsel(db);
     return db;
+}
+
+/**
+ * Gør eksempelkørslen til et BREDT værk (runde 14b): hver times `solgt` flyttes fra KoerselTime.vaerdier_json til
+ * KoerselTimeDel del 1, og manifestet siger hvor mange - som notebooken skriver et værk over 4000 tegn.
+ */
+export function gørBred(db: Tabeller, koerselId = ID.koersel): number {
+    let n = 0;
+    for (const t of [...db.KoerselTime.values()].filter((x) => x.koersel_id === koerselId)) {
+        const v = JSON.parse(String(t.vaerdier_json)) as Record<string, unknown>;
+        const { solgt, ...resten } = v;
+        t.vaerdier_json = JSON.stringify(resten);
+        const id = `${String(t.id).slice(0, 9)}d0d0${String(t.id).slice(13)}`;
+        db.KoerselTimeDel.set(id, { id, koersel_id: koerselId, tid: t.tid, delnr: 1, vaerdier_json: JSON.stringify({ solgt }) });
+        n++;
+    }
+    const k = db.Koersel.get(koerselId)!;
+    k.manifest_json = JSON.stringify({ ...(JSON.parse(String(k.manifest_json)) as object), time_dele: n });
+    return n;
 }
 
 export const REF_KOERSEL = "88888888-8888-4888-8888-888888888888";

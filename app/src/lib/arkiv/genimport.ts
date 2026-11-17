@@ -25,6 +25,7 @@ import {
 } from "../../../rayfin/functions/src/arkiv";
 import { læs, læsÉn } from "@/lib/data/laes";
 import { importerArkivDel } from "@/lib/data/skriv";
+import { timedeleAntal } from "@/lib/data/timedele";
 import { læsArkivBog, type LæstArkiv } from "./bog";
 import { SAMLING_FORMAT, type SamlingsManifest } from "./eksport";
 import { erZip, læsZip } from "./xlsx";
@@ -215,13 +216,16 @@ export async function planlæg(fil: Arkivfil): Promise<Plan> {
         if (manglendeSerie) { afvis(`Kørslen bygger på tidsserien (${manglendeSerie.rolle}) med sha256 ${manglendeSerie.sha256.slice(0, 12)}…, som ikke findes her som ${manglendeSerie.rolle}. Upload den først.`); continue; }
         const forventet = børnetilstandAf(børn);
         const mappet = medFelt("Koersel", medFelt("Koersel", k, "vaerk_id", mål.id), "vaerk_revision", mål.id === vid && revs.includes(rev) ? rev : Math.max(...revs));
+        const findes = await læsÉn("Koersel", id);
         // Kørslens rækker her, kanonisk pr. undertabel (en tidligere, afbrudt import kan have skrevet nogle af dem).
+        // Timedele (runde 14b) kun, når arkivet eller kørslen her har nogen: en Fabric-database fra før skemaversion 2
+        // har ikke tabellen, og en kørsel uden timedele i arkivet kan ikke have fået nogen af en tidligere import.
+        const medTimedele = børn.KoerselTimeDel.length > 0 || timedeleAntal(findes?.manifest_json) > 0;
         const her = {} as Record<KoerselBarn, Map<string, Kanonisk[]>>;
         for (const t of KOERSEL_BOERN) {
-            her[t] = new Map((await læs(t, { filter: { koersel_id: { eq: id } }, sidestørrelse: 5000 }))
+            her[t] = t === "KoerselTimeDel" && !medTimedele ? new Map() : new Map((await læs(t, { filter: { koersel_id: { eq: id } }, sidestørrelse: 5000 }))
                 .map((x) => [x.id, kanoniskRække(t, x as unknown as Record<string, unknown>)] as const));
         }
-        const findes = await læsÉn("Koersel", id);
         if (findes) {
             const c = sammenlign("Koersel", mappet, findes as unknown as Record<string, unknown>);
             // Kun "findes", hvis rækkerne også passer (K10-F2).

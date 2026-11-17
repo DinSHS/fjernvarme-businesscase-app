@@ -40,13 +40,17 @@ export const NIL_UUID = '00000000-0000-0000-0000-000000000000';
 
 /** De tabeller, et arkiv genimporterer — i den rækkefølge, de skrives (en kørsel til sidst, efter sine rækker). */
 export const IMPORT_TABELLER = [
-    'Scenarie', 'ScenarieAendring', 'Bestilling', 'KoerselInput', 'KoerselNoegletal', 'KoerselMaaned', 'KoerselTime', 'Koersel',
+    'Scenarie', 'ScenarieAendring', 'Bestilling', 'KoerselInput', 'KoerselNoegletal', 'KoerselMaaned', 'KoerselTime', 'KoerselTimeDel', 'Koersel',
 ] as const;
 export type ImportTabel = (typeof IMPORT_TABELLER)[number];
 
-/** En kørsels rækker i de fire undertabeller. */
-export const KOERSEL_BOERN = ['KoerselInput', 'KoerselNoegletal', 'KoerselMaaned', 'KoerselTime'] as const;
+/** En kørsels rækker i undertabellerne. KoerselTimeDel (skemaversion 2, runde 14b) har kun brede værker rækker i. */
+export const KOERSEL_BOERN = ['KoerselInput', 'KoerselNoegletal', 'KoerselMaaned', 'KoerselTime', 'KoerselTimeDel'] as const;
 export type KoerselBarn = (typeof KOERSEL_BOERN)[number];
+
+/** Afvisningen, når et arkiv med timedele skal ind i en database uden KoerselTimeDels (en Fabric-database før version 2). */
+export const TIMEDELE_MANGLER_ARKIV = 'Arkivet har et bredt værks timedele (KoerselTimeDel), men databasen her mangler tabellen — den kommer med ' +
+    'skemaversion 2. Bed den, der driver appen, om at udrulle databaseskemaet (doc/FABRIC.md › Skemaafvigelse), og importér igen.';
 
 /** Kun færdige kørsler kan arkiveres: en importeret kørsel i `koe` ville blive kørt igen af arbejderen. */
 export const AFSLUTTEDE_STATUS = ['faerdig', 'fejl', 'annulleret'] as const;
@@ -69,7 +73,7 @@ export function kolonnenavne(tabel: ImportTabel | 'Aendringslog'): string[] {
 export const erImportTabel = (t: string): t is ImportTabel => (IMPORT_TABELLER as readonly string[]).includes(t);
 
 /** De tabeller, en del kan skrive. ScenarieAendring rejser med sit scenarie (Scenarie-delens `aendringer`, K10-F1). */
-export const DEL_TABELLER = ['Scenarie', 'Bestilling', 'KoerselInput', 'KoerselNoegletal', 'KoerselMaaned', 'KoerselTime', 'Koersel'] as const;
+export const DEL_TABELLER = ['Scenarie', 'Bestilling', 'KoerselInput', 'KoerselNoegletal', 'KoerselMaaned', 'KoerselTime', 'KoerselTimeDel', 'Koersel'] as const;
 export type DelTabel = (typeof DEL_TABELLER)[number];
 export const erDelTabel = (t: string): t is DelTabel => (DEL_TABELLER as readonly string[]).includes(t);
 
@@ -671,6 +675,7 @@ export interface ArkivTx {
 const NAVN: Record<DelTabel, string> = {
     Scenarie: 'scenarier', Bestilling: 'bestillinger', Koersel: 'kørsler',
     KoerselInput: 'inputrækker', KoerselNoegletal: 'nøgletal', KoerselMaaned: 'månedsrækker', KoerselTime: 'timerækker',
+    KoerselTimeDel: 'timedele',
 };
 
 /** Kørslens rækker i databasen: antal og sha256 pr. undertabel, side for side. */

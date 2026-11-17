@@ -52,7 +52,7 @@ import {
     type TidsserieRad, type UploadTidsserie, type UploadVaerksark,
 } from './logik.js';
 import {
-    decimalTekst, importerDel, kolonner as arkivKolonner, type ArkivLager, type ArkivTx, type ImportTabel, type Importsvar, type InputRad as ArkivInputRad,
+    ArkivAfvisning, decimalTekst, importerDel, kolonner as arkivKolonner, TIMEDELE_MANGLER_ARKIV, type ArkivLager, type ArkivTx, type ImportTabel, type Importsvar, type InputRad as ArkivInputRad,
     type Arkivtal, type Kanonisk, type Kolonne as ArkivKolonne, type LogRad,
 } from './arkiv.js';
 import { SKEMA_TABELLER } from './skema.data.js';
@@ -898,13 +898,25 @@ const sqlVærdi = (k: ArkivKolonne, v: Kanonisk) =>
 /** Parameteren i VALUES: decimaler CAST'es fra tekst til kolonnens præcise type. */
 const sqlParam = (k: ArkivKolonne, navn: string) => (k.type === 'decimal' ? `CAST(@${navn} AS DECIMAL(${k.precision ?? 18},${k.scale ?? 0}))` : `@${navn}`);
 
+/**
+ * Har databasen KoerselTimeDels (skemaversion 2, runde 14b)? En Fabric-database får den først, når skemaet er udrullet
+ * (FABRIC.md › Skemaafvigelse); indtil da læses tabellen som tom, og et arkiv MED timedele afvises med en tekst.
+ */
+async function harTimedele(req: () => sql.Request): Promise<boolean> {
+    return (await req().query("SELECT OBJECT_ID(N'dbo.KoerselTimeDels', N'U') AS id")).recordset[0]?.id != null;
+}
+
 /** ArkivLager mod appens database som app-ejeren (db.ts). SQL Server tager højst 2100 parametre pr. kald. */
 function sqlArkivLager(pool: sql.ConnectionPool): ArkivLager {
     const tabelnavn = (t: ImportTabel | 'Vaerk' | 'Tidsserie') => `dbo.${SKEMA_TABELLER[t].tabel}`;
+    // Spurgt én gang pr. kald: tabellen kommer med en udrulning af skemaet, ikke midt i en import.
+    let medDele: Promise<boolean> | null = null;
+    const dele = (req: () => sql.Request) => (medDele ??= harTimedele(req));
     const tx = (req: () => sql.Request): ArkivTx => ({
         låsAnmodning: async (id) => (await req().input('a', sql.UniqueIdentifier, id)
             .query('SELECT status, svar FROM dbo.Aendringsanmodnings WITH (UPDLOCK, HOLDLOCK) WHERE id = @a')).recordset[0],
         hent: async (tabel, ider) => {
+            if (tabel === 'KoerselTimeDel' && !(await dele(req))) return [];
             const navne = (SKEMA_TABELLER[tabel].kolonner as readonly { navn: string }[]).map((k) => `[${k.navn}]`).join(', ');
             const ud: Record<string, unknown>[] = [];
             for (let i = 0; i < ider.length; i += 1000) {
@@ -916,6 +928,7 @@ function sqlArkivLager(pool: sql.ConnectionPool): ArkivLager {
             return ud;
         },
         indsæt: async (tabel, rækker) => {
+            if (tabel === 'KoerselTimeDel' && rækker.length && !(await dele(req))) throw new ArkivAfvisning(TIMEDELE_MANGLER_ARKIV);
             const ks = arkivKolonner(tabel);
             const pr = Math.floor(2000 / ks.length);
             for (let i = 0; i < rækker.length; i += pr) {
@@ -938,6 +951,7 @@ function sqlArkivLager(pool: sql.ConnectionPool): ArkivLager {
             }
         },
         børneside: async (koerselId, tabel, fra, antal) => {
+            if (tabel === 'KoerselTimeDel' && !(await dele(req))) return [];
             const navne = (SKEMA_TABELLER[tabel].kolonner as readonly { navn: string }[]).map((k) => `[${k.navn}]`).join(', ');
             return (await req().input('k', sql.UniqueIdentifier, koerselId).input('fra', sql.Int, fra).input('n', sql.Int, antal)
                 .query(`SELECT ${navne} FROM ${tabelnavn(tabel)} WHERE koersel_id = @k ORDER BY id OFFSET @fra ROWS FETCH NEXT @n ROWS ONLY`)).recordset;
@@ -1012,6 +1026,9 @@ udf.func(
         }
         const pool = await forbind(ctx.Tokens.Sql);
         try {
+            // En database fra før skemaversion 2 har ingen KoerselTimeDels; et navn, der ikke findes, fejler hele sætningen.
+            const timedele = (await harTimedele(() => pool.request()))
+                ? '(SELECT COUNT(*) FROM dbo.KoerselTimeDels x WHERE x.koersel_id = k.id)' : '0';
             const r = pool.request();
             ider.forEach((id, i) => r.input(`s${i}`, sql.UniqueIdentifier, id));
             const ind = ider.map((_, i) => `@s${i}`).join(', ');
@@ -1023,7 +1040,8 @@ udf.func(
                 SELECT k.id, (SELECT COUNT(*) FROM dbo.KoerselInputs x WHERE x.koersel_id = k.id) AS KoerselInput,
                        (SELECT COUNT(*) FROM dbo.KoerselNoegletals x WHERE x.koersel_id = k.id) AS KoerselNoegletal,
                        (SELECT COUNT(*) FROM dbo.KoerselMaaneds x WHERE x.koersel_id = k.id) AS KoerselMaaned,
-                       (SELECT COUNT(*) FROM dbo.KoerselTimes x WHERE x.koersel_id = k.id) AS KoerselTime
+                       (SELECT COUNT(*) FROM dbo.KoerselTimes x WHERE x.koersel_id = k.id) AS KoerselTime,
+                       ${timedele} AS KoerselTimeDel
                 FROM dbo.Koersels k WHERE k.scenarie_id IN (${ind});
                 SELECT v.id, (SELECT COUNT(*) FROM dbo.Aendringslogs x WHERE x.vaerk_id = v.id) AS Aendringslog,
                        (SELECT COUNT(*) FROM dbo.Tidsseries x WHERE x.vaerk_id = v.id) AS Tidsserie
@@ -1035,7 +1053,7 @@ udf.func(
             return {
                 ok: true,
                 scenarier: kort(sc, ['ScenarieAendring', 'Bestilling', 'Koersel']),
-                koersler: kort(ko, ['KoerselInput', 'KoerselNoegletal', 'KoerselMaaned', 'KoerselTime']),
+                koersler: kort(ko, ['KoerselInput', 'KoerselNoegletal', 'KoerselMaaned', 'KoerselTime', 'KoerselTimeDel']),
                 vaerker: kort(va, ['Aendringslog', 'Tidsserie']),
             } as Arkivtal;
         } catch (e) {

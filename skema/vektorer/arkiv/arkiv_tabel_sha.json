@@ -1,9 +1,9 @@
 {
  "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
  "kilder": {
-  "app/rayfin/functions/src/arkiv.ts": "403b9a92037d85ac321e5f777a8e3dc2aa688f08e311cf4e4cd666d0ae57f629",
-  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
-  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
+  "app/rayfin/functions/src/arkiv.ts": "f1ddb52e9e8e80c983f0d3cd3ddb9dfdf951d61bf08e44329009eb0f1799e108",
+  "app/rayfin/functions/src/skema.data.ts": "6900e53ad682d57eb471e9e6954927fec5f8842d70744d8c4bfe1299cc73161c",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "29c22487dbe6e8cb805a86f540285da138ca7be42398c57fabe527ddc1fb8c5c"
  },
  "tilfaelde": [
   {

@@ -204,7 +204,9 @@ function målMedVaerk(kilde: H.Tabeller): H.Tabeller {
     for (const t of ['Vaerk', 'VaerkParameter', 'Aendringslog', 'Tidsserie'] as const) m[t] = new Map([...kilde[t]].map(([k, v]) => [k, { ...v }]));
     return m;
 }
+// Et BREDT værk (runde 14b): hver time har en KoerselTimeDel, så porten testes på delene i alle forløb.
 const k = H.eksempelDb(4);
+H.gørBred(k);
 const alle = (t: A.ImportTabel) => H.rækkerFra(k, t);
 const scenTrin: Trin = { tabel: 'Scenarie', raekker: alle('Scenarie'), aendringer: alle('ScenarieAendring') };
 const børneTrin: Trin[] = A.KOERSEL_BOERN.map((b) => ({ tabel: b, raekker: alle(b) }));
@@ -217,7 +219,7 @@ await forløb('F1: en ugyldig ændring afviser hele scenariedelen', målMedVaerk
 await forløb('kørsel før timerne', målMedVaerk(k), [...fuld.slice(0, 5), kørselTrin]);
 await forløb('rækker til en kørsel, der findes', målMedVaerk(k), [...fuld, { tabel: 'KoerselTime', raekker: [alle('KoerselTime')[0].map((v, i) => (i === 0 ? '77777777-1111-4111-8111-111111111111' : v))] }]);
 const fremmed = alle('KoerselNoegletal').map((r, i) => (i === 0 ? r.map((v, j) => (A.kolonnenavne('KoerselNoegletal')[j] === 'vaerdi' ? 123456789 : v)) : r));
-await forløb('F2: rækker fra et andet arkiv', målMedVaerk(k), [fuld[0], fuld[1], fuld[2], { tabel: 'KoerselNoegletal', raekker: fremmed, arkiv: 'd'.repeat(64) }, fuld[4], fuld[5], kørselTrin]);
+await forløb('F2: rækker fra et andet arkiv', målMedVaerk(k), [fuld[0], fuld[1], fuld[2], { tabel: 'KoerselNoegletal', raekker: fremmed, arkiv: 'd'.repeat(64) }, fuld[4], fuld[5], fuld[6], kørselTrin]);
 await forløb('F2: eksisterende kørsel med ændret barn', (() => {
     const m = målMedVaerk(k);
     for (const t of ['Scenarie', 'ScenarieAendring', 'Bestilling', 'Koersel', ...A.KOERSEL_BOERN] as const) m[t] = new Map([...k[t]].map(([i, r]) => [i, { ...r }]));

@@ -59,7 +59,7 @@ export type AppFunctionsSchema = {
   };
   arkivTal: {
     input: { scenarieIder: string };
-    output: { ok: boolean; fejl?: undefined | string; scenarier?: undefined | Record<string, { ScenarieAendring: number; Bestilling: number; Koersel: number }>; koersler?: undefined | Record<string, { KoerselInput: number; KoerselNoegletal: number; KoerselMaaned: number; KoerselTime: number }>; vaerker?: undefined | Record<string, { Aendringslog: number; Tidsserie: number }> };
+    output: { ok: boolean; fejl?: undefined | string; scenarier?: undefined | Record<string, { ScenarieAendring: number; Bestilling: number; Koersel: number }>; koersler?: undefined | Record<string, { KoerselInput: number; KoerselNoegletal: number; KoerselMaaned: number; KoerselTime: number; KoerselTimeDel: number }>; vaerker?: undefined | Record<string, { Aendringslog: number; Tidsserie: number }> };
   };
   skemaInfo: {
     input: Record<string, never>;

@@ -1,9 +1,9 @@
 {
  "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
  "kilder": {
-  "app/rayfin/functions/src/arkiv.ts": "403b9a92037d85ac321e5f777a8e3dc2aa688f08e311cf4e4cd666d0ae57f629",
-  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
-  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
+  "app/rayfin/functions/src/arkiv.ts": "f1ddb52e9e8e80c983f0d3cd3ddb9dfdf951d61bf08e44329009eb0f1799e108",
+  "app/rayfin/functions/src/skema.data.ts": "6900e53ad682d57eb471e9e6954927fec5f8842d70744d8c4bfe1299cc73161c",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "29c22487dbe6e8cb805a86f540285da138ca7be42398c57fabe527ddc1fb8c5c"
  },
  "tilfaelde": [
   {
@@ -203,14 +203,14 @@
   {
    "navn": "Koersel forventet uden sha",
    "input": {
-    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":2,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,4,3,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"antal\":{\"KoerselInput\":5,\"KoerselNoegletal\":2,\"KoerselMaaned\":2,\"KoerselTime\":3}}}}"
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":2,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,4,3,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"antal\":{\"KoerselInput\":5,\"KoerselNoegletal\":2,\"KoerselMaaned\":2,\"KoerselTime\":3,\"KoerselTimeDel\":0}}}}"
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: de forventede rækker (antal og sha256 pr. undertabel) mangler."
   },
   {
    "navn": "Koersel gyldig",
    "input": {
-    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":2,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,4,3,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"antal\":{\"KoerselInput\":5,\"KoerselNoegletal\":2,\"KoerselMaaned\":2,\"KoerselTime\":3},\"sha256\":{\"KoerselInput\":\"cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af\",\"KoerselNoegletal\":\"f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc\",\"KoerselMaaned\":\"b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb\",\"KoerselTime\":\"022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0\"}}}}"
+    "tekst": "{\"format\":\"fjv-arkiv-del\",\"version\":2,\"arkiv\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"tabel\":\"Koersel\",\"kolonner\":[\"id\",\"bestilling_id\",\"scenarie_id\",\"vaerk_id\",\"vaerk_revision\",\"input_hash\",\"status\",\"fase\",\"bestilt_af\",\"bestilt\",\"modtaget\",\"startet\",\"afsluttet\",\"hjerteslag\",\"annuller_anmodet\",\"forsoeg\",\"arbejder_id\",\"fabric_job_id\",\"kilde\",\"model_commit\",\"data_commit\",\"miljoe_json\",\"case_sti\",\"output_sti\",\"output_stem\",\"oploesning\",\"interval_min\",\"antal_interval_model\",\"antal_interval_csv\",\"solve_status\",\"er_milp\",\"objektiv_dkk\",\"oensket_rel_gap\",\"oensket_abs_gap\",\"opnaaet_gap\",\"best_bound\",\"loesetid_s\",\"fejlbesked\",\"manifest_json\"],\"raekker\":[[\"55555555-5555-4555-8555-555555555555\",\"44444444-4444-4444-8444-444444444444\",\"33333333-3333-4333-8333-333333333333\",\"11111111-1111-4111-8111-111111111111\",2,\"e11b6e653c0464837ad7d677600e9e416eb82edad10c9afba1a906b66072b02a\",\"faerdig\",\"Færdig\",\"a@example.org\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:00:01.123Z\",\"2026-10-01T08:00:00.000Z\",\"2026-10-01T08:03:00.000Z\",null,null,1,\"w1\",null,\"app\",\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"1111111111111111111111111111111111111111\",\"{\\\"python\\\":\\\"3.11\\\"}\",null,null,null,\"1h\",60,4,3,\"optimal\",true,867031.23,0.0002,100,0.00011,866950.5,12.345,null,\"{}\"]],\"forventet\":{\"55555555-5555-4555-8555-555555555555\":{\"antal\":{\"KoerselInput\":5,\"KoerselNoegletal\":2,\"KoerselMaaned\":2,\"KoerselTime\":3,\"KoerselTimeDel\":0},\"sha256\":{\"KoerselInput\":\"cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af\",\"KoerselNoegletal\":\"f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc\",\"KoerselMaaned\":\"b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb\",\"KoerselTime\":\"022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0\",\"KoerselTimeDel\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"}}}}"
    },
    "ud": {
     "format": "fjv-arkiv-del",
@@ -307,13 +307,15 @@
        "KoerselInput": 5,
        "KoerselNoegletal": 2,
        "KoerselMaaned": 2,
-       "KoerselTime": 3
+       "KoerselTime": 3,
+       "KoerselTimeDel": 0
       },
       "sha256": {
        "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
        "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
        "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-       "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+       "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+       "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       }
      }
     }

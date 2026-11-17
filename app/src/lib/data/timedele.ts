@@ -40,6 +40,21 @@ function indhold(json: string, hvor: string): string {
 }
 
 /**
+ * Ét intervals vaerdier_json af KoerselTime-rækkens og delenes (i delnr-orden 1, 2, …), sat sammen som TEKST.
+ * Bruges af læsevejen og af arkivets Timer-ark (bog.ts), så de to aldrig kan folde forskelligt ud.
+ */
+export function fletTekst(hvor: string, vaerdierJson: string, dele: readonly Pick<TimeDel, "delnr" | "vaerdier_json">[]): string {
+    if (dele.length === 0) return vaerdierJson;
+    const sorteret = [...dele].sort((a, b) => a.delnr - b.delnr);
+    sorteret.forEach((d, i) => {
+        if (d.delnr !== i + 1) throw new Error(`Intervaldata ${hvor} er ufuldstændige: del ${i + 1} mangler.`);
+    });
+    const stykker = [indhold(vaerdierJson, hvor), ...sorteret.map((d) => indhold(d.vaerdier_json, `${hvor}, del ${d.delnr}`))]
+        .filter((x) => x.length > 0);
+    return `{${stykker.join(",")}}`;
+}
+
+/**
  * Sætter hvert intervals dele sammen: `{...KoerselTime.vaerdier_json, ...del 1, ...del 2, …}` som tekst. Intervaller
  * uden dele returneres uændret. Et hul i delene eller en del uden sit interval er en fejl, ikke et halvt interval.
  */
@@ -54,14 +69,7 @@ export function fletTimedele<T extends Pick<Time, "tid" | "vaerdier_json">>(time
         const mine = pr.get(r.tid.getTime());
         if (!mine) return r;
         pr.delete(r.tid.getTime());
-        const hvor = r.tid.toISOString();
-        const sorteret = [...mine].sort((a, b) => a.delnr - b.delnr);
-        sorteret.forEach((d, i) => {
-            if (d.delnr !== i + 1) throw new Error(`Intervaldata kl. ${hvor} er ufuldstændige: del ${i + 1} mangler.`);
-        });
-        const stykker = [indhold(r.vaerdier_json, `kl. ${hvor}`), ...sorteret.map((d) => indhold(d.vaerdier_json, `kl. ${hvor}, del ${d.delnr}`))]
-            .filter((s) => s.length > 0);
-        return { ...r, vaerdier_json: `{${stykker.join(",")}}` };
+        return { ...r, vaerdier_json: fletTekst(`kl. ${r.tid.toISOString()}`, r.vaerdier_json, mine) };
     });
     if (pr.size) {
         const t = new Date(Math.min(...pr.keys())).toISOString();
