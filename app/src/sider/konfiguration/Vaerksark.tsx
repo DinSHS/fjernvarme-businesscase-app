@@ -70,12 +70,12 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
     const filFejl = fil ? vaerksarkFejl(fil) : null;
     const forældet = !!valg && valg.nøgle !== nøgleFor(vaerker);
     const læser = !!fil && !filFejl && !analyse && !analyseFejl;
-    const markeret = !!analyse && analyse.art !== "nyt";
+    const markeret = !!analyse && analyse.art !== "nyt" && analyse.art !== "afvist";
     const somNyt = markeret && !!valg?.somNyt;
     const revision = !somNyt && analyse?.art === "revision" ? analyse : undefined;
     // Et nyt værk får koden af 'værkets navn' i Priser; findes den, skal værket have et nyt navn først.
     const kodeFindes = !!analyse && (somNyt || analyse.art === "nyt") && !!analyse.arkKode && vaerker.some((x) => x.kode === analyse.arkKode);
-    const blokeret = kodeFindes || (!somNyt && (analyse?.art === "konflikt" || analyse?.art === "anden_eksport" || analyse?.art === "ingen_aendringer"));
+    const blokeret = kodeFindes || analyse?.art === "afvist" || (!somNyt && (analyse?.art === "konflikt" || analyse?.art === "anden_eksport" || analyse?.art === "ingen_aendringer"));
     const kan = !!valg?.bytes && !filFejl && !!analyse && !blokeret && !forældet && !!bruger && !sender;
     const seneste = (importer.data ?? []).slice(0, 4);
     const aktive = seneste.filter((i) => i.status === "koe" || i.status === "koerer").length;
@@ -206,6 +206,13 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
 
 /** Det, analysen fandt — før noget sendes. */
 function Analyse({ a }: { a: Uploadanalyse }) {
+    if (a.art === "afvist") {
+        return (
+            <p className="kf-svar" data-tone="fejl" role="alert" data-tilstand="afvist">
+                Appens faner i arket kan ikke bruges: {a.grund} Intet bliver gemt.
+            </p>
+        );
+    }
     if (a.art === "nyt") {
         return a.grund ? <p className="kf-svar" role="status"><Maerke>nyt værk</Maerke> {a.grund}</p> : null;
     }

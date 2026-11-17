@@ -676,3 +676,45 @@ class Laeseren(Ark):
     def test_en_formel_med_gemt_resultat_laeses_som_resultatet(self):
         lag = self.lag(start={**START, "F6": ("=0.1+0.104", 0.204)})
         self.assertEqual(lag.blade["units.gaskedel.co2_emissions_per_mwh_fuel"], "0.204")
+
+    def test_en_boolsk_formel_med_tomt_resultat_afvises(self):
+        # Codex' andet review, P2: <c t="b"><f>TRUE()</f><v/></c> blev læst som nej, så enheden blev slået fra.
+        for felt in ("C6", "E6"):                          # i drift (enabled) og start/stop-logik (uc_enabled)
+            besked = self.afvist(f"Start og drift!{felt}", start={**START, felt: ("=TRUE()", None, "b")})
+            self.assertIn("formel uden et gemt resultat", besked)
+        self.afvist("Start og drift!E11", start={**START, "E11": ("=FALSE()", None, "b")})   # cycle_binding
+        # Læseren selv: et tomt <v/> er intet resultat — for alle typer, ikke kun tal.
+        for t in ("b", "n", "str", "s"):
+            sti = skriv_xlsx(self.tmp / f"tom_{t}.xlsx", {"x": {"B3": ("=TRUE()", None, t)}})
+            self.assertIs(AL.laes_ark(sti)["x"][(3, 2)], AL.FORMEL_UDEN_RESULTAT, t)
+
+    def test_en_boolsk_formel_med_gemt_resultat_laeses_som_resultatet(self):
+        self.assertEqual(self.lag(start={**START, "C6": ("=TRUE()", True)}).blade["units.gaskedel.enabled"], "true")
+        self.assertEqual(self.lag(start={**START, "C6": ("=FALSE()", False)}).blade["units.gaskedel.enabled"], "false")
+
+
+class Faneform(Ark):
+    """Codex' andet review, P2: en fane i en form, importen ikke kender, må aldrig ignoreres. Før rettelserne i runde 14
+    havde Øvrige felter stien i kolonne A (overskrift ``sti | værdi | kun hvis modelscriptet giver``); den form blev
+    læst som nul felter, og scriptets værdi blev stående uden besked."""
+
+    TIDLIGERE_OEVRIGE = {"A1": "Øvrige felter", "A4": "sti", "B4": "værdi", "C4": LAG.KUN_HVIS,
+                         "A5": "electricity.tariff_consumption_flat", "B5": 125, "C5": 129.8}
+
+    def test_den_tidligere_form_af_oevrige_felter_afvises_med_besked_om_at_eksportere_igen(self):
+        besked = self.afvist("Øvrige felter!A4", oevrige=self.TIDLIGERE_OEVRIGE)
+        self.assertIn("ældre udgave af appen", besked)
+        self.assertIn("Eksportér værket igen", besked)
+
+    def test_en_ukendt_overskriftsraekke_i_de_andre_faner_afvises(self):
+        # Tabellens sti-række omdøbt: tabellen genkendes ikke længere, og rækken ville tavst være uden virkning.
+        self.assertIn("ligner en overskrift", self.afvist("Start og drift!A10", start={**START, "A10": "sti"}))
+        # En feltblok, hvis 'felt' er rettet: rækken har stadig 'sti i modellen', men er ikke en blok.
+        self.assertIn("ligner en overskrift", self.afvist("Balancemarked!E4", balance={**BALANCE, "A4": "felter"}))
+        # En løs 'kun hvis modelscriptet giver' uden for en blok.
+        self.afvist("Øvrige felter!C20", oevrige={**OEVRIGE, "C20": LAG.KUN_HVIS})
+
+    def test_appens_egen_form_har_ingen_ukendte_overskrifter(self):
+        for navn, fane in ((LAG.START_OG_DRIFT, START), (LAG.BALANCEMARKED, BALANCE), (LAG.OEVRIGE, OEVRIGE)):
+            c = {(int(re.sub(r"\D", "", ref)), AL.kolonne_nr(re.sub(r"\d", "", ref))): v for ref, v in fane.items()}
+            self.assertEqual(LAG.ukendte_overskrifter(navn, c), [], navn)

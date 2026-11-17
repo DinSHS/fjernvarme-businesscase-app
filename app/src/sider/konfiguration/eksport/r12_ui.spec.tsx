@@ -128,4 +128,17 @@ describe("upload-kortet genkender et eksporteret ark", () => {
         await act(async () => { fireEvent.click(knap); });
         expect(t.upload).toHaveBeenCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org");
     }, 30_000);
+    it("Codex' andet review: en formel uden gemt resultat i appens faner spærrer, før noget sendes", async () => {
+        const e = await eksporter(andeby(), skabelon());
+        const wb = new Arbejdsbog(e.bytes);
+        const fane = wb.regneark("Start og drift");
+        const [r, k] = [...fane.rækker].flatMap(([nr, x]) => [...x.celler].filter(([, c]) => /<t[^>]*>ja<\/t>/.test(c)).map(([kol]) => [nr, kol] as const))[0];
+        const ref = `${String.fromCharCode(64 + k)}${r}`;
+        fane.rækker.get(r)!.celler.set(k, `<c r="${ref}" t="b"><f>TRUE()</f><v/></c>`);
+        await vælgArk(wb.bytes());
+        const a = await screen.findByRole("alert", {}, { timeout: 15_000 });
+        expect(a.textContent).toMatch(new RegExp(`Start og drift!${ref}: cellen har en formel uden et gemt resultat.*Intet bliver gemt`));
+        expect(screen.queryByRole("button", { name: /Gem|Upload/ })).toBeNull();
+        expect(screen.queryByLabelText(/Opret som nyt værk i stedet/)).toBeNull();
+    }, 30_000);
 });

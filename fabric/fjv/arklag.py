@@ -210,6 +210,20 @@ def _laes_fane(navn: str, c: dict, ud: Laesning, fejl: list) -> None:
         pr.setdefault(r, {})[k] = v
     raekker = sorted(pr)
     starter = [r for r in raekker if _er_feltblok(pr, r) or _er_tabel(pr, r)]
+    # Codex' andet review: en række, der ligner en overskrift, men ikke er en blok, ville gøre dens felter tavst
+    # virkningsløse (fx Øvrige felter i formen fra før rettelserne). Den afviser fanen, før noget læses.
+    ukendte = _ukendte(navn, pr, starter)
+    for r, k, aeldre in ukendte:
+        if aeldre:
+            fejl.append(f"{navn}!{AL.ref(r, k)}: fanen er i formen fra en ældre udgave af appen (stien i kolonne A), "
+                        "som appen ikke længere læser. Eksportér værket igen, og læg dine rettelser ind i det nye ark")
+        else:
+            fejl.append(f"{navn}!{AL.ref(r, k)}: rækken ligner en overskrift ({str(pr[r][k]).strip()!r}), men er "
+                        f"hverken en feltblok ('felt' i kolonne A og en kolonne '{STI_OVERSKRIFT}') eller en tabel "
+                        f"('{STI_OVERSKRIFT}' i kolonne A i rækken under overskriften), så dens felter ville ikke blive "
+                        "læst. Ret overskriften tilbage, eller eksportér værket igen")
+    if ukendte:
+        return
     for i, h in enumerate(starter):
         fra = bisect.bisect_right(raekker, h)
         til = bisect.bisect_left(raekker, starter[i + 1]) if i + 1 < len(starter) else len(raekker)
@@ -218,6 +232,41 @@ def _laes_fane(navn: str, c: dict, ud: Laesning, fejl: list) -> None:
             _feltblok(navn, pr, h, blok, ud, fejl)
         else:
             _tabel(navn, pr, h, blok, ud, fejl)
+
+
+#: Ord, der kun står i en bloks overskrift. "sti" i kolonne A i Øvrige felter er fanen i formen fra før runde 14's
+#: rettelser.
+_OVERSKRIFTSORD = ("sti", STI_OVERSKRIFT)
+
+
+def _ukendte(navn: str, pr: dict, starter: list) -> list:
+    """(række, kolonne, ældre form) for hver række med et overskriftsord, som ikke er en kendt bloks overskrift.
+
+    Kendte rækker er en feltbloks overskrift og en tabels overskrift og sti-række. Delt med browseren
+    (``ukendteOverskrifter`` i ``lag.ts``) via ``skema/vektorer/arklag/faner.json``."""
+    kendte = set()
+    for h in starter:
+        kendte.add(h)
+        if not _er_feltblok(pr, h):
+            kendte.add(h + 1)
+    ud = []
+    for r in sorted(pr):
+        if r in kendte:
+            continue
+        for k, v in sorted(pr[r].items()):
+            t = AL.norm(v)
+            if t in _OVERSKRIFTSORD or t.startswith(KUN_HVIS):
+                ud.append((r, k, navn == OEVRIGE and k == 1 and t == "sti"))
+                break
+    return ud
+
+
+def ukendte_overskrifter(navn: str, c: dict) -> list:
+    """``[(række, kolonne, ældre form)]`` for fanens celler ``{(række, kolonne): værdi}`` (til de delte vektorer)."""
+    pr: dict = {}
+    for (r, k), v in c.items():
+        pr.setdefault(r, {})[k] = v
+    return _ukendte(navn, pr, [r for r in sorted(pr) if _er_feltblok(pr, r) or _er_tabel(pr, r)])
 
 
 def _kolonne(pr: dict, r: int, overskrift: str, praefiks: bool = False) -> int | None:

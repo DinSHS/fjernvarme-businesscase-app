@@ -2,6 +2,8 @@
 // Upload af et værksark: er det et ark, appen har eksporteret, og hvad er
 // ændret? (runde 12). Afgøres i browseren, før noget sendes:
 //
+//   * appens faner kan ikke læses (en formel uden gemt
+//     resultat, en ukendt overskrift)               -> afvist: intet sendes (importen ville afvise det samme)
 //   * ingen markering, eller værket findes ikke her  -> nyt værk (som før)
 //   * arket er i et ældre format (før appens faner)    -> eksportér igen (runde 14)
 //   * værkets revision != arkets                      -> konflikt: eksportér igen
@@ -24,12 +26,18 @@ import { læsCeller } from "./xlsx";
 
 /** `arkKode` = koden, et nyt værk fra arket får (modelscriptets slug af 'værkets navn' i Priser). */
 export type Uploadanalyse = (
+    | { art: "afvist"; grund: string }
     | { art: "nyt"; grund?: string }
     | { art: "konflikt"; vaerk: Vaerkhoved; arkRevision: number }
     | { art: "anden_eksport"; vaerk: Vaerkhoved; /** Arket er i et ældre format (før appens egne faner). */ ældre?: boolean }
     | { art: "ingen_aendringer"; vaerk: Vaerkhoved; ikkeGemt?: Ændring[] }
     | { art: "revision"; vaerk: Vaerkhoved; forskel: Forskel; basis: Uint8Array }
-) & { arkKode?: string };
+) & {
+    arkKode?: string;
+    /** Arket er eksporteret af appen (har markeringen `_app`): tidsstemplerne er timens START i UTC, så importen
+     *  må aldrig få --timeslut — heller ikke, når arket oprettes som et nyt værk (Codex' andet review). */
+    fraAppen?: boolean;
+};
 
 export interface Hentere {
     kilde: (v: Vaerkhoved) => Promise<Eksportkilde>;
@@ -43,8 +51,9 @@ export async function analyserUpload(bytes: Uint8Array, vaerker: readonly Vaerkh
     try { g = genkend(bytes); } catch { return { art: "nyt" }; }
     const navn = g.model.poster.get("værkets navn") ?? g.model.poster.get("Værkets navn");
     const arkKode = navn === undefined ? undefined : slug(String(navn)) || undefined;
-    const ud = (a: Uploadanalyse): Uploadanalyse => (arkKode ? { ...a, arkKode } : a);
     const m = g.markering;
+    const ud = (a: Uploadanalyse): Uploadanalyse => ({ ...a, ...(arkKode ? { arkKode } : {}), ...(m ? { fraAppen: true } : {}) });
+    if (g.afvist.length) return ud({ art: "afvist", grund: `${g.afvist.slice(0, 5).join("; ")}${g.afvist.length > 5 ? ` (og ${g.afvist.length - 5} mere)` : ""}.` });
     if (!m) return ud({ art: "nyt" });
     const v = vaerker.find((x) => x.id.toLowerCase() === m.vaerk_id);
     if (!v) return ud({ art: "nyt", grund: `Arket er eksporteret fra værket "${m.vaerk_kode}" (revision ${m.revision}), som ikke findes her. Det uploades som et nyt værk.` });

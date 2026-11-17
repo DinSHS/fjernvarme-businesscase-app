@@ -148,7 +148,9 @@ def _laes_fane(data: bytes, navn: str, delte: list[str]) -> dict:
         elif t in ("str", "e"):
             vaerdi = _xml_tekst(v.text or "") if v is not None else None
         elif t == "b":
-            vaerdi = (v.text or "").strip() == "1" if v is not None else None
+            # Et tomt <v/> er intet resultat, ikke "nej" (Codex' andet review: en boolsk formel uden gemt resultat
+            # slog en enhed fra). Først om der er et resultat, så dets type.
+            vaerdi = v.text.strip() == "1" if v is not None and (v.text or "").strip() else None
         else:
             vaerdi = _tal(v.text) if v is not None and (v.text or "").strip() else None
         if vaerdi is None or vaerdi == "":

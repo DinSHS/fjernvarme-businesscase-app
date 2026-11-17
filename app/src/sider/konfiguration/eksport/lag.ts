@@ -896,28 +896,62 @@ function kolNr(bogstaver: string): number { let n = 0; for (const ch of bogstave
  * validering: det er til visningen af, hvad brugeren har ændret, før noget sendes. Stierne står i arkets navne.
  * Løkkerne går over de rækker og kolonner, arket HAR celler i (Codex' review, fund 1).
  */
+/** En fanes celler pr. række og dens blokke (feltblokke og tabeller), fundet på overskrifterne som i fjv.arklag. */
+function blokke(c: ReadonlyMap<string, V>) {
+    const pr = new Map<number, Map<number, V>>();
+    for (const [key, v] of c) {
+        const m = /^([A-Z]+)(\d+)$/.exec(key);
+        if (!m) continue;
+        const r = Number(m[2]);
+        if (!pr.has(r)) pr.set(r, new Map());
+        pr.get(r)!.set(kolNr(m[1]), v);
+    }
+    const rækker = [...pr.keys()].sort((a, b) => a - b);
+    const celle = (r: number, kol: number) => pr.get(r)?.get(kol);
+    const kolMed = (r: number, tekst: string, præfiks = false) => {
+        for (const [kol, v] of pr.get(r) ?? []) { const t = norm(v); if (t && (t === tekst || (præfiks && t.startsWith(tekst)))) return kol; }
+        return 0;
+    };
+    const erFeltblok = (r: number) => norm(celle(r, 1)) === "felt" && kolMed(r, STI_OVERSKRIFT) > 0;
+    const erTabel = (r: number) => norm(celle(r + 1, 1)) === STI_OVERSKRIFT;
+    const starter = rækker.filter((r) => erFeltblok(r) || erTabel(r));
+    return { pr, rækker, celle, kolMed, erFeltblok, starter };
+}
+
+/** Ord, der kun står i en bloks overskrift. "sti" i kolonne A i Øvrige felter er fanen i formen fra før runde 14's rettelser. */
+const OVERSKRIFTSORD = new Set(["sti", STI_OVERSKRIFT]);
+
+/**
+ * Rækker, der ligner en overskrift (sti, sti i modellen, kun hvis modelscriptet giver), men ikke er en kendt bloks
+ * overskrift eller en tabels sti-række: deres felter ville ellers tavst ikke blive læst (Codex' andet review).
+ * `ældre` = Øvrige felter i formen fra før rettelserne (stien i kolonne A). Importen afviser samme rækker
+ * (fjv.arklag.ukendte_overskrifter; fælles vektorer i skema/vektorer/arklag/faner.json).
+ */
+export function ukendteOverskrifter(navn: string, c: ReadonlyMap<string, V>): { ref: string; ældre: boolean }[] {
+    const { pr, rækker, erFeltblok, starter } = blokke(c);
+    const kendte = new Set(starter.flatMap((h) => (erFeltblok(h) ? [h] : [h, h + 1])));
+    const ud: { ref: string; ældre: boolean }[] = [];
+    for (const r of rækker) {
+        if (kendte.has(r)) continue;
+        const fund = [...pr.get(r)!].sort(([a], [b]) => a - b).find(([, v]) => { const t = norm(v); return OVERSKRIFTSORD.has(t) || t.startsWith(KUN_HVIS); });
+        if (fund) ud.push({ ref: ref(fund[0], r), ældre: navn === OEVRIGE && fund[0] === 1 && norm(fund[1]) === "sti" });
+    }
+    return ud;
+}
+
+/** Afvisningens tekst for en ukendt overskrift (samme ordlyd som importen, fjv.arklag). */
+export function ukendtOverskriftTekst(navn: string, u: { ref: string; ældre: boolean }, v: V | undefined): string {
+    return u.ældre
+        ? `${navn}!${u.ref}: fanen er i formen fra en ældre udgave af appen (stien i kolonne A), som appen ikke længere læser. Eksportér værket igen, og læg dine rettelser ind i det nye ark`
+        : `${navn}!${u.ref}: rækken ligner en overskrift ('${String(v ?? "").trim()}'), men er hverken en feltblok ('felt' i kolonne A og en kolonne '${STI_OVERSKRIFT}') eller en tabel ('${STI_OVERSKRIFT}' i kolonne A i rækken under overskriften), så dens felter ville ikke blive læst. Ret overskriften tilbage, eller eksportér værket igen`;
+}
+
 export function læsLag(ark: ReadonlyMap<string, ReadonlyMap<string, V>>): Map<string, Lagcelle> {
     const ud = new Map<string, Lagcelle>();
     for (const navn of LAGFANER) {
         const c = ark.get(navn);
         if (!c) continue;
-        const pr = new Map<number, Map<number, V>>();
-        for (const [key, v] of c) {
-            const m = /^([A-Z]+)(\d+)$/.exec(key);
-            if (!m) continue;
-            const r = Number(m[2]);
-            if (!pr.has(r)) pr.set(r, new Map());
-            pr.get(r)!.set(kolNr(m[1]), v);
-        }
-        const rækker = [...pr.keys()].sort((a, b) => a - b);
-        const celle = (r: number, kol: number) => pr.get(r)?.get(kol);
-        const kolMed = (r: number, tekst: string, præfiks = false) => {
-            for (const [kol, v] of pr.get(r) ?? []) { const t = norm(v); if (t && (t === tekst || (præfiks && t.startsWith(tekst)))) return kol; }
-            return 0;
-        };
-        const erFeltblok = (r: number) => norm(celle(r, 1)) === "felt" && kolMed(r, STI_OVERSKRIFT) > 0;
-        const erTabel = (r: number) => norm(celle(r + 1, 1)) === STI_OVERSKRIFT;
-        const starter = rækker.filter((r) => erFeltblok(r) || erTabel(r));
+        const { pr, rækker, celle, kolMed, erFeltblok, starter } = blokke(c);
         const sæt = (sti: string, r: number, kol: number, betingelse?: V) => ud.set(sti, { sti, v: celle(r, kol), hvor: `${navn}!${ref(kol, r)}`, ...(betingelse !== undefined ? { betingelse } : {}) });
         starter.forEach((h, i) => {
             const slut = starter[i + 1] ?? Infinity;

@@ -21,7 +21,7 @@ import { analyserUpload, type Hentere } from "./analyse";
 import { eksporter, læsMarkering, MARKOER_ARK, MARKOER_FORMAT, MARKOER_FORMAT_FOER, tomSkabelon } from "./eksporter";
 import { genkend, læsArkmodel, sammenlign } from "./genkend";
 import { planlæg, type Eksportkilde } from "./kort";
-import { APPENS_FANER, BALANCEMARKED, celleFor, FINDES_IKKE, KUN_HVIS, LAES_FOERST, læsCelle, læsLag, OEVRIGE, sammeTal, START_OG_DRIFT, STI_OVERSKRIFT } from "./lag";
+import { APPENS_FANER, BALANCEMARKED, celleFor, FINDES_IKKE, KUN_HVIS, LAES_FOERST, læsCelle, læsLag, OEVRIGE, sammeTal, START_OG_DRIFT, STI_OVERSKRIFT, ukendteOverskrifter } from "./lag";
 import { andeby, ANDEBY_ID, skabelon } from "./testdata";
 import { Arbejdsbog, delRef, læsCeller } from "./xlsx";
 
@@ -430,6 +430,91 @@ describe("browserens læser", () => {
         læsArkmodel(ark as Map<string, Map<string, string | number>>);
         expect(opslag).toBeLessThan(5000);
     });
+});
+
+// ------------------------------------------------------------------ Codex' andet review (P2): formel og faneform
+
+/** En rå celle, som et andet program kan gemme den. */
+function sætRå(wb: Arbejdsbog, fane: string, celleRef: string, xml: string) {
+    const { kol, række } = delRef(celleRef);
+    wb.regneark(fane).sæt(celleRef, null);
+    wb.regneark(fane).rækker.get(række)!.celler.set(kol, xml);
+}
+const VAERKER = [{ id: ANDEBY_ID, kode: "andeby", navn: "Andeby — fiktivt referenceværk", revision: 1 }];
+const HENT: Hentere = { kilde: async () => andeby(), skabelon: async () => skabelon() };
+
+const FANEVEKTORFIL = resolve(import.meta.dirname, "../../../../../skema/vektorer/arklag/faner.json");
+/** Fanens celler med én celle ændret (null = slettet). */
+const med = (c: ReadonlyMap<string, string | number>, ret: Record<string, string | number | null>) => {
+    const ud = new Map(c);
+    for (const [k, v] of Object.entries(ret)) { if (v === null) ud.delete(k); else ud.set(k, v); }
+    return ud;
+};
+/** Den første række med `tekst` i kolonne A (en feltbloks overskrift, en tabels sti-række). */
+const overskrift = (c: ReadonlyMap<string, string | number>, tekst: string) => {
+    const r = [...c].filter(([k, v]) => /^A\d+$/.test(k) && v === tekst).map(([k]) => Number(k.slice(1))).sort((a, b) => a - b);
+    return r[0];
+};
+
+describe("Codex' andet review: formler uden resultat og ukendte faneformer afvises — også i browseren", () => {
+    it("en boolsk formel med tomt <v/> er ikke nej, men en formel uden resultat: analysen afviser arket med celle", async () => {
+        const e = await eksporter(andeby(), skabelon(), NU);
+        const [fane, ref] = læsLag(læsCeller(e.bytes)).get("units.gasmotor.enabled")!.hvor.split("!");
+        for (const xml of [`<c r="${ref}" t="b"><f>TRUE()</f><v/></c>`, `<c r="${ref}" t="b"><f>TRUE()</f><v></v></c>`,
+            `<c r="${ref}"><f>0.2</f></c>`, `<c r="${ref}" t="str"><f>"ja"</f><v></v></c>`]) {
+            const wb = new Arbejdsbog(e.bytes);
+            sætRå(wb, fane, ref, xml);
+            const uden: string[] = [];
+            expect(læsCeller(wb.bytes(), uden).get(fane)!.get(ref), xml).toBeUndefined();
+            // (Listen gælder hele arbejdsbogen — Varmepumpes IF(…;"") læses af modelscriptet; analysen ser kun appens faner.)
+            expect(uden.filter((x) => x.startsWith(`${fane}!`)), xml).toEqual([`${fane}!${ref}`]);
+            expect(await analyserUpload(wb.bytes(), VAERKER, HENT), xml).toMatchObject({ art: "afvist", grund: expect.stringMatching(new RegExp(`${fane}!${ref}: cellen har en formel uden et gemt resultat`)) });
+        }
+        const wb = new Arbejdsbog(e.bytes);
+        sætRå(wb, fane, ref, `<c r="${ref}" t="b"><f>TRUE()</f><v>1</v></c>`);
+        expect(læsCeller(wb.bytes()).get(fane)!.get(ref)).toBe(1);                     // gemt resultat: læses som det
+        // En formel uden resultat i modelrepoets faner afviser ikke her: dem læser modelscriptet (som før).
+        const wb2 = new Arbejdsbog(e.bytes);
+        sætRå(wb2, "Anlaeg", "H9", `<c r="H9"><f>30</f></c>`);
+        expect((await analyserUpload(wb2.bytes(), VAERKER, HENT)).art).not.toBe("afvist");
+    }, 30_000);
+
+    it("Øvrige felter i formen fra før rettelserne (stien i kolonne A) afvises med besked om at eksportere igen", async () => {
+        const e = await eksporter(andeby(), skabelon(), NU);
+        const c = læsCeller(e.bytes).get(OEVRIGE)!;
+        const h = overskrift(c, "felt");
+        expect(ukendteOverskrifter(OEVRIGE, c)).toEqual([]);
+        expect(ukendteOverskrifter(OEVRIGE, med(c, { [`A${h}`]: "sti" }))).toEqual([{ ref: `A${h}`, ældre: true }]);
+        const wb = new Arbejdsbog(e.bytes);
+        wb.regneark(OEVRIGE).sæt(`A${h}`, "sti");
+        const a = await analyserUpload(wb.bytes(), VAERKER, HENT);
+        expect(a).toMatchObject({ art: "afvist", grund: expect.stringMatching(/ældre udgave af appen.*Eksportér værket igen/) });
+        expect(await analyserUpload(wb.bytes(), [], HENT)).toMatchObject({ art: "afvist" });          // også som nyt værk
+    }, 30_000);
+
+    it("de fælles vektorer for fanernes form: appens egen eksport har ingen ukendte overskrifter", async () => {
+        const c = læsCeller((await eksporter(andeby(), skabelon(), NU)).bytes);
+        const start = c.get(START_OG_DRIFT)!, bal = c.get(BALANCEMARKED)!, oev = c.get(OEVRIGE)!;
+        const tilfaelde: [string, string, ReadonlyMap<string, string | number>][] = [
+            ["Andebys eksport", START_OG_DRIFT, start], ["Andebys eksport", BALANCEMARKED, bal], ["Andebys eksport", OEVRIGE, oev],
+            ["tidligere Øvrige felter", OEVRIGE, new Map<string, string | number>([["A1", "Øvrige felter"], ["A4", "sti"], ["B4", "værdi"], ["C4", KUN_HVIS], ["A5", "electricity.tariff_consumption_flat"], ["B5", 125], ["C5", 129.8]])],
+            ["tabellens sti-række omdøbt", START_OG_DRIFT, med(start, { [`A${overskrift(start, STI_OVERSKRIFT)}`]: "sti" })],
+            ["feltblokkens 'felt' omdøbt", BALANCEMARKED, med(bal, { [`A${overskrift(bal, "felt")}`]: "felter" })],
+            ["løs 'kun hvis' under fanen", OEVRIGE, med(oev, { C900: KUN_HVIS })],
+            ["'sti i modellen' slettet: tabellen er væk, ingen overskrift tilbage", START_OG_DRIFT, med(start, { [`A${overskrift(start, STI_OVERSKRIFT)}`]: null })],
+        ];
+        const beregnet = {
+            _om: "Appens faner i værksarket: rækker, der ligner en overskrift, men ikke er en kendt blok (Codex' andet review, runde 14). Genereret af app/src/sider/konfiguration/eksport/lag.spec.ts (FJV_SKRIV_VEKTORER=1) fra ukendteOverskrifter; fabric/tests/test_arklag_vektorer.py kræver samme udfald af fjv.arklag.ukendte_overskrifter. Ret aldrig i hånden.",
+            tilfaelde: tilfaelde.map(([navn, fane, celler]) => ({ navn, fane, celler: Object.fromEntries(celler), ud: ukendteOverskrifter(fane, celler) })),
+        };
+        if (process.env.FJV_SKRIV_VEKTORER) writeFileSync(FANEVEKTORFIL, `${JSON.stringify(beregnet, null, 1)}\n`);
+        expect(existsSync(FANEVEKTORFIL), "kør: FJV_SKRIV_VEKTORER=1 npx vitest run src/sider/konfiguration/eksport/lag.spec.ts").toBe(true);
+        expect(JSON.parse(readFileSync(FANEVEKTORFIL, "utf8"))).toEqual(beregnet);
+        expect(beregnet.tilfaelde.slice(0, 3).map((t) => t.ud)).toEqual([[], [], []]);
+        expect(beregnet.tilfaelde.slice(3, 7).map((t) => t.ud.length)).toEqual([1, 1, 1, 1]);
+        expect(beregnet.tilfaelde[3].ud).toEqual([{ ref: "A4", ældre: true }]);
+        expect(beregnet.tilfaelde[4].ud).toEqual([{ ref: expect.stringMatching(/^A\d+$/), ældre: false }]);
+    }, 30_000);
 });
 
 // ------------------------------------------------------------------ genupload
