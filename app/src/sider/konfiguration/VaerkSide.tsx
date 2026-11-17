@@ -23,6 +23,8 @@ import { ModelrepoKort } from "./Modelrepo";
 import { VaerdikildeKontekst, vaerdikilde } from "./modelrepo-logik";
 import { rodKode } from "../scenarier/hjaelp";
 import { EksportKort } from "./eksport/EksportKort";
+import { BalancemarkedKort, FjernBalancemarked, TilfoejBalancemarked } from "./BalancemarkedFane";
+import { StartAdvarselKort } from "./TilfoejFelt";
 
 const EKSTRA = [
     { id: "tidsserier", navn: "Tidsserier" },
@@ -103,6 +105,7 @@ export function VaerkSide({ kode, fane, valg, gåTil, bruger }: { kode: string; 
                     </Kort>
                 </Gitter>
             )}
+            {parametre.data && !["log", "aendringer", "kilde", "tidsserier", "eksport"].includes(aktiv) && <StartAdvarselKort rt={rt} kode={kode} />}
             <VaerdikildeKontekst.Provider value={(sti, v) => (vaerk ? vaerdikilde(rodKode(vaerk, vaerker.data), sti, v) : undefined)}>
             <DataTilstand h={parametre} højde={320}>
                 {(blade) => {
@@ -120,7 +123,17 @@ export function VaerkSide({ kode, fane, valg, gåTil, bruger }: { kode: string; 
                         case "priser": return <Priser {...fælles} />;
                         case "el": return <ElTarif {...fælles} />;
                         case "varmelast": return <Varmelast {...fælles} />;
-                        case "balancering": case "tid": case "meta": case "oevrige":
+                        case "balancering": {
+                            const refs = { scenarieAendringer: scenarieAendringer.data?.map((x) => x.aendring),
+                                scenarier: [...new Map((scenarieAendringer.data ?? []).map((x) => [x.scenarie.id, { id: x.scenarie.id, navn: x.scenarie.navn }])).values()] };
+                            if (valg === "tilfoej") return <TilfoejBalancemarked kode={kode} rt={rt} gåTil={gåTil} />;
+                            if (valg === "fjern") return <FjernBalancemarked kode={kode} rt={rt} gåTil={gåTil} {...refs} />;
+                            return <>
+                                <Gitter><BalancemarkedKort kode={kode} rt={rt} gåTil={gåTil} /></Gitter>
+                                <GenereltAfsnit {...fælles} id="balancering" vaerk={vaerk} />
+                            </>;
+                        }
+                        case "tid": case "meta": case "oevrige":
                             return <GenereltAfsnit {...fælles} id={aktiv as "balancering"} vaerk={vaerk} />;
                         case "tidsserier": return <TidsserieFane vaerk={vaerk} blade={blade} valg={valg} gåTil={gåTil} bruger={bruger} />;
                         case "log": return <Revisionslog vaerk={vaerk} />;

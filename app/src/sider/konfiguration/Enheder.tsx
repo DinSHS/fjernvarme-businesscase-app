@@ -15,8 +15,11 @@ import { fjernObjekt, scenarieReferencer } from "./redigering";
 import type { RedigeringsTilstand } from "./useRedigering";
 import { RedigerKnapper, RedigerSvar } from "./RedigerKnapper";
 import { dk, dkFri } from "./vis";
+import { TilfoejFelt } from "./TilfoejFelt";
 
 export interface ScenarieRef { id: string; navn: string }
+
+const UNITS = ["units"] as const;
 
 export function Enheder({ g, rt, visAlle, kode, valgt, blade, scenarieAendringer, scenarier, gåTil }: {
     g: Gruppering; rt: RedigeringsTilstand; visAlle: boolean; kode: string; valgt: string | undefined;
@@ -68,6 +71,7 @@ export function Enheder({ g, rt, visAlle, kode, valgt, blade, scenarieAendringer
                         fod={<RedigerSvar rt={rt} />}>
                         <FeltListe blade={valgtObj.blade} visAlle={visAlle} red={rt.red} fund={rt.fund}
                             gruppe={(b) => (b.rel.includes(".") ? b.rel.split(".")[0] : "Enheden")} />
+                        <TilfoejFelt rt={rt} sektioner={UNITS} objekt={valgtObj.navn} />
                         {rt.red.aktiv && <FjernEnhed navn={valgtObj.navn} blade={blade} rt={rt}
                             scenarieAendringer={scenarieAendringer} scenarier={scenarier} efter={() => gåTil(`konfiguration/${kode}/enheder`)} />}
                     </Kort>

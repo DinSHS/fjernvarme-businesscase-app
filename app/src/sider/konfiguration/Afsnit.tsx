@@ -16,6 +16,7 @@ import { ProfilGraf } from "./Grafer";
 import type { RedigeringsTilstand } from "./useRedigering";
 import { RedigerKnapper, RedigerSvar } from "./RedigerKnapper";
 import { dk, dkFri, pctTekst } from "./vis";
+import { TilfoejFelt } from "./TilfoejFelt";
 
 interface Fælles { g: Gruppering; rt: RedigeringsTilstand; visAlle: boolean }
 
@@ -32,6 +33,7 @@ function Feltkort({ a, rt, visAlle, budskab, gruppe, valg }: Fælles & {
         <Kort titel={a.def.navn} afgraensning={`${blade.length} felter${!visAlle && skjulte ? `, ${skjulte} skjult` : ""}`} budskab={budskab}
             handling={<RedigerKnapper rt={rt} />} fod={<RedigerSvar rt={rt} />}>
             <FeltListe blade={blade} visAlle={visAlle} red={rt.red} fund={rt.fund} gruppe={gruppe} valg={valg} />
+            <TilfoejFelt rt={rt} sektioner={a.def.sektioner} />
         </Kort>
     );
 }
