@@ -54,22 +54,35 @@ priser, eltarif, DMI-område og priszone, den aktive målte varmelast (Timedata)
 *Solvarme*, som modelscriptet læser). Arket bygges i browseren i begge udgaver; filen hedder `<kode>_rev<N>.xlsx`.
 
 **Appens egne faner (runde 14).** Skabelonen kan kun bære en del af et værk, og modelscriptet sætter selv resten
-(slukket ved start, halvfuld tank, CO₂-faktor 0,2 for gas, intet balancemarked). Derfor har det eksporterede ark tre
-faner mere, efter modelrepoets:
+(slukket ved start, halvfuld tank, CO₂-faktor 0,2 for gas, intet balancemarked). Derfor har det eksporterede ark fire
+faner mere — *Læs først* forrest (arket åbner dér) og tre efter modelrepoets:
 
-| Fane | Indhold | Tom celle |
-|---|---|---|
-| **Start og drift** | én række pr. enhed (navnet som i Anlaeg): i drift, tændt ved start, start/stop-logik, CO₂-faktor, idriftsættelsesår, noter; én række pr. tank: i drift, indhold ved start, varmetab pr. time, slut som start, noter | feltet sættes ikke — modellen bruger sin standard (står under tabellen) |
-| **Balancemarked** | hele `balancing`-blokken: metode, budstrategi, lofter i alt og pr. enhed og marked, reservationsregler, aktivering, månedsloft — og enhedernes egne budfelter | feltet sættes ikke; en helt tom fane er et værk uden balancemarked |
-| **Øvrige felter** | hvert felt, som hverken modelrepoets faner eller de to andre bærer: sti, værdi og forklaring fra feltkataloget | – (teksten `(findes ikke)` betyder, at værket ikke har feltet) |
+| Fane | Indhold |
+|---|---|
+| **Læs først** | værkets navn, kode og revision; hvad fanerne og farverne betyder; "slet ikke `_app`"; hvad der ikke gemmes ved genupload; og for netop dette værk hvert sted, hvor en værdi i modelrepoets faner **ikke** er den, modellen bruger (fx tankens kapacitet, tariffen, solvarmens årsproduktion, perioden, startomkostninger uden start/stop-logik) — med cellen, der gælder |
+| **Start og drift** | blokken *Værket* øverst (nettilslutning og modelperiode), så én række pr. enhed (navnet som i Anlaeg): i drift, tændt ved start, start/stop-logik, CO₂-faktor, idriftsættelsesår, noter; og én række pr. tank: i drift, indhold ved start, varmetab pr. time, slut som start, noter |
+| **Balancemarked** | *hvordan* værket byder (om der regnes med balancemarked, vælges på scenariet): metode, budstrategi, lofter i alt og pr. enhed og marked, reservationsregler, aktivering, månedsloft — og enhedernes egne budfelter. Lister vises med danske betegnelser og koden i parentes, fx *i går (lag24)* |
+| **Øvrige felter** | hvert felt, som hverken modelrepoets faner eller de to andre bærer: feltets navn, værdi, forklaring — og stien i modellen i en kolonne til højre |
+
+**Tom celle og `(findes ikke)`.** I appens faner betyder en **tom celle**, at appen ikke rører feltet: værket får
+præcis det, modelscriptet læser af modelrepoets faner — som om rækken ikke fandtes. `(findes ikke)` (et valg i
+dropdownen) betyder, at feltet ikke sættes, og at modellen bruger sin egen standard. Ved hvert felt står begge værdier,
+fx for CO₂-faktoren: *tom = 0,2 for gaskedler og gasmotorer; (findes ikke) = 0*. Eksporten skriver altid en værdi eller
+`(findes ikke)` i hver celle. (Før rettelserne i runde 14 betød en tom celle modellens standard, mens en manglende række
+gav scriptets værdi — det gav modsatte resultater, uden at det kunne ses i arket.)
 
 Fanerne er **appens egne — en egen antagelse**: `scripts/vaerksark_til_yaml.py` læser dem ikke. Kører du scriptet
 selv på arket, får du casen uden dem. Appen læser dem ved upload og lægger værdierne oven på scriptets læsning; hver
 værdi valideres som en redigering i appen (feltet skal findes i feltkataloget, typen og grænserne skal passe, og det
 færdige værk skal opfylde modellens minimumskrav). En ukendt sti, et enhedsnavn, der ikke står i Anlaeg, eller en værdi
-af forkert type afviser hele importen med ark, celle og grund. Hver fane har en kort vejledning øverst, enheden i
-kolonneoverskriften, dropdowns for ja/nej og lukkede lister, gule celler til det, du udfylder, og én forklarende
-sætning pr. felt.
+af forkert type afviser hele importen med ark, celle og grund — også en værdi uden sti eller uden enhedsnavn, en formel,
+hvis resultat ikke er gemt i filen (åbn og gem arket i Excel), og en celle uden for et regnearks grænser. Hver fane har
+en kort vejledning øverst, enheden i kolonneoverskriften, dropdowns for ja/nej og lukkede lister, gule celler til det,
+du udfylder, og én forklarende sætning pr. felt. Kursiv grå er appens kontrolværdier og stier; ret dem ikke.
+
+**Start/stop-logik.** Står start/stop-logik på nej for en enhed, bruger modellen ikke dens startomkostning, min.
+driftstid, min. stoptid og min varme fra Anlaeg. Importens log advarer, når de er udfyldt, og *Læs først* nævner
+enheden.
 
 * **En enhed uden række** i *Start og drift* får modelscriptets værdier, og importens log siger det. Sletter du en
   hel fane, gælder det samme for alle dens felter; ved genupload vises det som ændringer, før du bekræfter.
@@ -85,7 +98,13 @@ sætning pr. felt.
   har sat, bærer kilden som kommentar (*Fra appens fane «Start og drift» i værksarket (celle D7), ikke fra
   modelscriptet*). Ved en revision står fanen og cellen i importens log ud for ændringen.
 
-Et ark **uden** de tre faner — modelrepoets rene skabelon — importeres præcis som før.
+Et ark **uden** appens faner — modelrepoets rene skabelon — importeres præcis som før.
+
+**Et nyt værk ud fra et andet værks ark.** Et eksporteret ark hører til sit værk (det skjulte ark `_app`): uploades det,
+tilbyder appen at gemme ændringerne som en ny revision af *det* værk. Vil du i stedet lave et nyt værk, så giv det et
+nyt navn i Priser (*værkets navn*) og vælg **Opret som nyt værk i stedet** ved upload; findes koden allerede, siger
+appen det. Til et helt nyt værk findes også en **tom skabelon med appens faner** (under *Upload værksark* og
+*Dokumentation › Skabelon til værksdata*).
 
 Før du henter arket, viser appen listen **"ikke med i arket"**. Den er nu næsten tom: for katalogets værker står kun
 solprofilens sti på den (Andeby; det nye værk peger på sin egen solprofil fra arket *Solvarme*), og for Billund-værkerne

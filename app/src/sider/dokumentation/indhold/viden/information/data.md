@@ -79,7 +79,7 @@ Et værk fra værksarket kan kun køres i den periode, dets data dækker: den m�
 Et værk i appen kan også eksporteres til værksarket og uploades igen — som en ny revision af samme værk eller som et
 nyt værk. Modellens skabelon kan ikke bære alt: balancemarkedet, nettilslutningen og en kalibreret varmelastmodel står
 ikke i den, og modellens script sætter selv bl.a. slukket ved start, tankenes startfyldning og gasenhedernes
-CO2-faktor. De felter står derfor i tre faner, som er appens egne (*Start og drift*, *Balancemarked* og *Øvrige
+CO2-faktor. De felter står derfor i faner, som er appens egne (*Læs først*, *Start og drift*, *Balancemarked* og *Øvrige
 felter*): modellens script læser dem ikke, appen lægger dem oven på scriptets læsning ved upload. Timer uden for
 perioden er ikke med. Eksporten viser før download, hvad der stadig ikke er med. (Kilde: KONTRAKT §6d;
 scripts/vaerksark_til_yaml.py:586-918; doc/EGNE_DATA.md)

@@ -36,7 +36,8 @@ cases/<værk>.yaml ── fjv/flad.py ──► blade i databasen (sti → værd
   inverse af scriptet: hvad scriptet læser tilbage, er bevist felt for felt i gaten ([4d](#4d-eksport-til-værksark--rundturen)).
   Ved genupload som revision køres scriptet uændret på både arket og en ny eksport af værket, og kun forskellen gemmes.
 * Det, skabelonen ikke kan bære, står i **appens egne faner** i det eksporterede ark (runde 14: *Start og drift*,
-  *Balancemarked*, *Øvrige felter*). Scriptet læser dem ikke; importen lægger deres værdier oven på scriptets læsning.
+  *Balancemarked*, *Øvrige felter*, og *Læs først* forrest). Scriptet læser dem ikke; importen lægger deres værdier oven
+  på scriptets læsning. En tom celle betyder, at appen ikke rører feltet; `(findes ikke)`, at feltet ikke sættes.
   Det er en **egen antagelse** ([afsnit 5](#5-egen-antagelse--hvor-appen-bevidst-afviger-eller-tilføjer)) og står i
   revisionssporet: scriptets læsning er revision 1, fanernes ændringer revision 2.
 * Wrapperen ændrer intet i beregningen. Den pakker `src.manifest.write_manifest` ind og skriver bagefter

@@ -25,7 +25,8 @@ objektnavne (`slug()`) føres tilbage til værkets; to kandidater afvises. En ti
 
 **Appens egne faner (runde 14).** Et ark, appen har eksporteret, bærer fanerne *Start og drift*, *Balancemarked* og
 *Øvrige felter* (markeringen er format 3). Scriptet læser dem ikke; importen læser dem (`fjv.arklag`, kun
-standardbiblioteket) og lægger værdierne oven på scriptets læsning — på arket og på basis ens. Hver værdi valideres
+standardbiblioteket, med egne grænser for celler og størrelse) og lægger værdierne oven på scriptets læsning — på
+arket og på basis ens. En tom celle rører ikke feltet; `(findes ikke)` fjerner det; en formel uden gemt resultat afvises. Hver værdi valideres
 mod feltkataloget (`felt_katalog.json`, lagt ved motoren af `deploy.py kode`) og det færdige værk mod modellens
 minimumskrav (`fjv.modelkrav`). Et nyt værk med faner er revision 2: revision 1 er scriptets læsning, revision 2
 fanernes ændringer. Før scriptet kører, afvises rækker, det ville springe over uden besked (navn uden type, tank uden

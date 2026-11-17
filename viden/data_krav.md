@@ -161,12 +161,20 @@ lægger deres værdier oven på scriptets læsning (`fabric/fjv/arklag.py`). Det
 |---|---|---|
 | `Start og drift` | tabel pr. enhed og pr. tank; rækken under overskriften bærer stiskabelonen (`units.{enhed}.initial_status`) | `enabled`, `initial_status`, `uc_enabled`, `co2_emissions_per_mwh_fuel`, `commissioned`, `notes`; tank: `enabled`, `e_initial_mwh`, `self_discharge_per_hour`, `cycle_binding`, `notes` |
 | `Balancemarked` | feltblokke (felt, værdi/aFRR/mFRR, enhed, forklaring, sti i modellen), en tabel pr. enhed og en pr. måned | hele `balancing` og enhedernes `ancillary`-felter ud over "kan byde" i Anlaeg |
-| `Øvrige felter` | sti, værdi, *kun hvis modelscriptet giver*, felt, forklaring | hvert resterende blad; `(findes ikke)` fjerner et felt, scriptet ellers skriver |
+| `Øvrige felter` | felt, værdi, *kun hvis modelscriptet giver*, enhed, forklaring, sti i modellen | hvert resterende blad; `(findes ikke)` fjerner et felt, scriptet ellers skriver |
+| `Læs først` | (læses ikke af importen) | værkets identitet, farver, og hvor modelrepoets faner ikke viser det, modellen bruger |
 
 - **Typen kommer fra feltkataloget, ikke fra cellen** (`viden/felt_katalog.json`): `number` gemmes som decimaltal,
   `integer` som heltal, ja/nej som `true`/`false` (eller 1/0 for `initial_status`), lister som JSON-tekst. Et heltal,
   hvor kataloget siger tal (`e_initial_mwh: 96`), kommer tilbage som 96 via markeringens skrivemåder (`_app`, `former`).
-- **En tom celle i en tabel eller feltblok** betyder, at feltet ikke sættes — også når scriptet ville have sat det.
+- **En tom celle** betyder, at appen ikke rører feltet (scriptets værdi, som hvis rækken ikke fandtes); `(findes ikke)`
+  betyder, at feltet ikke sættes (modellens standard). Eksporten skriver altid en værdi eller `(findes ikke)`.
+- **Blokkene findes på overskrifterne** (en feltblok har `felt` i A og en kolonne `sti i modellen`; en tabel har rækken
+  `sti i modellen` lige under overskriften), og en blok slutter, hvor den næste begynder. Læserne går kun over rækker,
+  arket har celler i, og afviser celler uden for et regnearks grænser. En formel uden gemt resultat afvises.
+- **Lister vises på dansk** med koden i parentes; importen læser koden i parentesen (`i går (lag24)` → `lag24`).
+- **Start/stop-logik nej med startomkostning, min. drifts-/stoptid over 1 time eller min varme over 0** giver en
+  advarsel i importens log (feltkataloget: de virker kun med start/stop-logik).
   En enhed uden række beholder scriptets værdier, og importens log siger det.
 - **En betinget række** i `Øvrige felter` gælder kun, når scriptet giver den værdi, rækken er skrevet til; ellers
   vinder det, brugeren har rettet i modelrepoets faner, og loggen siger, at rækken ikke blev brugt.

@@ -72,6 +72,14 @@ hvorfor ([`doc/FABRIC.md`](doc/FABRIC.md#opdatér-en-eksisterende-installation))
     balancemarked. Nye fælles vektorer: `skema/vektorer/arklag/celler.json` (en celle som `vaerdi_json`).
   - Ingen skemaændring. Fabric: `deploy.py kode` (nye motormoduler og `felt_katalog.json` ved motoren), `deploy.py
     notebook` (kun dokumentationscellen i `fjv_importer_vaerksark` er ændret) og frontend (`rayfin up`); ingen `db apply`.
+- **Værksarket efter brugertest og review** (runde 14, rettelser): en tom celle i appens faner betyder nu, at appen ikke
+  rører feltet (modelscriptets værdi); `(findes ikke)` betyder, at feltet ikke sættes. Ny forreste fane *Læs først* med
+  værkets identitet og stederne, hvor modellens faner ikke viser det, modellen bruger. Nettilslutning og modelperiode i
+  blokken *Værket* i *Start og drift*; danske lister med koden i parentes; stien til højre i *Øvrige felter*; advarsel
+  ved start/stop-logik nej med startomkostning; *Opret som nyt værk i stedet* ved upload og en tom skabelon med appens
+  faner. Importen afviser en formel uden gemt resultat og en celle uden for regnearkets grænser, læser kun eksisterende
+  rækker og har egne ressourcegrænser (Codex' review, fund 1–2), og kontrollen af basis dækker de felter, appens faner
+  kan gemme (fund 3).
 - **Højlydt import af værksarket** (runde 14, gælder også ark uden appens faner): en række i Anlaeg med navn, men uden
   type (eller omvendt, eller kun tal), en tank uden volumen eller under de seks tankrækker og et målepunkt under
   varmepumpens tabel afviser importen med rækkenummer — modelscriptet springer dem over uden besked (målt: otte af et

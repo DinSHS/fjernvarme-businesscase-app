@@ -36,12 +36,15 @@ Et værk og en tidsserie oprettes af arket, og importen viser sin status og log.
 *Information → Hvilke data skal med?*. (Kilde: KONTRAKT §6d)
 
 **Ret et værk i Excel:** tryk **Eksportér værksark (.xlsx)** på værkets side (eller i værkslisten). Appen udfylder
-modellens egen skabelon med værket og tilføjer tre faner, som er appens egne: **Start og drift** (i drift, tændt ved
+modellens egen skabelon med værket og tilføjer fire faner, som er appens egne: **Læs først** (forrest: hvilket værk
+arket hører til, hvad fanerne og farverne betyder, og hvor modellens faner ikke viser det, modellen bruger), **Start og
+drift** (værkets nettilslutning og modelperiode, og pr. enhed i drift, tændt ved
 start, start/stop-logik, CO₂-faktor og idriftsættelsesår pr. enhed; indhold ved start og varmetab pr. tank),
 **Balancemarked** (metode, budstrategi, lofter og reservationsregler) og **Øvrige felter** (resten, med sti, værdi og
 forklaring). Modellens script læser ikke de tre faner; appen læser dem ved upload og lægger værdierne oven på det,
 scriptet læser — det står øverst i hver fane, i importens log og i værkets revisionsspor. Før du henter arket, viser
-appen en liste over det, arket stadig *ikke* kan bære; for de fleste værker er den tom. Ret arket i Excel, og upload
+appen en liste over det, arket stadig *ikke* kan bære; for de fleste værker er den tom. I appens faner betyder en tom
+celle, at appen ikke rører feltet; *(findes ikke)* betyder, at feltet ikke sættes. Ret arket i Excel, og upload
 det under *Upload værksark*: appen genkender det, viser hvert ændret felt (gammel → ny) og timedata som en
 opsummering, og gemmer det som
 **næste revision af samme værk**. Kun det, du har ændret, ændres; felterne på listen røres ikke. En rettet time i
