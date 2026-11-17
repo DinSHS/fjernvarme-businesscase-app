@@ -56,25 +56,33 @@ start, advarer importens log: uden tank kan værket ikke dække den første time
 når intet scenarie bruger enheden. Vil du bare regne uden en enhed, så brug et scenarie i stedet —
 så forbliver værket urørt.
 
-**Balancemarked på et værk uden:** et værk fra værksarket har ingen balancing-blok (modellens script skriver den
-ikke), så scenarier kan ikke regne med balancemarkedet. Under fanen **Balancering** står så **Tilføj
-balancemarked…**. Vælg et udgangspunkt — Andebys blok eller en af budprofilerne 1–4 i modellens
-`doc/BUDSTRATEGI.md` (fælles del + profil) — og tag stilling til det, der er værkets eget: hvilke el-enheder der er
-prækvalificeret, loftet pr. enhed og, for profil 4, den enhed budprisen regnes for. Enhedsnavnene er værkets egne.
-Appen viser hele blokken felt for felt med fil og linje i modelrepoet; tallene fra kilden er eksempler og kan rettes,
-før du bekræfter. Blokken gemmes som én revision, og de valgte enheder får `afrr_qualified`/`mfrr_qualified` sat til
-ja. **Fjern balancemarkedet…** sletter blokken igen (ikke mens et scenarie ændrer et felt i den). (Kilde:
-doc/BUDSTRATEGI.md:216-305; scripts/vaerksark_til_yaml.py)
+**Balancemarked på et værk uden:** værkets balancing-blok beskriver, *hvordan* værket byder; *om* der regnes med
+balancemarked, vælger du på scenariet. Uden blok kan scenarier ikke regne med balancemarkedet. Et værk, der er oprettet
+af modellens egen skabelon `vaerksdata_skabelon.xlsx`, har ingen blok — modellens script skriver den ikke. Der er to
+veje til en blok, og de giver de samme felter:
+
+1. **I appen:** under fanen **Balancering** står **Tilføj balancemarked…**. Vælg et udgangspunkt — Andebys blok eller
+   en af budprofilerne 1–4 i modellens `doc/BUDSTRATEGI.md` — og tag stilling til det, der er værkets eget: hvilke
+   el-enheder der er prækvalificeret, loftet pr. enhed og, for budprofil 4, den enhed budprisen regnes for.
+   Enhedsnavnene er værkets egne. Appen viser hele blokken felt for felt med fil og linje i modelrepoet; tallene fra
+   kilden er eksempler og kan rettes, før du bekræfter. Blokken gemmes som én revision, og de valgte enheder markeres
+   som prækvalificeret til både aFRR og mFRR (feltet kan rettes pr. marked bagefter under Enheder).
+2. **I værksarket:** eksportér værket (*Eksportér værksark*), udfyld fanen **Balancemarked**, og upload arket. En
+   udfyldt fane lægger blokken ind. Hvad en tom celle i fanen betyder, står øverst i fanen.
+
+**Fjern balancemarkedet…** sletter blokken igen (ikke mens et scenarie ændrer et felt i den); prækvalifikationen på
+enhederne står urørt. (Kilde: doc/BUDSTRATEGI.md:216-305; scripts/vaerksark_til_yaml.py)
 
 **Et felt, værket ikke har:** under hvert afsnits felter og under den valgte enhed kan **Tilføj et felt, værket ikke
-har** lægge et af modellens kendte felter til (fx en enheds `ancillary`-felter, `commissioned` eller
-`electricity.tariff_consumption_flat`), med forklaringen og modellens standardværdi som udgangspunkt. Med
-standardværdien regner modellen som før; feltet kan bagefter rettes og bruges i scenarier. Felter i en blok, hvis
-blotte tilstedeværelse ændrer regningen (COP-kurven, tarifprofilen, nettab), tilbydes ikke enkeltvis.
+har** lægge et af modellens kendte felter til (fx en enheds budfelter, idriftsættelsesår eller den flade
+forbrugstarif), med forklaringen og modellens standardværdi som udgangspunkt. Med standardværdien regner modellen som
+før; feltet kan bagefter rettes og bruges i scenarier. Felter i en blok, hvis blotte tilstedeværelse ændrer regningen
+(COP-kurven, tarifprofilen, nettab), tilbydes ikke enkeltvis.
 
-**Starttilstand:** står alle enheder med unit commitment til slukket ved start (`initial_status: 0`, som værksarkets
-script sætter dem), viser værkets side en advarsel: uden tank, eller med tanken slået fra, kan en kørsel så blive
-uløselig (målt i januar 2026 på værker fra værksarket). Sæt `initial_status` til 1 på den enhed, der kører, når perioden begynder.
+**Starttilstand:** står alle enheder med start/stop-logik til slukket ved start, som værksarkets script sætter dem,
+viser værkets side en advarsel: uden tank, eller med tanken slået fra, kan en kørsel så blive uløselig (målt i januar
+2026 på værker fra værksarket). Sæt **Tændt ved periodens start** til tændt på den enhed, der kører, når perioden
+begynder: 1 under Konfiguration › Enheder, *ja* i værksarkets fane *Start og drift*.
 
 ## 2. Scenarier — stil et spørgsmål
 

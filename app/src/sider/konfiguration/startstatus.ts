@@ -29,6 +29,8 @@ export interface StartAdvarsel {
 
 /** Modellens standard for initial_status, når feltet ikke står i casen (kataloget: src/config.py, `initial_status: int = 1`). */
 const STANDARD = String(findFelt("units.x.initial_status")?.standard ?? 1);
+/** Feltets danske navn fra kataloget ("Tændt ved periodens start") — brugeren ser ikke YAML-navnet (brugertest r14 F18). */
+export const START_ETIKET = findFelt("units.x.initial_status")?.etiket ?? "initial_status";
 
 /** Advarsel, når værket har enheder med unit commitment, og ingen af de tændte står til tændt ved start; ellers null. */
 export function startAdvarsel(nu: ReadonlyMap<string, string>): StartAdvarsel | null {
@@ -39,8 +41,8 @@ export function startAdvarsel(nu: ReadonlyMap<string, string>): StartAdvarsel | 
     const stier = uc.map((n) => `units.${n}.initial_status`);
     return {
         enheder: uc, stier,
-        tekst: `Ingen enhed med unit commitment er tændt ved start: initial_status er 0 på ${uc.join(", ")}. `
+        tekst: `Ingen enhed med start/stop-logik er tændt ved start: «${START_ETIKET}» står til 0 (slukket) på ${uc.join(", ")}. `
             + "En kørsel uden tank, eller med tanken slået fra, kan da blive uløselig — målt på værker fra værksarket i januar 2026 (på det ene også i juni). "
-            + "Sæt initial_status til 1 på den enhed, der kører, når perioden begynder (Enheder › vælg enheden › Redigér).",
+            + "Sæt den til 1 (tændt) på den enhed, der kører, når perioden begynder (Enheder › vælg enheden › Redigér).",
     };
 }

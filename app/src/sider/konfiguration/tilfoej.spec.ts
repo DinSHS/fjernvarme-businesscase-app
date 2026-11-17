@@ -281,7 +281,9 @@ describe("advarsel: ingen enhed er tændt ved start", () => {
         expect(a.enheder).toEqual(ucEnheder(andeby).filter((n) => v.get(`units.${n}.enabled`) !== "false"));
         expect(a.stier).toEqual(a.enheder.map((n) => `units.${n}.initial_status`));
         expect(a.tekst).toMatch(/uden tank/);
-        expect(a.tekst).toMatch(/initial_status/);
+        // Brugertest r14 F18: feltets danske navn i teksten, ikke YAML-navnet (stien står ved hver enhed i kortet).
+        expect(a.tekst).toContain(`«${findFelt("units.x.initial_status")!.etiket}»`);
+        expect(a.tekst).not.toMatch(/initial_status|unit commitment/);
     });
     it("et manglende initial_status er modellens standard 1 (tændt)", () => {
         const v = new Map(andeby);
