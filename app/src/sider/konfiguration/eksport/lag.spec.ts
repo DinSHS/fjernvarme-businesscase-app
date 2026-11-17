@@ -21,7 +21,7 @@ import { analyserUpload, type Hentere } from "./analyse";
 import { eksporter, læsMarkering, MARKOER_ARK, MARKOER_FORMAT, MARKOER_FORMAT_FOER, tomSkabelon } from "./eksporter";
 import { genkend, læsArkmodel, sammenlign } from "./genkend";
 import { planlæg, type Eksportkilde } from "./kort";
-import { APPENS_FANER, BALANCEMARKED, celleFor, FINDES_IKKE, jsonFraCelle, KUN_HVIS, LAES_FOERST, læsCelle, læsLag, OEVRIGE, sammeTal, START_OG_DRIFT, STI_OVERSKRIFT } from "./lag";
+import { APPENS_FANER, BALANCEMARKED, celleFor, FINDES_IKKE, KUN_HVIS, LAES_FOERST, læsCelle, læsLag, OEVRIGE, sammeTal, START_OG_DRIFT, STI_OVERSKRIFT } from "./lag";
 import { andeby, ANDEBY_ID, skabelon } from "./testdata";
 import { Arbejdsbog, delRef, læsCeller } from "./xlsx";
 
@@ -406,7 +406,7 @@ describe("tom skabelon med appens faner", () => {
         // Alle appens celler står tomme: appen rører intet felt, før brugeren skriver noget.
         expect([...læsLag(c).values()].filter((x) => x.v !== undefined)).toEqual([]);
         const hent: Hentere = { kilde: async () => andeby(), skabelon: async () => skabelon() };
-        expect(await analyserUpload(b, [{ id: ANDEBY_ID, kode: "andeby", navn: "Andeby", revision: 1 }], hent)).toEqual({ art: "nyt" });
+        expect(await analyserUpload(b, [{ id: ANDEBY_ID, kode: "andeby", navn: "Andeby", revision: 1 }], hent)).toMatchObject({ art: "nyt" });
     });
 });
 
@@ -473,7 +473,7 @@ describe("genupload af et ark med appens faner", () => {
         wb.regneark(MARKOER_ARK).sæt("B1", MARKOER_FORMAT_FOER);
         const gammelt = wb.bytes();
         expect(læsMarkering(læsCeller(gammelt))?.format).toBe(MARKOER_FORMAT_FOER);
-        expect(await analyserUpload(gammelt, vaerker, hent)).toEqual({ art: "anden_eksport", vaerk: vaerker[0], ældre: true });
+        expect(await analyserUpload(gammelt, vaerker, hent)).toMatchObject({ art: "anden_eksport", vaerk: vaerker[0], ældre: true, arkKode: "andeby_fiktivt_referencevaerk" });
         expect(await analyserUpload(gammelt, [], hent)).toMatchObject({ art: "nyt", grund: expect.stringMatching(/ikke findes her/) });
         wb.regneark(MARKOER_ARK).sæt("B1", "fjv-vaerksark-eksport/1");
         expect(læsMarkering(læsCeller(wb.bytes()))).toBeNull();

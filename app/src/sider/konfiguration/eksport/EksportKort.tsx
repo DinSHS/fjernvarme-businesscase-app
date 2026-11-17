@@ -16,7 +16,7 @@ import { Gitter, Knap, Kort, Maerke } from "@/components/layout";
 import { dkFri, visFelt } from "../vis";
 import type { Eksport } from "./eksporter";
 import type { Tab } from "./kort";
-import { BALANCEMARKED, OEVRIGE, START_OG_DRIFT } from "./lag";
+import { BALANCEMARKED, FINDES_IKKE, LAES_FOERST, OEVRIGE, START_OG_DRIFT } from "./lag";
 import { gruppe, tabEtiket } from "./visning";
 import type { Vaerkhoved } from "./hent";
 
@@ -69,10 +69,11 @@ export function EksportKort({ vaerk }: { vaerk: Vaerkhoved }) {
                     ? "Hele værket står i værksarket: modelrepoets faner og appens egne faner bærer hvert felt."
                     : `${n} ${n === 1 ? "felt er" : "felter er"} ikke med i arket — se listen, før du henter arket. Resten af værket står i modelrepoets faner og i appens egne.`}
                 handling={e && <Knap onClick={hent}>Hent {e.filnavn}</Knap>}
-                fod={<>Arket er modelrepoets <span className="fjv-mono">vaerksdata_skabelon.xlsx</span> (ved den pinnede commit) udfyldt med værket; vejledning, dropdowns og formatering i dens faner er skabelonens. De tre faner <em>{START_OG_DRIFT}</em>, <em>{BALANCEMARKED}</em> og <em>{OEVRIGE}</em> er <strong>appens egne (egen antagelse)</strong>: modelrepoets script læser dem ikke; appen læser dem ved upload og lægger værdierne oven på scriptets læsning. Kører du scriptet selv på arket, får du derfor en case uden dem. Ret arket i Excel, og upload det under <em>Konfiguration › Upload værksark</em>: appen genkender det og gemmer dine ændringer som revision {vaerk.revision + 1} af {vaerk.navn}; uploades det som et nyt værk, får værket hele indholdet — også appens faner. Felterne på listen "ikke med i arket" beholder deres værdi ved genupload.</>}>
+                fod={<>Arket er modelrepoets <span className="fjv-mono">vaerksdata_skabelon.xlsx</span> (ved den pinnede commit) udfyldt med værket; vejledning, dropdowns og formatering i dens faner er skabelonens. De tre faner <em>{START_OG_DRIFT}</em>, <em>{BALANCEMARKED}</em> og <em>{OEVRIGE}</em> er <strong>appens egne (egen antagelse)</strong>: modelrepoets script læser dem ikke; appen læser dem ved upload og lægger værdierne oven på scriptets læsning. Kører du scriptet selv på arket, får du derfor en case uden dem. I appens faner betyder en tom celle, at appen ikke rører feltet (modelscriptets værdi); {FINDES_IKKE} betyder, at feltet ikke sættes. Ret arket i Excel, og upload det under <em>Konfiguration › Upload værksark</em>: appen genkender det og gemmer dine ændringer som revision {vaerk.revision + 1} af {vaerk.navn}; uploades det som et nyt værk, får værket hele indholdet — også appens faner. Felterne på listen "ikke med i arket" beholder deres værdi ved genupload.</>}>
                 {p && (
                     <ul className="kf-fund" aria-label="Indhold i arket">
                         <li><Maerke tone="ok">med</Maerke><span>Modelrepoets faner: anlæg (også slåede-fra enheder), tanke, varmepumpernes målepunkter, priser, eltarif, DMI-område og priszone.</span></li>
+                        <li data-fane={LAES_FOERST}><Maerke tone="ok">med</Maerke><span><strong>{LAES_FOERST}</strong> (appens egen fane, forrest): værkets navn og revision, hvad fanerne og farverne betyder, og {p.lagafvigelser.length === 0 ? "at modellens faner her viser det, modellen bruger" : `${dkFri(p.lagafvigelser.length, 0)} ${p.lagafvigelser.length === 1 ? "sted" : "steder"}, hvor modellens faner IKKE viser det, modellen bruger`}.</span></li>
                         <li data-fane={START_OG_DRIFT}><Maerke tone="ok">med</Maerke><span><strong>{START_OG_DRIFT}</strong> (appens egen fane): {dkFri(lag[START_OG_DRIFT] ?? 0, 0)} felter — i drift, tændt ved start, start/stop-logik, CO₂-faktor, idriftsættelsesår og noter pr. enhed; indhold ved start, varmetab og slut-som-start pr. tank.</span></li>
                         <li data-fane={BALANCEMARKED}><Maerke tone={(lag[BALANCEMARKED] ?? 0) > 0 ? "ok" : undefined}>{(lag[BALANCEMARKED] ?? 0) > 0 ? "med" : "tom"}</Maerke><span><strong>{BALANCEMARKED}</strong> (appens egen fane): {(lag[BALANCEMARKED] ?? 0) > 0 ? `${dkFri(lag[BALANCEMARKED], 0)} felter — metode, budstrategi, lofter i alt og pr. enhed og marked, reservationsregler og enhedernes budfelter.` : "værket har intet balancemarked; fanen står klar til at blive udfyldt."}</span></li>
                         <li data-fane={OEVRIGE}><Maerke tone="ok">med</Maerke><span><strong>{OEVRIGE}</strong> (appens egen fane): {dkFri(lag[OEVRIGE] ?? 0, 0)} felter, som hverken modelrepoets faner eller de to andre bærer — hvert med sti, værdi og forklaring fra feltkataloget.</span></li>
@@ -107,6 +108,16 @@ export function EksportKort({ vaerk }: { vaerk: Vaerkhoved }) {
                     </ul>
                 )}
             </Kort>
+            {p && p.lagafvigelser.length > 0 && (
+                <Kort titel="Her bruger modellen ikke det, modellens faner viser" afgraensning={`${p.lagafvigelser.length} ${p.lagafvigelser.length === 1 ? "sted" : "steder"} · står også i fanen Læs først`}
+                    budskab="Retter du en af disse celler i modellens faner, gælder rettelsen; ellers gælder cellen til højre."
+                    fod="Regnet af forskellen mellem modelscriptets læsning af modellens faner og det værk, appen gemmer ved upload.">
+                    <table aria-label="Hvor modellens faner ikke viser det, modellen bruger">
+                        <thead><tr><th>Hvor</th><th>Hvad der gælder i stedet</th><th>Cellen, der gælder</th></tr></thead>
+                        <tbody>{p.lagafvigelser.map((x) => <tr key={x.hvor}><td>{x.hvor}</td><td>{x.hvad}</td><td className="fjv-mono">{x.celle}</td></tr>)}</tbody>
+                    </table>
+                </Kort>
+            )}
             {p && n > 0 && (
                 <Kort titel="Ikke med i arket" afgraensning={`${n} felter i ${grupper.length} grupper`}
                     budskab="Værkets værdi til venstre; til højre det, et nyt værk får ved upload af arket. Ved genupload som revision røres disse felter ikke."

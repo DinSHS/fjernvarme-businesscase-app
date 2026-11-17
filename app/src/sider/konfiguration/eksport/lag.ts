@@ -502,7 +502,6 @@ class Fane {
 /** Fanens første linje (brugertesten F36). */
 const EGEN_FANE = "Denne fane er appens egen: den læses af appen, når arket uploades i appen. Kører man modellens script direkte på arket, bruges den ikke.";
 
-const dk = (x: number) => String(x).replace(".", ",");
 const jsonTal = (j: string | undefined) => { try { const v: unknown = JSON.parse(j ?? "x"); return tal(v) ? v : null; } catch { return null; } };
 
 /** Planen for appens fire faner og det, importen læser tilbage. */

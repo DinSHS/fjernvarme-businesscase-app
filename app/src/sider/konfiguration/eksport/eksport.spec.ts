@@ -133,7 +133,7 @@ describe("genupload: genkendelse og diff", () => {
     const hent = (rev = 1, ret: Record<string, string> = {}): Hentere => ({ kilde: async () => andeby(rev, ret), skabelon: async () => skabelon() });
 
     it("uden markering: et nyt værk som før", async () => {
-        expect(await analyserUpload(skabelon(), vaerker, hent())).toEqual({ art: "nyt" });
+        expect(await analyserUpload(skabelon(), vaerker, hent())).toMatchObject({ art: "nyt" });
     });
     it("markering, men værket findes ikke her: nyt værk, og det siges", async () => {
         const e = await eksporter(andeby(), skabelon(), NU);

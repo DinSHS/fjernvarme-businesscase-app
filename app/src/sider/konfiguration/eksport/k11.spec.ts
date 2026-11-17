@@ -103,7 +103,7 @@ describe("K11 F4: markeringen binder arket til værkets grundlag", () => {
         const wb = new Arbejdsbog(e.bytes);
         wb.regneark(MARKOER_ARK).sæt("B1", "fjv-vaerksark-eksport/1");
         expect(læsMarkering(læsCeller(wb.bytes()))).toBeNull();
-        expect(await analyserUpload(wb.bytes(), VAERKER, hent())).toEqual({ art: "nyt" });
+        expect(await analyserUpload(wb.bytes(), VAERKER, hent())).toMatchObject({ art: "nyt" });
     });
 });
 
@@ -113,7 +113,7 @@ describe("K11 F5: felter, som genupload ikke gemmer, siges før bekræftelse", (
         const wb = new Arbejdsbog(e.bytes);
         wb.regneark("Timedata").sæt("B3", 120);
         const a = await analyserUpload(wb.bytes(), VAERKER, hent());
-        expect(a).toEqual({ art: "ingen_aendringer", vaerk: VAERKER[0], ikkeGemt: [
+        expect(a).toMatchObject({ art: "ingen_aendringer", vaerk: VAERKER[0], ikkeGemt: [
             { hvor: "Timedata", felt: "Timedata: årsproduktion (GWh)", før: "100", nu: "120", gemmesIkke: GEMMES_IKKE.aarsproduktion },
         ] });
     });

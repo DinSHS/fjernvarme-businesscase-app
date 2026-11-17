@@ -92,6 +92,28 @@ describe("upload-kortet genkender et eksporteret ark", () => {
         expect(screen.queryByRole("button", { name: /Gem|Upload/ })).toBeNull();
         expect(t.upload).not.toHaveBeenCalled();
     }, 30_000);
+    it("runde 14 (brugertesten F3): et markeret ark kan i stedet blive et nyt værk; en eksisterende kode spærrer", async () => {
+        const e = await eksporter(andeby(), skabelon());
+        t.revision = 2;                                                                  // en konflikt: som revision spærret
+        const kopi = { id: "11111111-2222-4333-8444-555555555555", kode: "andeby_fiktivt_referencevaerk", navn: "Kopi", revision: 1 };
+        await vælgArk(e.bytes, [{ ...ANDEBY, revision: 2 }, kopi]);
+        await screen.findByRole("alert", {}, { timeout: 15_000 });
+        const valg = screen.getByLabelText(/Opret som nyt værk i stedet — arket hører til Andeby — fiktivt referenceværk \(kode andeby\)/);
+        await act(async () => { fireEvent.click(valg); });
+        // Værkets navn i Priser giver koden andeby_fiktivt_referencevaerk, som findes: intet kan sendes.
+        expect(document.querySelector('[data-tilstand="kode_findes"]')?.textContent).toMatch(/koden andeby_fiktivt_referencevaerk findes allerede/);
+        expect(screen.queryByRole("button", { name: /Upload|Gem/ })).toBeNull();
+        cleanup();
+        // Et nyt navn i Priser: arket sendes som et nyt værk — uden basis, og Andeby røres ikke.
+        const wb = new Arbejdsbog(e.bytes);
+        wb.regneark("Priser").sæt("B30", "Mit Værk");
+        await vælgArk(wb.bytes(), [{ ...ANDEBY, revision: 2 }, kopi]);
+        await screen.findByRole("alert", {}, { timeout: 15_000 });
+        await act(async () => { fireEvent.click(screen.getByLabelText(/Opret som nyt værk i stedet/)); });
+        expect(document.querySelector('[data-tilstand="nyt_fra_markeret"]')?.textContent).toMatch(/med koden mit_vaerk/);
+        await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Upload og importér" })); });
+        expect(t.upload).toHaveBeenCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org");
+    }, 60_000);
     it("uændret ark: 'Ingen ændringer' og intet at gemme", async () => {
         const e = await eksporter(andeby(), skabelon());
         await vælgArk(e.bytes);

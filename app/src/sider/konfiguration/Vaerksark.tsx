@@ -22,6 +22,12 @@
 // modelscriptets læsning — også ved upload som nyt værk — og afviser et
 // ark med rækker, scriptet ville springe over uden besked. Et ark i det
 // gamle format (før fanerne) afvises klart, når værket findes.
+//
+// Runde 14, rettelser (brugertesten F3): et ark med en markering kan i
+// stedet uploades som et NYT værk ("Opret som nyt værk i stedet"); kortet
+// siger, hvilket værk arket hører til, og hvilken kode det nye værk får —
+// findes koden, skal værket have et nyt navn i Priser først. Kortet
+// tilbyder den tomme skabelon med appens faner.
 //-----------------------------------------------------------------------
 
 import { useRef, useState } from "react";
@@ -34,12 +40,13 @@ import { vaerksarkBudskab } from "./tidsserie-budskaber";
 import { IMPORT_STATUS, tilBase64, vaerksarkFejl } from "./tidsserie-logik";
 import { dk, dkFri } from "./vis";
 import type { Uploadanalyse } from "./eksport/analyse";
+import { TomSkabelonKnap } from "./eksport/TomSkabelon";
 import type { Ændring } from "./eksport/genkend";
 
 type Vaerkrad = { id: string; kode: string; navn: string; revision: number };
 
 /** Ét filvalg: filen, dens bytes og analysen af netop de bytes mod netop den værksliste (`nøgle`). */
-interface Valg { id: number; fil: File; nøgle: string; bytes?: Uint8Array; analyse?: Uploadanalyse; fejl?: string }
+interface Valg { id: number; fil: File; nøgle: string; bytes?: Uint8Array; analyse?: Uploadanalyse; fejl?: string; /** Upload som nyt værk, selv om arket har en markering. */ somNyt?: boolean }
 
 /** Værkslistens identitet for analysen: id og revision. */
 const nøgleFor = (v: readonly Vaerkrad[]) => v.map((x) => `${x.id.toLowerCase()}:${x.revision}`).sort().join("|");
@@ -63,8 +70,12 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
     const filFejl = fil ? vaerksarkFejl(fil) : null;
     const forældet = !!valg && valg.nøgle !== nøgleFor(vaerker);
     const læser = !!fil && !filFejl && !analyse && !analyseFejl;
-    const revision = analyse?.art === "revision" ? analyse : undefined;
-    const blokeret = analyse?.art === "konflikt" || analyse?.art === "anden_eksport" || analyse?.art === "ingen_aendringer";
+    const markeret = !!analyse && analyse.art !== "nyt";
+    const somNyt = markeret && !!valg?.somNyt;
+    const revision = !somNyt && analyse?.art === "revision" ? analyse : undefined;
+    // Et nyt værk får koden af 'værkets navn' i Priser; findes den, skal værket have et nyt navn først.
+    const kodeFindes = !!analyse && (somNyt || analyse.art === "nyt") && !!analyse.arkKode && vaerker.some((x) => x.kode === analyse.arkKode);
+    const blokeret = kodeFindes || (!somNyt && (analyse?.art === "konflikt" || analyse?.art === "anden_eksport" || analyse?.art === "ingen_aendringer"));
     const kan = !!valg?.bytes && !filFejl && !!analyse && !blokeret && !forældet && !!bruger && !sender;
     const seneste = (importer.data ?? []).slice(0, 4);
     const aktive = seneste.filter((i) => i.status === "koe" || i.status === "koerer").length;
@@ -109,7 +120,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
         const a = v.analyse;
         // Bindingen kontrolleres ved send: analysen hører til netop disse bytes (samme valg), og værket har stadig
         // den revision, analysen så. Serveren kontrollerer den igen i importens transaktion (K11 F4).
-        if (a.art === "revision") {
+        if (a.art === "revision" && !v.somNyt) {
             const nu = vaerker.find((x) => x.id.toLowerCase() === a.vaerk.id.toLowerCase());
             if (!nu || nu.revision !== a.vaerk.revision) {
                 setSvar({ ok: false, tekst: `${a.vaerk.navn} er ændret, siden arket blev læst. Læs arket igen.` });
@@ -120,7 +131,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
         try {
             const b64 = tilBase64(v.bytes);
             // En revision sammenlignes med en eksport, der er stemplet med timens START i UTC — derfor intet --timeslut.
-            const s = a.art === "revision"
+            const s = a.art === "revision" && !v.somNyt
                 ? await uploadVaerksark(v.fil.name, b64, false, bruger, { vaerkId: a.vaerk.id, revision: a.vaerk.revision, basisBase64: tilBase64(a.basis) })
                 : await uploadVaerksark(v.fil.name, b64, timeslut, bruger);
             setSvar({ ok: s.ok, tekst: s.svar });
@@ -147,13 +158,27 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
                 {filFejl && <span className="kf-felt-fejl">{filFejl}</span>}
                 {læser && <p className="kf-kilde" role="status">Læser arket …</p>}
                 {analyseFejl && <p className="kf-svar" data-tone="fejl" role="alert">Arket kunne ikke læses: {analyseFejl}</p>}
-                {analyse && <Analyse a={analyse} />}
+                {analyse && !somNyt && <Analyse a={analyse} />}
+                {analyse && markeret && "vaerk" in analyse && (
+                    <label className="kf-kontakt" data-tilstand="som_nyt">
+                        <input type="checkbox" checked={somNyt} onChange={(e) => setValg((x) => (x ? { ...x, somNyt: e.target.checked } : x))} />
+                        Opret som nyt værk i stedet — arket hører til {analyse.vaerk.navn} (kode {analyse.vaerk.kode}), som ikke røres
+                    </label>
+                )}
+                {analyse && somNyt && !kodeFindes && (
+                    <p className="kf-svar" role="status" data-tilstand="nyt_fra_markeret"><Maerke>nyt værk</Maerke> Arket uploades som et nyt værk{analyse.arkKode ? <> med koden <strong>{analyse.arkKode}</strong> (af værkets navn i Priser)</> : null}. Appens faner kommer med.</p>
+                )}
+                {kodeFindes && (
+                    <p className="kf-svar" data-tone="fejl" role="alert" data-tilstand="kode_findes">
+                        Et værk med koden <strong>{analyse?.arkKode}</strong> findes allerede. Skriv et nyt navn i Priser (værkets navn), gem arket, og vælg det igen.
+                    </p>
+                )}
                 {analyse && forældet && (
                     <p className="kf-svar" data-tone="fejl" role="alert" data-tilstand="forældet">
                         Et værk er ændret, siden arket blev læst — analysen gælder ikke længere. <Knap sekundaer onClick={læsIgen}>Læs arket igen</Knap>
                     </p>
                 )}
-                {!revision && !blokeret && (
+                {!revision && !blokeret && !markeret && (
                     <label className="kf-kontakt"><input type="checkbox" checked={timeslut} onChange={(e) => setTimeslut(e.target.checked)} />Tidsstemplerne i arkets timedata er timens slut</label>
                 )}
                 <div className="kf-handlinger">
@@ -163,6 +188,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
                         </Knap>
                     )}
                     {aktive > 0 && <Knap sekundaer onClick={importer.genindlæs}>Opdatér status</Knap>}
+                    <TomSkabelonKnap />
                     {!bruger && <span className="kf-kilde">Kræver en indlogget bruger.</span>}
                 </div>
                 {svar && <p className="kf-svar" data-tone={svar.ok ? "ok" : "fejl"} role="status">{svar.tekst}</p>}
@@ -224,7 +250,7 @@ function Analyse({ a }: { a: Uploadanalyse }) {
     return (
         <div className="kf-diff" data-tilstand="revision">
             <p className="kf-svar" role="status">
-                Arket er eksporteret fra <strong>{a.vaerk.navn}</strong> revision {a.vaerk.revision}. Disse ændringer gemmes som revision {a.vaerk.revision + 1} — felter, arket ikke bærer, røres ikke:
+                Arket hører til <strong>{a.vaerk.navn}</strong> (kode {a.vaerk.kode}), revision {a.vaerk.revision}. Disse ændringer gemmes som revision {a.vaerk.revision + 1} af netop dette værk — felter, arket ikke bærer, røres ikke. Er det ikke meningen, så vælg "Opret som nyt værk i stedet":
             </p>
             {gemmes.length > 0 && (
                 <table aria-label="Ændringer i arket">

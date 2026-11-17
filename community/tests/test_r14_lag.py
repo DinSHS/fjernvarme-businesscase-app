@@ -50,8 +50,8 @@ BALANCE = {
     "A5": "Samlet prækvalifikation", "B5": 14, "E5": "balancing.ancillary_caps.total_mw",
 }
 OEVRIGE = {
-    "A4": "sti", "B4": "værdi", "C4": "kun hvis modelscriptet giver",
-    "A5": "solver.mip_rel_gap", "B5": "(findes ikke)", "C5": 0.001,
+    "A4": "felt", "B4": "værdi", "C4": "kun hvis modelscriptet giver", "F4": "sti i modellen",
+    "A5": "Relativt gab", "B5": "(findes ikke)", "C5": 0.001, "F5": "solver.mip_rel_gap",
 }
 
 
