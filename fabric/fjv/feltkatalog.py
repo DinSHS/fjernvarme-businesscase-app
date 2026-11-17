@@ -183,8 +183,12 @@ def fra_celle(sti: str, celle, post: dict | None = None) -> str:
     if t == "enum":
         tilladte = post.get("tilladte") or []
         if _heltalsliste(tilladte):
-            if isinstance(celle, str) and celle.strip().lower() in _SAND and {0, 1} >= {int(x) for x in tilladte}:
+            nul_et = {0, 1} >= {int(x) for x in tilladte}
+            if isinstance(celle, str) and celle.strip().lower() in _SAND and nul_et:
                 return til_json(1 if _SAND[celle.strip().lower()] else 0)
+            # En ægte boolsk celle (TRUE/FALSE) er ja/nej som teksten — før afvist her, mens browserens læser gav 1/0.
+            if isinstance(celle, bool) and nul_et:
+                return til_json(1 if celle else 0)
             if _er_tal(celle) and float(celle).is_integer():
                 return til_json(int(celle))
             raise FeltFejl(f"{navn}: skriv ja eller nej (cellen indeholder {_vis(celle)})")

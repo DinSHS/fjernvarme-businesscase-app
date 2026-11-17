@@ -692,6 +692,18 @@ class Laeseren(Ark):
         self.assertEqual(self.lag(start={**START, "C6": ("=TRUE()", True)}).blade["units.gaskedel.enabled"], "true")
         self.assertEqual(self.lag(start={**START, "C6": ("=FALSE()", False)}).blade["units.gaskedel.enabled"], "false")
 
+    def test_en_aegte_boolsk_celle_er_ja_eller_nej_ogsaa_i_et_0_1_felt(self):
+        # Sidste rettelse i runde 14: TRUE/FALSE (t="b") i "tændt ved start" (0/1) blev afvist ("skriv ja eller nej"),
+        # mens browserens forhåndsvisning læste 1. Nu betyder TRUE ja/1 og FALSE nej/0 begge steder.
+        b = self.lag(start={**START, "D6": True, "D7": ("=FALSE()", False), "C6": False}).blade
+        self.assertEqual(b["units.gaskedel.initial_status"], "1")
+        self.assertEqual(b["units.el_kedel.initial_status"], "0")
+        self.assertEqual(b["units.gaskedel.enabled"], "false")
+        self.assertEqual(FK.laes_celle("units.x.initial_status", True), {"json": "1"})
+        self.assertEqual(FK.laes_celle("units.x.initial_status", False), {"json": "0"})
+        # Et tal- eller tekstfelt tager stadig ikke sand/falsk (samme regel som før, og som browseren).
+        self.assertIn("fejl", FK.laes_celle("units.x.p_max_heat", True))
+
 
 class Faneform(Ark):
     """Codex' andet review, P2: en fane i en form, importen ikke kender, må aldrig ignoreres. Før rettelserne i runde 14
