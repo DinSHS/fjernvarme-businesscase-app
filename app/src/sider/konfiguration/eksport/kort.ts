@@ -8,14 +8,16 @@
 // kræver, at forudsigelsen og scriptet er enige felt for felt
 // (viden/vaerktoej/tjek_eksport_rundtur.py).
 //
-// Forskellen mellem værket og forudsigelsen er "ikke med i arket": felter,
-// skabelonen ikke kan udtrykke, eller som scriptet sætter til sin egen
-// standard. De vises, før arket hentes. Ved genupload som revision røres de
-// ikke (kun det, brugeren ændrer i arket, gemmes); ved upload som nyt værk
-// får værket scriptets værdi. Aldrig tavst tab.
+// Runde 14: det, skabelonen ikke kan udtrykke, eller som scriptet sætter til
+// sin egen standard, står nu i APPENS EGNE faner (lag.ts: Start og drift,
+// Balancemarked, Øvrige felter), som importen lægger oven på scriptets
+// læsning. "Ikke med i arket" er det, der er tilbage efter laget: værkets
+// navn og kode, solprofilens sti og det, en celle beviseligt ikke kan bære.
+// Det vises, før arket hentes. Aldrig tavst tab.
 //-----------------------------------------------------------------------
 
 import { pyRound } from "@/lib/pyround";
+import { planlægLag, type Faneform } from "./lag";
 import { f, fladPy, i, type PyVærdi } from "./pyjson";
 import { slug } from "./slug";
 import { synligTekst, ulovligtXmlTegn } from "./xlsx";
@@ -69,6 +71,13 @@ export interface Eksportplan {
     solvarmeArk: boolean;
     /** Det, appens import (scriptet + markøren) gemmer som blade ved upload som nyt værk. */
     forventet: Map<string, string>;
+    /** Runde 14: det, importen gemmer ved upload som nyt værk — scriptets læsning + appens faner (værkets navne). */
+    endelig: Map<string, string>;
+    /** Appens egne faner (opsætning) og markeringens skrivemåder (lag.ts). */
+    lagfaner: Faneform[];
+    former: Record<string, string>;
+    /** Antal felter pr. af appens faner. */
+    lagantal: Record<string, number>;
     ikkeMed: Tab[];
     /** Stierne på `ikkeMed`, der ikke er konverteringsartefakter — markeringens `afvigelser` (K11 F4). */
     afvigelser: string[];
@@ -186,22 +195,41 @@ export function planlæg(k: Eksportkilde): Eksportplan {
     if (!slug(k.vaerk.navn)) nægter.push("Værkets navn giver en tom kode i modelscriptet.");
 
     // ---------------------------------------------------------------- Anlaeg: enheder
+    // Runde 14: en slået-fra enhed står også i Anlaeg (appens fane Start og drift bærer "i drift: nej") — når
+    // modelscriptet kan læse rækken. Kan det ikke (en type, skabelonen ikke kender; en slået-fra enhed uden pris
+    // eller virkningsgrad; en ekstra solvarmeenhed), står enhedens felter i fanen Øvrige felter.
     const enheder = b.objekter("units");
-    const medtagne: string[] = [];
+    const med = new Set<string>();
     const udeladte: { navn: string; grund: string }[] = [];
+    const plads = PLADS.enheder.til - PLADS.enheder.fra + 1;
+    let punkterIalt = 0;
+    for (const n of enheder) {
+        if (aktiv(b, `units.${n}`) && (tekst(b.get(`units.${n}.type`)) ?? "") in BRAENDSEL_PR_TYPE) { med.add(n); punkterIalt += vpPunkterFor(b, n).length; }
+    }
     for (const n of enheder) {
         const u = `units.${n}`;
         const type = tekst(b.get(`${u}.type`)) ?? "";
-        if (!aktiv(b, u)) { udeladte.push({ navn: n, grund: "slået fra — arket har ingen kolonne for det, og modelscriptet ville slå den til" }); continue; }
-        if (!(type in BRAENDSEL_PR_TYPE)) { udeladte.push({ navn: n, grund: `typen "${type}" kan ikke stå i skabelonen` }); continue; }
-        medtagne.push(n);
+        if (med.has(n)) continue;
+        if (!(type in BRAENDSEL_PR_TYPE)) { udeladte.push({ navn: n, grund: `typen "${type}" kan ikke stå i skabelonens Anlaeg` }); continue; }
+        // (Aktive enheder er alle med ovenfor; resten er slået fra.)
+        if (type === "solar_thermal") { udeladte.push({ navn: n, grund: "slået fra; en ekstra solvarmeenhed i Anlaeg ville tage arket Solvarme fra den aktive" }); continue; }
+        const pkt = vpPunkterFor(b, n);
+        if (med.size >= plads || punkterIalt + pkt.length > PLADS.vp.til - PLADS.vp.fra + 1) { udeladte.push({ navn: n, grund: "slået fra, og skabelonen har ikke flere rækker" }); continue; }
+        try {
+            læsEnhed({ b, priser, sol: null }, n, pkt.length ? tjekVp(pkt).get(slug(n)) : undefined);
+            med.add(n); punkterIalt += pkt.length;
+        } catch (e) {
+            udeladte.push({ navn: n, grund: `slået fra, og modelscriptet kan ikke læse rækken (${e instanceof Error ? e.message : String(e)})` });
+        }
     }
+    const medtagne = enheder.filter((n) => med.has(n));
     for (const x of udeladte) grunde.set(`units.${x.navn}`, x.grund);
-    if (medtagne.length === 0) nægter.push("Værket har ingen aktiv enhed, arket kan udtrykke.");
-    if (medtagne.length > PLADS.enheder.til - PLADS.enheder.fra + 1) nægter.push(`Værket har ${medtagne.length} aktive enheder; skabelonen har plads til ${PLADS.enheder.til - PLADS.enheder.fra + 1}.`);
+    if (!medtagne.some((n) => aktiv(b, `units.${n}`))) nægter.push("Værket har ingen aktiv enhed, arket kan udtrykke.");
+    if (medtagne.length > plads) nægter.push(`Værket har ${medtagne.length} aktive enheder; skabelonen har plads til ${plads}.`);
     const biomasse = medtagne.some((n) => b.get(`units.${n}.type`) === "biomass_boiler");
     const vpPunkter: { navn: string; t: number; q: number; e: number }[] = [];
     const solenheder = medtagne.filter((n) => b.get(`units.${n}.type`) === "solar_thermal");
+    if (solenheder.length > 1) noter.push(`Værket har ${solenheder.length} aktive solvarmeenheder; modelscriptet giver dem samme syntetiske profil-regel hver for sig, og arket Solvarme kan kun bære én.`);
 
     // Solprofilen (målt -> arket Solvarme) og varmelasten (Timedata) — brug og vindue afgøres her.
     const vl = timeserie(k.varmelast, "varmelast");
@@ -255,10 +283,7 @@ export function planlæg(k: Eksportkilde): Eksportplan {
             const fuel = tekst(b.get(`${u}.fuel`));
             sæt("Anlaeg", `N${r}`, type === "biomass_boiler" ? (fuel && BIOMASSE_DANSK[fuel]) || fuel : null, 10);
         }
-        if (type === "heat_pump" && kurve === "table") {
-            const pkt = b.get(`${u}.cop_curve.points`);
-            if (Array.isArray(pkt)) for (const p of pkt) vpPunkter.push({ navn: n, t: Number(p?.t_ambient), q: Number(p?.heat_mw), e: Number(p?.el_mw) });
-        }
+        vpPunkter.push(...vpPunkterFor(b, n));
     });
     // Ubrugte eksempelrækker tømmes og får indtastningsstilen (gul), som skabelonens tomme rækker.
     for (let r = PLADS.enheder.fra + medtagne.length; r <= PLADS.enheder.til; r++) {
@@ -268,12 +293,15 @@ export function planlæg(k: Eksportkilde): Eksportplan {
     if (biomasse) sæt("Anlaeg", "N4", "brændsel", 12);
 
     // ---------------------------------------------------------------- Anlaeg: tanke
+    // Runde 14: en slået-fra tank står også i Anlaeg ("i drift: nej" i Start og drift), når modelscriptet kan læse den.
     const tanke = b.objekter("storage").filter((n) => {
         if (aktiv(b, `storage.${n}`)) return true;
-        grunde.set(`storage.${n}`, "slået fra — arket har ingen kolonne for det, og modelscriptet ville slå den til");
-        return false;
-    });
-    if (tanke.length === 0) nægter.push("Værket har ingen aktiv akkumuleringstank — modelscriptet kræver mindst én.");
+        try { læsTank(b, n); return true; } catch (e) {
+            grunde.set(`storage.${n}`, `slået fra, og modelscriptet kan ikke læse rækken (${e instanceof Error ? e.message : String(e)})`);
+            return false;
+        }
+    }).slice(0, Math.max(PLADS.tanke.til - PLADS.tanke.fra + 1, b.objekter("storage").filter((n) => aktiv(b, `storage.${n}`)).length));
+    if (tanke.length === 0) nægter.push("Værket har ingen akkumuleringstank, arket kan bære — modelscriptet kræver mindst én.");
     if (tanke.length > PLADS.tanke.til - PLADS.tanke.fra + 1) nægter.push(`Værket har ${tanke.length} tanke; skabelonen har plads til ${PLADS.tanke.til - PLADS.tanke.fra + 1}.`);
     tanke.forEach((n, idx) => {
         const r = PLADS.tanke.fra + idx;
@@ -366,22 +394,33 @@ export function planlæg(k: Eksportkilde): Eksportplan {
         const fejl = ulovligTekst(c.v);
         if (fejl) nægter.push(`${c.ark}!${c.ref} ("${synlig(c.v)}") ${fejl} Ret navnet eller teksten i appen.`);
     }
-    // "Ikke med i arket" i værkets egne navne (scriptets navne føres tilbage som ved genupload).
-    const ikkeMed: Tab[] = [];
+    // Runde 14: appens egne faner bærer det, modelscriptet ikke læser, og forudsiger, hvad importen gemmer.
+    // "Ikke med i arket" er det, der er tilbage — i værkets egne navne (scriptets navne føres tilbage som ved genupload).
+    let ikkeMed: Tab[] = [];
+    let endelig = new Map<string, string>(), lagfaner: Faneform[] = [], former: Record<string, string> = {}, lagantal: Record<string, number> = {};
     if (!nægter.length) {
         const iVærk = new Map([...forventet].map(([s, v]) => [tilVærk(s), v] as const));
-        const alle = new Set([...b.rå.keys(), ...iVærk.keys()]);
-        for (const sti of [...alle].sort()) {
-            const vv = b.rå.get(sti) ?? null, sv = iVærk.get(sti) ?? null;
-            if (vv === sv) continue;
-            const grund = [...grunde.entries()].find(([p]) => sti === p || sti.startsWith(`${p}.`))?.[1];
-            ikkeMed.push({ sti, værk: vv, script: sv, ...(grund ? { grund } : {}) });
-        }
+        const lag = planlægLag({ værk: b.rå, script: iVærk, enheder: medtagne.map((n) => ({ navn: n, type: tekst(b.get(`units.${n}.type`)) ?? "" })), tanke });
+        celler.push(...lag.celler);
+        ({ endelig, former } = lag);
+        lagfaner = lag.faner; lagantal = lag.antal;
+        ikkeMed = lag.ikkeMed.map((t) => {
+            const grund = t.grund ?? [...grunde.entries()].find(([p]) => t.sti === p || t.sti.startsWith(`${p}.`))?.[1];
+            return { ...t, ...(grund ? { grund } : {}) };
+        });
     }
     // K11 F4: de stier, hvor modelscriptets læsning af arket ikke er værket. Importen kræver, at basis afviger fra
     // værket præcis her og ingen andre steder (fjv.revision.tjek_basis). Artefakter sammenlignes aldrig.
     const afvigelser = ikkeMed.map((t) => t.sti).filter((s) => !erArtefakt(s));
-    return { celler, træpillerRække: harPiller, braendselKolonne: biomasse, solvarmeArk: !!sol, forventet, ikkeMed, afvigelser, serier, udfyldes, afrundes, nægter, noter };
+    return { celler, træpillerRække: harPiller, braendselKolonne: biomasse, solvarmeArk: !!sol, forventet, endelig, lagfaner, former, lagantal, ikkeMed, afvigelser, serier, udfyldes, afrundes, nægter, noter };
+}
+
+/** Varmepumpens målepunkter (cop_curve af typen table) som arkets rækker — tom for alt andet. */
+function vpPunkterFor(b: Blade, n: string): { navn: string; t: number; q: number; e: number }[] {
+    const u = `units.${n}`;
+    if (b.get(`${u}.type`) !== "heat_pump" || b.get(`${u}.cop_curve.type`) !== "table") return [];
+    const pkt = b.get(`${u}.cop_curve.points`);
+    return Array.isArray(pkt) ? pkt.map((p) => ({ navn: n, t: Number(p?.t_ambient), q: Number(p?.heat_mw), e: Number(p?.el_mw) })) : [];
 }
 
 // ------------------------------------------------------------------ tekst, XML og artefakter
@@ -560,6 +599,130 @@ interface Forudsig {
 
 const hele = (v: number | null) => (v ? Math.max(1, Math.ceil(v)) : 1);
 
+/** Målepunkterne pr. varmepumpe (nøglet på scriptets navn), valideret og sorteret som laes_varmepumper gør. */
+function tjekVp(punkter: readonly { navn: string; t: number; q: number; e: number }[]): Map<string, { t: number; q: number; e: number }[]> {
+    const vp = new Map<string, { t: number; q: number; e: number }[]>();
+    for (const p of punkter) {
+        if (!(p.t >= -30 && p.t <= 40)) throw new Error(`Varmepumpen ${p.navn}: udetemperaturen ${p.t} °C ligger uden for skabelonens -30–40 °C.`);
+        if (!(p.q > 0 && p.e > 0)) throw new Error(`Varmepumpen ${p.navn}: varme og el skal være større end nul.`);
+        const cop = p.q / p.e;
+        if (!(cop >= 1.5 && cop <= 6.0)) throw new Error(`Varmepumpen ${p.navn}: COP ${cop.toFixed(2)} ligger uden for modelscriptets 1,5–6.`);
+        vp.set(slug(p.navn), [...(vp.get(slug(p.navn)) ?? []), p]);
+    }
+    for (const [n, pkt] of vp) {
+        if (pkt.length < 2) throw new Error(`Varmepumpen ${n} har kun ét målepunkt; modelscriptet kræver mindst to.`);
+        if (new Set(pkt.map((p) => p.t)).size !== pkt.length) throw new Error(`Varmepumpen ${n} har samme udetemperatur to gange.`);
+        pkt.sort((a, c) => a.t - c.t);
+    }
+    return vp;
+}
+
+/**
+ * Én række i Anlaeg, som modelscriptet læser den (laes_enheder) — kaster med scriptets grund, hvis det ville stoppe.
+ * Skilt ud af forudsigelsen i runde 14, så en slået-fra enhed kan prøves alene, før den får en række i arket.
+ */
+function læsEnhed(x: Pick<Forudsig, "b" | "priser" | "sol">, n: string, punkter: { t: number; q: number; e: number }[] | undefined): { [k: string]: PyVærdi } {
+    const { b } = x;
+    const u = `units.${n}`;
+    const type = tekst(b.get(`${u}.type`))!;
+    const pmax = tal(b.get(`${u}.p_max_heat`));
+    if (pmax === null && type !== "heat_pump") throw new Error(`Enheden ${n} har ingen maks varme — arket kræver den.`);
+    const pmin = tal(b.get(`${u}.p_min_heat`)) || 0;
+    const o: { [k: string]: PyVærdi } = {
+        enabled: true, type,
+        p_max_heat: pmax === null ? null : f(pmax),
+        p_min_heat: f(pmin),
+        var_om: f(tal(b.get(`${u}.var_om`)) || 0),
+        start_cost: f(tal(b.get(`${u}.start_cost`)) || 0),
+        min_uptime: i(hele(tal(b.get(`${u}.min_uptime`)))),
+        min_downtime: i(hele(tal(b.get(`${u}.min_downtime`)))),
+    };
+    let kurve: PyVærdi | null = null, cop0 = 0;
+    if (type === "heat_pump" && punkter) {
+        const ren = punkter.map((p) => ({ t_ambient: pyRound(p.t, 3), heat_mw: pyRound(p.q, 3), el_mw: pyRound(p.e, 3) }));
+        const q0 = interp(0, ren.map((p) => p.t_ambient), ren.map((p) => p.heat_mw));
+        const e0 = interp(0, ren.map((p) => p.t_ambient), ren.map((p) => p.el_mw));
+        kurve = { type: "table", points: ren.map((p) => ({ t_ambient: f(p.t_ambient), heat_mw: f(p.heat_mw), el_mw: f(p.el_mw) })) };
+        cop0 = q0 / e0;
+        if (pmax === null) o.p_max_heat = f(Math.max(...ren.map((p) => p.heat_mw)));
+    } else if (type === "heat_pump" && pmax === null) {
+        throw new Error(`Varmepumpen ${n} har hverken maks varme eller målepunkter.`);
+    }
+    const pmaxUd = (o.p_max_heat as { v: number } | null)?.v ?? 0;
+    if (pmin > pmaxUd) throw new Error(`Enheden ${n}: min varme er større end maks varme.`);
+    if (!TYPER_UDEN_BRAENDSEL.has(type)) {
+        const eta = tal(b.get(`${u}.eta_fuel_to_heat`));
+        if (eta === null || !(eta > 0 && eta <= 1.2)) throw new Error(`Enheden ${n}: virkningsgraden ${eta ?? "mangler"} — modelscriptet kræver en brøkdel over 0 og højst 1,2.`);
+        o.eta_fuel_to_heat = f(eta);
+    }
+    if (type === "biomass_boiler") {
+        const fuel = tekst(b.get(`${u}.fuel`)) ?? "";
+        if (!(fuel in BIOMASSE_DANSK)) throw new Error(`Biomassekedlen ${n} fyrer med "${fuel}"; skabelonen kender halm, træpiller og flis.`);
+        if (!x.priser[fuel]?.value) throw new Error(`Biomassekedlen ${n} fyrer med ${BIOMASSE_DANSK[fuel]}, men værket har ingen pris for det.`);
+        o.fuel = fuel;
+    } else {
+        o.fuel = BRAENDSEL_PR_TYPE[type];
+    }
+    if ((type === "gas_boiler" || type === "gas_engine_chp") && !("co2_eua" in x.priser)) throw new Error(`Gasenheden ${n} kræver en CO2-pris på arket Priser.`);
+    if (type === "waste_heat" && !x.priser.waste_heat?.value) throw new Error(`Overskudsvarmen ${n} kræver en pris for overskudsvarme.`);
+    if (type === "solar_thermal") {
+        const gwh = x.sol ? pyRound(x.sol.punkter.reduce((s, p) => s + (p[1] ?? 0), 0) / 1000, 3) : null;
+        if (gwh === null || !(gwh > 0 && gwh < 500)) throw new Error(`Solvarmeenheden ${n} kræver en årsproduktion i arket; værket har ingen aktiv solprofil at tage den fra.`);
+    }
+    const alpha = tal(b.get(`${u}.alpha`));
+    const eta = tal(b.get(`${u}.eta_fuel_to_heat`));
+    if (type === "heat_pump" && kurve) {
+        o.cop_curve = kurve;
+        o.alpha = f(pyRound(-1 / cop0, 4));
+    } else if (type === "heat_pump") {
+        const cop = tal(b.get(`${u}.cop_curve.a`)) ?? (alpha !== null && alpha < 0 ? -1 / alpha : null);
+        if (cop === null || !(cop >= 1.5 && cop <= 6.0)) throw new Error(`Varmepumpen ${n}: COP ved 0 °C (${cop ?? "mangler"}) ligger uden for modelscriptets 1,5–6.`);
+        o.cop_curve = { type: "linear", a: f(pyRound(cop, 3)), b: f(0.08), cop_min: f(1.8), cop_max: f(4.0) };
+        o.alpha = f(pyRound(-1 / cop, 4));
+    } else if (type === "electric_boiler") {
+        const ek = alpha !== null && alpha !== 0 ? -1 / alpha : 0.99;
+        if (!(ek >= 0.80 && ek <= 1.0)) throw new Error(`Elkedlen ${n}: virkningsgraden ${ek.toFixed(3)} (afledt af alpha ${alpha}) ligger uden for modelscriptets 0,80–1,0.`);
+        o.alpha = f(pyRound(-1 / ek, 4));
+    } else if (type === "gas_engine_chp") {
+        const etaEl = alpha !== null && eta !== null ? alpha * eta : null;
+        if (etaEl === null || !(etaEl > 0 && etaEl < 0.60)) throw new Error(`Gasmotoren ${n}: elvirkningsgraden ${etaEl ?? "mangler"} ligger uden for modelscriptets 0–0,60.`);
+        const samlet = etaEl + (eta as number);
+        if (!(samlet >= 0.70 && samlet <= 1.05)) throw new Error(`Gasmotoren ${n}: el- og varmevirkningsgrad giver tilsammen ${samlet.toFixed(2)}; modelscriptet kræver 0,70–1,05.`);
+        o.alpha = f(pyRound(etaEl / (eta as number), 4));
+    } else {
+        o.alpha = f(0);
+    }
+    if (type === "gas_boiler" || type === "gas_engine_chp") o.co2_emissions_per_mwh_fuel = f(0.2);
+    const uc = type !== "solar_thermal" && (pmin > 0 || (o.min_uptime as { v: number }).v > 1);
+    o.uc_enabled = uc;
+    if (uc) o.initial_status = i(0);
+    const byder = b.get(`${u}.ancillary.afrr_qualified`) === true;
+    o.ancillary = { afrr_qualified: byder, mfrr_qualified: byder, fcr_qualified: false };
+    if (type === "solar_thermal") {
+        // Importen (fjv.vaerksark.konverter_output) erstatter profilstien med markøren; noten er scriptets egen.
+        o.notes = x.sol ? `p_max_heat er værkets tal for største soleffekt. Profilen er værkets egne timeværdier fra arket Solvarme (${solNote(x.sol)}) — ikke syntese.` : "";
+        o.production_profile_path = "tidsserie:solprofil";
+    }
+    return o;
+}
+
+/** Én tankrække, som modelscriptet læser den (laes_tanke) — kaster med scriptets grund. */
+function læsTank(b: Blade, n: string): { [k: string]: PyVærdi } {
+    const s = `storage.${n}`;
+    const vol = tal(b.get(`${s}.volume_m3`));
+    const dt0 = tal(b.get(`${s}.delta_t_k`));
+    const emax = tal(b.get(`${s}.e_max_mwh`)) ?? (vol !== null && dt0 !== null ? vol * 1.163 * dt0 / 1000 : null);
+    if (vol === null || emax === null) throw new Error(`Tanken ${n} mangler volumen eller maks fyldning.`);
+    if (!(emax > 0.5 && emax < 5000)) throw new Error(`Tanken ${n}: maks fyldning ${emax} MWh ligger uden for modelscriptets 0,5–5.000.`);
+    const dt = emax * 1000 / (1.163 * vol);
+    if (!(dt >= 10 && dt <= 80)) throw new Error(`Tanken ${n}: volumen og fyldning svarer til ${dt.toFixed(0)} K; modelscriptet kræver 10–80 K.`);
+    return {
+        enabled: true, volume_m3: i(Math.trunc(vol)), delta_t_k: f(pyRound(dt, 2)), e_max_mwh: f(pyRound(emax, 1)), e_initial_mwh: f(pyRound(emax * 0.5, 1)),
+        p_max_charge_mw: f(tal(b.get(`${s}.p_max_charge_mw`)) || 25.0), p_max_discharge_mw: f(tal(b.get(`${s}.p_max_discharge_mw`)) || 25.0),
+        self_discharge_per_hour: f(0.0005), cycle_binding: true,
+    };
+}
+
 /** Det, scriptet + importens markør giver som blade. Kaster med scriptets grund, hvis scriptet ville stoppe. */
 function forudsig(x: Forudsig): Map<string, string> {
     const { b } = x;
@@ -612,131 +775,25 @@ function forudsig(x: Forudsig): Map<string, string> {
     };
 
     // --- varmepumpernes målepunkter (laes_varmepumper + _vp_kurve)
-    const vp = new Map<string, { t: number; q: number; e: number }[]>();
-    for (const p of x.vpPunkter) {
-        if (!(p.t >= -30 && p.t <= 40)) throw new Error(`Varmepumpen ${p.navn}: udetemperaturen ${p.t} °C ligger uden for skabelonens -30–40 °C.`);
-        if (!(p.q > 0 && p.e > 0)) throw new Error(`Varmepumpen ${p.navn}: varme og el skal være større end nul.`);
-        const cop = p.q / p.e;
-        if (!(cop >= 1.5 && cop <= 6.0)) throw new Error(`Varmepumpen ${p.navn}: COP ${cop.toFixed(2)} ligger uden for modelscriptets 1,5–6.`);
-        vp.set(slug(p.navn), [...(vp.get(slug(p.navn)) ?? []), p]);
-    }
-    for (const [n, pkt] of vp) {
-        if (pkt.length < 2) throw new Error(`Varmepumpen ${n} har kun ét målepunkt; modelscriptet kræver mindst to.`);
-        if (new Set(pkt.map((p) => p.t)).size !== pkt.length) throw new Error(`Varmepumpen ${n} har samme udetemperatur to gange.`);
-        pkt.sort((a, c) => a.t - c.t);
-    }
+    const vp = tjekVp(x.vpPunkter);
 
     // --- enheder (laes_enheder)
     const units: { [k: string]: PyVærdi } = {};
     const forUnits: { [k: string]: { [k: string]: PyVærdi } } = {};
     for (const n of x.medtagne) {
-        const u = `units.${n}`;
         const navn = slug(n);
         if (!navn) throw new Error(`Enhedsnavnet "${n}" giver en tom kode i modelscriptet.`);
         if (navn in forUnits) throw new Error(`Enhedsnavnet "${n}" står to gange efter modelscriptets normalisering (${navn}).`);
-        const type = tekst(b.get(`${u}.type`))!;
-        const pmax = tal(b.get(`${u}.p_max_heat`));
-        if (pmax === null && type !== "heat_pump") throw new Error(`Enheden ${n} har ingen maks varme — arket kræver den.`);
-        const pmin = tal(b.get(`${u}.p_min_heat`)) || 0;
-        const o: { [k: string]: PyVærdi } = {
-            enabled: true, type,
-            p_max_heat: pmax === null ? null : f(pmax),
-            p_min_heat: f(pmin),
-            var_om: f(tal(b.get(`${u}.var_om`)) || 0),
-            start_cost: f(tal(b.get(`${u}.start_cost`)) || 0),
-            min_uptime: i(hele(tal(b.get(`${u}.min_uptime`)))),
-            min_downtime: i(hele(tal(b.get(`${u}.min_downtime`)))),
-        };
         const punkter = vp.get(navn);
         vp.delete(navn);
-        let kurve: PyVærdi | null = null, cop0 = 0;
-        if (type === "heat_pump" && punkter) {
-            const ren = punkter.map((p) => ({ t_ambient: pyRound(p.t, 3), heat_mw: pyRound(p.q, 3), el_mw: pyRound(p.e, 3) }));
-            const q0 = interp(0, ren.map((p) => p.t_ambient), ren.map((p) => p.heat_mw));
-            const e0 = interp(0, ren.map((p) => p.t_ambient), ren.map((p) => p.el_mw));
-            kurve = { type: "table", points: ren.map((p) => ({ t_ambient: f(p.t_ambient), heat_mw: f(p.heat_mw), el_mw: f(p.el_mw) })) };
-            cop0 = q0 / e0;
-            if (pmax === null) o.p_max_heat = f(Math.max(...ren.map((p) => p.heat_mw)));
-        } else if (type === "heat_pump" && pmax === null) {
-            throw new Error(`Varmepumpen ${n} har hverken maks varme eller målepunkter.`);
-        }
-        const pmaxUd = (o.p_max_heat as { v: number } | null)?.v ?? 0;
-        if (pmin > pmaxUd) throw new Error(`Enheden ${n}: min varme er større end maks varme.`);
-        if (!TYPER_UDEN_BRAENDSEL.has(type)) {
-            const eta = tal(b.get(`${u}.eta_fuel_to_heat`));
-            if (eta === null || !(eta > 0 && eta <= 1.2)) throw new Error(`Enheden ${n}: virkningsgraden ${eta ?? "mangler"} — modelscriptet kræver en brøkdel over 0 og højst 1,2.`);
-            o.eta_fuel_to_heat = f(eta);
-        }
-        if (type === "biomass_boiler") {
-            const fuel = tekst(b.get(`${u}.fuel`)) ?? "";
-            if (!(fuel in BIOMASSE_DANSK)) throw new Error(`Biomassekedlen ${n} fyrer med "${fuel}"; skabelonen kender halm, træpiller og flis.`);
-            if (!x.priser[fuel]?.value) throw new Error(`Biomassekedlen ${n} fyrer med ${BIOMASSE_DANSK[fuel]}, men værket har ingen pris for det.`);
-            o.fuel = fuel;
-        } else {
-            o.fuel = BRAENDSEL_PR_TYPE[type];
-        }
-        if ((type === "gas_boiler" || type === "gas_engine_chp") && !("co2_eua" in x.priser)) throw new Error(`Gasenheden ${n} kræver en CO2-pris på arket Priser.`);
-        if (type === "waste_heat" && !x.priser.waste_heat?.value) throw new Error(`Overskudsvarmen ${n} kræver en pris for overskudsvarme.`);
-        if (type === "solar_thermal") {
-            const gwh = x.sol ? pyRound(x.sol.punkter.reduce((s, p) => s + (p[1] ?? 0), 0) / 1000, 3) : null;
-            if (gwh === null || !(gwh > 0 && gwh < 500)) throw new Error(`Solvarmeenheden ${n} kræver en årsproduktion i arket; værket har ingen aktiv solprofil at tage den fra.`);
-        }
-        const alpha = tal(b.get(`${u}.alpha`));
-        const eta = tal(b.get(`${u}.eta_fuel_to_heat`));
-        if (type === "heat_pump" && kurve) {
-            o.cop_curve = kurve;
-            o.alpha = f(pyRound(-1 / cop0, 4));
-        } else if (type === "heat_pump") {
-            const cop = tal(b.get(`${u}.cop_curve.a`)) ?? (alpha !== null && alpha < 0 ? -1 / alpha : null);
-            if (cop === null || !(cop >= 1.5 && cop <= 6.0)) throw new Error(`Varmepumpen ${n}: COP ved 0 °C (${cop ?? "mangler"}) ligger uden for modelscriptets 1,5–6.`);
-            o.cop_curve = { type: "linear", a: f(pyRound(cop, 3)), b: f(0.08), cop_min: f(1.8), cop_max: f(4.0) };
-            o.alpha = f(pyRound(-1 / cop, 4));
-        } else if (type === "electric_boiler") {
-            const ek = alpha !== null && alpha !== 0 ? -1 / alpha : 0.99;
-            if (!(ek >= 0.80 && ek <= 1.0)) throw new Error(`Elkedlen ${n}: virkningsgraden ${ek.toFixed(3)} (afledt af alpha ${alpha}) ligger uden for modelscriptets 0,80–1,0.`);
-            o.alpha = f(pyRound(-1 / ek, 4));
-        } else if (type === "gas_engine_chp") {
-            const etaEl = alpha !== null && eta !== null ? alpha * eta : null;
-            if (etaEl === null || !(etaEl > 0 && etaEl < 0.60)) throw new Error(`Gasmotoren ${n}: elvirkningsgraden ${etaEl ?? "mangler"} ligger uden for modelscriptets 0–0,60.`);
-            const samlet = etaEl + (eta as number);
-            if (!(samlet >= 0.70 && samlet <= 1.05)) throw new Error(`Gasmotoren ${n}: el- og varmevirkningsgrad giver tilsammen ${samlet.toFixed(2)}; modelscriptet kræver 0,70–1,05.`);
-            o.alpha = f(pyRound(etaEl / (eta as number), 4));
-        } else {
-            o.alpha = f(0);
-        }
-        if (type === "gas_boiler" || type === "gas_engine_chp") o.co2_emissions_per_mwh_fuel = f(0.2);
-        const uc = type !== "solar_thermal" && (pmin > 0 || (o.min_uptime as { v: number }).v > 1);
-        o.uc_enabled = uc;
-        if (uc) o.initial_status = i(0);
-        const byder = b.get(`${u}.ancillary.afrr_qualified`) === true;
-        o.ancillary = { afrr_qualified: byder, mfrr_qualified: byder, fcr_qualified: false };
-        if (type === "solar_thermal") {
-            // Importen (fjv.vaerksark.konverter_output) erstatter profilstien med markøren; noten er scriptets egen.
-            o.notes = x.sol ? `p_max_heat er værkets tal for største soleffekt. Profilen er værkets egne timeværdier fra arket Solvarme (${solNote(x.sol)}) — ikke syntese.` : "";
-            o.production_profile_path = "tidsserie:solprofil";
-        }
-        forUnits[navn] = o;
+        forUnits[navn] = læsEnhed(x, n, punkter);
     }
     if (vp.size) throw new Error(`Arket Varmepumpe har målepunkter for ${[...vp.keys()].join(", ")}, men ingen aktiv varmepumpe med det navn.`);
     Object.assign(units, forUnits);
 
     // --- tanke (laes_tanke)
     const storage: { [k: string]: PyVærdi } = {};
-    for (const n of x.tanke) {
-        const s = `storage.${n}`;
-        const vol = tal(b.get(`${s}.volume_m3`));
-        const dt0 = tal(b.get(`${s}.delta_t_k`));
-        const emax = tal(b.get(`${s}.e_max_mwh`)) ?? (vol !== null && dt0 !== null ? vol * 1.163 * dt0 / 1000 : null);
-        if (vol === null || emax === null) throw new Error(`Tanken ${n} mangler volumen eller maks fyldning.`);
-        if (!(emax > 0.5 && emax < 5000)) throw new Error(`Tanken ${n}: maks fyldning ${emax} MWh ligger uden for modelscriptets 0,5–5.000.`);
-        const dt = emax * 1000 / (1.163 * vol);
-        if (!(dt >= 10 && dt <= 80)) throw new Error(`Tanken ${n}: volumen og fyldning svarer til ${dt.toFixed(0)} K; modelscriptet kræver 10–80 K.`);
-        storage[slug(n)] = {
-            enabled: true, volume_m3: i(Math.trunc(vol)), delta_t_k: f(pyRound(dt, 2)), e_max_mwh: f(pyRound(emax, 1)), e_initial_mwh: f(pyRound(emax * 0.5, 1)),
-            p_max_charge_mw: f(tal(b.get(`${s}.p_max_charge_mw`)) || 25.0), p_max_discharge_mw: f(tal(b.get(`${s}.p_max_discharge_mw`)) || 25.0),
-            self_discharge_per_hour: f(0.0005), cycle_binding: true,
-        };
-    }
+    for (const n of x.tanke) storage[slug(n)] = læsTank(b, n);
 
     // --- tid, varmelastparametre, meta (laes_timedata + main)
     const vl = x.vl.punkter.filter((p) => p[1] !== null) as [number, number][];

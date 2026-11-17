@@ -187,6 +187,33 @@ export class Regneark {
         this.efter = this.efter.replace(fra, til);
     }
 
+    /** En fast rækkehøjde (til flettede celler med ombrudt tekst, som et regneark ikke selv gør højere). */
+    sætHøjde(nr: number, punkter: number): void {
+        this.række(nr).attr = `customFormat="false" ht="${punkter}" hidden="false" customHeight="true" outlineLevel="0" collapsed="false"`;
+    }
+
+    /**
+     * Opsætningen af et NYT ark (appens egne faner, runde 14): kolonnebredder, frosne overskriftsrækker, flettede
+     * celler, dropdowns (datavalidering som skabelonens egne) og rækkehøjder. Arket er skabt af `tilføjArk` uden
+     * flet og validering, så delene sættes ind ét sted hver.
+     */
+    opsæt(o: { kolonner: readonly number[]; frysRækker: number; flet: readonly string[]; valideringer: readonly { sqref: string; liste: readonly string[]; titel: string }[]; højder: readonly (readonly [number, number])[] }): void {
+        const cols = `<cols>${o.kolonner.map((w, j) => `<col collapsed="false" customWidth="true" hidden="false" outlineLevel="0" max="${j + 1}" min="${j + 1}" style="0" width="${w}"/>`).join("")}</cols>`;
+        if (!/<cols>[\s\S]*?<\/cols>/.test(this.før) || !/<sheetViews>[\s\S]*?<\/sheetViews>/.test(this.før)) throw new Error(`${this.navn}: arket har ikke skabelonens form (<cols>, <sheetViews>).`);
+        const n = o.frysRækker;
+        const rude = n > 0 ? `<pane xSplit="0" ySplit="${n}" topLeftCell="A${n + 1}" activePane="bottomLeft" state="frozen"/><selection pane="topLeft" activeCell="A1" activeCellId="0" sqref="A1"/><selection pane="bottomLeft" activeCell="A${n + 1}" activeCellId="0" sqref="A${n + 1}"/>`
+            : `<selection pane="topLeft" activeCell="A1" activeCellId="0" sqref="A1"/>`;
+        const visning = `<sheetViews><sheetView showFormulas="false" showGridLines="false" showRowColHeaders="true" showZeros="true" rightToLeft="false" tabSelected="false" showOutlineSymbols="true" defaultGridColor="true" view="normal" topLeftCell="A1" colorId="64" zoomScale="100" zoomScaleNormal="100" zoomScalePageLayoutView="100" workbookViewId="0">${rude}</sheetView></sheetViews>`;
+        this.før = this.før.replace(/<cols>[\s\S]*?<\/cols>/, cols).replace(/<sheetViews>[\s\S]*?<\/sheetViews>/, visning);
+        const flet = o.flet.length ? `<mergeCells count="${o.flet.length}">${o.flet.map((r) => `<mergeCell ref="${r}"/>`).join("")}</mergeCells>` : "";
+        const liste = (l: readonly string[]) => xmlTegn(`"${l.join(",")}"`);
+        const valg = o.valideringer.length ? `<dataValidations count="${o.valideringer.length}">${o.valideringer.map((v) =>
+            `<dataValidation allowBlank="true" error="${xmlTegn(`Vælg en værdi fra listen: ${v.liste.join(", ")}`)}" errorStyle="stop" errorTitle="${xmlTegn(v.titel)}" operator="between" prompt="Vælg fra listen" promptTitle="${xmlTegn(v.titel)}" showDropDown="false" showErrorMessage="true" showInputMessage="true" sqref="${v.sqref}" type="list"><formula1>${liste(v.liste)}</formula1><formula2>0</formula2></dataValidation>`).join("")}</dataValidations>` : "";
+        if (!this.efter.includes("<printOptions")) throw new Error(`${this.navn}: arket har ikke skabelonens form (<printOptions>).`);
+        this.efter = this.efter.replace("<printOptions", `${flet}${valg}<printOptions`);
+        for (const [nr, ht] of o.højder) this.sætHøjde(nr, ht);
+    }
+
     /** Tilføjer en kolonnebredde (<cols>), hvis kolonnen ikke har en. */
     sikrKolonnebredde(kol: number, bredde: number): void {
         if (new RegExp(`<col [^>]*\\bmin="${kol}"`).test(this.før)) return;

@@ -16,6 +16,7 @@
 //-----------------------------------------------------------------------
 
 import { findFelt } from "../katalog";
+import { læsLag, type Lagcelle } from "./lag";
 import { fraExcelSerie, læsCeller } from "./xlsx";
 import { læsMarkering, type Markering } from "./eksporter";
 
@@ -30,6 +31,8 @@ export interface Arkmodel {
     timedata: Map<number, number>;
     solvarme: Map<number, number>;
     felter: Map<string, V>;                      // enkeltceller (tidszone, årsproduktion)
+    /** Runde 14: appens egne faner (Start og drift, Balancemarked, Øvrige felter) som sti -> celle. */
+    lag: Map<string, Lagcelle>;
 }
 
 /**
@@ -81,7 +84,7 @@ function tidsserie(c: Celler | undefined, fra: number): Map<number, number> {
 const AARSPRODUKTION = "Timedata: årsproduktion (GWh)";
 
 export function læsArkmodel(ark: Map<string, Celler>): Arkmodel {
-    const m: Arkmodel = { enheder: new Map(), tanke: new Map(), vp: new Map(), poster: new Map(), timedata: new Map(), solvarme: new Map(), felter: new Map() };
+    const m: Arkmodel = { enheder: new Map(), tanke: new Map(), vp: new Map(), poster: new Map(), timedata: new Map(), solvarme: new Map(), felter: new Map(), lag: læsLag(ark) };
     const an = ark.get("Anlaeg") ?? new Map();
     const hr = rækkeMed(an, "navn");
     if (hr) {
@@ -190,6 +193,18 @@ export function sammenlign(basis: Arkmodel, ark: Arkmodel): Forskel {
     for (const n of new Set([...basis.felter.keys(), ...ark.felter.keys()])) {
         const x = basis.felter.get(n), y = ark.felter.get(n);
         if (!lig(x, y)) felter.push({ hvor: "Timedata", felt: n, før: vis(x), nu: vis(y), ...(n === AARSPRODUKTION ? { gemmesIkke: GEMMES_IKKE.aarsproduktion } : {}) });
+    }
+    // Appens egne faner: felt for felt på stien (en flyttet række ligner ikke en ændring). En betinget række i
+    // Øvrige felter vises med sin betingelse, hvis den er rettet.
+    for (const sti of new Set([...basis.lag.keys(), ...ark.lag.keys()])) {
+        const x = basis.lag.get(sti), y = ark.lag.get(sti);
+        const fane = (y ?? x)!.hvor.split("!")[0];
+        const d = sti.split(".");
+        const objekt = ["units", "storage"].includes(d[0]) && d.length > 2 ? ` · ${d[1]}` : "";
+        const navn = `${findFelt(sti)?.etiket ?? sti}${objekt} (${sti})`;
+        if (!x || !y) felter.push({ hvor: fane, felt: navn, før: x ? vis(x.v) : "–", nu: y ? vis(y.v) : "rækken er slettet" });
+        else if (!lig(x.v, y.v)) felter.push({ hvor: fane, felt: navn, før: vis(x.v), nu: vis(y.v) });
+        else if (!lig(x.betingelse, y.betingelse)) felter.push({ hvor: fane, felt: `${navn}: kun hvis modelscriptet giver`, før: vis(x.betingelse), nu: vis(y.betingelse) });
     }
     const serier = [serie("varmelast", basis.timedata, ark.timedata), serie("solprofil", basis.solvarme, ark.solvarme)].filter((x): x is Serieændring => !!x);
     const gemmes = felter.filter((x) => !x.gemmesIkke).length + serier.length;
