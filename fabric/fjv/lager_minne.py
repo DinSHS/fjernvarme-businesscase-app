@@ -328,7 +328,7 @@ class MinneImportLager:
     def gem_vaerk(self, imp: dict, k, model_sha: str, scriptlog: str,
                   files: str | None = None) -> dict:
         from .tidsserie_db import gem_tidsseriefil
-        from .vaerksark import ArkFejl
+        from .vaerksark import ArkFejl, _log_tekst, oprettet_log, revisionsspor
         hvem = (imp.get("uploadet_af") or "fjv_importer_vaerksark")[:200]
         with self.db._mutex:
             r = self.db.importer.get(imp["id"])
@@ -352,14 +352,20 @@ class MinneImportLager:
                     "uploadet_af": hvem, "uploadet": self.db.nu()}
                 ts_ud.append({"rolle": t["rolle"], "id": tid, "sha256": res.sha256,
                               "raekker": res.antal_raekker, "start": res.start, "slut": res.slut})
+            # Runde 14: revision 1 = modelscriptets læsning, revision 2 = appens faner oven på den (som SQL-lageret).
+            revision, spor = revisionsspor(k)
             self.db.vaerker[vid] = {"id": vid, "kode": k.kode, "navn": k.navn, "kilde": "app",
-                                    "revision": 1, "repo_commit": model_sha, "parametre": blade,
-                                    "oprettet_af": hvem}
+                                    "revision": revision, "repo_commit": model_sha, "parametre": blade,
+                                    "oprettet_af": hvem,
+                                    "log": [{"revision": rev_nr, "sti": s, "handling": h, "gammel_json": g, "ny_json": n,
+                                             "aendret_af": hvem, "anmodning_id": None}
+                                            for rev_nr, raekker in spor for s, h, g, n in raekker]}
             varme = next((t["id"] for t in ts_ud if t["rolle"] == "varmelast"), None)
             sol = next((t["id"] for t in ts_ud if t["rolle"] == "solprofil"), None)
-            log = f"Værket '{k.navn}' (kode {k.kode}) er oprettet med {len(blade)} parametre."
+            log = _log_tekst("\n".join(oprettet_log(k, blade, ts_ud)), scriptlog)
             r.update(status="faerdig", vaerk_id=vid, tidsserie_id=varme or sol, log=log)
-        return {"vaerk_id": vid, "kode": k.kode, "parametre": len(blade), "tidsserier": ts_ud, "log": log}
+        return {"vaerk_id": vid, "kode": k.kode, "parametre": len(blade), "tidsserier": ts_ud, "log": log,
+                "revision": revision}
 
     def revision_for(self, import_id: str) -> dict | None:
         from .vaerksark import laes_revision
@@ -401,7 +407,9 @@ class MinneImportLager:
                     log.append({"revision": ny_rev, "sti": x["sti"], "handling": "opret", "gammel_json": None,
                                 "ny_json": x["ny_json"], "aendret_af": hvem, "anmodning_id": imp["id"]})
                 gamle = {b["sti"]: b for b in v.get("parametre", [])}
-                v["parametre"] = [gamle.get(sti, {"sti": sti, "vaerdi_json": vj}) | {"vaerdi_json": vj} for sti, vj in ny.items()]
+                nye_kommentarer = {x["sti"]: x["kommentar"] for x in plan["opret"] if x.get("kommentar")}
+                v["parametre"] = [gamle.get(sti, {"sti": sti, "vaerdi_json": vj, "kommentar": nye_kommentarer.get(sti)})
+                                  | {"vaerdi_json": vj} for sti, vj in ny.items()]
                 v.update(revision=ny_rev, aendret_af=hvem)
             ts_id = None
             for rolle, sr in f["serier"].items():

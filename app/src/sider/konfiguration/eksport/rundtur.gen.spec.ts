@@ -1,11 +1,14 @@
 // Generatoren til rundturs-beviset (runde 12, viden/vaerktoej/tjek_eksport_rundtur.py). Springes over, medmindre
 // FJV_RUNDTUR peger på en mappe med `<kode>/input.json` (værkets blade + aktive tidsserier, lavet af Python-siden fra
 // modelrepoet ved pinnen). For hvert værk skrives `<kode>/eksport.xlsx` (appens eksport, uændret), `<kode>/uden_app.xlsx`
-// (samme ark uden markeringen — beviser, at scriptet ignorerer den) og `<kode>/plan.json` (forudsigelsen og listen).
+// (samme ark uden markeringen — beviser, at scriptet ignorerer den), `<kode>/uden_lag.xlsx` (runde 14: samme ark uden
+// appens egne faner og uden markeringen — importeres præcis som modelrepoets rene skabelon) og `<kode>/plan.json`
+// (forudsigelsen og listen).
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { eksporter } from "./eksporter";
+import { LAGFANER } from "./lag";
 import type { Eksportkilde } from "./kort";
 import { Arbejdsbog } from "./xlsx";
 
@@ -25,8 +28,11 @@ describe.skipIf(!MAPPE)("eksport til rundturs-beviset", () => {
                 writeFileSync(join(ud, "eksport.xlsx"), e.bytes);
                 // Uden markering: samme bytes, men arket _app fjernet fra arbejdsbogen.
                 writeFileSync(join(ud, "uden_app.xlsx"), udenMarkering(e.bytes));
+                writeFileSync(join(ud, "uden_lag.xlsx"), udenLag(e.bytes));
                 writeFileSync(join(ud, "plan.json"), JSON.stringify({
                     filnavn: e.filnavn, markering: e.markering, forventet: Object.fromEntries(e.plan.forventet),
+                    // Runde 14: det, importen gemmer ved upload som nyt værk (scriptets læsning + appens faner), og fanernes omfang.
+                    endelig: Object.fromEntries(e.plan.endelig), former: e.plan.former, lagantal: e.plan.lagantal,
                     ikkeMed: e.plan.ikkeMed, afvigelser: e.plan.afvigelser, serier: e.plan.serier, udfyldes: e.plan.udfyldes, afrundes: e.plan.afrundes, noter: e.plan.noter,
                 }, null, 1));
             } catch (x) {
@@ -39,4 +45,10 @@ describe.skipIf(!MAPPE)("eksport til rundturs-beviset", () => {
 function udenMarkering(bytes: Uint8Array): Uint8Array {
     const wb = new Arbejdsbog(bytes);
     return wb.udenArk("_app");
+}
+
+function udenLag(bytes: Uint8Array): Uint8Array {
+    let b = udenMarkering(bytes);
+    for (const navn of LAGFANER) b = new Arbejdsbog(b).udenArk(navn);
+    return b;
 }

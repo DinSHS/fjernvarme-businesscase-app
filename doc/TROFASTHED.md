@@ -35,6 +35,10 @@ cases/<værk>.yaml ── fjv/flad.py ──► blade i databasen (sti → værd
 * Eksporten af et værk til værksarket (runde 12) udfylder modelrepoets **egen** `vaerksdata_skabelon.xlsx` og er den
   inverse af scriptet: hvad scriptet læser tilbage, er bevist felt for felt i gaten ([4d](#4d-eksport-til-værksark--rundturen)).
   Ved genupload som revision køres scriptet uændret på både arket og en ny eksport af værket, og kun forskellen gemmes.
+* Det, skabelonen ikke kan bære, står i **appens egne faner** i det eksporterede ark (runde 14: *Start og drift*,
+  *Balancemarked*, *Øvrige felter*). Scriptet læser dem ikke; importen lægger deres værdier oven på scriptets læsning.
+  Det er en **egen antagelse** ([afsnit 5](#5-egen-antagelse--hvor-appen-bevidst-afviger-eller-tilføjer)) og står i
+  revisionssporet: scriptets læsning er revision 1, fanernes ændringer revision 2.
 * Wrapperen ændrer intet i beregningen. Den pakker `src.manifest.write_manifest` ind og skriver bagefter
   `_fjv_fuld.csv` (alle N intervaller, fordi `_hourly.csv` dropper det første) og `_fjv.json` (objektivet uden afrunding).
 * Månedstal i dansk tid regnes af appen ud fra `_fjv_fuld.csv`, fordi modellens `_monthly.csv` grupperer i UTC.
@@ -155,21 +159,32 @@ modelrepoets `scripts/vaerksark_til_yaml.py` køres **uændret** på arket, som 
 
 * scriptet godtager arket, og arket med og uden den skjulte markering `_app` giver præcis samme case og tidsserier;
 * eksportens forudsigelse af scriptet (`app/src/sider/konfiguration/eksport/kort.ts`) = scriptets blade, typestreng;
-* hver forskel mellem værket og scriptets case (scriptets objektnavne ført tilbage som importen gør) står på
-  eksportens liste *ikke med i arket*, og listen har intet andet; markeringens *afvigelser* er listens ikke-artefakter;
+* arket uploadet som et **nyt værk** gennem importens egen kode — scriptets læsning, appens egne faner
+  (`fjv.vaerksark.laeg_lag`) og modelkravene — er præcis eksportens forudsigelse (`lag.ts`) og **det oprindelige værk
+  blad for blad**, bortset fra den eksplicitte, begrundede liste i `UNDTAGELSER` (solprofilens sti: det nye værk
+  peger på sin egen solprofil). Hver forskel står på eksportens liste *ikke med i arket*, og listen har intet andet;
+  markeringens *afvigelser* er listens ikke-artefakter. Målt ved `90fb16e`: Andeby 232 af 232 blade med én forskel
+  (før runde 14: 80), Billund-værkerne ingen (før 71–106);
+* revisionssporet for det nye værk er revision 1 = scriptets læsning og revision 2 = fanernes ændringer, og hvert
+  blad, laget har sat, bærer kilden som kommentar; samme ark uden appens faner giver præcis scriptets læsning;
 * den målte serie i arket kommer tilbage byte for byte (inden for arkets periode), og begge mængdeforskelle i
   tidsaksen er forklaret: timer, scriptet tilføjer, er præcis eksportens *udfyldes* (tidspunkt og værdi med 6
   decimaler); timer, det fjerner, ligger uden for arket;
-* genupload uden ændringer gemmer intet, og `run_case` giver samme objektiv før og efter (`--koer`);
-* modprøver: én ændret celle (D&V, en brændselspris, én solvarmetime) ændrer præcis det felt; en serierettelse er
-  revision 2 med logrækken `tidsserie.<rolle>`; et værk på en nyere revision, et ark fra et andet værk og en basis, der
-  ikke er værkets eksport (det rettede ark sendt som sin egen basis), afvises uden at gemme noget; kun årsproduktionen
-  i Timedata!B3 ændret gemmer intet og siger hvorfor.
+* genupload uden ændringer gemmer intet (værket er blad for blad det samme);
+* `run_case` giver **samme objektiv** for det oprindelige værk og værket uploadet som nyt (`--koer`), med modelrepoets
+  egen kommando for casen — med balancemarked for de værker, der har det, og med den målte varmelast for
+  `billund_idag_maalt`. Tidsserierne lægges som arbejderen gør det, i en lokal kopi af modelkoden ved pinnen;
+* modprøver: én ændret celle (D&V, en brændselspris, én solvarmetime — og én celle i hver af appens faner, også et
+  felt i konverteringens egne sektioner) ændrer præcis det felt; en serierettelse er revision 2 med logrækken
+  `tidsserie.<rolle>`; et værk på en nyere revision, et ark fra et andet værk og en basis, der ikke er værkets eksport
+  (det rettede ark sendt som sin egen basis), afvises uden at gemme noget; kun årsproduktionen i Timedata!B3 ændret
+  gemmer intet og siger hvorfor; en kedel uden type i Anlaeg springer scriptet over uden besked (målt i samme prøve),
+  og importen afviser arket med rækkenummeret.
 
-Rundturen sammenligner med regnearkets præcision (15 betydende cifre), ikke bit for bit: en rettelse efter det 15.
-ciffer er usynlig. `run_case` køres på værket før og efter en revision uden ændringer (samme blade) — det beviser
-no-op-revisionen, ikke at en upload som nyt værk regner identisk med originalen; dén forskel er listen *ikke med i
-arket*.
+Rundturen sammenligner revisioner med regnearkets præcision (15 betydende cifre), ikke bit for bit: en rettelse efter
+det 15. ciffer er usynlig. Upload som nyt værk sammenlignes typestrengt, blad for blad. Tre varianter køres ikke med
+`run_case` (hullerne i `andeby_hul` udfylder scriptet ved upload som nyt værk, og det er oplyst før download;
+`billund_idag_maalt_hul` og `andeby_navne` prøver serien og navnene); grunden står i `UDEN_KOERSEL`.
 
 En fejl i forudsigelsen (målt: tankenes selvafladning sat til 0,0006) gør trinnet rødt med fire fund.
 
@@ -193,6 +208,8 @@ direkte på modelrepoet ved `90fb16e`. Kørslens side viser modelversionerne og 
 | Sammenligning, vandfald, anbefalinger | appens egne regler (`viden/anbefalingsregler.json`, METODE §6a) | differensmetoden (README) | appen lægger to kørsler side om side; reglerne står i appen |
 | Grænser | kun timeopløsning (1h); højst 366 døgn; én solver ad gangen; tidsgrænse ≤ 3.600 s i Fabric; CSV-upload strengere end modellens læser | modellen kan 15 min og vilkårlig længde | driftssikkerhed i en delt installation |
 | Netto og brutto balanceindtægt | vises hver for sig, aldrig lagt sammen | objektivet bruger brutto, manifestet netto | som modellens egen dokumentation |
+| Værksarkets faner *Start og drift*, *Balancemarked* og *Øvrige felter* (runde 14) | appens eget lag: eksporten skriver dem efter modelrepoets faner, og importen lægger deres værdier oven på scriptets læsning — typen fra feltkataloget, hver værdi valideret som en redigering i appen, det færdige værk mod modellens minimumskrav. En række i *Øvrige felter* viger for en rettelse i modelrepoets faner (kolonnen *kun hvis modelscriptet giver*). Et nyt værk er revision 2 (revision 1 = scriptets læsning), og bladet bærer kilden som kommentar | skabelonen har fanerne Vejledning, Timedata, Anlaeg, Varmepumpe, Priser (og Solvarme); scriptet sætter selv `initial_status: 0` (`scripts/vaerksark_til_yaml.py:855-856`), halvfuld tank, selvafladning 0,0005 og `cycle_binding` (`:912-916`), CO₂-faktor 0,2 (`:846-847`), unit commitment efter minimumslasten (`:853-854`) og skriver en case uden `balancing` (`:1685`) | et værk skal kunne eksporteres, rettes og uploades uden at miste et felt; målt stod 71–106 felter pr. katalogværk på listen *ikke med i arket*. Scriptet køres stadig uændret, og fanerne siger selv, at de er appens |
+| Højlydt import af værksarket (runde 14) | en række i Anlaeg med navn uden type (eller omvendt, eller kun tal), en tank uden volumen eller under de seks tankrækker og et målepunkt under varmepumpens tabel afviser importen med rækkenummer, før scriptet kører; importens log advarer, når hver styrbar enhed står til slukket ved start | scriptet springer rækken over uden besked (`dropna`, `scripts/vaerksark_til_yaml.py:606` og `:878`; `nrows=6`, `:876`; `nrows` i Varmepumpe, `:513-515`) | målt: otte af et værks 17 enheder forsvandt, og kørslen uden tank var uløselig, fordi alle enheder var slukket i første time |
 | Referencetal efter spotrettelsen (`5021a5e`) | README-tallene vises som *regnet før spotrettelsen* med egne målinger ved `90fb16e` ved siden af (Information › Referencetal og Budstrategi, METODE §7, `referencetal.json` › `regnet_igen`); *README mod Fabric* tæller kun kørsler ved `eef950a` (`model_commit` med `regnet_ved`); demoernes forventede tal er egne målinger, og D12 har intet | README-tabellen, `doc/` (fx `doc/BUDSTRATEGI.md:328-335`) og rapport v4 er regnet før rettelsen og opdateres senere (README.md:20-27); efter rettelsen kun tre kontroltal (CLAUDE.md:30-38) | koden ved pinnen regner med den nye spotregel; et gammelt tal som facit ville melde en korrekt kørsel som forkert |
 
 Ikke med i appen: `--heat-params`, `--heat-csv-column`/`--heat-csv-tz`, `--legacy-nettab` i standardkørslen, `--dummy`.
@@ -218,6 +235,8 @@ mærket *ved 90fb16e* er fundet ved modelskiftet 14. november 2026; deres linjer
 | `scripts/vaerksark_til_yaml.py:1581` | skalerer fra "Andebys ~100 GWh"; Andebys parametre giver 105,52 GWh på karup-vejret jul 2025–jun 2026 (vores måling) |
 | `scripts/vaerksark_til_yaml.py:1015-1036` | dansk lokaltid i både Timedata og Solvarme fejler altid ("mangler 22 timer i starten") |
 | `cases/andeby.yaml:184` | CO₂-enheden hedder `DKK/t`; konverteringen skriver `DKK/t_CO2` |
+| `scripts/vaerksark_til_yaml.py:606`, `:878` (ved 90fb16e) | `dropna(subset=["navn", "type"])` springer en enhed med navn, men uden type, over uden besked — og `dropna(subset=["navn", "volumen"])` en tank uden volumen. Målt i gaten: en kedel uden type giver exit 0 og en case uden kedlen. Appens import afviser arket med rækkenummer (afsnit 5) |
+| `scripts/vaerksark_til_yaml.py:855-856` mod `src/config.py:520` (ved 90fb16e) | konverteringen skriver `initial_status: 0` for hver enhed med unit commitment; modellens standard er 1. Et værk fra arket kan derfor ikke dække første time uden tank (målt: kørslen løser med `units.el_kedel.initial_status: 1`). Appens import advarer |
 | `scripts/vaerksark_til_yaml.py:101-108` | `slug()` normaliserer til NFKD **før** æ/ø/å erstattes: `å` er da allerede `a` + en kombinerende ring og bliver `a` (ikke `aa`), og et stort Æ eller Ø falder bort i `.encode("ascii", "ignore")`. Målt: "Ærø Fjernvarme" → `roe_fjernvarme`, "Brønderslev Østerby" → `broenderslev_sterby`, "Tårs Halmværk" → `tars_halmvaerk`. Appens eksport forudsiger det samme |
 
 <a id="highs"></a>Om gabet: med `--mip-gap 0.0002` alene stopper HiGHS ved det absolutte gab (casens 5.000 kr.), før det

@@ -9,6 +9,13 @@ samme grænse, samme resultat, og ved en afvisning **samme danske tekst**.
 | `*.json` (22 grupper, ~2.900 tilfælde) | Bred dækning af de rene funktioner: genererede input inkl. grænsetilfælde (tal, datoer, hash, frysning, anmodninger, modelkrav, tidsserier, zip, værksark-forløbet) | `generer.mts` (skrevet af fv-port) — kører TS-koden |
 | `fra_ts_testene/*.json` (15 grupper, ~200 tilfælde) | Præcis de kald, de håndskrevne TS-tests laver: Codex' modprøver, målte hashes, K4/K5-tilfældene | `udtraek.mjs` + `optag.setup.mts` — kører TS-testene og optager hvert kald |
 
+`arklag/celler.json` (runde 14) binder et tredje par: eksporten af værksarkets egne faner (TypeScript,
+`app/src/sider/konfiguration/eksport/lag.ts`) og importen af dem i arbejderen (Python, `fabric/fjv/feltkatalog.py`).
+Hvert tilfælde er en celle og et felt; udfaldet er feltets `vaerdi_json` eller den danske afvisning. Den laves af
+`lag.spec.ts` (`FJV_SKRIV_VEKTORER=1 npx vitest run src/sider/konfiguration/eksport/lag.spec.ts`) og prøves af samme
+spec og af `fabric/tests/test_arklag_vektorer.py`. `tjek_modelkrav.json` prøves desuden af arbejderens egen udgave af
+modelkravene (`fabric/tests/test_modelkrav.py`).
+
 ## Format
 
 ```json

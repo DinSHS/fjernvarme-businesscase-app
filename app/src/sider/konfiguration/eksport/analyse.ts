@@ -3,6 +3,7 @@
 // ændret? (runde 12). Afgøres i browseren, før noget sendes:
 //
 //   * ingen markering, eller værket findes ikke her  -> nyt værk (som før)
+//   * arket er i et ældre format (før appens faner)    -> eksportér igen (runde 14)
 //   * værkets revision != arkets                      -> konflikt: eksportér igen
 //   * en ny eksport af revisionen != arkets hash      -> lavet af en anden udgave
 //                                                        af eksporten: eksportér igen
@@ -14,7 +15,7 @@
 // uploaden, så importen kan køre modelscriptet på begge og gemme forskellen.
 //-----------------------------------------------------------------------
 
-import { eksporter } from "./eksporter";
+import { eksporter, MARKOER_FORMAT } from "./eksporter";
 import { genkend, læsArkmodel, sammenlign, type Forskel, type Ændring } from "./genkend";
 import { hentEksportkilde, hentSkabelon, type Vaerkhoved } from "./hent";
 import type { Eksportkilde } from "./kort";
@@ -23,7 +24,7 @@ import { læsCeller } from "./xlsx";
 export type Uploadanalyse =
     | { art: "nyt"; grund?: string }
     | { art: "konflikt"; vaerk: Vaerkhoved; arkRevision: number }
-    | { art: "anden_eksport"; vaerk: Vaerkhoved }
+    | { art: "anden_eksport"; vaerk: Vaerkhoved; /** Arket er i et ældre format (før appens egne faner). */ ældre?: boolean }
     | { art: "ingen_aendringer"; vaerk: Vaerkhoved; ikkeGemt?: Ændring[] }
     | { art: "revision"; vaerk: Vaerkhoved; forskel: Forskel; basis: Uint8Array };
 
@@ -41,6 +42,8 @@ export async function analyserUpload(bytes: Uint8Array, vaerker: readonly Vaerkh
     if (!m) return { art: "nyt" };
     const v = vaerker.find((x) => x.id.toLowerCase() === m.vaerk_id);
     if (!v) return { art: "nyt", grund: `Arket er eksporteret fra værket "${m.vaerk_kode}" (revision ${m.revision}), som ikke findes her. Det uploades som et nyt værk.` };
+    // Runde 14: et ark i format 2 (uden appens faner) kan ikke sammenlignes med en ny eksport; siges klart.
+    if (m.format !== MARKOER_FORMAT) return { art: "anden_eksport", vaerk: v, ældre: true };
     if (v.revision !== m.revision) return { art: "konflikt", vaerk: v, arkRevision: m.revision };
     const basis = await eksporter(await h.kilde(v), await h.skabelon());
     if (basis.markering.sha256 !== m.sha256) return { art: "anden_eksport", vaerk: v };

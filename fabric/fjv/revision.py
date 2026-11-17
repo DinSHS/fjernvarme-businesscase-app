@@ -47,7 +47,11 @@ import unicodedata
 import zipfile
 from pathlib import Path
 
-FORMAT = "fjv-vaerksark-eksport/2"
+#: Format 3 (runde 14): arket bærer appens egne faner (``fjv.arklag``) og markeringen en tabel af skrivemåder.
+#: Et ark i format 2 har ingen af delene; som revision afvises det med en klar besked (eksportér igen), som nyt
+#: værk importeres det som før.
+FORMAT = "fjv-vaerksark-eksport/3"
+FORMAT_FOER = "fjv-vaerksark-eksport/2"
 SERIEROLLER = ("solprofil", "varmelast")
 
 MAKS_STI = 400
@@ -108,11 +112,15 @@ def _objekter(blade: dict, sektion: str) -> set[str]:
     return {s.split(".")[1] for s in blade if s.startswith(f"{sektion}.") and len(s.split(".")) > 2}
 
 
-def forskelle(basis: dict, arket: dict) -> list[dict]:
+def forskelle(basis: dict, arket: dict, lag: set | frozenset = frozenset()) -> list[dict]:
     """Brugerens ændringer: hvad scriptet læser anderledes i arket end i basis (begge ``sti -> vaerdi_json``).
 
     En enhed/et lager/et brændsel, der er væk i arket, bliver én ``slet_objekt`` (hele objektet, også de felter,
-    arket aldrig bar). Et nyt objekt får alle scriptets felter som ``opret``."""
+    arket aldrig bar). Et nyt objekt får alle scriptets felter som ``opret``.
+
+    ``lag`` (runde 14) er de stier, appens egne faner bestemmer i ARKET (``fjv.arklag.Lag.stier``). Et felt i
+    konverteringens egne sektioner (meta, tid, solver, varmelastparametre, noter) er stadig aldrig en ændring, når
+    værdien er scriptets — men står feltet i en af appens faner, er det brugerens eget tal og gemmes."""
     ud: list[dict] = []
     vaek = set()
     for sek in OBJEKT_SEKTIONER:
@@ -120,7 +128,7 @@ def forskelle(basis: dict, arket: dict) -> list[dict]:
             vaek.add(f"{sek}.{o}")
             ud.append({"sti": f"{sek}.{o}", "handling": "slet_objekt", "gammel_json": None, "ny_json": None})
     for sti in sorted(set(basis) | set(arket)):
-        if er_artefakt(sti) or any(sti.startswith(f"{v}.") for v in vaek):
+        if (er_artefakt(sti) and sti not in lag) or any(sti.startswith(f"{v}.") for v in vaek):
             continue
         g, n = basis.get(sti), arket.get(sti)
         if samme_vaerdi(g, n):
@@ -263,9 +271,12 @@ def laes_markering(sti: Path) -> dict | None:
     try:
         m = {"format": kv.get("format", ""), "vaerk_id": kv.get("vaerk_id", "").lower(),
              "revision": int(float(kv.get("revision", "nan"))), "sha256": kv.get("sha256", "").lower(),
-             "grundlag": kv.get("grundlag", "").lower(), "afvigelser": json.loads(kv.get("afvigelser") or "[]")}
+             "grundlag": kv.get("grundlag", "").lower(), "afvigelser": json.loads(kv.get("afvigelser") or "[]"),
+             "former": json.loads(kv.get("former") or "{}")}
     except (ValueError, TypeError):
         return None
+    if not isinstance(m["former"], dict) or not all(isinstance(x, str) for x in m["former"].values()):
+        m["former"] = {}
     return m if isinstance(m["afvigelser"], list) else None
 
 
@@ -274,6 +285,10 @@ def tjek_markeringer(ark: dict | None, basis: dict | None, vaerk_id: str, revisi
     if not ark or not basis:
         raise RevisionsFejl("arket eller basis mangler appens markering (det skjulte ark _app) - eksportér værket igen")
     for m in (ark, basis):
+        if m["format"] == FORMAT_FOER:
+            raise RevisionsFejl("arket er eksporteret af en ældre udgave af appen (format 2, før appens egne faner "
+                                "Start og drift, Balancemarked og Øvrige felter). Intet er gemt: eksportér værket "
+                                "igen, og læg dine ændringer ind i det nye ark")
         if m["format"] != FORMAT or len(m["grundlag"]) != 64:
             raise RevisionsFejl("arket er eksporteret af en anden udgave af appen - eksportér værket igen")
     felter = ("vaerk_id", "revision", "sha256", "grundlag", "afvigelser")
@@ -314,14 +329,39 @@ def objektkort(nuvaerende: dict, basis: dict, arket: dict) -> dict:
     return kort
 
 
+def oversaet_sti(sti: str, kort: dict) -> str:
+    """Én sti med scriptets objektnavne skiftet til værkets — også hvor balancemarkedet nævner en enhed i stien
+    (``balancing.ancillary_caps.per_unit_mw.<enhed>``; runde 14: appens fane Balancemarked bærer dem)."""
+    d = sti.split(".")
+    if d[0] in ("units", "storage") and len(d) > 2 and (d[0], d[1]) in kort:
+        d[1] = kort[(d[0], d[1])]
+    elif len(d) >= 4 and d[0] == "balancing" and d[1] == "ancillary_caps"             and d[2] in ("per_unit_mw", "per_unit_market_mw") and ("units", d[3]) in kort:
+        d[3] = kort[("units", d[3])]
+    return ".".join(d)
+
+
 def oversaet(blade: dict, kort: dict) -> dict:
-    """Bladene med scriptets objektnavne skiftet til værkets (``objektkort``)."""
+    """Bladene med scriptets objektnavne skiftet til værkets (``objektkort``) — i stierne og i de værdier, der
+    peger på en enhed (gatens referenceenhed, en budgruppes enheder)."""
     ud = {}
     for sti, v in blade.items():
         d = sti.split(".")
-        if d[0] in ("units", "storage") and len(d) > 2 and (d[0], d[1]) in kort:
-            d[1] = kort[(d[0], d[1])]
-        ud[".".join(d)] = v
+        if d[0] == "balancing" and d[-2:] == ["opportunity_cost", "reference_unit"]:
+            try:
+                x = json.loads(v)
+                if isinstance(x, str) and ("units", x) in kort:
+                    v = json.dumps(kort[("units", x)], ensure_ascii=False, separators=(",", ":"))
+            except ValueError:
+                pass
+        elif d[0] == "ancillary_groups" and len(d) == 3 and d[2] == "units":
+            try:
+                x = json.loads(v)
+                if isinstance(x, list):
+                    v = json.dumps([kort.get(("units", n), n) if isinstance(n, str) else n for n in x],
+                                   ensure_ascii=False, separators=(",", ":"))
+            except ValueError:
+                pass
+        ud[oversaet_sti(sti, kort)] = v
     return ud
 
 

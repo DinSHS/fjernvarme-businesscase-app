@@ -40,18 +40,31 @@ describe("eksportfanen", () => {
         render(<EksportKort vaerk={ANDEBY} />);
         const knap = await screen.findByRole("button", { name: "Hent andeby_rev1.xlsx" }, { timeout: 15_000 });
         expect(createObjectURL).not.toHaveBeenCalled();
-        expect(screen.getByText(/ikke med i arket, eller får modelscriptets egen værdi/)).toBeTruthy();
-        expect(screen.getByText("Enhed fliskedel")).toBeTruthy();
-        expect(screen.getByText("Balancemarked")).toBeTruthy();
+        // Runde 14: kortet siger, at de tre faner er appens egne, hvad der er med i dem, og hvad der stadig ikke er.
+        expect(screen.getByText(/1 felt er ikke med i arket — se listen, før du henter arket/)).toBeTruthy();
+        expect(screen.getByText(/appens egne \(egen antagelse\)/)).toBeTruthy();
+        expect(screen.getByText(/modelrepoets script læser dem ikke/)).toBeTruthy();
+        for (const fane of ["Start og drift", "Balancemarked", "Øvrige felter"]) {
+            expect(document.querySelector(`li[data-fane="${fane}"]`)?.textContent, fane).toMatch(/appens egen fane\): \d+ felter/);
+        }
+        expect(screen.getByText("Enhed solvarme")).toBeTruthy();              // det eneste, der stadig ikke er med
+        expect(screen.queryByText("Enhed fliskedel")).toBeNull();             // slået fra: nu med (Start og drift)
         expect(screen.getByText(/Målt solvarme \(arket Solvarme\): 8\.760 timer; 6\.624 timer er ikke med/)).toBeTruthy();
         fireEvent.click(knap);
         expect(createObjectURL).toHaveBeenCalledTimes(1);
     }, 30_000);
     it("et værk, arket ikke kan bære, nægtes med grunden", async () => {
+        // (Slåede-fra tanke nægtes ikke længere: fra runde 14 står de i arket med "i drift: nej".)
+        t.ret = { "data.dmi_area": '"groenland"' };
+        render(<EksportKort vaerk={ANDEBY} />);
+        expect((await screen.findByRole("alert", {}, { timeout: 15_000 })).textContent).toMatch(/DMI-området "groenland" findes ikke i skabelonen/);
+        expect(screen.queryByRole("button", { name: /Hent/ })).toBeNull();
+    }, 30_000);
+    it("et værk med alle tanke slået fra kan eksporteres: 'i drift: nej' står i Start og drift", async () => {
         t.ret = Object.fromEntries(andeby().blade.filter((b) => b.sti.endsWith(".enabled") && b.sti.startsWith("storage.")).map((b) => [b.sti, "false"]));
         render(<EksportKort vaerk={ANDEBY} />);
-        expect((await screen.findByRole("alert", {}, { timeout: 15_000 })).textContent).toMatch(/akkumuleringstank/);
-        expect(screen.queryByRole("button", { name: /Hent/ })).toBeNull();
+        expect(await screen.findByRole("button", { name: "Hent andeby_rev1.xlsx" }, { timeout: 15_000 })).toBeTruthy();
+        expect(screen.queryByRole("alert")).toBeNull();
     }, 30_000);
 });
 
@@ -59,7 +72,7 @@ describe("upload-kortet genkender et eksporteret ark", () => {
     it("ændret ark: diff før bekræftelse og 'Gem som revision 2 af Andeby'", async () => {
         const e = await eksporter(andeby(), skabelon());
         const wb = new Arbejdsbog(e.bytes);
-        wb.regneark("Anlaeg").sæt("H7", 32.5);
+        wb.regneark("Anlaeg").sæt("H9", 32.5);
         await vælgArk(wb.bytes());
         const knap = await screen.findByRole("button", { name: "Gem som revision 2 af Andeby — fiktivt referenceværk" }, { timeout: 15_000 });
         const tabel = screen.getByRole("table", { name: "Ændringer i arket" });

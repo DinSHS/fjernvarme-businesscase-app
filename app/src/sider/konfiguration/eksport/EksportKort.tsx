@@ -1,8 +1,13 @@
 //-----------------------------------------------------------------------
 // #/konfiguration/<kode>/eksport — værket som udfyldt værksark (runde 12).
 // Arket bygges i browseren (begge udgaver, intet Fabric-job), og listen
-// "ikke med i arket" vises, FØR arket hentes: felter, skabelonen ikke kan
-// bære, eller som modelscriptet sætter selv. Aldrig tavst tab.
+// "ikke med i arket" vises, FØR arket hentes. Aldrig tavst tab.
+//
+// Runde 14: det, modelrepoets skabelon ikke kan bære (tændt ved start,
+// tankens startfyldning, balancemarkedet, nettilslutning …), står nu i
+// appens egne faner Start og drift, Balancemarked og Øvrige felter.
+// Kortet siger, at fanerne er appens egne (modelscriptet læser dem ikke),
+// hvad der er med i dem, og hvad der stadig ikke er med.
 //-----------------------------------------------------------------------
 
 import { useMemo } from "react";
@@ -11,6 +16,7 @@ import { Gitter, Knap, Kort, Maerke } from "@/components/layout";
 import { dkFri, visFelt } from "../vis";
 import type { Eksport } from "./eksporter";
 import type { Tab } from "./kort";
+import { BALANCEMARKED, OEVRIGE, START_OG_DRIFT } from "./lag";
 import { gruppe, tabEtiket } from "./visning";
 import type { Vaerkhoved } from "./hent";
 
@@ -46,7 +52,7 @@ export function EksportKort({ vaerk }: { vaerk: Vaerkhoved }) {
             <Gitter>
                 <Kort titel="Eksportér værksark" afgraensning={`${vaerk.kode} · revision ${vaerk.revision}`}
                     budskab="Værket kan ikke eksporteres til værksarket."
-                    fod="Skabelonen er modelrepoets vaerksdata_skabelon.xlsx ved den pinnede commit; arket skal kunne læses af scripts/vaerksark_til_yaml.py uændret.">
+                    fod="Skabelonen er modelrepoets vaerksdata_skabelon.xlsx ved den pinnede commit; arket skal kunne læses af scripts/vaerksark_til_yaml.py uændret. Appens egne faner (Start og drift, Balancemarked, Øvrige felter) læses af appen, ikke af modelscriptet.">
                     <p className="kf-svar" data-tone="fejl" role="alert">{fejl}</p>
                 </Kort>
             </Gitter>
@@ -55,17 +61,21 @@ export function EksportKort({ vaerk }: { vaerk: Vaerkhoved }) {
     const p = e?.plan;
     const n = p?.ikkeMed.length ?? 0;
     const serier = p?.serier ?? [];
+    const lag = p?.lagantal ?? {};
     return (
         <Gitter>
             <Kort titel="Eksportér værksark" afgraensning={`${vaerk.kode} · revision ${vaerk.revision}`}
                 budskab={!p ? "Arket bygges …" : n === 0
-                    ? "Hele værket kan stå i værksarket; modelscriptet læser det tilbage uden tab."
-                    : `${n} ${n === 1 ? "felt er" : "felter er"} ikke med i arket, eller får modelscriptets egen værdi — se listen, før du henter arket.`}
+                    ? "Hele værket står i værksarket: modelrepoets faner og appens egne faner bærer hvert felt."
+                    : `${n} ${n === 1 ? "felt er" : "felter er"} ikke med i arket — se listen, før du henter arket. Resten af værket står i modelrepoets faner og i appens egne.`}
                 handling={e && <Knap onClick={hent}>Hent {e.filnavn}</Knap>}
-                fod={<>Arket er modelrepoets <span className="fjv-mono">vaerksdata_skabelon.xlsx</span> (ved den pinnede commit) udfyldt med værket; vejledning, dropdowns og formatering er skabelonens. Ret det i Excel, og upload det under <em>Konfiguration › Upload værksark</em>: appen genkender arket og gemmer dine ændringer som revision {vaerk.revision + 1} af {vaerk.navn}. Felterne på listen beholder deres værdi ved genupload; uploades arket som et nyt værk, får de modelscriptets værdi.</>}>
+                fod={<>Arket er modelrepoets <span className="fjv-mono">vaerksdata_skabelon.xlsx</span> (ved den pinnede commit) udfyldt med værket; vejledning, dropdowns og formatering i dens faner er skabelonens. De tre faner <em>{START_OG_DRIFT}</em>, <em>{BALANCEMARKED}</em> og <em>{OEVRIGE}</em> er <strong>appens egne (egen antagelse)</strong>: modelrepoets script læser dem ikke; appen læser dem ved upload og lægger værdierne oven på scriptets læsning. Kører du scriptet selv på arket, får du derfor en case uden dem. Ret arket i Excel, og upload det under <em>Konfiguration › Upload værksark</em>: appen genkender det og gemmer dine ændringer som revision {vaerk.revision + 1} af {vaerk.navn}; uploades det som et nyt værk, får værket hele indholdet — også appens faner. Felterne på listen "ikke med i arket" beholder deres værdi ved genupload.</>}>
                 {p && (
                     <ul className="kf-fund" aria-label="Indhold i arket">
-                        <li><Maerke tone="ok">med</Maerke><span>Anlæg, tanke, varmepumpernes målepunkter, priser, eltarif, DMI-område og priszone.</span></li>
+                        <li><Maerke tone="ok">med</Maerke><span>Modelrepoets faner: anlæg (også slåede-fra enheder), tanke, varmepumpernes målepunkter, priser, eltarif, DMI-område og priszone.</span></li>
+                        <li data-fane={START_OG_DRIFT}><Maerke tone="ok">med</Maerke><span><strong>{START_OG_DRIFT}</strong> (appens egen fane): {dkFri(lag[START_OG_DRIFT] ?? 0, 0)} felter — i drift, tændt ved start, start/stop-logik, CO₂-faktor, idriftsættelsesår og noter pr. enhed; indhold ved start, varmetab og slut-som-start pr. tank.</span></li>
+                        <li data-fane={BALANCEMARKED}><Maerke tone={(lag[BALANCEMARKED] ?? 0) > 0 ? "ok" : undefined}>{(lag[BALANCEMARKED] ?? 0) > 0 ? "med" : "tom"}</Maerke><span><strong>{BALANCEMARKED}</strong> (appens egen fane): {(lag[BALANCEMARKED] ?? 0) > 0 ? `${dkFri(lag[BALANCEMARKED], 0)} felter — metode, budstrategi, lofter i alt og pr. enhed og marked, reservationsregler og enhedernes budfelter.` : "værket har intet balancemarked; fanen står klar til at blive udfyldt."}</span></li>
+                        <li data-fane={OEVRIGE}><Maerke tone="ok">med</Maerke><span><strong>{OEVRIGE}</strong> (appens egen fane): {dkFri(lag[OEVRIGE] ?? 0, 0)} felter, som hverken modelrepoets faner eller de to andre bærer — hvert med sti, værdi og forklaring fra feltkataloget.</span></li>
                         {serier.map((s) => (
                             <li key={s.rolle}>
                                 <Maerke tone={s.med ? (s.udenfor ? "advarsel" : "ok") : "advarsel"}>{s.med ? "med" : "ikke med"}</Maerke>
@@ -99,14 +109,14 @@ export function EksportKort({ vaerk }: { vaerk: Vaerkhoved }) {
             </Kort>
             {p && n > 0 && (
                 <Kort titel="Ikke med i arket" afgraensning={`${n} felter i ${grupper.length} grupper`}
-                    budskab="Værkets værdi til venstre, modelscriptets ved upload som nyt værk til højre. Ved genupload som revision røres disse felter ikke."
-                    fod="Listen er regnet i browseren ud fra modelscriptets egne regler; gaten kører scriptet på eksporten af hvert værk i kataloget og kræver, at listen er præcis forskellen (viden/vaerktoej/tjek_eksport_rundtur.py).">
+                    budskab="Værkets værdi til venstre; til højre det, et nyt værk får ved upload af arket. Ved genupload som revision røres disse felter ikke."
+                    fod="Listen er regnet i browseren ud fra modelscriptets egne regler og appens faner; gaten uploader eksporten af hvert værk i kataloget som et nyt værk gennem importens egen kode og kræver, at listen er præcis forskellen (viden/vaerktoej/tjek_eksport_rundtur.py).">
                     <div className="kf-ikke-med">
                         {grupper.map(([g, liste]) => (
                             <details key={g} open={grupper.length <= 6}>
                                 <summary><strong>{g}</strong> · {liste.length} {liste.length === 1 ? "felt" : "felter"}{liste[0].grund ? ` — ${liste[0].grund}` : ""}</summary>
                                 <table>
-                                    <thead><tr><th>Felt</th><th>Værket</th><th>Modelscriptet</th></tr></thead>
+                                    <thead><tr><th>Felt</th><th>Værket</th><th>Nyt værk fra arket</th></tr></thead>
                                     <tbody>
                                         {liste.map((t) => (
                                             <tr key={t.sti}>

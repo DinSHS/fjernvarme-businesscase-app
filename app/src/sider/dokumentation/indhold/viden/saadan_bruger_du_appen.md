@@ -36,14 +36,21 @@ Et værk og en tidsserie oprettes af arket, og importen viser sin status og log.
 *Information → Hvilke data skal med?*. (Kilde: KONTRAKT §6d)
 
 **Ret et værk i Excel:** tryk **Eksportér værksark (.xlsx)** på værkets side (eller i værkslisten). Appen udfylder
-modellens egen skabelon med værket og viser først en liste over det, arket *ikke* kan bære — fx balancemarkedet,
-slåede-fra enheder og de værdier, modellens script sætter selv. Ret arket i Excel, og upload det under *Upload
-værksark*: appen genkender det, viser hvert ændret felt (gammel → ny) og timedata som en opsummering, og gemmer det som
+modellens egen skabelon med værket og tilføjer tre faner, som er appens egne: **Start og drift** (i drift, tændt ved
+start, start/stop-logik, CO₂-faktor og idriftsættelsesår pr. enhed; indhold ved start og varmetab pr. tank),
+**Balancemarked** (metode, budstrategi, lofter og reservationsregler) og **Øvrige felter** (resten, med sti, værdi og
+forklaring). Modellens script læser ikke de tre faner; appen læser dem ved upload og lægger værdierne oven på det,
+scriptet læser — det står øverst i hver fane, i importens log og i værkets revisionsspor. Før du henter arket, viser
+appen en liste over det, arket stadig *ikke* kan bære; for de fleste værker er den tom. Ret arket i Excel, og upload
+det under *Upload værksark*: appen genkender det, viser hvert ændret felt (gammel → ny) og timedata som en
+opsummering, og gemmer det som
 **næste revision af samme værk**. Kun det, du har ændret, ændres; felterne på listen røres ikke. En rettet time i
 timedata eller solvarme er også en ny revision. Felter, der ikke gemmes ved genupload (fx årsproduktionen i Timedata og
 værkets navn), markeres *gemmes ikke*, før du bekræfter. Er værket ændret, siden du eksporterede, afvises arket —
 eksportér igen. Uden appens markering (det skjulte ark `_app`) bliver arket et nyt
-værk som før. (Kilde: KONTRAKT §6d)
+værk — med hele indholdet, også appens faner. En række i arket med et navn, men uden type eller volumen, afviser
+importen med rækkenummer; modellens script ville springe den over uden besked. Står alle enheder til slukket ved
+start, advarer importens log: uden tank kan værket ikke dække den første time. (Kilde: KONTRAKT §6d; doc/EGNE_DATA.md)
 
 **Enheder:** "Ny enhed" laver en enhed ud fra en skabelon for typen; "Fjern enheden" kan kun bruges,
 når intet scenarie bruger enheden. Vil du bare regne uden en enhed, så brug et scenarie i stedet —

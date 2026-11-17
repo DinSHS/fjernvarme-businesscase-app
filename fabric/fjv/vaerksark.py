@@ -15,6 +15,13 @@ output i en midlertidig mappe uden for kodekopien. Bagefter:
 Importen bruger IKKE solver-låsen. Status skifter med betingede UPDATEs
 (``koe → koerer → faerdig|fejl``), så to importjobs aldrig tager samme række.
 
+**Appens egne faner (runde 14).** Arket kan bære tre faner, som modelscriptet ikke læser: *Start og drift*,
+*Balancemarked* og *Øvrige felter* (``fjv.arklag``). Efter scriptets konvertering lægges deres værdier oven på
+bladene — ens for arket og for basis — og hver værdi valideres som en redigering i appen. Et nyt værk får
+scriptets læsning som revision 1 og lagets ændringer som revision 2 (med scriptets værdi som ``gammel_json``), så
+revisionssporet viser, hvad der kom fra appens faner. Et ark uden fanerne importeres præcis som før. Før scriptet
+kører, afvises rækker, det ville springe over uden besked (``arklag.tjek_tavse_raekker``).
+
 **Revision (runde 12).** Bærer anmodningen en ``basis_sha256`` (genupload af et ark, appen har eksporteret), er
 importen en ny revision af ``Aendringsanmodning.vaerk_id``: scriptet køres på både arket og basis (en ny eksport af
 værkets revision, ``<id>_basis.xlsx``), og kun forskellen lægges på værket (``fjv.revision``) — i én transaktion
@@ -60,6 +67,10 @@ class Konvertering:
     params: list                                 # flad()-blade, markør indsat
     tidsserier: list = field(default_factory=list)   # [{rolle, navn, filnavn, res, ...}]
     advarsler: list = field(default_factory=list)
+    #: Runde 14: appens egne faner lagt på scriptets læsning (``arklag.Lag``), eller None (arket har ingen).
+    lag: object = None
+    #: Scriptets egen læsning (før laget) — revision 1 i revisionssporet, når laget ændrer noget.
+    script_params: list = field(default_factory=list)
 
 
 # ------------------------------------------------------------------ ressourcegrænser (K5-F3)
@@ -259,6 +270,79 @@ def konverter_output(ud: Path, tidszone: str, timeslut: bool, sol_tidszone: str 
     return k
 
 
+def laeg_lag(k: Konvertering, ark: Path) -> None:
+    """Appens egne faner i ``ark`` lagt oven på scriptets læsning i ``k`` (runde 14, ``fjv.arklag``).
+
+    ``k.params`` bliver det færdige værk (scriptets navnerum), ``k.script_params`` scriptets egen læsning og
+    ``k.lag`` laget. Et blad, laget har sat eller ændret, får en kommentar om, hvor værdien kom fra. Et ark uden
+    fanerne (modelrepoets rene skabelon, et ark i format 2) røres ikke: ``k.lag`` forbliver None."""
+    from dataclasses import replace
+
+    from . import arklag as LAG
+    from . import revision as REV
+    from .flad import OBJEKT_SEKTIONER, Parameter
+    try:
+        laesning = LAG.laes(ark)
+        if not laesning.faner:
+            return
+        m = REV.laes_markering(ark)
+        former = (m.get("former") or {}) if m and m.get("format") == REV.FORMAT else {}
+        lag = LAG.anvend({p.sti: p.vaerdi_json for p in k.params}, laesning, former)
+    except LAG.LagFejl as e:
+        raise ArkFejl(str(e)) from e
+    gamle = {p.sti: p for p in k.params}
+    k.script_params = [replace(p, vaerdi_json=lag.script[p.sti]) for p in k.params]
+    naeste = max((int(p.raekkefoelge) for p in k.params), default=0) + 1
+    aendret = {a[0] for a in lag.aendringer}
+    nye = []
+    for sti, j in lag.blade.items():
+        hvor = lag.kilder.get(sti)
+        kommentar = LAG.kommentar(hvor, lag.script.get(sti)) if hvor and sti in aendret else None
+        if sti in gamle:
+            p = gamle[sti]
+            nye.append(replace(p, vaerdi_json=j, kommentar=kommentar or p.kommentar))
+        else:
+            d = sti.split(".")
+            nye.append(Parameter(sti, j, d[0], d[1] if d[0] in OBJEKT_SEKTIONER and len(d) > 2 else None,
+                                 kommentar, False, naeste))
+            naeste += 1
+    k.params = nye
+    k.lag = lag
+    k.advarsler = lag.advarsler + k.advarsler
+
+
+def revisionsspor(k: Konvertering) -> tuple[int, list]:
+    """Et nyt værks revision og dets logrækker ``[(revision, [(sti, handling, gammel_json, ny_json)])]``.
+
+    Uden appens faner (eller når de intet ændrer): revision 1, ét ``opret`` pr. blad, som altid. Ændrer laget
+    noget, er revision 1 modelscriptets læsning og revision 2 lagets ændringer oven på den — ``gammel_json`` er
+    scriptets værdi — så revisionssporet viser, at værdien kom fra appens fane og ikke fra modelscriptet."""
+    if k.lag is not None and k.lag.aendringer:
+        return 2, [(1, [(p.sti, "opret", None, p.vaerdi_json) for p in k.script_params]),
+                   (2, list(k.lag.aendringer))]
+    return 1, [(1, [(p.sti, "opret", None, p.vaerdi_json) for p in k.params])]
+
+
+def oprettet_log(k: Konvertering, blade: list, ts_ud: list) -> list[str]:
+    """Importens log for et nyt værk (fælles for lagrene): værket, appens faner, tidsserier og advarsler."""
+    from . import arklag as LAG
+    rev, _ = revisionsspor(k)
+    linjer = [f"Værket '{k.navn}' (kode {k.kode}) er oprettet med {len(blade)} parametre "
+              f"({sum(1 for b in blade if b['bekraeft'])} skal bekræftes)"
+              + (f" som revision {rev}: revision 1 er modelscriptets læsning af arket, revision 2 appens egne faner."
+                 if rev == 2 else ".")]
+    if k.lag is not None:
+        linjer += LAG.logtekst(k.lag)
+    for t in ts_ud:
+        linjer.append(f"{'Varmelast' if t['rolle'] == 'varmelast' else 'Solprofil'}: "
+                      f"{t['raekker']} timer, {t['start']} til {t['slut']} (aktiv).")
+    if not any(t["rolle"] == "varmelast" for t in ts_ud):
+        linjer.append("Ingen målt varmelast i arket: varmen syntetiseres af modellen ud fra "
+                      "DMI-vejrdata og årsproduktionen.")
+    linjer += [f"Advarsel - {a}" for a in k.advarsler[:6]]
+    return linjer
+
+
 def _log_tekst(resume: str, scriptlog: str) -> str:
     hale = scriptlog.strip()
     plads = MAKS_LOG - len(resume) - 10
@@ -324,15 +408,18 @@ def gem_vaerk(db, imp: dict, k: Konvertering, model_sha: str, scriptlog: str,
                           "navn på arket Priser (feltet 'værkets navn'), eller kopiér det eksisterende")
         cur.execute("SELECT CAST(NEWID() AS nvarchar(36))")
         vid = cur.fetchone()[0].lower()
+        revision, spor = revisionsspor(k)
         cur.execute(
             "INSERT INTO dbo.Vaerks (id, kode, navn, beskrivelse, kilde, kilde_fil, repo_commit, "
             "revision, arkiveret, oprettet_af, aendret_af, oprettet, aendret) "
-            "VALUES (?,?,?,?,'app',?,?,1,0,?,?,SYSUTCDATETIME(),SYSUTCDATETIME())",
+            "VALUES (?,?,?,?,'app',?,?,?,0,?,?,SYSUTCDATETIME(),SYSUTCDATETIME())",
             vid, k.kode, k.navn, k.beskrivelse, f"vaerksark:{imp.get('filnavn') or ''}"[:300],
-            model_sha, hvem, hvem)
+            model_sha, revision, hvem, hvem)
         blade = [{**p.dict(), "bekraeft": bool(p.bekraeft)} for p in k.params]
         _skriv_params(cur, vid, blade, hvem)
-        _log(cur, vid, 1, [(b["sti"], "opret", None, b["vaerdi_json"]) for b in blade], hvem)
+        # Runde 14: revision 1 = modelscriptets læsning; revision 2 = appens faner oven på den (revisionsspor).
+        for rev_nr, raekker in spor:
+            _log(cur, vid, rev_nr, raekker, hvem)
         cur.execute("SELECT COUNT(*) FROM dbo.VaerkParameters WHERE vaerk_id=?", vid)
         if cur.fetchone()[0] != len(blade):
             raise RuntimeError("antal parametre passer ikke efter indsættelse")
@@ -347,16 +434,7 @@ def gem_vaerk(db, imp: dict, k: Konvertering, model_sha: str, scriptlog: str,
                           "slut": t["res"].slut})
         varme = next((t["id"] for t in ts_ud if t["rolle"] == "varmelast"), None)
         sol = next((t["id"] for t in ts_ud if t["rolle"] == "solprofil"), None)
-        linjer = [f"Værket '{k.navn}' (kode {k.kode}) er oprettet med {len(blade)} parametre "
-                  f"({sum(1 for b in blade if b['bekraeft'])} skal bekræftes)."]
-        for t in ts_ud:
-            linjer.append(f"{'Varmelast' if t['rolle'] == 'varmelast' else 'Solprofil'}: "
-                          f"{t['raekker']} timer, {t['start']} til {t['slut']} (aktiv).")
-        if not varme:
-            linjer.append("Ingen målt varmelast i arket: varmen syntetiseres af modellen ud fra "
-                          "DMI-vejrdata og årsproduktionen.")
-        linjer += [f"Advarsel - {a}" for a in k.advarsler[:6]]
-        log = _log_tekst("\n".join(linjer), scriptlog)
+        log = _log_tekst("\n".join(oprettet_log(k, blade, ts_ud)), scriptlog)
         cur.execute("UPDATE dbo.Vaerksarkimports SET status='faerdig', vaerk_id=?, tidsserie_id=?, "
                     "log=? WHERE id=? AND status='koerer'", vid, varme or sol, log, imp["id"])
         if cur.rowcount != 1:
@@ -372,7 +450,7 @@ def gem_vaerk(db, imp: dict, k: Konvertering, model_sha: str, scriptlog: str,
     except Exception as e:                     # visning; værket er gemt
         k.advarsler.append(f"kilde.yaml kunne ikke gemmes: {e}")
     return {"vaerk_id": vid, "kode": k.kode, "parametre": len(blade), "tidsserier": ts_ud,
-            "log": log}
+            "log": log, "revision": revision}
 
 
 def gem_revision(db, imp: dict, rev: dict, laesning: dict, serier: dict, scriptlog: str,
@@ -427,8 +505,8 @@ def gem_revision(db, imp: dict, rev: dict, laesning: dict, serier: dict, scriptl
                 log(x["sti"], "slet", x["gammel_json"], None)
             for x in plan["opret"]:
                 cur.execute("INSERT INTO dbo.VaerkParameters (id, vaerk_id, sti, vaerdi_json, sektion, objekt, kommentar, "
-                            "bekraeft, raekkefoelge, aendret_af, aendret) VALUES (NEWID(),?,?,?,?,?,NULL,0,?,?,SYSUTCDATETIME())",
-                            v["id"], x["sti"], x["ny_json"], x["sektion"], x["objekt"], naeste, hvem)
+                            "bekraeft, raekkefoelge, aendret_af, aendret) VALUES (NEWID(),?,?,?,?,?,?,0,?,?,SYSUTCDATETIME())",
+                            v["id"], x["sti"], x["ny_json"], x["sektion"], x["objekt"], x.get("kommentar"), naeste, hvem)
                 naeste += 1
                 log(x["sti"], "opret", None, x["ny_json"])
             cur.execute("UPDATE dbo.Vaerks SET revision=?, aendret_af=?, aendret=SYSUTCDATETIME() WHERE id=? AND revision=?",
@@ -571,10 +649,16 @@ def serielog(rolle: str, gammel: dict | None, ny_id: str | None, res) -> tuple:
     return f"tidsserie.{rolle}", ("slet" if n is None else "opret" if g is None else "ret"), g, n
 
 
-def revisionstekst(plan: dict, serier: dict, v: dict, ny_rev: int | None, ikke_gemt: list | None = None) -> str:
-    """Importens log for en revision: hvad der blev gemt (eller at intet blev) — og hvad der ikke gemmes."""
+def revisionstekst(plan: dict, serier: dict, v: dict, ny_rev: int | None, ikke_gemt: list | None = None,
+                   kilder: dict | None = None, noter: list | None = None) -> str:
+    """Importens log for en revision: hvad der blev gemt (eller at intet blev) — og hvad der ikke gemmes.
+
+    ``kilder`` (runde 14) = {sti: "Start og drift!D7"} for de felter, appens egne faner bestemmer; linjen for en
+    sådan ændring siger, at den kom fra fanen og ikke fra modelscriptet. ``noter`` er lagets egne linjer."""
     n = len(plan["ret"]) + len(plan["slet"]) + len(plan["opret"])
-    ikke = [f"Ikke gemt: {x}." for x in (ikke_gemt or [])]
+    kilder = kilder or {}
+    fra = lambda sti: f"  [appens fane {kilder[sti]}]" if sti in kilder else ""   # noqa: E731
+    ikke = [f"Ikke gemt: {x}." for x in (ikke_gemt or [])] + list(noter or [])
     if not n and not serier:
         if ikke:
             return "\n".join([f"Ingen ændringer, der kan gemmes: arket ændrer kun felter, der ikke gemmes ved genupload. "
@@ -586,15 +670,15 @@ def revisionstekst(plan: dict, serier: dict, v: dict, ny_rev: int | None, ikke_g
     vist = 0
     for r in plan["ret"]:
         if vist < 40:
-            linjer.append(f"  {r['sti']}: {r['gammel_json']} -> {r['ny_json']}")
+            linjer.append(f"  {r['sti']}: {r['gammel_json']} -> {r['ny_json']}{fra(r['sti'])}")
         vist += 1
     for r in plan["opret"]:
         if vist < 40:
-            linjer.append(f"  {r['sti']}: (ny) {r['ny_json']}")
+            linjer.append(f"  {r['sti']}: (ny) {r['ny_json']}{fra(r['sti'])}")
         vist += 1
     for r in plan["slet"]:
         if vist < 40:
-            linjer.append(f"  {r['sti']}: {r['gammel_json']} (fjernet)")
+            linjer.append(f"  {r['sti']}: {r['gammel_json']} (fjernet){fra(r['sti'])}")
         vist += 1
     if vist > 40:
         linjer.append(f"  … og {vist - 40} flere (se værkets revisionslog)")
@@ -612,6 +696,8 @@ def forbered_revision(v: dict | None, rev: dict, nuvaerende: dict, aktive: dict,
     ``v`` = værkets række (låst), ``nuvaerende`` = dets blade, ``aktive`` = {rolle: {id, sti, sha256}} for de aktive
     serier, ``laesning`` = scriptets læsning af basis og arket. Returnerer ``{plan, serier, ny_rev, log, ikke_gemt}``;
     ``ny_rev`` er None, når intet ændres."""
+    from . import arklag as LAG
+    from . import modelkrav as MK
     from . import revision as REV
     if not v:
         raise ArkFejl("værket, arket er eksporteret fra, findes ikke længere - upload arket som et nyt værk "
@@ -636,9 +722,23 @@ def forbered_revision(v: dict | None, rev: dict, nuvaerende: dict, aktive: dict,
             raise REV.RevisionsFejl(
                 f"basis er ikke værkets eksport af revision {v['revision']} ({len(afvig)} felt(er) afviger, fx "
                 f"{', '.join(afvig[:3])}). Intet er gemt: eksportér værket igen")
-        plan = REV.planlaeg(nuvaerende, REV.forskelle(basis, arket))
+        # Runde 14: felter, appens faner bestemmer i arket, er brugerens egne tal — også i konverteringens sektioner.
+        kilder = {REV.oversaet_sti(s, kort): hvor for s, hvor in (laesning.get("kilder") or {}).items()}
+        plan = REV.planlaeg(nuvaerende, REV.forskelle(basis, arket, set(kilder)))
     except REV.RevisionsFejl as e:
         raise ArkFejl(str(e)) from e
+    for x in plan["opret"]:
+        if x["sti"] in kilder:
+            x["kommentar"] = LAG.kommentar(kilder[x["sti"]], None)
+    efter = REV.anvend(nuvaerende, plan)
+    if kilder:
+        # Som et nyt værk i appen: det færdige værk skal kunne bruges af modellen. Kun NYE brud afviser — et værk,
+        # der allerede manglede noget, kan stadig rettes i arket.
+        foer = set(MK.fejl(nuvaerende))
+        nye = [f for f in MK.fejl(efter) if f not in foer]
+        if nye:
+            raise ArkFejl("Arkets ændringer giver et værk, modellen ikke kan bruge: "
+                          + MK.besked(nye)[len("Værket kan ikke bruges af modellen: "):] + " Intet er gemt.")
     ud_serier = {}
     for rolle, sr in serier.items():
         gemt = laes_gemt_serie(files, (aktive.get(rolle) or {}).get("sti"))
@@ -646,9 +746,16 @@ def forbered_revision(v: dict | None, rev: dict, nuvaerende: dict, aktive: dict,
     n = len(plan["ret"]) + len(plan["slet"]) + len(plan["opret"])
     # K11 F2: en tidsserieændring er også en revision (samtidighedskontrol, revisionslog i uploaderens navn).
     ny_rev = int(v["revision"]) + 1 if (n or ud_serier) else None
-    ikke = REV.ikke_gemt(laesning["basis"], laesning["arket"], tuple(ud_serier))
+    # Det, scriptet selv læser forskelligt, men som aldrig gemmes (K11 F5), afgøres på scriptets egne læsninger.
+    script = laesning.get("script") or laesning
+    ikke = REV.ikke_gemt(script["basis"], script["arket"], tuple(ud_serier))
+    noter = list(laesning.get("noter") or [])
+    if ny_rev is not None:
+        adv = LAG.foerste_time_advarsel(efter, True)
+        if adv:
+            noter.append(f"Advarsel - {adv}")
     return {"plan": plan, "serier": ud_serier, "ny_rev": ny_rev, "ikke_gemt": ikke,
-            "log": revisionstekst(plan, ud_serier, v, ny_rev, ikke)}
+            "log": revisionstekst(plan, ud_serier, v, ny_rev, ikke, kilder, noter)}
 
 
 def importer_et(db, imp: dict, model_sha: str, timeslut: bool, rap,
@@ -675,6 +782,12 @@ def importer_et(db, imp: dict, model_sha: str, timeslut: bool, rap,
         miljoelog: list = []
         py = R.byg_miljoe(kode / "requirements.txt", Path(tempfile.gettempdir()) / "fjv_venv",
                           miljoelog)
+        # Runde 14 (brief C): en række, scriptet ville springe over uden besked, afviser importen med rækkenummer.
+        from . import arklag as LAG
+        try:
+            LAG.tjek_tavse_raekker(ark)
+        except LAG.TavsRaekke as e:
+            raise ArkFejl(str(e)) from e
         rc, log = koer_script(kode, py, ark, arbejde / "ud", timeslut)
         (arbejde / "log.txt").write_text(log, encoding="utf-8")
         rap.trin("script", {"rc": rc, "log_hale": log[-1500:]})
@@ -682,12 +795,16 @@ def importer_et(db, imp: dict, model_sha: str, timeslut: bool, rap,
             raise ArkFejl(fejl_fra_log(log, rc))
         tz = kildens_tidszone(kode, py, ark)
         k = konverter_output(arbejde / "ud", tz, timeslut, kildens_tidszone(kode, py, ark, "Solvarme"))
+        laeg_lag(k, ark)
+        if k.lag is not None:
+            rap.trin("lag", {"faner": k.lag.antal, "aendringer": len(k.lag.aendringer), "noter": k.lag.noter[:5]})
         rev = lager.revision_for(imp["id"]) if hasattr(lager, "revision_for") else None
         if rev:
             res = importer_revision(lager, imp, rev, k, kode, py, kilde, arbejde, timeslut, log, rap, files)
             res.update(status="faerdig", sekunder=round(time.time() - t0, 1))
             rap.trin("faerdig", {x: res.get(x) for x in ("vaerk_id", "revision", "aendringer")})
             return res
+        afslut_nyt_vaerk(k)
         res = lager.gem_vaerk(imp, k, model_sha, log, files=files)
         res.update(status="faerdig", sekunder=round(time.time() - t0, 1), advarsler=k.advarsler)
         rap.trin("faerdig", {x: res[x] for x in ("vaerk_id", "kode", "parametre", "tidsserier")})
@@ -704,6 +821,24 @@ def importer_et(db, imp: dict, model_sha: str, timeslut: bool, rap,
     lager.saet_fejl(imp["id"], _log_tekst(besked, log))
     rap.trin("fejl", besked)
     return {"status": "fejl", "besked": besked, "sekunder": round(time.time() - t0, 1)}
+
+
+def afslut_nyt_vaerk(k: Konvertering) -> None:
+    """Kontrollen af et NYT værk, før det gemmes (runde 14): med appens faner skal det færdige værk opfylde
+    modellens minimumskrav (som ``opret_vaerk`` i appen), og står hver styrbar enhed til slukket ved start, får
+    importens log en advarsel (brief C). Et ark uden appens faner kontrolleres ikke mod kravene — det er
+    modelscriptets egen case, som før."""
+    from . import arklag as LAG
+    from . import modelkrav as MK
+    blade = {p.sti: p.vaerdi_json for p in k.params}
+    if k.lag is not None:
+        brud = MK.fejl(blade)
+        if brud:
+            raise ArkFejl("Appens faner i arket giver et værk, modellen ikke kan bruge: "
+                          + MK.besked(brud)[len("Værket kan ikke bruges af modellen: "):] + " Intet er gemt.")
+    adv = LAG.foerste_time_advarsel(blade, k.lag is not None)
+    if adv:
+        k.advarsler.insert(0, adv)
 
 
 def importer_revision(lager, imp: dict, rev: dict, k, kode: Path, py: str, kilde: Path, arbejde: Path,
@@ -736,7 +871,13 @@ def importer_revision(lager, imp: dict, rev: dict, k, kode: Path, py: str, kilde
         raise ArkFejl("appens eksport af værket kunne ikke læses af modelscriptet: " + fejl_fra_log(blog, rc))
     kb = konverter_output(arbejde / "basis" / "ud", kildens_tidszone(kode, py, basis), timeslut,
                           kildens_tidszone(kode, py, basis, "Solvarme"))
-    laesning = {"basis": {p.sti: p.vaerdi_json for p in kb.params}, "arket": {p.sti: p.vaerdi_json for p in k.params}}
+    # Runde 14: appens faner lægges på basis PRÆCIS som på arket, så kun brugerens ændringer er forskellen.
+    laeg_lag(kb, basis)
+    blade = lambda ps: {p.sti: p.vaerdi_json for p in ps}   # noqa: E731
+    laesning = {"basis": blade(kb.params), "arket": blade(k.params),
+                "script": {"basis": blade(kb.script_params or kb.params), "arket": blade(k.script_params or k.params)},
+                "kilder": ({**k.lag.kilder, **k.lag.fjernet} if k.lag is not None else {}),
+                "noter": (list(k.lag.noter) + [f"Advarsel - {a}" for a in k.lag.advarsler] if k.lag is not None else [])}
     serier = serieforskelle(kb, k, timeslut)
     rap.trin("revision", {"vaerk_id": rev["vaerk_id"], "forventet_revision": rev["forventet_revision"],
                           "serier": {r: s["opsummering"] for r, s in serier.items()}})

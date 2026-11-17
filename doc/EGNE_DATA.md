@@ -27,26 +27,70 @@ Upload den under **Konfiguration › Upload værksark**. Appen konverterer arket
 `scripts/vaerksark_til_yaml.py` ved den pinnede commit — samme case, som hvis du kørte scriptet selv — og opretter værket
 og (med timedata) en tidsserie for varmelasten. Importen viser sin status og modellens log.
 
-Tre ting, der ofte giver en afvisning:
+Fire ting, der ofte giver en afvisning:
 
 * **Perioden er fast:** 1. juli 2025 00:00 – 30. juni 2026 23:00 i arkets tidszone. Mindst 672 timer.
   Skabelonen kan ikke importeres uændret (de otte eksempelrækker er for få).
 * **Timens start eller slut:** starter dine timedata 1. juli kl. 01:00, er stemplerne timens slut.
 * Uden timedata (kun årsbehovet i B3) syntetiserer modellen varmelasten ud fra Andebys profil skaleret med
   `f = round(G/100, 4)`.
+* **En række med navn, men uden type eller volumen:** modelscriptet springer en enhed uden type og en tank uden
+  volumen over uden besked (målt: otte af et værks 17 enheder forsvandt sådan). Appen afviser derfor arket med
+  rækkenummeret, før scriptet kører — også en række med tal, men uden navn, en tank under de seks tankrækker og et
+  målepunkt under varmepumpens tabel.
+
+**Slukket ved start.** Modelscriptet sætter hver enhed med start/stop-logik (unit commitment) til slukket i første
+time. Med tank er det uden betydning; uden tank — fx i kørslen "hvad er tanken værd" — kan ingen enhed levere i første
+time, og kørslen kan ikke løses. Importens log advarer, når det gælder dit værk, og siger, hvilket felt der rettes
+(*tændt ved start* i fanen *Start og drift*, eller feltet *Tændt ved periodens start* på enheden i appen).
 
 Hele kontrakten (felter, fejl og advarsler, målt på udfyldte ark) står i [`viden/data_krav.md`](../viden/data_krav.md) §4.
 
 ### Ret et værk i Excel: eksport og genupload som revision
 
 **Konfiguration › værket › Eksportér værksark (.xlsx)** (også i værkslisten) udfylder modelrepoets egen
-`vaerksdata_skabelon.xlsx` ved pinnen med værket — anlæg, tanke, varmepumpernes målepunkter, priser, eltarif,
-DMI-område og priszone, den aktive målte varmelast (Timedata) og den aktive målte solvarme (et ark *Solvarme*, som
-modelscriptet læser). Arket bygges i browseren i begge udgaver; filen hedder `<kode>_rev<N>.xlsx`. Før du henter det,
-viser appen listen **"ikke med i arket"**: alt i værket, som skabelonen ikke kan bære (balancemarked, nettilslutning,
-slåede-fra enheder og tanke, timer uden for 1. juli 2025 – 30. juni 2026, en kalibreret varmelastmodel …), og de
-felter, `scripts/vaerksark_til_yaml.py` sætter til sin egen værdi (tankenes startfyldning, gasenhedernes CO2-faktor,
-unit commitment …).
+`vaerksdata_skabelon.xlsx` ved pinnen med værket — anlæg (også slåede-fra enheder), tanke, varmepumpernes målepunkter,
+priser, eltarif, DMI-område og priszone, den aktive målte varmelast (Timedata) og den aktive målte solvarme (et ark
+*Solvarme*, som modelscriptet læser). Arket bygges i browseren i begge udgaver; filen hedder `<kode>_rev<N>.xlsx`.
+
+**Appens egne faner (runde 14).** Skabelonen kan kun bære en del af et værk, og modelscriptet sætter selv resten
+(slukket ved start, halvfuld tank, CO₂-faktor 0,2 for gas, intet balancemarked). Derfor har det eksporterede ark tre
+faner mere, efter modelrepoets:
+
+| Fane | Indhold | Tom celle |
+|---|---|---|
+| **Start og drift** | én række pr. enhed (navnet som i Anlaeg): i drift, tændt ved start, start/stop-logik, CO₂-faktor, idriftsættelsesår, noter; én række pr. tank: i drift, indhold ved start, varmetab pr. time, slut som start, noter | feltet sættes ikke — modellen bruger sin standard (står under tabellen) |
+| **Balancemarked** | hele `balancing`-blokken: metode, budstrategi, lofter i alt og pr. enhed og marked, reservationsregler, aktivering, månedsloft — og enhedernes egne budfelter | feltet sættes ikke; en helt tom fane er et værk uden balancemarked |
+| **Øvrige felter** | hvert felt, som hverken modelrepoets faner eller de to andre bærer: sti, værdi og forklaring fra feltkataloget | – (teksten `(findes ikke)` betyder, at værket ikke har feltet) |
+
+Fanerne er **appens egne — en egen antagelse**: `scripts/vaerksark_til_yaml.py` læser dem ikke. Kører du scriptet
+selv på arket, får du casen uden dem. Appen læser dem ved upload og lægger værdierne oven på scriptets læsning; hver
+værdi valideres som en redigering i appen (feltet skal findes i feltkataloget, typen og grænserne skal passe, og det
+færdige værk skal opfylde modellens minimumskrav). En ukendt sti, et enhedsnavn, der ikke står i Anlaeg, eller en værdi
+af forkert type afviser hele importen med ark, celle og grund. Hver fane har en kort vejledning øverst, enheden i
+kolonneoverskriften, dropdowns for ja/nej og lukkede lister, gule celler til det, du udfylder, og én forklarende
+sætning pr. felt.
+
+* **En enhed uden række** i *Start og drift* får modelscriptets værdier, og importens log siger det. Sletter du en
+  hel fane, gælder det samme for alle dens felter; ved genupload vises det som ændringer, før du bekræfter.
+* **En række i *Øvrige felter* med noget i kolonnen *kun hvis modelscriptet giver*** gælder kun, så længe
+  modelscriptet læser netop den værdi af de øvrige faner. Eksempel: Andebys tanke har ingen fast kapacitet (den regnes
+  af volumen og ΔT); rækken sætter derfor `e_max_mwh` til `null`, *kun hvis* scriptet giver 191,9. Retter du maks
+  fyldning i Anlaeg, vinder din rettelse, og loggen siger, at rækken ikke blev brugt. Sådan kan appens faner aldrig
+  tavst skjule en celle i modelrepoets faner.
+* **Tal** gemmes med feltets type fra feltkataloget (heltal eller decimaltal), ikke med cellens. Har værket et heltal,
+  hvor kataloget siger tal (96 i stedet for 96,0), bærer det skjulte ark `_app` værkets egen skrivemåde.
+* **Revisionssporet** viser, hvad der kom fra fanerne: et nyt værk fra et ark med appens faner oprettes som
+  revision 2 — revision 1 er modelscriptets læsning, revision 2 fanernes ændringer oven på den — og hvert felt, fanerne
+  har sat, bærer kilden som kommentar (*Fra appens fane «Start og drift» i værksarket (celle D7), ikke fra
+  modelscriptet*). Ved en revision står fanen og cellen i importens log ud for ændringen.
+
+Et ark **uden** de tre faner — modelrepoets rene skabelon — importeres præcis som før.
+
+Før du henter arket, viser appen listen **"ikke med i arket"**. Den er nu næsten tom: for katalogets værker står kun
+solprofilens sti på den (Andeby; det nye værk peger på sin egen solprofil fra arket *Solvarme*), og for Billund-værkerne
+intet. Før runde 14 stod der 71–106 felter. På listen står også det, en celle beviseligt ikke kan bære: et felt,
+feltkataloget ikke kender (fx prisen på et brændsel, modellen ikke har), og tekst med tegn, et regneark ikke kan gemme.
 
 Før download siger eksporten også, hvad modelscriptet selv udfylder: tomme timer inde i solprofilen interpoleres
 lineært (højst 5 %), og tomme nattetimer i vinduets ende sættes til 0 — med tidspunkt og værdi. Huller i varmelasten
@@ -62,9 +106,11 @@ aktive tidsserier, som eksporten så dem); modelscriptet ignorerer det. Appen ge
 * **Værket findes, og revisionen er den samme:** appen laver en ny eksport af værkets revision (*basis*) og viser hvert
   ændret felt (gammel → ny) og timedata som en opsummering (timer ændret, sum før/efter). *Gem som revision N+1*
   sender arket og basis; importen kører modelscriptet **uændret på begge** og gemmer kun forskellen — som en
-  redigering i appen (revisionslog i dit navn, `forventet_revision` tjekket). Ændrede timer giver en ny aktiv
-  tidsserie, hvor timerne uden for arket er bevaret — og er også en revision (logrækken `tidsserie.<rolle>`), så to
-  uploads fra samme revision ikke begge kan gemmes. Felterne på listen "ikke med i arket" røres aldrig.
+  redigering i appen (revisionslog i dit navn, `forventet_revision` tjekket). Appens egne faner lægges på begge
+  læsninger på samme måde, så en rettet celle i *Start og drift*, *Balancemarked* eller *Øvrige felter* ændrer præcis
+  det ene felt. Ændrede timer giver en ny aktiv tidsserie, hvor timerne uden for arket er bevaret — og er også en
+  revision (logrækken `tidsserie.<rolle>`), så to uploads fra samme revision ikke begge kan gemmes. Felterne på listen
+  "ikke med i arket" røres aldrig.
 * **Felter, der ikke gemmes:** årsproduktionen i Timedata!B3 (den skalerer kun modelscriptets syntetiske varmelast),
   værkets navn, solvarmens årsproduktion i Anlaeg (når arket Solvarme har timerne) og COP ved 0 °C for en varmepumpe
   med målepunkter. Appen markerer dem *gemmes ikke* før bekræftelse; ændrer arket kun dem, tilbydes ingen revision.
@@ -72,13 +118,17 @@ aktive tidsserier, som eksporten så dem); modelscriptet ignorerer det. Appen ge
 * **Værket er ændret siden eksporten:** arket afvises (eksportér igen) — ingen tavs overskrivning. Importen
   kontrollerer selv bindingen i sin transaktion: et ark fra et andet værk, et værk, hvis parametre eller aktive serier er
   skiftet, og en basis, der ikke er værkets eksport, afvises med intet gemt.
-* **Ingen markering, eller værket findes ikke** (slettet, anden installation): arket bliver et nyt værk som før; da får
-  felterne på listen modelscriptets værdi.
+* **Et ark fra før runde 14** (markeringen i format 2, uden appens faner): afvises som revision med beskeden
+  "eksportér værket igen" — appen kan ikke sammenligne det med en ny eksport. Som nyt værk importeres det som før.
+* **Ingen markering, eller værket findes ikke** (slettet, anden installation): arket bliver et nyt værk — med hele
+  indholdet, også appens faner; kun felterne på listen "ikke med i arket" får modelscriptets værdi.
 
-Beviset står i gaten: `viden/vaerktoej/tjek_eksport_rundtur.py` eksporterer hvert værk i kataloget med appens kode, kører
-modelrepoets script på arket og kræver, at hver forskel står på listen (og intet andet), at genupload uden ændringer
-gemmer intet, at `run_case` giver samme objektiv før og efter, og at én ændret celle ændrer præcis det felt. Det
-gælder også et værk med et navn, scriptet normaliserer, og serier med huller.
+Beviset står i gaten: `viden/vaerktoej/tjek_eksport_rundtur.py` eksporterer hvert værk i kataloget med appens kode,
+uploader arket som et **nyt værk** gennem importens egen kode (modelrepoets script + appens faner) og kræver, at det
+nye værk er det oprindelige blad for blad — bortset fra en eksplicit, begrundet liste (solprofilens sti) — at
+`run_case` giver samme objektiv for de to, også med balancemarked, at genupload uden ændringer gemmer intet, og at én
+ændret celle, også i appens faner, ændrer præcis det felt. Det gælder også et værk med et navn, scriptet
+normaliserer, og serier med huller.
 
 **Præcision.** Forskelle afgøres med regnearkets præcision, 15 betydende cifre (Excel gemmer ikke flere). En rettelse
 efter det 15. ciffer kan derfor ikke ses — den ville heller ikke overleve Excel. Solprofilen skrives af modelscriptet

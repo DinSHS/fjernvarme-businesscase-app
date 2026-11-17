@@ -16,6 +16,12 @@
 // analyserede bytes, og bindingen (værk + revision) kontrolleres igen ved
 // send. Ændres værkslisten (en revision), er analysen forældet: send er
 // spærret, til arket er læst igen.
+//
+// Runde 14: et eksporteret ark bærer også appens egne faner (Start og
+// drift, Balancemarked, Øvrige felter). Importen lægger dem oven på
+// modelscriptets læsning — også ved upload som nyt værk — og afviser et
+// ark med rækker, scriptet ville springe over uden besked. Et ark i det
+// gamle format (før fanerne) afvises klart, når værket findes.
 //-----------------------------------------------------------------------
 
 import { useRef, useState } from "react";
@@ -130,7 +136,7 @@ export function VaerksarkKort({ vaerker, bruger }: { vaerker: readonly Vaerkrad[
 
     return (
         <Kort titel="Upload værksark" afgraensning="nyt værk eller ny revision" budskab={budskab}
-            fod={<>Skabelonen er modelrepoets <span className="fjv-mono">vaerksdata_skabelon.xlsx</span> (i repoets rod). Importen kører modelrepoets <span className="fjv-mono">scripts/vaerksark_til_yaml.py</span> uændret og opretter et nyt værk (kilde Appen) — og en tidsserie, hvis arket har timedata. Et ark, appen har eksporteret (<em>værk › Eksportér værksark</em>), gemmes i stedet som en ny revision af værket: kun det, du har ændret i arket, ændres.</>}>
+            fod={<>Skabelonen er modelrepoets <span className="fjv-mono">vaerksdata_skabelon.xlsx</span> (i repoets rod). Importen kører modelrepoets <span className="fjv-mono">scripts/vaerksark_til_yaml.py</span> uændret og opretter et nyt værk (kilde Appen) — og en tidsserie, hvis arket har timedata. Et ark, appen har eksporteret (<em>værk › Eksportér værksark</em>), har også appens egne faner <em>Start og drift</em>, <em>Balancemarked</em> og <em>Øvrige felter</em>: modelscriptet læser dem ikke, men appen lægger deres værdier oven på scriptets læsning (<strong>egen antagelse</strong> — importens log og værkets revision 2 viser, hvad der kom derfra). Findes værket, gemmes arket som en ny revision: kun det, du har ændret i arket, ændres. En række med navn, men uden type eller volumen, afviser importen med rækkenummer — modelscriptet ville springe den over uden besked.</>}>
             <div className="kf-formular">
                 <label className="kf-slip">
                     <span>{fil ? <><strong>{fil.name}</strong> · {dkFri(fil.size / 1024, 0)} kB</> : "Udfyldt værksark (.xlsx)"}</span>
@@ -182,6 +188,13 @@ function Analyse({ a }: { a: Uploadanalyse }) {
         return (
             <p className="kf-svar" data-tone="fejl" role="alert" data-tilstand="konflikt">
                 Arket er eksporteret fra {a.vaerk.navn} revision {a.arkRevision}, men værket er siden ændret (nu revision {a.vaerk.revision}). Intet bliver gemt — en upload ville skrive hen over de nyere ændringer. {eksport}, og læg dine ændringer ind i det nye ark.
+            </p>
+        );
+    }
+    if (a.art === "anden_eksport" && a.ældre) {
+        return (
+            <p className="kf-svar" data-tone="fejl" role="alert" data-tilstand="aeldre_format">
+                Arket er eksporteret af en ældre udgave af appen — før appens egne faner (Start og drift, Balancemarked og Øvrige felter) kom med i arket. Det kan ikke gemmes som en revision af {a.vaerk.navn}, fordi appen ikke kan se, hvad du har ændret i forhold til en ny eksport. Intet bliver gemt. {eksport}, og læg dine ændringer ind i det nye ark.
             </p>
         );
     }
