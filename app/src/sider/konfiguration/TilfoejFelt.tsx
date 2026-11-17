@@ -13,7 +13,7 @@ import { nyeFejl, type RedigeringsTilstand } from "./useRedigering";
 import { validerVaerk } from "./validering";
 import { redigerbarTekst } from "./vis";
 import { manglendeFelter, tilfoejFelt } from "./manglende-felter";
-import { startAdvarsel } from "./startstatus";
+import { START_ETIKET, startAdvarsel } from "./startstatus";
 
 export function TilfoejFelt({ rt, sektioner, objekt }: { rt: RedigeringsTilstand; sektioner: readonly string[]; objekt?: string }) {
     const kandidater = useMemo(() => manglendeFelter(rt.nu, sektioner, objekt), [rt.nu, sektioner, objekt]);
@@ -79,14 +79,14 @@ export function TilfoejFelt({ rt, sektioner, objekt }: { rt: RedigeringsTilstand
     );
 }
 
-/** Advarslen øverst på værkets side, når ingen enhed med unit commitment er tændt ved start. */
+/** Advarslen øverst på værkets side, når ingen enhed med start/stop-logik (unit commitment) er tændt ved start. */
 export function StartAdvarselKort({ rt, kode }: { rt: RedigeringsTilstand; kode: string }) {
     const a = useMemo(() => startAdvarsel(rt.nu), [rt.nu]);
     if (!a) return null;
     return (
         <Gitter>
             <Kort titel="Starttilstand" afgraensning="initial_status" budskab={a.tekst}
-                fod="Værksarkets modelscript sætter initial_status: 0 på hver enhed med unit commitment (scripts/vaerksark_til_yaml.py). Modellens standard er 1.">
+                fod={`Modelrepoets værksark-script sætter «${START_ETIKET}» til 0 på hver enhed med start/stop-logik (scripts/vaerksark_til_yaml.py). Modellens standard, når feltet mangler, er 1 (tændt).`}>
                 <ul className="kf-fund">
                     {a.enheder.map((n, i) => (
                         <li key={n}><Maerke tone="advarsel">slukket ved start</Maerke>

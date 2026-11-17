@@ -28,7 +28,7 @@ export function BalancemarkedKort({ kode, rt, gåTil }: { kode: string; rt: Redi
     if (harBalancemarked(rt.nu)) {
         return (
             <Kort titel="Balancemarked" afgraensning="balancing-blokken"
-                budskab="Værket har en balancing-blok; den bruges, når et scenarie kører med balancemarked."
+                budskab="Værket har en balancing-blok. Den beskriver, hvordan værket byder; om der regnes med balancemarked, vælger du på scenariet."
                 handling={<Knap sekundaer disabled={rt.red.aktiv} title={rt.red.aktiv ? "Gem eller fortryd rettelserne først." : undefined}
                     onClick={() => gåTil(`konfiguration/${kode}/balancering/fjern`)}>Fjern balancemarkedet…</Knap>}
                 fod="Blokken kan rettes felt for felt med Redigér nedenfor." />
@@ -36,10 +36,10 @@ export function BalancemarkedKort({ kode, rt, gåTil }: { kode: string; rt: Redi
     }
     return (
         <Kort titel="Balancemarked" afgraensning="ingen balancing-blok"
-            budskab="Værket har ingen balancing-blok, så scenarier kan ikke regne med balancemarkedet. Et værk fra værksarket får ingen — modelrepoets script skriver den ikke."
+            budskab="Værket har ingen balancing-blok, så scenarier kan ikke regne med balancemarkedet. Et værk fra modelrepoets egen skabelon får ingen — scriptet skriver den ikke."
             handling={<Knap disabled={rt.red.aktiv} title={rt.red.aktiv ? "Gem eller fortryd rettelserne først." : undefined}
                 onClick={() => gåTil(`konfiguration/${kode}/balancering/tilfoej`)}>Tilføj balancemarked…</Knap>}
-            fod={<>Blokken bygges af modelrepoets egne blokke (Andebys eller <a href={DOK}>BUDSTRATEGI.md</a> § 5) med værkets egne enhedsnavne.</>} />
+            fod={<>Her bygges blokken af modelrepoets egne blokke (Andebys eller <a href={DOK}>BUDSTRATEGI.md</a> § 5) med værkets egne enhedsnavne. Den anden vej: udfyld fanen Balancemarked i værkets eksporterede værksark, og upload det.</>} />
     );
 }
 
@@ -93,7 +93,7 @@ export function TilfoejBalancemarked({ kode, rt, gåTil }: { kode: string; rt: R
         <>
             <Gitter form="8-4">
                 <Kort titel="Tilføj balancemarked" afgraensning="trin 1 af 2 · værkets valg"
-                    budskab={`Blokken bygges af ${udgangspunkt === "andeby" ? "Andebys blok" : "BUDSTRATEGI.md's fælles del og en profil"}; I tager stilling til enhederne og deres lofter.`}
+                    budskab={`Blokken bygges af ${udgangspunkt === "andeby" ? "Andebys blok" : "BUDSTRATEGI.md's fælles del og en budprofil"}; I tager stilling til enhederne og deres lofter. Om der regnes med balancemarked, vælger du bagefter på scenariet.`}
                     fod={<>Kilde: {valgt.kilde}. BUDSTRATEGI.md:{BUDSTRATEGI.navne_linje}: enhedsnavnene skal være værkets egne. Tallene i kilden er eksempler og skal erstattes med værkets egne (BUDSTRATEGI.md:{BUDSTRATEGI.kvalificering_linje}).</>}>
                     <div className="kf-formular">
                         <label>Udgangspunkt
@@ -179,9 +179,12 @@ export function TilfoejBalancemarked({ kode, rt, gåTil }: { kode: string; rt: R
                                                 {fejl && <div className="kf-felt-fejl">{fejl}</div>}
                                             </td>
                                             <td className="fjv-h">
-                                                {f.slags === "blok" && f.vaerdi_json !== null && post?.type === "number"
+                                                {/* Codex r14 fund 4: feltets slags og type afgør, om der er et input — ikke om teksten
+                                                    kan læses. Ellers forsvandt inputtet, når brugeren tømte tallet for at skrive et nyt. */}
+                                                {f.slags === "blok" && post?.type === "number"
                                                     ? <input className="fjv-felt kf-tal-input" inputMode="decimal" aria-label={f.sti}
-                                                        value={rettet ?? redigerbarTekst(f.vaerdi_json)}
+                                                        aria-invalid={fejl ? true : undefined}
+                                                        value={rettet ?? (f.vaerdi_json === null ? "" : redigerbarTekst(f.vaerdi_json))}
                                                         onChange={(e) => { setVaerdier((v) => ({ ...v, [f.sti]: e.target.value })); setSet(false); }} />
                                                     : <span className="kf-vaerdi">{f.vaerdi_json === null ? "–" : visFelt(f.vaerdi_json)}</span>}
                                                 {post?.enhed && <div className="kf-kilde">{post.enhed}</div>}

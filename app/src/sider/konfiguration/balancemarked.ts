@@ -18,6 +18,7 @@
 import type { Parameterændring } from "@/lib/data/skriv";
 import { visVaerdi } from "@/lib/data/vaerdi";
 import { BUDSTRATEGI, kildeMedCommit, spejlcase, type Budblok } from "@/lib/modelspejl";
+import { VISNINGSNAVNE } from "@/sider/analyser/anbefaling.data";
 import { findFelt } from "./katalog";
 import { kladde } from "./redigering";
 
@@ -71,12 +72,17 @@ function skabelon(id: UdgangspunktId): Skabelonblad[] {
 
 const interval = (l: readonly [number, number]) => (l[0] === l[1] ? `${l[0]}` : `${l[0]}-${l[1]}`);
 
+/** BUDSTRATEGI.md § 3.2's ord for budstørrelsen (mode). */
+const MODE: Record<string, string> = { bound: "op til en blok", driven: "fast blok, altid" };
+
+/** Blokkens kendetegn i driftsfolkenes ord (brugertest r14 F11): de danske visningsnavne fra viden/knapper.json. */
 function resume(blade: readonly Skabelonblad[]): string {
     const v = new Map(blade.map((b) => [b.sti, visVaerdi(b.vaerdi_json)]));
-    const dele = [`foresight ${v.get("balancing.activation.foresight") ?? "–"}`, `settle ${v.get("balancing.activation.settle") ?? "–"}`];
-    if (v.get("balancing.reservation_gate.enabled") !== "Ja") dele.push("ingen budtærskel (reservation_gate slået fra)");
+    const navn = (felt: string, sti: string) => { const x = v.get(sti); return x ? VISNINGSNAVNE[felt]?.[x] ?? x : "–"; };
+    const dele = [`byder ud fra ${navn("foresight", "balancing.activation.foresight")}`, `afregning: ${navn("settle", "balancing.activation.settle")}`];
+    if (v.get("balancing.reservation_gate.enabled") !== "Ja") dele.push("ingen budpris på kapacitet (byder, når det betaler sig)");
     else {
-        dele.push(`budtærskel, mode ${v.get("balancing.reservation_gate.mode") ?? "–"}`);
+        dele.push(`budpris på kapacitet, ${MODE[v.get("balancing.reservation_gate.mode") ?? ""] ?? v.get("balancing.reservation_gate.mode") ?? "–"}`);
         for (const m of ["afrr", "mfrr"]) {
             const pris = v.get(`balancing.reservation_gate.${m}.cm_threshold_dkk_mw_h`);
             const ref = v.get(`balancing.reservation_gate.${m}.opportunity_cost.reference_unit`);
@@ -98,7 +104,7 @@ export function udgangspunkter(): Udgangspunkt[] {
         const p = profilBlok(n);
         if (!p) continue;
         ud.push({
-            id: `profil${n}` as UdgangspunktId, navn: `BUDSTRATEGI: fælles del + ${p.titel}`,
+            id: `profil${n}` as UdgangspunktId, navn: `Bud${p.titel.charAt(0).toLowerCase()}${p.titel.slice(1)} (BUDSTRATEGI.md)`,
             kilde: kildeMedCommit(`${BUDSTRATEGI.fil}:${interval(fælles.linjer)}, ${interval(p.linjer)}`), resume: resume(skabelon(`profil${n}` as UdgangspunktId)),
         });
     }
