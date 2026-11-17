@@ -38,8 +38,8 @@ export default function DispatchKort({ a, b, pladser }: { a: Pakke; b?: Pakke; p
     const valg = useMemo(() => vinduer(a.profil.periode_start, a.profil.periode_slut), [a.profil.periode_start, a.profil.periode_slut]);
     const [i, setI] = useState(0);
     const v = valg[Math.min(i, valg.length - 1)];
-    const ta = useTimer(a.k.id, v?.fra, v?.til);
-    const tb = useTimer(b?.k.id, v?.fra, v?.til);
+    const ta = useTimer(a.k, v?.fra, v?.til);
+    const tb = useTimer(b?.k, v?.fra, v?.til);
     const pa = useMemo(() => dispatchPunkter(ta.data ?? []), [ta.data]);
     const pb = useMemo(() => dispatchPunkter(tb.data ?? []), [tb.data]);
     const skala = useMemo(() => dispatchSkala(pa, pb), [pa, pb]);

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -154,6 +155,30 @@ class TestUdtraek(unittest.TestCase):
             # Teksten, ikke kun værdien: -0.0 forbliver -0.0, 17 cifre forbliver 17 cifre.
             self.assertEqual(json.dumps(samlet, separators=(",", ":")),
                              json.dumps(dict(forventet), separators=(",", ":")))
+
+    def test_vektoren_til_appens_fletning_er_skriverens(self):
+        """``bred_40el/timedele_vektor.json`` er den bredeste time, som skriveren deler den, og hele objektet.
+
+        Appen (``app/src/lib/data/timedele.ts``) skal sætte delene sammen til PRÆCIS ``hel`` - tegn for tegn, så
+        -0.0 og 17 cifre når skærmen og arkivet som i modellens fil (``timedele.spec.ts``). Ændres skriveren med
+        vilje: ``FJV_SKRIV_VEKTOR=1`` skriver filen igen.
+        """
+        tm, dele = R.timer(R.Output(BRED), R.register())
+        t = "2026-01-05T16:00:00Z"
+        raekke = next(x for x in tm if x["tid"] == t)
+        with open(next(BRED.glob("*_hourly.csv")), encoding="utf-8", newline="") as f:
+            csv_raekke = next(r for r in csv.DictReader(f) if r["timestamp"] == "2026-01-05T16:00:00")
+        faste = {"timestamp", *R.register()["tid"]["kolonner"].values()}
+        hel = json.dumps({k: R.tal(v) for k, v in csv_raekke.items() if k not in faste}, separators=(",", ":"))
+        vektor = {"_om": self.test_vektoren_til_appens_fletning_er_skriverens.__doc__.split("\n")[0],
+                  "time": {k: raekke[k] for k in ("tid", "vaerdier_json")},
+                  "dele": [d for d in dele if d["tid"] == t],
+                  "hel": hel}
+        sti = BRED / "timedele_vektor.json"
+        tekst = json.dumps(vektor, ensure_ascii=False, indent=1) + "\n"
+        if os.environ.get("FJV_SKRIV_VEKTOR") == "1":
+            sti.write_bytes(tekst.encode("utf-8"))
+        self.assertEqual(sti.read_bytes().decode("utf-8").replace("\r\n", "\n"), tekst)
 
     def test_koersel_felter(self):
         h = R.parse_highs((F1 / "log.txt").read_text(encoding="utf-8"))
