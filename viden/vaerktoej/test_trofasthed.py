@@ -47,7 +47,7 @@ class Modproever(unittest.TestCase):
                 shutil.copy(src, dst)
         raa = subprocess.check_output(["git", "-C", str(kilde.repo), "archive", "--format=zip", BM.PIN,
                                        "README.md", "requirements.txt", "run_case.py", "cases", "src", "scripts",
-                                       "vaerksdata_skabelon.xlsx"])
+                                       "vaerksdata_skabelon.xlsx", "doc/BUDSTRATEGI.md"])   # runde 14c: spejlets budstrategi
         with zipfile.ZipFile(io.BytesIO(raa)) as z:
             z.extractall(cls.model)
         cls.miljoe = {**os.environ, "PYTHONUTF8": "1", "PYTHONDONTWRITEBYTECODE": "1", "FJV_MODELMAPPE": str(cls.model)}
@@ -103,6 +103,22 @@ class Modproever(unittest.TestCase):
         try:
             p.write_bytes(p.read_bytes() + b" ")
             self.assertRoed(self.gate(), r"FEJL \[spejl\].*vaerksdata_skabelon\.xlsx")
+        finally:
+            self._gendan(g)
+
+    def test_R14c_aendret_budstrategi_blok_er_roed(self):
+        """Runde 14c: "Tilføj balancemarked" bygger blokken af BUDSTRATEGI.md's færdige blokke; et andet tal i
+        modelrepoets blok skal gøre spejlet rødt, og et afsnit med en anden form skal stoppe genbygningen."""
+        p = self.model / "doc" / "BUDSTRATEGI.md"
+        g = self._gem(p)
+        try:
+            self._ret(p, "up_markup_dkk_mwh: 500  ", "up_markup_dkk_mwh: 300  ")
+            self.assertRoed(self.gate(), r"FEJL \[spejl\].*modelspejl\.json.*budstrategi")
+            self._gendan(g)
+            self._ret(p, "Færdige YAML-blokke", "YAML-blokke")
+            r = self.genbyg()
+            self.assertNotEqual(r.returncode, 0, r.stdout[-2000:])
+            self.assertIn("har ændret form", r.stdout + r.stderr)
         finally:
             self._gendan(g)
 
