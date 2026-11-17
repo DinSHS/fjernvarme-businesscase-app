@@ -57,6 +57,22 @@ describe("fanen Balancering", () => {
         await vi.waitFor(() => expect(gåTil).toHaveBeenCalledWith("konfiguration/ark/balancering"));
     });
 
+    it("Codex r14 fund 4: et tømt eller ugyldigt eksempeltal beholder sit inputfelt og brugerens tekst", () => {
+        render(<TilfoejBalancemarked kode="ark" rt={rt(arkVaerk).t} gåTil={vi.fn()} />);
+        const sti = "balancing.bid_strategy.up_markup_dkk_mwh";
+        const felt = () => screen.getByRole("textbox", { name: sti }) as HTMLInputElement;
+        expect(felt().value).toBe("500");
+        fireEvent.change(felt(), { target: { value: "" } });
+        expect(felt().value).toBe("");
+        fireEvent.change(felt(), { target: { value: "x" } });
+        expect(felt().value).toBe("x");
+        expect(felt().getAttribute("aria-invalid")).toBe("true");
+        expect(screen.getAllByText(/ikke et tal/).length).toBeGreaterThan(0);
+        fireEvent.change(felt(), { target: { value: "300" } });
+        expect(felt().value).toBe("300");
+        expect(felt().getAttribute("aria-invalid")).toBeNull();
+    });
+
     it("kan ikke gemmes, mens værket har rettelser i et udkast", () => {
         render(<TilfoejBalancemarked kode="ark" rt={rt(arkVaerk, true).t} gåTil={vi.fn()} />);
         expect(screen.getByText("Gem eller fortryd rettelserne i værket først.")).toBeTruthy();

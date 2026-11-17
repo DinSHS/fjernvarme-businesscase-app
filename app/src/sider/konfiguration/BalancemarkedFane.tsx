@@ -179,9 +179,12 @@ export function TilfoejBalancemarked({ kode, rt, gåTil }: { kode: string; rt: R
                                                 {fejl && <div className="kf-felt-fejl">{fejl}</div>}
                                             </td>
                                             <td className="fjv-h">
-                                                {f.slags === "blok" && f.vaerdi_json !== null && post?.type === "number"
+                                                {/* Codex r14 fund 4: feltets slags og type afgør, om der er et input — ikke om teksten
+                                                    kan læses. Ellers forsvandt inputtet, når brugeren tømte tallet for at skrive et nyt. */}
+                                                {f.slags === "blok" && post?.type === "number"
                                                     ? <input className="fjv-felt kf-tal-input" inputMode="decimal" aria-label={f.sti}
-                                                        value={rettet ?? redigerbarTekst(f.vaerdi_json)}
+                                                        aria-invalid={fejl ? true : undefined}
+                                                        value={rettet ?? (f.vaerdi_json === null ? "" : redigerbarTekst(f.vaerdi_json))}
                                                         onChange={(e) => { setVaerdier((v) => ({ ...v, [f.sti]: e.target.value })); setSet(false); }} />
                                                     : <span className="kf-vaerdi">{f.vaerdi_json === null ? "–" : visFelt(f.vaerdi_json)}</span>}
                                                 {post?.enhed && <div className="kf-kilde">{post.enhed}</div>}
