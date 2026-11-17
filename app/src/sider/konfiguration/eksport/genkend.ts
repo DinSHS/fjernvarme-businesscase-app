@@ -71,9 +71,9 @@ function rækkeMed(c: Celler, tekst: string, efter = 0, praefiks = false): numbe
 function tidsserie(c: Celler | undefined, fra: number): Map<number, number> {
     const ud = new Map<number, number>();
     if (!c) return ud;
-    let maks = 0;
-    for (const k of c.keys()) { const m = /^[AB](\d+)$/.exec(k); if (m) maks = Math.max(maks, Number(m[1])); }
-    for (let r = fra; r <= maks; r++) {
+    // De rækker, arket HAR en tidsstempelcelle i (Codex' review, fund 1) — ikke alle rækkenumre til den sidste celle.
+    const rækker = [...c.keys()].map((k) => /^A(\d+)$/.exec(k)).filter((m): m is RegExpExecArray => !!m).map((m) => Number(m[1])).filter((r) => r >= fra).sort((a, b) => a - b);
+    for (const r of rækker) {
         const t = c.get(`A${r}`), v = c.get(`B${r}`);
         if (typeof t === "number" && typeof v === "number") ud.set(fraExcelSerie(t), v);
     }

@@ -1,5 +1,5 @@
 {
- "_om": "Appens faner i værksarket: en celle som vaerdi_json efter feltkataloget (runde 14). Genereret af app/src/sider/konfiguration/eksport/lag.spec.ts (FJV_SKRIV_VEKTORER=1) fra TypeScript-udgaven; fabric/tests/test_arklag_vektorer.py kræver samme udfald af fjv.feltkatalog. Ret aldrig i hånden.",
+ "_om": "Appens faner i værksarket: hvad en celle betyder (tom, (findes ikke), værdien eller grunden) efter feltkataloget (runde 14). Genereret af app/src/sider/konfiguration/eksport/lag.spec.ts (FJV_SKRIV_VEKTORER=1) fra TypeScript-udgaven (læsCelle); fabric/tests/test_arklag_vektorer.py kræver samme udfald af fjv.feltkatalog.laes_celle. Ret aldrig i hånden.",
  "tilfaelde": [
   {
    "sti": "units.x.p_max_heat",
@@ -692,6 +692,139 @@
    "celle": 900,
    "ud": {
     "fejl": "stien findes ikke i feltkataloget (et felt, modellen ikke kender)"
+   }
+  },
+  {
+   "sti": "units.x.co2_emissions_per_mwh_fuel",
+   "celle": null,
+   "ud": {
+    "tom": true
+   }
+  },
+  {
+   "sti": "units.x.co2_emissions_per_mwh_fuel",
+   "celle": "",
+   "ud": {
+    "tom": true
+   }
+  },
+  {
+   "sti": "units.x.co2_emissions_per_mwh_fuel",
+   "celle": "   ",
+   "ud": {
+    "tom": true
+   }
+  },
+  {
+   "sti": "units.x.co2_emissions_per_mwh_fuel",
+   "celle": "(findes ikke)",
+   "ud": {
+    "fjern": true
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": " (Findes ikke) ",
+   "ud": {
+    "fjern": true
+   }
+  },
+  {
+   "sti": "units.x.findes_ikke",
+   "celle": null,
+   "ud": {
+    "tom": true
+   }
+  },
+  {
+   "sti": "units.x.findes_ikke",
+   "celle": "(findes ikke)",
+   "ud": {
+    "fjern": true
+   }
+  },
+  {
+   "sti": "units.x.notes",
+   "celle": "(findes ikke)",
+   "ud": {
+    "fjern": true
+   }
+  },
+  {
+   "sti": "balancing.method",
+   "celle": null,
+   "ud": {
+    "tom": true
+   }
+  },
+  {
+   "sti": "balancing.method",
+   "celle": "aktiveringsværdi kvarter for kvarter – anbefalet (activation_value)",
+   "ud": {
+    "json": "\"activation_value\""
+   }
+  },
+  {
+   "sti": "balancing.method",
+   "celle": "aktiveringsværdi",
+   "ud": {
+    "fejl": "Indtægtsmetode: \"aktiveringsværdi\" er ikke tilladt. Tilladte: legacy, activation_value."
+   }
+  },
+  {
+   "sti": "balancing.method",
+   "celle": "noget (forkert)",
+   "ud": {
+    "fejl": "Indtægtsmetode: \"noget (forkert)\" er ikke tilladt. Tilladte: legacy, activation_value."
+   }
+  },
+  {
+   "sti": "balancing.activation.foresight",
+   "celle": "i går (lag24)",
+   "ud": {
+    "json": "\"lag24\""
+   }
+  },
+  {
+   "sti": "balancing.activation.foresight",
+   "celle": "i går ( lag24 )",
+   "ud": {
+    "json": "\"lag24\""
+   }
+  },
+  {
+   "sti": "balancing.activation.settle",
+   "celle": "efter det der skete (realized)",
+   "ud": {
+    "json": "\"realized\""
+   }
+  },
+  {
+   "sti": "balancing.activation.afrr.model",
+   "celle": "andel af systemets aktivering gange k (system_share)",
+   "ud": {
+    "json": "\"system_share\""
+   }
+  },
+  {
+   "sti": "balancing.reservation_gate.mode",
+   "celle": "reservér højst blokken (bound)",
+   "ud": {
+    "json": "\"bound\""
+   }
+  },
+  {
+   "sti": "balancing.availability.mode",
+   "celle": "loft på månedens MWh (energy)",
+   "ud": {
+    "json": "\"energy\""
+   }
+  },
+  {
+   "sti": "data.dmi_area",
+   "celle": "Karup (karup)",
+   "ud": {
+    "json": "\"karup\""
    }
   }
  ]

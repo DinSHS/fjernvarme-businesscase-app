@@ -22,6 +22,7 @@
 import { MODELSPEJL } from "@/lib/modelspejl.data";
 import { Arbejdsbog, excelSerie } from "./xlsx";
 import { planlæg, type Celle, type Eksportkilde, type Eksportplan } from "./kort";
+import { planlægLag } from "./lag";
 
 /** Excels grænse for tekst i én celle. */
 const MAKS_CELLETEKST = 32_767;
@@ -93,17 +94,7 @@ export const filnavnFor = (kode: string, revision: number) => `${kode}_rev${revi
 export async function eksporter(k: Eksportkilde, skabelon: Uint8Array, nu = new Date()): Promise<Eksport> {
     const plan = planlæg(k);
     if (plan.nægter.length) throw new Error(`Værket kan ikke eksporteres til værksarket: ${plan.nægter.join(" ")}`);
-    const wb = new Arbejdsbog(skabelon);
-    if (plan.træpillerRække) wb.regneark("Priser").indsætRækker(11, 1);
-    if (plan.braendselKolonne) wb.regneark("Anlaeg").sikrKolonnebredde(14, 14);
-    if (plan.solvarmeArk) wb.tilføjArk("Solvarme", "Timedata");
-    // Runde 14: appens egne faner efter modelrepoets — samme stilarter, egne kolonner, dropdowns og frosne overskrifter.
-    for (const f of plan.lagfaner) wb.tilføjArk(f.navn, "Timedata").opsæt(f);
-    for (const c of plan.celler) {
-        const a = wb.regneark(c.ark);
-        if (c.formel) a.sætFormel(c.ref, c.formel, c.v as number | string, c.stil);
-        else a.sæt(c.ref, DATO_KOLONNE(c) ? excelSerie(c.v as number) : c.v, c.stil);
-    }
+    const wb = byg(plan, skabelon);
     const grundlag = await sha256Bytes(grundlagstekst(k));
     const sha = await sha256Bytes(indholdstekst(plan, grundlag));
     const markering: Markering = {
@@ -125,6 +116,38 @@ export async function eksporter(k: Eksportkilde, skabelon: Uint8Array, nu = new 
     rækker.forEach(([nøgle, v], idx) => { m.sæt(`A${idx + 1}`, nøgle); m.sæt(`B${idx + 1}`, v); });
     return { bytes: wb.bytes(), filnavn: filnavnFor(k.vaerk.kode, k.vaerk.revision), plan, markering };
 }
+
+/**
+ * Arbejdsbogen med planens celler: modelrepoets skabelon, appens faner (Læs først forrest, de tre andre efter
+ * modelrepoets) — samme stilarter, egne kolonner, dropdowns og frosne overskrifter.
+ */
+function byg(plan: Pick<Eksportplan, "træpillerRække" | "braendselKolonne" | "solvarmeArk" | "lagfaner" | "celler">, skabelon: Uint8Array): Arbejdsbog {
+    const wb = new Arbejdsbog(skabelon);
+    // Læs først tilføjes, før noget ark åbnes til ændring (den fravælger det ark, der var valgt).
+    for (const f of plan.lagfaner) if (f.først) wb.tilføjArk(f.navn, "Timedata", false, true).opsæt(f);
+    if (plan.træpillerRække) wb.regneark("Priser").indsætRækker(11, 1);
+    if (plan.braendselKolonne) wb.regneark("Anlaeg").sikrKolonnebredde(14, 14);
+    if (plan.solvarmeArk) wb.tilføjArk("Solvarme", "Timedata");
+    for (const f of plan.lagfaner) if (!f.først) wb.tilføjArk(f.navn, "Timedata").opsæt(f);
+    for (const c of plan.celler) {
+        const a = wb.regneark(c.ark);
+        if (c.formel) a.sætFormel(c.ref, c.formel, c.v as number | string, c.stil);
+        else a.sæt(c.ref, DATO_KOLONNE(c) ? excelSerie(c.v as number) : c.v, c.stil);
+    }
+    return wb;
+}
+
+/**
+ * Den tomme skabelon med appens faner (lead's beslutning 3, brugertesten F3): modelrepoets egen skabelon uændret
+ * (med dens eksempelrækker) + Læs først, Start og drift, Balancemarked og Øvrige felter med tomme, gule rækker. Ingen
+ * markering: arket hører ikke til et værk og bliver et nyt værk ved upload.
+ */
+export function tomSkabelon(skabelon: Uint8Array): Uint8Array {
+    const lag = planlægLag({ vaerk: null, værk: new Map(), script: new Map(), enheder: [], tanke: [] });
+    return byg({ træpillerRække: false, braendselKolonne: false, solvarmeArk: false, lagfaner: lag.faner, celler: lag.celler }, skabelon).bytes();
+}
+
+export const TOM_SKABELON_FILNAVN = "vaerksdata_skabelon_med_appens_faner.xlsx";
 
 /** Markeringen fra et uploadet arks celler (`_app`), eller null. */
 export function læsMarkering(celler: Map<string, Map<string, number | string>>): Markering | null {

@@ -37,7 +37,9 @@ uden tank (``foerste_time_advarsel``).
 
 from __future__ import annotations
 
+import bisect
 import json
+import math
 import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
@@ -54,7 +56,7 @@ OEVRIGE = "Øvrige felter"
 FANER = (START_OG_DRIFT, BALANCEMARKED, OEVRIGE)
 FINDES_IKKE = "(findes ikke)"
 STI_OVERSKRIFT = "sti i modellen"
-TABELNOEGLER = ("navn", "tank", "måned")
+KUN_HVIS = "kun hvis modelscriptet giver"
 PLADSHOLDERE = ("{enhed}", "{tank}", "{måned}")
 _MAANED = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 _KOLONNER_UDEN_VAERDI = {"", "felt", "enhed", "forklaring", "standard", STI_OVERSKRIFT}
@@ -193,46 +195,61 @@ def _saml(fejl: list[str]) -> str:
 
 def _laes_fane(navn: str, c: dict, ud: Laesning, fejl: list) -> None:
     # Codex fund 2: en formel uden gemt resultat er ikke en tom celle. Den afvises med ark og celle, før noget læses —
-    # ellers ville den betyde "feltet sættes ikke" og tavst fjerne scriptets værdi.
-    for (r, k), v in sorted(c.items()):
-        if v is AL.FORMEL_UDEN_RESULTAT:
-            fejl.append(f"{navn}!{AL.ref(r, k)}: cellen har en formel uden et gemt resultat (arket er gemt af et "
-                        "program, der ikke regner formler ud). Åbn arket i Excel og gem det igen, eller skriv tallet "
-                        "i cellen i stedet for formlen")
-    if any(v is AL.FORMEL_UDEN_RESULTAT for v in c.values()):
+    # ellers ville den betyde "appen rører ikke feltet" og tavst give scriptets værdi i stedet for formlens.
+    uden = [(r, k) for (r, k), v in c.items() if v is AL.FORMEL_UDEN_RESULTAT]
+    for r, k in sorted(uden):
+        fejl.append(f"{navn}!{AL.ref(r, k)}: cellen har en formel uden et gemt resultat (arket er gemt af et "
+                    "program, der ikke regner formler ud). Åbn arket i Excel og gem det igen, eller skriv tallet "
+                    "i cellen i stedet for formlen")
+    if uden:
         return
-    # Codex fund 1: løkken går over de rækker, fanen HAR celler i — ikke over alle rækkenumre til den sidste celle.
-    raekker = AL.raekker(c)
-    sidste = raekker[-1] if raekker else 0
-    i = 0
-    while i < len(raekker):
-        r = raekker[i]
-        a = AL.norm(c.get((r, 1)))
-        if a == "felt" and _kolonne(c, r, STI_OVERSKRIFT):
-            naeste = _feltblok(navn, c, r, sidste, ud, fejl)
-        elif a in TABELNOEGLER and AL.norm(c.get((r + 1, 1))) == STI_OVERSKRIFT:
-            naeste = _tabel(navn, c, r, sidste, ud, fejl)
-        elif a == "sti" and navn == OEVRIGE and _kolonne(c, r, "værdi"):
-            naeste = _oevrige(navn, c, r, sidste, ud, fejl)
+    # Codex fund 1: alt arbejde følger de celler, fanen HAR — rækkerne slås op i et indeks pr. række, blokkene findes
+    # på deres overskrifter, og en blok er rækkerne mellem dens overskrift og den næste blok (bisect, ingen gennemløb).
+    pr: dict = {}
+    for (r, k), v in c.items():
+        pr.setdefault(r, {})[k] = v
+    raekker = sorted(pr)
+    starter = [r for r in raekker if _er_feltblok(pr, r) or _er_tabel(pr, r)]
+    for i, h in enumerate(starter):
+        fra = bisect.bisect_right(raekker, h)
+        til = bisect.bisect_left(raekker, starter[i + 1]) if i + 1 < len(starter) else len(raekker)
+        blok = raekker[fra:til]
+        if _er_feltblok(pr, h):
+            _feltblok(navn, pr, h, blok, ud, fejl)
         else:
-            naeste = r + 1
-        while i < len(raekker) and raekker[i] < naeste:
-            i += 1
+            _tabel(navn, pr, h, blok, ud, fejl)
 
 
-def _kolonne(c: dict, r: int, overskrift: str, praefiks: bool = False) -> int | None:
-    for (rk, k), v in c.items():
+def _kolonne(pr: dict, r: int, overskrift: str, praefiks: bool = False) -> int | None:
+    for k, v in sorted((pr.get(r) or {}).items()):
         t = AL.norm(v)
-        if rk == r and (t == overskrift or (praefiks and t.startswith(overskrift))):
+        if t and (t == overskrift or (praefiks and t.startswith(overskrift))):
             return k
     return None
 
 
-def _tildel(navn: str, c: dict, r: int, k: int, sti: str, ud: Laesning, fejl: list, objekt=None,
-            betingelse: str | None = None, tom_fjerner: bool = True) -> None:
-    """Cellen (r, k) som tildeling af ``sti`` (i arkets navne). Fejl samles med ark og celle."""
+def _er_feltblok(pr: dict, r: int) -> bool:
+    """En feltblok har 'felt' i kolonne A og en kolonne 'sti i modellen'."""
+    return AL.norm((pr.get(r) or {}).get(1)) == "felt" and _kolonne(pr, r, STI_OVERSKRIFT) is not None
+
+
+def _er_tabel(pr: dict, r: int) -> bool:
+    """En tabel har lige under sin overskrift en række med 'sti i modellen' i kolonne A."""
+    return AL.norm((pr.get(r + 1) or {}).get(1)) == STI_OVERSKRIFT
+
+
+def _tom_celle(v) -> bool:
+    return v is None or (isinstance(v, str) and not v.strip())
+
+
+def _tildel(navn: str, celle, r: int, k: int, sti: str, ud: Laesning, fejl: list, objekt=None,
+            betingelse: str | None = None) -> None:
+    """Cellen (r, k) som tildeling af ``sti`` (i arkets navne) efter den fælles regel (``FK.laes_celle``): tom = appen
+    rører ikke feltet (ingen tildeling); ``(findes ikke)`` = feltet fjernes; ellers værdien. Fejl samles med ark og celle."""
     hvor = f"{navn}!{AL.ref(r, k)}"
-    celle = c.get((r, k))
+    b = FK.laes_celle(sti, celle)
+    if "tom" in b:
+        return
     try:
         if not REV.gyldig_sti(sti):
             raise FK.FeltFejl(f"stien {sti!r} er ikke gyldig")
@@ -240,34 +257,55 @@ def _tildel(navn: str, c: dict, r: int, k: int, sti: str, ud: Laesning, fejl: li
         if not post or not post.get("blad"):
             raise FK.FeltFejl(f"stien {sti} findes ikke i feltkataloget (et felt, modellen ikke kender)")
         s = til_script(sti)
-        if celle is None or (isinstance(celle, str) and not celle.strip()):
-            if not tom_fjerner:
-                raise FK.FeltFejl(f"{sti} har ingen værdi; skriv {FINDES_IKKE} for at fjerne feltet, eller slet rækken")
+        if "fjern" in b:
             ud.tildelinger.append(Tildeling(s, None, navn, AL.ref(r, k), betingelse, objekt))
             return
-        if isinstance(celle, str) and celle.strip().lower() == FINDES_IKKE and not tom_fjerner:
-            ud.tildelinger.append(Tildeling(s, None, navn, AL.ref(r, k), betingelse, objekt))
-            return
-        j = FK.fra_celle(sti, celle, post)
+        if "fejl" in b:
+            raise FK.FeltFejl(b["fejl"])
+        j = b["json"]
         if len(j) > FK.MAKS_JSON:
             raise FK.FeltFejl(f"{post['etiket']}: værdien er for lang (højst {FK.MAKS_JSON} tegn)")
-        grund = FK.tjek(sti, j, post)
-        if grund:
-            raise FK.FeltFejl(grund)
         ud.tildelinger.append(Tildeling(s, _med_script_navne(sti, j), navn, AL.ref(r, k), betingelse, objekt))
     except (FK.FeltFejl, LagFejl) as e:
         fejl.append(f"{hvor}: {e}")
 
 
-def _feltblok(navn: str, c: dict, h: int, sidste: int, ud: Laesning, fejl: list) -> int:
-    p = _kolonne(c, h, STI_OVERSKRIFT)
-    vaerdikol = [(k, AL.norm(c.get((h, k)))) for k in range(2, p) if AL.norm(c.get((h, k))) not in _KOLONNER_UDEN_VAERDI]
-    r = h + 1
-    while r <= sidste:
-        skabelon = c.get((r, p))
+def _betingelse(navn: str, pr: dict, r: int, kb: int | None, sti: str, fejl: list) -> tuple[bool, str | None]:
+    """Kolonnen 'kun hvis modelscriptet giver': (ok, betingelse). Tom = ubetinget."""
+    b = (pr.get(r) or {}).get(kb) if kb else None
+    if _tom_celle(b):
+        return True, None
+    if isinstance(b, str) and b.strip().lower() == FINDES_IKKE:
+        return True, FINDES_IKKE
+    try:
+        return True, _med_script_navne(sti, FK.fra_celle(sti, b))
+    except FK.FeltFejl as e:
+        fejl.append(f"{navn}!{AL.ref(r, kb)}: {e}")
+        return False, None
+
+
+def _feltblok(navn: str, pr: dict, h: int, blok: list, ud: Laesning, fejl: list) -> None:
+    """felt | værdi (eller aFRR, mFRR) | [kun hvis modelscriptet giver] | enhed | forklaring | sti i modellen.
+    Rækker uden sti (fx en mellemoverskrift) springes over; står der en værdi i en sådan række, afvises den."""
+    p = _kolonne(pr, h, STI_OVERSKRIFT)
+    kb = _kolonne(pr, h, "kun hvis", praefiks=True)
+    vaerdikol = [(k, AL.norm(v)) for k, v in sorted(pr[h].items())
+                 if k not in (p, kb) and AL.norm(v) not in _KOLONNER_UDEN_VAERDI]
+    set_stier: dict = {}
+    for r in blok:
+        raekke = pr[r]
+        skabelon = raekke.get(p)
         if not isinstance(skabelon, str) or not skabelon.strip():
-            break
+            noget = [k for k, _o in vaerdikol + ([(kb, "")] if kb else []) if not _tom_celle(raekke.get(k))]
+            if noget:
+                fejl.append(f"{navn}!{AL.ref(r, noget[0])}: der står en værdi, men ingen sti i kolonnen "
+                            f"'{STI_OVERSKRIFT}' ({AL.ref(r, p)}) — skriv feltets sti, eller ryd rækken")
+            continue
         skabelon = skabelon.strip()
+        if skabelon in set_stier:
+            fejl.append(f"{navn}!{AL.ref(r, p)}: {skabelon} står to gange (også række {set_stier[skabelon]})")
+            continue
+        set_stier[skabelon] = r
         for k, overskrift in vaerdikol:
             if overskrift == "værdi":
                 if "{marked}" in skabelon:
@@ -279,13 +317,12 @@ def _feltblok(navn: str, c: dict, h: int, sidste: int, ud: Laesning, fejl: list)
                     fejl.append(f"{navn}!{AL.ref(r, p)}: stien {skabelon} mangler {{marked}} (kolonnerne er markeder)")
                     break
                 sti = skabelon.replace("{marked}", overskrift)
-            _tildel(navn, c, r, k, sti, ud, fejl)
-        r += 1
-    return r
+            ok, betingelse = _betingelse(navn, pr, r, kb, sti, fejl)
+            if ok:
+                _tildel(navn, raekke.get(k), r, k, sti, ud, fejl, betingelse=betingelse)
 
 
-def _noegle(navn: str, c: dict, r: int, art: str, fejl: list) -> str | None:
-    v = c.get((r, 1))
+def _noegle(navn: str, v, r: int, art: str, fejl: list) -> str | None:
     if art == "{måned}":
         if isinstance(v, (int, float)) and not isinstance(v, bool) and 20000 <= v <= 80000:
             # Excel gør "2026-03" til en dato (serietal); måneden er datoens måned.
@@ -299,27 +336,32 @@ def _noegle(navn: str, c: dict, r: int, art: str, fejl: list) -> str | None:
     return tekst.strip()
 
 
-def _tabel(navn: str, c: dict, h: int, sidste: int, ud: Laesning, fejl: list) -> int:
+def _tabel(navn: str, pr: dict, h: int, blok: list, ud: Laesning, fejl: list) -> None:
+    """Overskrift (fanens egen tekst i A), rækken 'sti i modellen' med en stiskabelon pr. kolonne, én række pr. navn."""
     t = h + 1
     kolonner = []
-    for k in sorted(kk for (rk, kk) in c if rk == t and kk > 1):
-        skabelon = c.get((t, k))
-        if not isinstance(skabelon, str) or not skabelon.strip():
+    for k, skabelon in sorted(pr[t].items()):
+        if k == 1 or not isinstance(skabelon, str) or not skabelon.strip():
             continue
         skabelon = skabelon.strip()
-        arter = [p for p in PLADSHOLDERE if p in skabelon]
+        arter = [x for x in PLADSHOLDERE if x in skabelon]
         if len(arter) != 1 or skabelon.count(arter[0]) != 1:
-            fejl.append(f"{navn}!{AL.ref(t, k)}: stiskabelonen {skabelon} skal have præcis én af "
-                        f"{', '.join(PLADSHOLDERE)}")
+            fejl.append(f"{navn}!{AL.ref(t, k)}: stiskabelonen {skabelon} skal have præcis én af {', '.join(PLADSHOLDERE)}")
             continue
         kolonner.append((k, skabelon, arter[0]))
     set_noegler: dict = {}
-    r = t + 1
-    while r <= sidste:
-        if c.get((r, 1)) is None or (isinstance(c.get((r, 1)), str) and not c[(r, 1)].strip()):
-            break
+    for r in blok:
+        if r == t:
+            continue
+        raekke = pr[r]
+        if _tom_celle(raekke.get(1)):
+            noget = [k for k, _s, _a in kolonner if not _tom_celle(raekke.get(k))]
+            if noget:
+                fejl.append(f"{navn}!{AL.ref(r, noget[0])}: der står en værdi, men intet navn i kolonne A — skriv "
+                            "navnet præcis som i Anlaeg, eller ryd rækken")
+            continue
         for art in sorted({a for _k, _s, a in kolonner}):
-            noegle = _noegle(navn, c, r, art, fejl)
+            noegle = _noegle(navn, raekke.get(1), r, art, fejl)
             if noegle is None:
                 continue
             objekt = None
@@ -342,45 +384,8 @@ def _tabel(navn: str, c: dict, h: int, sidste: int, ud: Laesning, fejl: list) ->
             else:
                 set_noegler[("måned", t)][noegle] = r
             for k, skabelon, a in kolonner:
-                if a != art:
-                    continue
-                # En måned uden værdi i cellen er ikke et felt (tabellen har tomme rækker til nye måneder).
-                if art == "{måned}" and c.get((r, k)) is None:
-                    continue
-                _tildel(navn, c, r, k, skabelon.replace(art, noegle), ud, fejl, objekt=objekt)
-        r += 1
-    return r
-
-
-def _oevrige(navn: str, c: dict, h: int, sidste: int, ud: Laesning, fejl: list) -> int:
-    kv = _kolonne(c, h, "værdi")
-    kb = _kolonne(c, h, "kun hvis", praefiks=True)
-    set_stier: dict = {}
-    for r in (x for x in AL.raekker(c) if x > h):
-        sti = c.get((r, 1))
-        if sti is None or (isinstance(sti, str) and not sti.strip()):
-            continue
-        if not isinstance(sti, str):
-            fejl.append(f"{navn}!{AL.ref(r, 1)}: stien skal være tekst, ikke {sti!r}")
-            continue
-        sti = sti.strip()
-        if sti in set_stier:
-            fejl.append(f"{navn}!{AL.ref(r, 1)}: {sti} står to gange (også række {set_stier[sti]})")
-            continue
-        set_stier[sti] = r
-        betingelse = None
-        b = c.get((r, kb)) if kb else None
-        if b is not None and not (isinstance(b, str) and not b.strip()):
-            if isinstance(b, str) and b.strip().lower() == FINDES_IKKE:
-                betingelse = FINDES_IKKE
-            else:
-                try:
-                    betingelse = _med_script_navne(sti, FK.fra_celle(sti, b))
-                except FK.FeltFejl as e:
-                    fejl.append(f"{navn}!{AL.ref(r, kb)}: {e}")
-                    continue
-        _tildel(navn, c, r, kv, sti, ud, fejl, betingelse=betingelse, tom_fjerner=False)
-    return sidste + 1
+                if a == art:
+                    _tildel(navn, raekke.get(k), r, k, skabelon.replace(art, noegle), ud, fejl, objekt=objekt)
 
 
 # ------------------------------------------------------------------ laget lagt på scriptets læsning
@@ -472,9 +477,9 @@ def anvend(script: dict, laesning: Laesning, former: dict | None = None) -> Lag:
             lag.fjernet.pop(t.sti, None)
         if t.ark == START_OG_DRIFT and t.json is None and t.sti.endswith(".uc_enabled") and script.get(t.sti) == "true":
             lag.advarsler.append(
-                f"{t.ark}!{t.celle}: start/stop-logik (unit commitment) er tom for {t.sti.split('.')[1]} og regnes "
-                "derfor som nej (modellens standard). Modelscriptet ville have slået den til, fordi enheden har en "
-                "minimumslast eller en mindste driftstid. Skriv ja i cellen, hvis de skal gælde.")
+                f"{t.ark}!{t.celle}: start/stop-logik (unit commitment) står på {FINDES_IKKE} for {t.sti.split('.')[1]} "
+                "og regnes derfor som nej (modellens standard). Modelscriptet ville have slået den til, fordi enheden "
+                "har en minimumslast eller en mindste driftstid. Skriv ja i cellen, hvis de skal gælde.")
 
     # Felter, der kun er fjernet, og som scriptet aldrig havde, er ikke en del af laget.
     lag.fjernet = {s: c for s, c in lag.fjernet.items() if s in script and s not in lag.blade}
@@ -652,6 +657,27 @@ def tjek_tavse_raekker(sti: Path) -> None:
         rest = f" (og {len(fejl) - len(vis)} mere)" if len(fejl) > len(vis) else ""
         raise TavsRaekke("Arket har rækker, som modelscriptet ville springe over uden besked: " + "; ".join(vis) + rest
                          + ". Intet er gemt — ret arket, og upload det igen.")
+
+
+def start_stop_advarsler(blade: dict) -> list[str]:
+    """Advarsler, når en enhed har startomkostning, min. drifts-/stoptid over 1 time eller minimumslast over 0, men
+    start/stop-logik (unit commitment) står til nej — så bruger modellen ikke tallene (brugertesten F1, lead's
+    beslutning 2). Feltkataloget: ``units.*.p_min_heat`` og ``start_cost`` "virker kun, når uc_enabled er true"."""
+    v = {s: json.loads(j) for s, j in blade.items() if s.startswith("units.")}
+    ud = []
+    for n in sorted({s.split(".")[1] for s in v if len(s.split(".")) > 2}):
+        if v.get(f"units.{n}.enabled") is False or v.get(f"units.{n}.type") == "solar_thermal" \
+                or v.get(f"units.{n}.uc_enabled") is True:
+            continue
+        tal = lambda f: v.get(f"units.{n}.{f}") if isinstance(v.get(f"units.{n}.{f}"), (int, float)) else 0  # noqa: E731
+        hvad = [t for t, ok in ((f"startomkostning {tal('start_cost'):g} kr", tal("start_cost") > 0),
+                                 (f"min. driftstid {tal('min_uptime'):g} t", tal("min_uptime") > 1),
+                                 (f"min. stoptid {tal('min_downtime'):g} t", tal("min_downtime") > 1),
+                                 (f"min varme {tal('p_min_heat'):g} MW", tal("p_min_heat") > 0)) if ok]
+        if hvad:
+            ud.append(f"{n}: {', '.join(hvad)} står i Anlaeg, men start/stop-logik er nej (fanen Start og drift) — "
+                      "modellen bruger dem ikke. Sæt start/stop-logik til ja, hvis tallene skal gælde.")
+    return ud
 
 
 def foerste_time_advarsel(blade: dict, har_lag: bool) -> str | None:

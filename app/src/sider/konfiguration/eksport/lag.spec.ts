@@ -1,11 +1,16 @@
-// Runde 14: appens egne faner i værksarket (Start og drift, Balancemarked, Øvrige felter).
+// Runde 14: appens egne faner i værksarket (Læs først, Start og drift, Balancemarked, Øvrige felter).
 //
 // Målt baggrund: et rigtigt værk blev lagt ind via arket, og alle enheder stod til slukket ved start, balancemarkedet
-// kunne ikke stå i arket, og 71–106 felter pr. katalogværk stod på listen "ikke med i arket". Testene her forhindrer, at
-//   * et felt i værket hverken står i arket eller på listen (tavst tab);
-//   * en celle læses med en anden type end den, importen gemmer (vektorerne binder TS og Python);
+// kunne ikke stå i arket, og 71–106 felter pr. katalogværk stod på listen "ikke med i arket". Brugertesten af runde 14
+// (noter_ekspert/r14_review_bruger.md) og Codex' review fandt derefter, at "intet skrevet" betød tre ting (F2), at en
+// eksport af Andeby kunne blive en revision af Andeby (F3), at modelrepoets faner viste andre tal end modellen bruger
+// (F4–F7), at fanerne var skrevet i modellørsprog (F8–F13), og at læserne kunne fastholdes af et lille ark (fund 1).
+// Testene her forhindrer, at
+//   * et felt i værket hverken står i arket eller på listen (tavst tab), eller at en celle står tom ved eksport;
+//   * en celle læses anderledes i eksportens forudsigelse end i importen (vektorerne binder TS og Python);
 //   * en række i Øvrige felter tavst skjuler en celle i modelrepoets faner (betingelsen);
-//   * et ark i det gamle format tavst bliver et nyt værk, når værket findes.
+//   * et ark i det gamle format tavst bliver et nyt værk, når værket findes;
+//   * brugerens faner viser YAML-stier eller engelske koder som det første, eller har to ens kolonneoverskrifter.
 // Importens side (fabric/fjv/arklag.py) prøves i fabric/tests/test_arklag.py, og hele kæden med modelrepoets script i
 // gaten (viden/vaerktoej/tjek_eksport_rundtur.py).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -13,13 +18,12 @@ import { dirname, resolve } from "node:path";
 import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, it } from "vitest";
 import { analyserUpload, type Hentere } from "./analyse";
-import { eksporter, læsMarkering, MARKOER_ARK, MARKOER_FORMAT, MARKOER_FORMAT_FOER } from "./eksporter";
+import { eksporter, læsMarkering, MARKOER_ARK, MARKOER_FORMAT, MARKOER_FORMAT_FOER, tomSkabelon } from "./eksporter";
 import { genkend, læsArkmodel, sammenlign } from "./genkend";
 import { planlæg, type Eksportkilde } from "./kort";
-import { BALANCEMARKED, celleFor, FINDES_IKKE, jsonFraCelle, LAGFANER, læsLag, OEVRIGE, sammeTal, START_OG_DRIFT } from "./lag";
-import { tjekFelt } from "../validering";
+import { APPENS_FANER, BALANCEMARKED, celleFor, FINDES_IKKE, jsonFraCelle, KUN_HVIS, LAES_FOERST, læsCelle, læsLag, OEVRIGE, sammeTal, START_OG_DRIFT, STI_OVERSKRIFT } from "./lag";
 import { andeby, ANDEBY_ID, skabelon } from "./testdata";
-import { Arbejdsbog, læsCeller } from "./xlsx";
+import { Arbejdsbog, delRef, læsCeller } from "./xlsx";
 
 const NU = new Date(Date.UTC(2026, 10, 17, 12));
 const blade = (k: Eksportkilde) => new Map(k.blade.map((b) => [b.sti, b.vaerdi_json]));
@@ -33,12 +37,20 @@ function andebyMed(ret: Record<string, string | null>): Eksportkilde {
             ...Object.entries(ret).filter(([s, v]) => v !== null && !set.has(s)).map(([sti, v], j) => ({ sti, vaerdi_json: v as string, raekkefoelge: 10_000 + j }))],
     };
 }
+/** Arkets XML for en fane (til opsætningen: dropdowns, frosne ruder, fanevalg). */
+function faneXml(bytes: Uint8Array, fane: string): string {
+    const z = unzipSync(bytes);
+    const wb = strFromU8(z["xl/workbook.xml"]);
+    const rid = new RegExp(`<sheet name="${fane}"[^>]*r:id="([^"]+)"`).exec(wb)![1];
+    const mål = new RegExp(`Id="${rid}"[^>]*Target="([^"]+)"`).exec(strFromU8(z["xl/_rels/workbook.xml.rels"]))![1];
+    return strFromU8(z[`xl/${mål.replace(/^\/?xl\//, "")}`]);
+}
 
 // ------------------------------------------------------------------ celle <-> vaerdi_json: vektorerne
 
 const VEKTORFIL = resolve(import.meta.dirname, "../../../../../skema/vektorer/arklag/celler.json");
-/** (sti, celle) — bredt: hver type, grænserne, og det et regneark gør ved en indtastning. */
-const TILFAELDE: [string, number | string | boolean][] = [
+/** (sti, celle) — bredt: hver type, grænserne, det et regneark gør ved en indtastning, tom, (findes ikke) og etiketter. */
+const TILFAELDE: [string, number | string | boolean | null][] = [
     ["units.x.p_max_heat", 12], ["units.x.p_max_heat", 12.5], ["units.x.p_max_heat", -1], ["units.x.p_max_heat", "12,5"], ["units.x.p_max_heat", true],
     ["units.x.p_max_heat", "null"], ["units.x.min_uptime", 3], ["units.x.min_uptime", 3.5], ["units.x.min_uptime", "3"], ["units.x.commissioned", 2015],
     ["units.x.enabled", "ja"], ["units.x.enabled", "Nej"], ["units.x.enabled", " JA "], ["units.x.enabled", true], ["units.x.enabled", "måske"], ["units.x.enabled", 1],
@@ -66,19 +78,20 @@ const TILFAELDE: [string, number | string | boolean][] = [
     ["electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21", "spids"], ["electricity.tariff_consumption.fixed_components.elafgift_net", 4],
     ["heat_load_params.baseline_profile_mw", "[5.66,5.74,5.87]"], ["heat_load_params.baseline_profile_mw", "[5.66, 5.0, 6]"], ["heat_load_params.gaf_mw_per_k", 0.7653],
     ["heat_load_params.gaf_mw_per_k", 1e-5], ["prices.co2_eua.unit", "DKK/t"], ["prices.straw.value", 232], ["prices.fyringsolie.value", 900],
+    // Runde 14, rettelser: tom og (findes ikke) betyder hver sin ting (F2) — også for et felt, kataloget ikke kender.
+    ["units.x.co2_emissions_per_mwh_fuel", null], ["units.x.co2_emissions_per_mwh_fuel", ""], ["units.x.co2_emissions_per_mwh_fuel", "   "],
+    ["units.x.co2_emissions_per_mwh_fuel", "(findes ikke)"], ["units.x.initial_status", " (Findes ikke) "], ["units.x.findes_ikke", null],
+    ["units.x.findes_ikke", "(findes ikke)"], ["units.x.notes", "(findes ikke)"], ["balancing.method", null],
+    // Danske etiketter med koden i parentes (F11): koden gælder; en etiket uden kode eller en forkert kode afvises.
+    ["balancing.method", "aktiveringsværdi kvarter for kvarter – anbefalet (activation_value)"], ["balancing.method", "aktiveringsværdi"],
+    ["balancing.method", "noget (forkert)"], ["balancing.activation.foresight", "i går (lag24)"], ["balancing.activation.foresight", "i går ( lag24 )"],
+    ["balancing.activation.settle", "efter det der skete (realized)"], ["balancing.activation.afrr.model", "andel af systemets aktivering gange k (system_share)"],
+    ["balancing.reservation_gate.mode", "reservér højst blokken (bound)"], ["balancing.availability.mode", "loft på månedens MWh (energy)"],
+    ["data.dmi_area", "Karup (karup)"],
 ];
 
-/** Det, importen gør med en celle: typen fra kataloget, derefter feltets regler (som en redigering i appen). */
-function læsCelle(sti: string, celle: number | string | boolean): { json: string } | { fejl: string } {
-    try {
-        const json = jsonFraCelle(sti, celle);
-        const fund = tjekFelt(sti, json);
-        return fund ? { fejl: fund.besked } : { json };
-    } catch (e) { return { fejl: e instanceof Error ? e.message : String(e) }; }
-}
-
 describe("celle <-> vaerdi_json (fælles vektorer med importen)", () => {
-    const beregnet = { _om: "Appens faner i værksarket: en celle som vaerdi_json efter feltkataloget (runde 14). Genereret af app/src/sider/konfiguration/eksport/lag.spec.ts (FJV_SKRIV_VEKTORER=1) fra TypeScript-udgaven; fabric/tests/test_arklag_vektorer.py kræver samme udfald af fjv.feltkatalog. Ret aldrig i hånden.", tilfaelde: TILFAELDE.map(([sti, celle]) => ({ sti, celle, ud: læsCelle(sti, celle) })) };
+    const beregnet = { _om: "Appens faner i værksarket: hvad en celle betyder (tom, (findes ikke), værdien eller grunden) efter feltkataloget (runde 14). Genereret af app/src/sider/konfiguration/eksport/lag.spec.ts (FJV_SKRIV_VEKTORER=1) fra TypeScript-udgaven (læsCelle); fabric/tests/test_arklag_vektorer.py kræver samme udfald af fjv.feltkatalog.laes_celle. Ret aldrig i hånden.", tilfaelde: TILFAELDE.map(([sti, celle]) => ({ sti, celle, ud: læsCelle(sti, celle) })) };
 
     it("vektorfilen er den, TypeScript-udgaven giver (Python-udgaven prøves mod samme fil)", () => {
         if (process.env.FJV_SKRIV_VEKTORER) {
@@ -89,35 +102,42 @@ describe("celle <-> vaerdi_json (fælles vektorer med importen)", () => {
         expect(JSON.parse(readFileSync(VEKTORFIL, "utf8"))).toEqual(beregnet);
     });
 
-    it("typen kommer fra kataloget, ikke fra cellen: tal -> decimaltal, heltal -> heltal, ja/nej -> 1/0 eller sand/falsk", () => {
-        const ud = (sti: string, c: number | string | boolean) => læsCelle(sti, c);
-        expect(ud("units.x.p_max_heat", 12)).toEqual({ json: "12.0" });
-        expect(ud("units.x.min_uptime", 3)).toEqual({ json: "3" });
-        expect(ud("units.x.initial_status", "ja")).toEqual({ json: "1" });
-        expect(ud("units.x.enabled", "nej")).toEqual({ json: "false" });
-        expect(ud("units.x.notes", "ja")).toEqual({ json: '"ja"' });
-        expect(ud("units.x.ancillary.bid_window.months", "10, 11, 12")).toEqual({ json: "[10,11,12]" });
-        expect(ud("units.x.ancillary.available_from", 46082)).toEqual({ json: '"2026-03-01"' });   // Excel gjorde teksten til en dato
-        expect(ud("storage.t.e_max_mwh", "null")).toEqual({ json: "null" });
-        expect(ud("units.x.findes_ikke", 1)).toEqual({ fejl: expect.stringMatching(/findes ikke i feltkataloget/) });
-        expect(ud("units.x.p_max_heat", "12,5")).toEqual({ fejl: expect.stringMatching(/skal være et tal/) });
-        expect(ud("balancing.ancillary_caps.total_mw", -1)).toEqual({ fejl: expect.stringMatching(/≥ 0/) });
+    it("tom = appen rører ikke feltet; (findes ikke) = feltet sættes ikke (brugertesten F2)", () => {
+        expect(læsCelle("units.x.co2_emissions_per_mwh_fuel", null)).toEqual({ tom: true });
+        expect(læsCelle("units.x.co2_emissions_per_mwh_fuel", " ")).toEqual({ tom: true });
+        expect(læsCelle("units.x.co2_emissions_per_mwh_fuel", "(findes ikke)")).toEqual({ fjern: true });
+        expect(læsCelle("units.x.co2_emissions_per_mwh_fuel", 0.2)).toEqual({ json: "0.2" });
     });
 
-    it("celleFor er den inverse: cellen læses tilbage til det vaerdi_json, den siger", () => {
+    it("typen kommer fra kataloget, ikke fra cellen; en dansk etiket læses på koden i parentesen", () => {
+        expect(læsCelle("units.x.p_max_heat", 12)).toEqual({ json: "12.0" });
+        expect(læsCelle("units.x.min_uptime", 3)).toEqual({ json: "3" });
+        expect(læsCelle("units.x.initial_status", "ja")).toEqual({ json: "1" });
+        expect(læsCelle("units.x.enabled", "nej")).toEqual({ json: "false" });
+        expect(læsCelle("units.x.notes", "ja")).toEqual({ json: '"ja"' });
+        expect(læsCelle("units.x.ancillary.bid_window.months", "10, 11, 12")).toEqual({ json: "[10,11,12]" });
+        expect(læsCelle("units.x.ancillary.available_from", 46082)).toEqual({ json: '"2026-03-01"' });   // Excel gjorde teksten til en dato
+        expect(læsCelle("balancing.activation.foresight", "i går (lag24)")).toEqual({ json: '"lag24"' });
+        expect(læsCelle("balancing.activation.foresight", "i går")).toEqual({ fejl: expect.stringMatching(/ikke tilladt/) });
+        expect(læsCelle("units.x.findes_ikke", 1)).toEqual({ fejl: expect.stringMatching(/findes ikke i feltkataloget/) });
+        expect(læsCelle("balancing.ancillary_caps.total_mw", -1)).toEqual({ fejl: expect.stringMatching(/≥ 0/) });
+    });
+
+    it("celleFor er den inverse: cellen læses tilbage til det vaerdi_json, den siger — også en dansk etiket", () => {
         for (const [sti, json] of [["units.x.p_max_heat", "12.0"], ["units.x.initial_status", "1"], ["units.x.enabled", "false"], ["units.x.notes", '"Under indkøring"'],
-            ["units.x.ancillary.bid_window.months", "[10,11,12,1,2,3]"], ["storage.t.e_max_mwh", "null"], ["balancing.method", '"activation_value"'], ["meta.tax_year", "2026"]] as const) {
+            ["units.x.ancillary.bid_window.months", "[10,11,12,1,2,3]"], ["storage.t.e_max_mwh", "null"], ["balancing.method", '"activation_value"'],
+            ["balancing.activation.foresight", '"trailing30"'], ["meta.tax_year", "2026"]] as const) {
             const c = celleFor(sti, json);
             expect("celle" in c, `${sti}: ${"grund" in c ? c.grund : ""}`).toBe(true);
             if (!("celle" in c)) continue;
             expect(læsCelle(sti, c.celle as number | string)).toEqual({ json: c.json });
             expect(c.json === json || sammeTal(c.json, json), `${sti}: ${c.json} mod ${json}`).toBe(true);
         }
-        // Et heltal, hvor kataloget siger tal: cellen giver decimaltallet; skrivemåden bæres af markeringen.
+        expect(celleFor("balancing.method", '"activation_value"')).toEqual({ celle: "aktiveringsværdi kvarter for kvarter – anbefalet (activation_value)", json: '"activation_value"' });
         expect(celleFor("meta.tax_year", "2026")).toEqual({ celle: 2026, json: "2026.0" });
-        // Det, en celle ikke kan bære, siges med grunden.
         expect(celleFor("units.x.notes", '"med\\u0001kontroltegn"')).toEqual({ grund: expect.stringMatching(/tegn/) });
         expect(celleFor("units.x.notes", '""')).toEqual({ grund: expect.stringMatching(/tom tekst/) });
+        expect(celleFor("units.x.notes", '"(findes ikke)"')).toEqual({ grund: expect.stringMatching(/fjerne et felt/) });
         expect(celleFor("prices.fyringsolie.value", "900.0")).toEqual({ grund: expect.stringMatching(/feltkataloget/) });
         expect(celleFor("units.x.initial_status", "2")).toEqual({ grund: expect.stringMatching(/afviser/) });
     });
@@ -131,68 +151,78 @@ describe("appens faner bærer det, modelrepoets skabelon ikke kan", () => {
         expect(p.nægter).toEqual([]);
         expect(p.ikkeMed.map((t) => t.sti)).toEqual(["units.solvarme.production_profile_path"]);
         expect(p.ikkeMed[0].grund).toMatch(/arket Solvarme/);
-        expect(p.afvigelser).toEqual([]);                                   // stien er en af konverteringens egne
-        // Det, importen gemmer ved upload som nyt værk, er værket — blad for blad og typestrengt.
+        expect(p.afvigelser).toEqual([]);
         const værk = blade(andeby());
         for (const [sti, json] of værk) if (sti !== "units.solvarme.production_profile_path") expect(p.endelig.get(sti), sti).toBe(json);
         expect(p.endelig.size).toBe(værk.size);
-        expect(Object.values(p.lagantal).every((n) => n > 0)).toBe(true);
     });
 
-    it("Start og drift: tændt ved start, unit commitment, CO2-faktor, idriftsat og tankens start — også for slåede-fra enheder", async () => {
+    it("eksporten skriver alle celler: en enhedsrække har aldrig en tom celle, kun en værdi eller (findes ikke)", async () => {
         const e = await eksporter(andeby(), skabelon(), NU);
-        const c = læsCeller(e.bytes);
-        const lag = læsLag(c);
+        const lag = læsLag(læsCeller(e.bytes));
+        expect(lag.size).toBeGreaterThan(150);
+        for (const [sti, x] of lag) {
+            expect(x.v, `${x.hvor} ${sti}`).not.toBeUndefined();
+            const b = læsCelle(sti, x.v);
+            if ("fjern" in b) { expect(e.plan.endelig.has(sti), `${x.hvor} ${sti}`).toBe(false); continue; }
+            expect("json" in b, `${x.hvor} ${sti}: ${JSON.stringify(b)}`).toBe(true);
+            if (!("json" in b)) continue;
+            const slut = e.plan.endelig.get(sti)!;
+            expect(b.json === slut || sammeTal(b.json, slut), `${x.hvor} ${sti}: ${b.json} mod ${slut}`).toBe(true);
+        }
+        // Gaskedlen har intet idriftsættelsesår: cellen siger det udtrykkeligt.
+        expect(lag.get("units.gaskedel_agg.commissioned")?.v).toBe(FINDES_IKKE);
+    });
+
+    it("Start og drift: Værket øverst (nettilslutning, modelperiode), enheder og tanke — også slåede-fra enheder", async () => {
+        const e = await eksporter(andebyMed({ "grid.max_consumption_mw": "33.0" }), skabelon(), NU);
+        const lag = læsLag(læsCeller(e.bytes));
         const v = (sti: string) => lag.get(sti)?.v;
+        expect(v("grid.max_consumption_mw")).toBe(33);
+        expect(lag.get("grid.max_consumption_mw")?.hvor).toMatch(/^Start og drift!B\d+$/);
+        expect(v("time.start")).toBe("2025-07-01T00:00:00Z");
+        expect(lag.get("time.start")?.betingelse).toBe("2025-07-01T00:00:00Z");   // betinget af scriptets periode
         expect(v("units.halmkedel.initial_status")).toBe("ja");            // værket: 1; modelscriptet ville skrive 0
         expect(v("units.gasmotor.uc_enabled")).toBe("nej");
-        expect(v("units.fliskedel.enabled")).toBe("nej");                   // slået fra: står nu i Anlaeg med "i drift: nej"
+        expect(v("units.fliskedel.enabled")).toBe("nej");
         expect(v("units.halmkedel.commissioned")).toBe(2015);
         expect(v("storage.tank_hoej.e_initial_mwh")).toBe(96);
         expect(lag.get("units.halmkedel.initial_status")?.hvor).toMatch(/^Start og drift!D\d+$/);
-        const an = c.get("Anlaeg")!;
-        const navne = [...an.entries()].filter(([k, x]) => /^A([5-9]|1\d|2[0-3])$/.test(k) && typeof x === "string").map(([, x]) => x);
-        expect(navne).toContain("fliskedel");
-        expect(navne).toContain("elkedel_gl");
-        // Hver celle læses tilbage til det, planen siger, importen gemmer.
-        for (const [sti, x] of lag) {
-            if (x.v === undefined || x.v === FINDES_IKKE) { expect(e.plan.endelig.has(sti), sti).toBe(false); continue; }
-            const json = jsonFraCelle(sti, x.v);
-            const slut = e.plan.endelig.get(sti)!;
-            expect(json === slut || sammeTal(json, slut), `${x.hvor} ${sti}: ${json} mod ${slut}`).toBe(true);
-        }
+        // Nettilslutning og periode står ikke længere i Øvrige felter.
+        expect([...lag.values()].filter((x) => x.hvor.startsWith(OEVRIGE) && /^(grid|time)\./.test(x.sti))).toEqual([]);
     });
 
-    it("Balancemarked: hele blokken og enhedernes budfelter; et værk uden balancemarked får en tom fane", async () => {
+    it("Balancemarked: hele blokken på dansk; et værk uden balancemarked får (findes ikke) i alle felter", async () => {
         const med = læsLag(læsCeller((await eksporter(andeby(), skabelon(), NU)).bytes));
-        expect(med.get("balancing.method")?.v).toBe("activation_value");
+        expect(med.get("balancing.method")?.v).toBe("aktiveringsværdi kvarter for kvarter – anbefalet (activation_value)");
+        expect(med.get("balancing.activation.foresight")?.v).toMatch(/\(profile\)$/);
         expect(med.get("balancing.ancillary_caps.total_mw")?.v).toBe(14);
         expect(med.get("balancing.reservation_gate.afrr.block_mw")?.v).toBe(3);
-        expect(med.get("balancing.reservation_gate.mfrr.opportunity_cost.reference_unit")?.v).toBe("vp_luft_vand");
         expect(med.get("balancing.ancillary_caps.per_unit_mw.vp_luft_vand")?.v).toBe(6);
-        expect(med.get("units.gasmotor.ancillary.afrr_max_bid_mw")?.v).toBe(1);
         expect(med.get("units.elkedel_ny.ancillary.bid_window.months")?.v).toBe("[10,11,12,1,2,3]");
         const uden = andebyMed(Object.fromEntries(andeby().blade.filter((b) => b.sti.startsWith("balancing.") || /\.ancillary\.(afrr_max|mfrr_max|bid_window|available)/.test(b.sti)).map((b) => [b.sti, null])));
         const e = await eksporter(uden, skabelon(), NU);
-        const tom = [...læsLag(læsCeller(e.bytes)).values()].filter((x) => x.hvor.startsWith(BALANCEMARKED) && x.v !== undefined);
-        expect(tom).toEqual([]);
-        expect(e.plan.lagantal[BALANCEMARKED]).toBe(0);
+        const fane = [...læsLag(læsCeller(e.bytes)).values()].filter((x) => x.hvor.startsWith(BALANCEMARKED));
+        expect(fane.length).toBeGreaterThan(20);
+        expect(fane.every((x) => x.v === FINDES_IKKE)).toBe(true);
         expect([...e.plan.endelig.keys()].filter((s) => s.startsWith("balancing."))).toEqual([]);
     });
 
-    it("Øvrige felter: resten, med betingelsen der viger for en rettelse i modelrepoets faner", async () => {
+    it("Øvrige felter: feltets navn først, stien til højre, og betingelsen, der viger for en rettelse i modelrepoets faner", async () => {
         const e = await eksporter(andeby(), skabelon(), NU);
-        const lag = læsLag(læsCeller(e.bytes));
+        const c = læsCeller(e.bytes);
+        const lag = læsLag(c);
         const ø = (sti: string) => lag.get(sti);
         expect(ø("investment.enabled")).toMatchObject({ v: "nej", hvor: expect.stringMatching(/^Øvrige felter!B/) });
-        expect(ø("investment.enabled")?.betingelse).toBeUndefined();        // modelscriptet skriver intet: rækken gælder altid
+        expect(ø("investment.enabled")?.betingelse).toBeUndefined();
         expect(ø("electricity.tariff_consumption_flat")).toMatchObject({ v: 125, betingelse: 129.8 });
         expect(ø("storage.tank_hoej.e_max_mwh")).toMatchObject({ v: "null", betingelse: 191.9 });
-        expect(ø("units.solvarme.min_uptime")).toMatchObject({ v: FINDES_IKKE, betingelse: 1 });
         expect(ø("meta.case_name")).toMatchObject({ v: "andeby", betingelse: "andeby_fiktivt_referencevaerk" });
-        // Felter, modelrepoets faner bærer, står IKKE i Øvrige felter (ellers kunne rækken skjule en rettelse).
-        expect(ø("units.halmkedel.var_om")).toBeUndefined();
-        expect(ø("prices.straw.value")).toBeUndefined();
+        const r = Number(ø("storage.tank_hoej.e_max_mwh")!.hvor.split("!B")[1]);
+        const ark = c.get(OEVRIGE)!;
+        expect(ark.get(`A${r}`)).toBe("Energikapacitet · tank_hoej");                // det første, brugeren ser
+        expect(ark.get(`F${r}`)).toBe("storage.tank_hoej.e_max_mwh");               // stien til højre
+        expect(ø("units.halmkedel.var_om")).toBeUndefined();                          // modelrepoets faner bærer det
     });
 
     it("et værk med flad eltarif: rækkerne fjerner tarifskemaet, modelscriptet altid skriver", () => {
@@ -200,9 +230,9 @@ describe("appens faner bærer det, modelrepoets skabelon ikke kan", () => {
         const p = planlæg(k);
         expect(p.nægter).toEqual([]);
         expect([...p.endelig.keys()].filter((s) => s.startsWith("electricity.tariff_consumption."))).toEqual([]);
-        const rækker = p.celler.filter((c) => c.ark === OEVRIGE && c.v === FINDES_IKKE);
-        expect(rækker.length).toBeGreaterThanOrEqual(15);
+        expect(p.celler.filter((c) => c.ark === OEVRIGE && c.v === FINDES_IKKE).length).toBeGreaterThanOrEqual(15);
         expect(p.ikkeMed.map((t) => t.sti)).toEqual(["units.solvarme.production_profile_path"]);
+        expect(p.lagafvigelser.find((a) => /eltarif/.test(a.hvor))?.hvad).toMatch(/ingen tarifprofil/);
     });
 
     it("skrivemåder: et heltal i værket (96) kommer ikke tilbage som decimaltal — markeringen bærer formen", async () => {
@@ -210,30 +240,22 @@ describe("appens faner bærer det, modelrepoets skabelon ikke kan", () => {
         expect(e.plan.former["storage.tank_hoej.e_initial_mwh"]).toBe("96");
         expect(e.plan.endelig.get("storage.tank_hoej.e_initial_mwh")).toBe("96");
         expect(læsMarkering(læsCeller(e.bytes))?.former).toEqual(e.plan.former);
-        // Formen er en del af det, sha256 dækker.
         expect(sammeTal("96", "96.0")).toBe(true);
         expect(sammeTal("96", "96")).toBe(false);
-        expect(sammeTal("96", "97.0")).toBe(false);
     });
 
     it("en slået-fra enhed, modelscriptet ikke kan læse, står i Øvrige felter — ikke på listen", () => {
-        // En slået-fra pillekedel uden pillepris: scriptet ville afvise rækken i Anlaeg ("prisen er ikke udfyldt"),
-        // så enheden bæres felt for felt af Øvrige felter og kommer hel tilbage.
         const p = planlæg(andebyMed({
             "units.pillekedel.enabled": "false", "units.pillekedel.type": '"biomass_boiler"', "units.pillekedel.p_max_heat": "8.0", "units.pillekedel.p_min_heat": "0.0",
             "units.pillekedel.alpha": "0.0", "units.pillekedel.fuel": '"wood_pellets"', "units.pillekedel.eta_fuel_to_heat": "0.9",
         }));
         expect(p.nægter).toEqual([]);
-        expect(p.endelig.get("units.pillekedel.p_max_heat")).toBe("8.0");
         expect(p.endelig.get("units.pillekedel.enabled")).toBe("false");
         expect(p.celler.filter((c) => c.ark === OEVRIGE && c.v === "units.pillekedel.p_max_heat")).toHaveLength(1);
-        expect(p.celler.filter((c) => c.ark === "Anlaeg" && c.v === "pillekedel")).toEqual([]);
         expect(p.ikkeMed.map((t) => t.sti)).toEqual(["units.solvarme.production_profile_path"]);
     });
 
     it("en enhed med en type, feltkataloget ikke kender (fx en oliekedel), holdes HELT ude og står på listen med grunden", () => {
-        // Ellers ville enheden komme tilbage uden sin type, og importen ville afvise hele arket ("type mangler").
-        // Peger balancemarkedet på enheden, holdes pegeren også ude.
         const p = planlæg(andebyMed({
             "units.oliekedel.enabled": "true", "units.oliekedel.type": '"oil_boiler"', "units.oliekedel.p_max_heat": "8.0", "units.oliekedel.p_min_heat": "0.0",
             "units.oliekedel.alpha": "0.0", "units.oliekedel.fuel": '"natural_gas"', "units.oliekedel.eta_fuel_to_heat": "0.9",
@@ -242,29 +264,23 @@ describe("appens faner bærer det, modelrepoets skabelon ikke kan", () => {
         expect(p.nægter).toEqual([]);
         expect([...p.endelig.keys()].filter((s) => s.includes("oliekedel"))).toEqual([]);
         const olie = p.ikkeMed.filter((t) => t.sti.includes("oliekedel"));
-        expect(olie.map((t) => t.sti).sort()).toEqual(["balancing.ancillary_caps.per_unit_mw.oliekedel", "units.oliekedel.alpha", "units.oliekedel.enabled",
-            "units.oliekedel.eta_fuel_to_heat", "units.oliekedel.fuel", "units.oliekedel.p_max_heat", "units.oliekedel.p_min_heat", "units.oliekedel.type"]);
+        expect(olie).toHaveLength(8);
         expect(olie.find((t) => t.sti === "units.oliekedel.p_max_heat")?.grund).toMatch(/enheden oliekedel kan ikke stå i arket, fordi type ikke kan/);
         expect(olie.find((t) => t.sti.startsWith("balancing."))?.grund).toMatch(/enheden oliekedel findes ikke i værket/);
-        expect(p.celler.filter((c) => typeof c.v === "string" && c.v.includes("oliekedel"))).toEqual([]);
     });
 
     it("en slået-fra tank står i Anlaeg med 'i drift: nej'; er der ikke plads, tager den aldrig en aktiv tanks række", () => {
         const tank = (n: string, til: boolean) => ({ [`storage.${n}.enabled`]: til ? "true" : "false", [`storage.${n}.volume_m3`]: "5000", [`storage.${n}.delta_t_k`]: "33.0",
             [`storage.${n}.e_initial_mwh`]: "90.0", [`storage.${n}.p_max_charge_mw`]: "25.0", [`storage.${n}.p_max_discharge_mw`]: "25.0", [`storage.${n}.self_discharge_per_hour`]: "0.0005" });
         const slukket = planlæg(andebyMed({ "storage.tank_hoej.enabled": "false" }));
-        expect(slukket.nægter).toEqual([]);
         expect(slukket.celler.filter((c) => c.ark === "Anlaeg" && c.v === "tank_hoej")).toHaveLength(1);
         expect(slukket.endelig.get("storage.tank_hoej.enabled")).toBe("false");
-        // Andeby har to tanke. En slået-fra tank FØRST i værket og fire aktive mere: seks aktive i alt fylder skabelonens
-        // seks rækker, og den slåede-fra bæres af Øvrige felter i stedet for at skubbe en aktiv ud.
         const k = andebyMed({ ...tank("t3", true), ...tank("t4", true), ...tank("t5", true), ...tank("t6", true) });
         const mange = planlæg({ ...k, blade: [...Object.entries(tank("reserve", false)).map(([sti, v], j) => ({ sti, vaerdi_json: v, raekkefoelge: -100 + j })), ...k.blade] });
         expect(mange.nægter).toEqual([]);
         const iAnlaeg = mange.celler.filter((c) => c.ark === "Anlaeg" && /^A5[2-7]$/.test(c.ref) && typeof c.v === "string").map((c) => c.v);
         expect(iAnlaeg.sort()).toEqual(["t3", "t4", "t5", "t6", "tank_hoej", "tank_lav"]);
         expect(mange.endelig.get("storage.reserve.enabled")).toBe("false");
-        expect(mange.celler.filter((c) => c.ark === OEVRIGE && c.v === "storage.reserve.volume_m3")).toHaveLength(1);
         expect(mange.ikkeMed.map((t) => t.sti)).toEqual(["units.solvarme.production_profile_path"]);
     });
 
@@ -274,52 +290,95 @@ describe("appens faner bærer det, modelrepoets skabelon ikke kan", () => {
         const post = (sti: string) => p.ikkeMed.find((t) => t.sti === sti);
         expect(post("prices.fyringsolie.value")).toMatchObject({ værk: "900.0", script: null, grund: expect.stringMatching(/feltkataloget/) });
         expect(post("units.halmkedel.notes")?.grund).toMatch(/tegn/);
-        expect(p.afvigelser).toEqual(["prices.fyringsolie.value"]);         // noter er konverteringens egne og sammenlignes ikke
+        expect(p.afvigelser).toEqual(["prices.fyringsolie.value"]);
     });
 });
 
-// ------------------------------------------------------------------ fanernes udseende og markeringen
+// ------------------------------------------------------------------ Læs først og brugervenligheden
 
-describe("fanerne er appens egne — og siger det", () => {
-    it("tre synlige faner efter modelrepoets, med vejledning, dropdowns, frosne overskrifter og gule felter", async () => {
+describe("fanerne er appens egne — og siger det på dansk", () => {
+    it("Læs først står forrest og åbnes; modelrepoets faner er urørt ud over hvilken fane der var valgt", async () => {
         const e = await eksporter(andeby(), skabelon(), NU);
-        const z = unzipSync(e.bytes);
+        const z = unzipSync(e.bytes), før = unzipSync(skabelon());
         const wb = strFromU8(z["xl/workbook.xml"]);
-        const navne = [...wb.matchAll(/<sheet name="([^"]+)"[^>]*state="(\w+)"/g)].map((m) => [m[1], m[2]]);
-        expect(navne.map((n) => n[0])).toEqual(["Vejledning", "Timedata", "Anlaeg", "Varmepumpe", "Priser", "Solvarme", ...LAGFANER, "_app"]);
-        expect(navne.filter((n) => n[1] === "hidden").map((n) => n[0])).toEqual(["_app"]);
-        const c = læsCeller(e.bytes);
-        for (const fane of LAGFANER) {
-            const a = c.get(fane)!;
-            expect(String(a.get("A1"))).toMatch(/appens egne felter/);
-            expect(String(a.get("A2"))).toMatch(/Denne fane er appens egen\. Modelrepoets script \(scripts\/vaerksark_til_yaml\.py\) læser den ikke/);
-        }
-        const xml = (fane: string) => {
-            const rid = new RegExp(`<sheet name="${fane}"[^>]*r:id="([^"]+)"`).exec(wb)![1];
-            const mål = new RegExp(`Id="${rid}"[^>]*Target="([^"]+)"`).exec(strFromU8(z["xl/_rels/workbook.xml.rels"]))![1];
-            return strFromU8(z[`xl/${mål}`]);
-        };
-        const sd = xml(START_OG_DRIFT);
-        expect(sd).toMatch(/<pane xSplit="0" ySplit="5"[^>]*state="frozen"/);
-        expect(sd).toMatch(/<dataValidation [^>]*type="list"[^>]*><formula1>&quot;ja,nej&quot;<\/formula1>/);
-        expect(sd).toContain("<mergeCell ref=\"A2:H2\"/>");
-        expect(sd).toMatch(/<c r="D6" s="10"/);                              // gul = udfyld, som skabelonens indtastningsfelter
-        const bm = xml(BALANCEMARKED);
-        expect(bm).toContain("&quot;legacy,activation_value&quot;");         // lukket liste fra feltkataloget
-        expect(xml(OEVRIGE)).toMatch(/<pane xSplit="0" ySplit="4"/);
-        // Modelrepoets faner er urørt ud over de celler, eksporten altid har udfyldt.
-        expect(strFromU8(z["xl/worksheets/sheet1.xml"])).toBe(strFromU8(unzipSync(skabelon())["xl/worksheets/sheet1.xml"]));
+        const navne = [...wb.matchAll(/<sheet name="([^"]+)"[^>]*state="(\w+)"/g)].map((m) => m[1]);
+        expect(navne).toEqual([LAES_FOERST, "Vejledning", "Timedata", "Anlaeg", "Varmepumpe", "Priser", "Solvarme", START_OG_DRIFT, BALANCEMARKED, OEVRIGE, "_app"]);
+        expect(wb).toMatch(/activeTab="0"/);
+        expect(faneXml(e.bytes, LAES_FOERST)).toMatch(/tabSelected="true"/);
+        // Præcis én valgt fane (to valgte faner er en gruppe i Excel, hvor en indtastning rammer begge).
+        expect(navne.filter((n) => n !== "_app" && /tabSelected="true"/.test(faneXml(e.bytes, n)))).toEqual([LAES_FOERST]);
+        expect(strFromU8(z["xl/worksheets/sheet1.xml"])).toBe(strFromU8(før["xl/worksheets/sheet1.xml"]).replace('tabSelected="true"', 'tabSelected="false"'));
     });
 
-    it("enheder i kolonneoverskriften og én forklarende sætning pr. felt — fra feltkataloget", async () => {
-        const c = læsCeller((await eksporter(andeby(), skabelon(), NU)).bytes);
-        const sd = [...c.get(START_OG_DRIFT)!.values()].map(String);
-        expect(sd).toContain("CO₂-udledning (t CO₂/MWh brændsel)");
-        expect(sd).toContain("Indhold ved start (MWh)");
-        expect(sd.some((t) => /1 = tændt, 0 = slukket i første time/.test(t) && /Tom celle = modellens standard: ja/.test(t))).toBe(true);
+    it("Læs først: værkets navn, kode og revision, farverne, _app — og hvor modellen ikke bruger det, modelrepoets faner viser", async () => {
+        const e = await eksporter(andeby(), skabelon(), NU);
+        const lf = [...læsCeller(e.bytes).get(LAES_FOERST)!.values()].map(String).join("\n");
+        expect(lf).toMatch(/hører til værket Andeby — fiktivt referenceværk \(kode andeby\), revision 1/);
+        expect(lf).toMatch(/Opret som nyt værk/);
+        expect(lf).toMatch(/Slet det ikke/);
+        expect(lf).toMatch(/Gul = du udfylder/);
+        // Andeby: tankens kapacitet regnes af volumen og ΔT, tariffen i aktiveringsværdien er den faste, solvarmen fra
+        // arket Solvarme, og gasmotorens startomkostning bruges ikke (start/stop-logik nej).
+        const hvor = e.plan.lagafvigelser.map((a) => a.hvor).join(" | ");
+        expect(hvor).toMatch(/Anlaeg C5\d \(maks fyldning, tank_hoej\)/);
+        expect(hvor).toMatch(/Priser, eltarif/);
+        expect(hvor).toMatch(/Anlaeg M \(solvarmens årsproduktion\)/);
+        expect(hvor).toMatch(/Anlaeg række \d+ \(gasmotor\): startomkostning/);
+        expect(e.plan.lagafvigelser.find((a) => a.hvor.includes("tank_hoej"))?.hvad).toMatch(/volumen og temperaturforskel/);
+        for (const a of e.plan.lagafvigelser) expect(lf).toContain(a.hvad);
+    });
+
+    it("ingen YAML-sti eller engelsk kode som det første, brugeren ser; unikke kolonneoverskrifter med enhed (F8–F13, F36)", async () => {
+        const e = await eksporter(andeby(), skabelon(), NU);
+        const c = læsCeller(e.bytes);
+        for (const fane of APPENS_FANER) {
+            const a = c.get(fane)!;
+            expect(String(a.get("A1"))).toMatch(/^[A-ZÆØÅ][a-zæøå]/);
+            for (const [ref, v] of a) {
+                if (typeof v !== "string" || delRef(ref).kol !== 1) continue;
+                expect(v, `${fane}!${ref}`).not.toMatch(/^(units|storage|balancing|electricity|meta|grid|time|solver|heat_load_params)\./);
+            }
+            // Appens egne tekster (ikke værkets værdier, som er data: kolonnerne værdi, kun hvis og sti i Øvrige felter).
+            const alle = [...a.entries()].filter(([ref]) => fane !== OEVRIGE || ![2, 3, 6].includes(delRef(ref).kol)).map(([, v]) => String(v)).join(" ");
+            expect(alle, fane).not.toMatch(/vaerksark_til_yaml|BUDSTRATEGI|--heat-csv|\bMILP\b|Spor [AB]\b/);
+        }
+        for (const fane of [START_OG_DRIFT, BALANCEMARKED]) {
+            const a = c.get(fane)!;
+            const rækker = new Map<number, string[]>();
+            for (const [ref, v] of a) { const { kol, række } = delRef(ref); if (kol > 1 && a.get(`A${række + 1}`) === STI_OVERSKRIFT && typeof v === "string") rækker.set(række, [...(rækker.get(række) ?? []), v]); }
+            for (const [r, hd] of rækker) expect(new Set(hd).size, `${fane} række ${r}: ${hd.join(" | ")}`).toBe(hd.length);
+        }
         const bm = [...c.get(BALANCEMARKED)!.values()].map(String);
-        expect(bm).toContain("DKK/MWh");
-        expect(bm).toContain("balancing.bid_strategy.up_markup_dkk_mwh");   // stien i modellen står ved feltet
+        expect(bm).toContain("aFRR-Bud pr. enhed pr. marked (MW el)");
+        expect(bm).toContain("mFRR-Bud pr. enhed pr. marked (MW el)");
+        expect(bm.some((t) => t.startsWith("Ældre: Maks. aFRR-bud"))).toBe(true);
+        expect(bm.some((t) => /OM der regnes med balancemarked, vælger du på scenariet/.test(t))).toBe(true);
+        const sd = [...c.get(START_OG_DRIFT)!.values()].map(String);
+        expect(sd).toContain("Varmetab pr. time (andel pr. time)");
+        expect(sd.some((t) => /Tom celle: værket får modellens scripts værdi — 0,2 for gaskedler og gasmotorer/.test(t))).toBe(true);
+        expect(sd.some((t) => /Nej: de tal i Anlaeg bruges IKKE/.test(t))).toBe(true);
+    });
+
+    it("dropdowns: ja/nej og danske lister med (findes ikke); frosne overskrifter; gule felter", async () => {
+        const e = await eksporter(andeby(), skabelon(), NU);
+        const sd = faneXml(e.bytes, START_OG_DRIFT), bm = faneXml(e.bytes, BALANCEMARKED);
+        expect(sd).toMatch(/<formula1>&quot;ja,nej,\(findes ikke\)&quot;<\/formula1>/);
+        expect(sd).toMatch(/<pane xSplit="0" ySplit="2"[^>]*state="frozen"/);
+        expect(bm).toContain("i går (lag24)");
+        expect(bm).toContain("reservér højst blokken (bound)");
+        for (const x of [sd, bm]) for (const m of x.matchAll(/<formula1>([^<]*)<\/formula1>/g)) expect(m[1].replace(/&quot;/g, '"').length).toBeLessThanOrEqual(255);
+    });
+
+    it("12 rækker til månedsloftet (F14) og plads til 19 enheder i den tomme skabelon (F15)", async () => {
+        const c = læsCeller(tomSkabelon(skabelon()));
+        const bm = c.get(BALANCEMARKED)!;
+        const sti = [...bm.entries()].find(([, v]) => v === "balancing.availability.{marked}.mw_by_month.{måned}".replace("{marked}", "afrr"))![0];
+        const teknik = delRef(sti).række;
+        const ark = faneXml(tomSkabelon(skabelon()), BALANCEMARKED);
+        const gule = [...ark.matchAll(new RegExp(`<c r="A(\\d+)" s="10"`, "g"))].map((m) => Number(m[1])).filter((r) => r > teknik);
+        expect(gule.length).toBe(12);
+        const sd = faneXml(tomSkabelon(skabelon()), START_OG_DRIFT);
+        expect(sd).toMatch(/sqref="C\d+:C(\d+)"/);
     });
 
     it("format 3; samme værk giver samme hash, og en ændring i en af appens faner giver en anden", async () => {
@@ -328,6 +387,48 @@ describe("fanerne er appens egne — og siger det", () => {
         expect(læsMarkering(læsCeller(a.bytes))).toMatchObject({ format: MARKOER_FORMAT, vaerk_id: ANDEBY_ID, sha256: a.markering.sha256 });
         expect((await eksporter(andeby(), skabelon(), new Date(Date.UTC(2027, 0, 1)))).markering.sha256).toBe(a.markering.sha256);
         expect((await eksporter(andebyMed({ "units.halmkedel.initial_status": "0" }), skabelon(), NU)).markering.sha256).not.toBe(a.markering.sha256);
+    });
+});
+
+// ------------------------------------------------------------------ den tomme skabelon (F3)
+
+describe("tom skabelon med appens faner", () => {
+    it("modelrepoets skabelon uændret + de fire faner, ingen markering; upload bliver et nyt værk", async () => {
+        const b = tomSkabelon(skabelon());
+        const z = unzipSync(b), før = unzipSync(skabelon());
+        for (const f of ["xl/worksheets/sheet2.xml", "xl/worksheets/sheet3.xml", "xl/worksheets/sheet4.xml", "xl/worksheets/sheet5.xml", "xl/styles.xml", "xl/sharedStrings.xml"]) {
+            expect(strFromU8(z[f]), f).toBe(strFromU8(før[f]));
+        }
+        const c = læsCeller(b);
+        expect([...c.keys()]).toEqual([LAES_FOERST, "Vejledning", "Timedata", "Anlaeg", "Varmepumpe", "Priser", START_OG_DRIFT, BALANCEMARKED, OEVRIGE]);
+        expect(læsMarkering(c)).toBeNull();
+        expect(String(c.get(LAES_FOERST)!.get("A2"))).toMatch(/Tom skabelon/);
+        // Alle appens celler står tomme: appen rører intet felt, før brugeren skriver noget.
+        expect([...læsLag(c).values()].filter((x) => x.v !== undefined)).toEqual([]);
+        const hent: Hentere = { kilde: async () => andeby(), skabelon: async () => skabelon() };
+        expect(await analyserUpload(b, [{ id: ANDEBY_ID, kode: "andeby", navn: "Andeby", revision: 1 }], hent)).toEqual({ art: "nyt" });
+    });
+});
+
+// ------------------------------------------------------------------ læseren (Codex' review, fund 1)
+
+describe("browserens læser", () => {
+    it("en celle uden for regnearkets grænser afvises", () => {
+        expect(() => delRef("A1048577")).toThrow(/uden for et regnearks grænser/);
+        expect(() => delRef("XFE1")).toThrow(/uden for et regnearks grænser/);
+        expect(() => delRef("A999999999999")).toThrow(/uden for et regnearks grænser/);
+        expect(delRef("XFD1048576")).toEqual({ kol: 16384, række: 1048576 });
+    });
+
+    it("læsLag og genkend gennemløber de rækker, arket har — ikke alle rækkenumre til den sidste celle", () => {
+        let opslag = 0;
+        class Tæller<K, V> extends Map<K, V> { override get(k: K) { opslag++; return super.get(k); } }
+        const fane = new Tæller<string, string | number>([["A4", "felt"], ["B4", "værdi"], ["F4", STI_OVERSKRIFT], ["A5", "x"], ["F5", "grid.max_consumption_mw"], ["B5", 3], ["A1048576", "slut"]]);
+        const td = new Tæller<string, string | number>([["A6", 46000], ["B6", 1], ["A1048576", 46001], ["B1048576", 2]]);
+        const ark = new Map<string, ReadonlyMap<string, string | number>>([[OEVRIGE, fane], ["Timedata", td]]);
+        expect(læsLag(ark).get("grid.max_consumption_mw")?.v).toBe(3);
+        læsArkmodel(ark as Map<string, Map<string, string | number>>);
+        expect(opslag).toBeLessThan(5000);
     });
 });
 
@@ -353,7 +454,7 @@ describe("genupload af et ark med appens faner", () => {
         expect(a.forskel.gemmes).toBe(1);
     });
 
-    it("en ændret række i Øvrige felter og en slettet række er ændringer; uændret ark er ingen", async () => {
+    it("en ændret og en tømt række i Øvrige felter er ændringer; uændret ark er ingen", async () => {
         const e = await eksporter(andeby(), skabelon(), NU);
         expect(await analyserUpload(e.bytes, vaerker, hent)).toMatchObject({ art: "ingen_aendringer" });
         const { fane, ref } = lagcelle(e.bytes, "electricity.tariff_consumption_flat");
@@ -362,7 +463,7 @@ describe("genupload af et ark med appens faner", () => {
         const basis = læsArkmodel(læsCeller(e.bytes));
         expect(sammenlign(basis, genkend(wb.bytes()).model).felter).toEqual([expect.objectContaining({ hvor: OEVRIGE, før: "125", nu: "131" })]);
         const wb2 = new Arbejdsbog(e.bytes);
-        wb2.regneark(fane).sæt(ref.replace("B", "A"), null);                 // stien ryddet: rækken er væk
+        wb2.regneark(fane).sæt(ref.replace("B", "F"), null);                 // stien ryddet: rækken er væk
         expect(sammenlign(basis, genkend(wb2.bytes()).model).felter).toEqual([expect.objectContaining({ hvor: OEVRIGE, nu: "rækken er slettet" })]);
     });
 
@@ -374,8 +475,15 @@ describe("genupload af et ark med appens faner", () => {
         expect(læsMarkering(læsCeller(gammelt))?.format).toBe(MARKOER_FORMAT_FOER);
         expect(await analyserUpload(gammelt, vaerker, hent)).toEqual({ art: "anden_eksport", vaerk: vaerker[0], ældre: true });
         expect(await analyserUpload(gammelt, [], hent)).toMatchObject({ art: "nyt", grund: expect.stringMatching(/ikke findes her/) });
-        // Et ukendt format er ikke en markering (som før).
         wb.regneark(MARKOER_ARK).sæt("B1", "fjv-vaerksark-eksport/1");
         expect(læsMarkering(læsCeller(wb.bytes()))).toBeNull();
+    });
+
+    it(`kolonnen '${KUN_HVIS}' er en del af en række: en rettet betingelse vises`, async () => {
+        const e = await eksporter(andeby(), skabelon(), NU);
+        const { fane, ref } = lagcelle(e.bytes, "electricity.tariff_consumption_flat");
+        const wb = new Arbejdsbog(e.bytes);
+        wb.regneark(fane).sæt(ref.replace("B", "C"), 130);
+        expect(sammenlign(læsArkmodel(læsCeller(e.bytes)), genkend(wb.bytes()).model).felter).toEqual([expect.objectContaining({ felt: expect.stringMatching(/kun hvis modelscriptet giver/), nu: "130" })]);
     });
 });

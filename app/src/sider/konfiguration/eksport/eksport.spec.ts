@@ -41,9 +41,11 @@ describe("eksporten af Andeby", () => {
         const e = await eksporter(andeby(), skabelon(), NU);
         const før = filer(skabelon()), efter = filer(e.bytes);
         // Det, eksporten ikke skriver i, er skabelonens egne bytes: vejledning, styles, delte strenge, tema.
-        for (const f_ of ["xl/worksheets/sheet1.xml", "xl/styles.xml", "xl/sharedStrings.xml", "xl/theme/theme1.xml", "docProps/core.xml"]) {
+        for (const f_ of ["xl/styles.xml", "xl/sharedStrings.xml", "xl/theme/theme1.xml", "docProps/core.xml"]) {
             expect(strFromU8(efter[f_]), f_).toBe(strFromU8(før[f_]));
         }
+        // Vejledning: kun fanevalget er flyttet til fanen Læs først (runde 14, rettelser) — indholdet er uændret.
+        expect(strFromU8(efter["xl/worksheets/sheet1.xml"])).toBe(strFromU8(før["xl/worksheets/sheet1.xml"]).replace('tabSelected="true"', 'tabSelected="false"'));
         // Dropdowns (datavalidering) i Anlaeg og Priser står der stadig.
         const anlaeg = strFromU8(efter["xl/worksheets/sheet3.xml"]), priser = strFromU8(efter["xl/worksheets/sheet5.xml"]);
         expect(anlaeg).toContain('sqref="B5:B23"');

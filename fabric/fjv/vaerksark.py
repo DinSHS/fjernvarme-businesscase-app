@@ -757,8 +757,7 @@ def forbered_revision(v: dict | None, rev: dict, nuvaerende: dict, aktive: dict,
     noter = list(laesning.get("noter") or [])
     if ny_rev is not None:
         adv = LAG.foerste_time_advarsel(efter, True)
-        if adv:
-            noter.append(f"Advarsel - {adv}")
+        noter += [f"Advarsel - {a}" for a in ([adv] if adv else []) + LAG.start_stop_advarsler(efter)]
     return {"plan": plan, "serier": ud_serier, "ny_rev": ny_rev, "ikke_gemt": ikke,
             "log": revisionstekst(plan, ud_serier, v, ny_rev, ikke, kilder, noter)}
 
@@ -842,8 +841,7 @@ def afslut_nyt_vaerk(k: Konvertering) -> None:
             raise ArkFejl("Appens faner i arket giver et værk, modellen ikke kan bruge: "
                           + MK.besked(brud)[len("Værket kan ikke bruges af modellen: "):] + " Intet er gemt.")
     adv = LAG.foerste_time_advarsel(blade, k.lag is not None)
-    if adv:
-        k.advarsler.insert(0, adv)
+    k.advarsler[:0] = ([adv] if adv else []) + LAG.start_stop_advarsler(blade)
 
 
 def laesning_af(kb: Konvertering, k: Konvertering) -> dict:

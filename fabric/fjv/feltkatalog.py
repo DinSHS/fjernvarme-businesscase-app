@@ -25,6 +25,9 @@ _KATALOG = None
 _SKABELONER = None
 _CACHE: dict = {}
 
+#: Mærket for "feltet sættes ikke" i appens faner (en tom celle betyder "appen rører ikke feltet").
+FINDES_IKKE = "(findes ikke)"
+_KODE_I_PARENTES = re.compile(r"\(([^()]+)\)\s*$")
 #: Excels grænse for tekst i en celle og KONTRAKT §3.2's grænse for en værdi.
 MAKS_JSON = 4000
 _ISO_DATO = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -186,6 +189,10 @@ def fra_celle(sti: str, celle, post: dict | None = None) -> str:
                 return til_json(int(celle))
             raise FeltFejl(f"{navn}: skriv ja eller nej (cellen indeholder {_vis(celle)})")
         if isinstance(celle, str):
+            # En dansk etiket med koden i parentes ("i går (lag24)"): koden gælder (brugertesten F11).
+            m = _KODE_I_PARENTES.search(celle)
+            if m and m.group(1).strip() in tilladte:
+                return til_json(m.group(1).strip())
             return til_json(celle.strip())
         raise FeltFejl(f"{navn}: vælg en af {', '.join(str(x) for x in tilladte)} (cellen indeholder {_vis(celle)})")
     if t == "string":
@@ -214,6 +221,22 @@ def fra_celle(sti: str, celle, post: dict | None = None) -> str:
             return "{}"
         raise FeltFejl(f"{navn}: er en blok og kan kun stå som en tom blok ({{}})")
     raise FeltFejl(f"{navn}: feltets type ({t}) kan ikke stå i en celle")
+
+
+def laes_celle(sti: str, celle) -> dict:
+    """Hvad en celle i appens faner betyder — fælles regel med eksportens ``læsCelle`` (lag.ts), bundet af
+    ``skema/vektorer/arklag/celler.json``: ``{"tom": True}`` = appen rører ikke feltet; ``{"fjern": True}`` =
+    ``(findes ikke)``, feltet sættes ikke; ``{"json": …}`` = værdien efter feltets type og regler; ``{"fejl": …}``."""
+    if celle is None or (isinstance(celle, str) and not celle.strip()):
+        return {"tom": True}
+    if isinstance(celle, str) and celle.strip().lower() == FINDES_IKKE:
+        return {"fjern": True}
+    try:
+        j = fra_celle(sti, celle)
+    except FeltFejl as e:
+        return {"fejl": str(e)}
+    grund = tjek(sti, j)
+    return {"fejl": grund} if grund else {"json": j}
 
 
 def _vis(celle) -> str:

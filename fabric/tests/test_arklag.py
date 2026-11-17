@@ -10,6 +10,7 @@ uden tank var uløselig; og balancemarkedet kunne ikke stå i arket. Testene her
 * revisionssporet skjuler, at en værdi kom fra appens fane og ikke fra modelscriptet.
 """
 import json
+import re
 import tempfile
 import unittest
 import uuid
@@ -95,16 +96,22 @@ BALANCE = {
     "A19": "2026-03", "B19": 1.155, "C19": 1.034,
 }
 
-OEVRIGE = {
-    "A1": "Øvrige felter",
-    "A4": "sti", "B4": "værdi", "C4": "kun hvis modelscriptet giver", "D4": "felt", "E4": "forklaring",
-    "A5": "grid.max_consumption_mw", "B5": 33,
-    "A6": "electricity.tariff_consumption_flat", "B6": 125, "C6": 129.8,
-    "A7": "storage.tank.e_max_mwh", "B7": "null", "C7": 191.9,
-    "A8": "solver.mip_rel_gap", "B8": "(findes ikke)", "C8": 0.001,
-    "A9": "investment.enabled", "B9": "nej",
-    "A10": "meta.tax_year", "B10": 2026, "C10": 2025,
-}
+def oevrige(*raekker) -> dict:
+    """Fanen Øvrige felter i sin form: felt | værdi | kun hvis modelscriptet giver | … | sti i modellen (kolonne F)."""
+    d = {"A1": "Øvrige felter", "A4": "felt", "B4": "værdi", "C4": LAG.KUN_HVIS, "D4": "enhed", "E4": "forklaring",
+         "F4": LAG.STI_OVERSKRIFT}
+    for r, (sti, v, b) in enumerate(raekker, start=5):
+        d[f"A{r}"], d[f"F{r}"] = sti.split(".")[-1], sti
+        if v is not None:
+            d[f"B{r}"] = v
+        if b is not None:
+            d[f"C{r}"] = b
+    return d
+
+
+OEVRIGE = oevrige(("grid.max_consumption_mw", 33, None), ("electricity.tariff_consumption_flat", 125, 129.8),
+                  ("storage.tank.e_max_mwh", "null", 191.9), ("solver.mip_rel_gap", "(findes ikke)", 0.001),
+                  ("investment.enabled", "nej", None), ("meta.tax_year", 2026, 2025))
 
 
 class Ark(unittest.TestCase):
@@ -154,13 +161,20 @@ class Laesning(Ark):
         # Felter, fanen ikke har en kolonne for, er scriptets.
         self.assertEqual(b["units.gaskedel.p_max_heat"], "12.0")
 
-    def test_en_tom_celle_betyder_at_feltet_ikke_saettes(self):
-        # el_kedel har ingen CO2-faktor i fanen, og scriptet satte ingen: intet felt. gaskedlens idriftsættelsesår
-        # ryddes: feltet findes ikke. Tømmes en celle, hvor scriptet HAVDE sat feltet, fjernes det — og det står
-        # i lagets ændringer (aldrig tavst).
-        start = {**START, "F6": None, "D7": None}
-        lag = self.lag(start=start)
-        self.assertNotIn("units.el_kedel.co2_emissions_per_mwh_fuel", lag.blade)
+    def test_en_tom_celle_betyder_at_appen_ikke_roerer_feltet(self):
+        # Brugertesten F2: en tom celle gav før modellens standard (CO2 0 for en gaskedel, tændt ved start), mens en
+        # manglende række gav scriptets værdi (0,2, slukket). Nu betyder tom ét: appen rører ikke feltet — præcis som
+        # hvis rækken ikke fandtes.
+        lag = self.lag(start={**START, "F6": None, "D7": None})
+        self.assertEqual(lag.blade["units.gaskedel.co2_emissions_per_mwh_fuel"], "0.2")     # scriptets
+        self.assertEqual(lag.blade["units.el_kedel.initial_status"], "0")                   # scriptets
+        self.assertNotIn("units.el_kedel.initial_status", lag.kilder)
+        uden_raekke = self.lag(start={k: v for k, v in START.items() if not re.fullmatch(r"[A-H]7", k)})
+        self.assertEqual(lag.blade["units.el_kedel.initial_status"], uden_raekke.blade["units.el_kedel.initial_status"])
+
+    def test_findes_ikke_betyder_at_feltet_ikke_saettes(self):
+        # Tømmes et felt med vilje, skrives (findes ikke): feltet fjernes, og det står i lagets ændringer (aldrig tavst).
+        lag = self.lag(start={**START, "F6": "(findes ikke)", "D7": "(Findes ikke)"})
         self.assertNotIn("units.gaskedel.co2_emissions_per_mwh_fuel", lag.blade)
         self.assertNotIn("units.el_kedel.initial_status", lag.blade)
         self.assertIn(("units.el_kedel.initial_status", "slet", "0", None), lag.aendringer)
@@ -226,14 +240,12 @@ class OevrigeFelter(Ark):
     def test_fjernes_et_tarifskema_og_er_et_felt_rettet_gaelder_ingen_af_fjernelserne(self):
         # Et værk med flad eltarif: rækkerne fjerner skemaet, modelscriptet altid laver. Udfylder brugeren et
         # skema i Priser, må der ikke stå et halvt skema tilbage (modellen ville afvise det).
-        rk = {"A4": "sti", "B4": "værdi", "C4": "kun hvis modelscriptet giver"}
         fjern = {"electricity.tariff_consumption.unit": "kr_per_mwh",
                  "electricity.tariff_consumption.fixed_components.energinet": 128.2,
                  "electricity.tariff_consumption.fixed_components.dv": 0,
                  "electricity.tariff_consumption.net_tariff.bands.lav": 0,
                  "electricity.tariff_consumption.net_tariff.bands.hoej": 0}
-        for i, (sti, v) in enumerate(fjern.items(), start=5):
-            rk.update({f"A{i}": sti, f"B{i}": "(findes ikke)", f"C{i}": v})
+        rk = oevrige(*[(sti, "(findes ikke)", v) for sti, v in fjern.items()])
         self.assertEqual(set(fjern), set(SKEMA))
         uroert = self.lag({**SCRIPT, **SKEMA}, oevrige=rk)
         self.assertFalse([s for s in uroert.blade if s.startswith("electricity.tariff_consumption.")])
@@ -242,7 +254,7 @@ class OevrigeFelter(Ark):
         self.assertEqual(len(rettet.noter), len(fjern))
 
     def test_en_ukendt_sti_afviser_med_ark_og_celle(self):
-        besked = self.afvist("Øvrige felter!B5", oevrige={**OEVRIGE, "A5": "units.gaskedel.findes_ikke"})
+        besked = self.afvist("Øvrige felter!B5", oevrige={**OEVRIGE, "F5": "units.gaskedel.findes_ikke"})
         self.assertIn("findes ikke i feltkataloget", besked)
         self.assertIn("Intet er gemt", besked)
 
@@ -253,11 +265,24 @@ class OevrigeFelter(Ark):
         self.assertIn("ikke tilladt", self.afvist("Balancemarked!B5", balance={**BALANCE, "B5": "gætværk"}))
         self.assertIn("≥ 0", self.afvist("Balancemarked!B6", balance={**BALANCE, "B6": -1}))
 
-    def test_en_raekke_uden_vaerdi_afvises(self):
-        self.assertIn("(findes ikke)", self.afvist("Øvrige felter!B5", oevrige={**OEVRIGE, "B5": None}))
+    def test_en_raekke_uden_vaerdi_roerer_ikke_feltet(self):
+        lag = self.lag(oevrige={**OEVRIGE, "B5": None})
+        self.assertNotIn("grid.max_consumption_mw", lag.blade)
+
+    def test_en_vaerdi_uden_sti_afvises(self):
+        # En række i Øvrige felter med en værdi, men uden sti, ville ellers forsvinde uden besked.
+        self.assertIn("ingen sti", self.afvist("Øvrige felter!B11", oevrige={**OEVRIGE, "B11": 7}))
+
+    def test_en_tabelraekke_uden_navn_afvises(self):
+        self.assertIn("intet navn", self.afvist("Start og drift!C8", start={**START, "C8": "ja"}))
+
+    def test_danske_etiketter_laeses_paa_koden(self):
+        b = self.lag(balance={**BALANCE, "B5": "aktiveringsværdi kvarter for kvarter – anbefalet (activation_value)"}).blade
+        self.assertEqual(b["balancing.method"], '"activation_value"')
+        self.assertIn("ikke tilladt", self.afvist("Balancemarked!B5", balance={**BALANCE, "B5": "aktiveringsværdi"}))
 
     def test_samme_sti_to_gange_afvises(self):
-        self.afvist("står to gange", oevrige={**OEVRIGE, "A11": "grid.max_consumption_mw", "B11": 20})
+        self.afvist("står to gange", oevrige={**OEVRIGE, "F11": "grid.max_consumption_mw", "B11": 20})
 
 
 class Navne(Ark):
@@ -440,7 +465,7 @@ class Import(Ark):
     def test_laget_maa_ikke_give_et_vaerk_modellen_ikke_kan_bruge(self):
         # Tankens indhold ved start ryddet: modellen kræver det. Afvises som et nyt værk i appen ville blive.
         k = self.k()
-        VS.laeg_lag(k, self.ark(start={**START, "C11": None}))
+        VS.laeg_lag(k, self.ark(start={**START, "C11": "(findes ikke)"}))
         with self.assertRaises(VS.ArkFejl) as c:
             VS.afslut_nyt_vaerk(k)
         self.assertIn("storage.tank.e_initial_mwh mangler", str(c.exception))
@@ -506,7 +531,7 @@ class Import(Ark):
         faner = {"start": START}
         vaerk = blade_af(self, faner)
         with self.assertRaises(VS.ArkFejl) as c:
-            self.revision(vaerk, faner, {"start": {**START, "C11": None}})
+            self.revision(vaerk, faner, {"start": {**START, "C11": "(findes ikke)"}})
         self.assertIn("storage.tank.e_initial_mwh mangler", str(c.exception))
         self.assertIn("Intet er gemt", str(c.exception))
 

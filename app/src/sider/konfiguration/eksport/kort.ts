@@ -78,6 +78,8 @@ export interface Eksportplan {
     former: Record<string, string>;
     /** Antal felter pr. af appens faner. */
     lagantal: Record<string, number>;
+    /** Steder, hvor modelrepoets faner ikke viser det, modellen bruger (fanen Læs først). */
+    lagafvigelser: { hvor: string; hvad: string; celle: string }[];
     ikkeMed: Tab[];
     /** Stierne på `ikkeMed`, der ikke er konverteringsartefakter — markeringens `afvigelser` (K11 F4). */
     afvigelser: string[];
@@ -402,12 +404,17 @@ export function planlæg(k: Eksportkilde): Eksportplan {
     // "Ikke med i arket" er det, der er tilbage — i værkets egne navne (scriptets navne føres tilbage som ved genupload).
     let ikkeMed: Tab[] = [];
     let endelig = new Map<string, string>(), lagfaner: Faneform[] = [], former: Record<string, string> = {}, lagantal: Record<string, number> = {};
+    let lagafvigelser: Eksportplan["lagafvigelser"] = [];
     if (!nægter.length) {
         const iVærk = new Map([...forventet].map(([s, v]) => [tilVærk(s), v] as const));
-        const lag = planlægLag({ værk: b.rå, script: iVærk, enheder: medtagne.map((n) => ({ navn: n, type: tekst(b.get(`units.${n}.type`)) ?? "" })), tanke });
+        const lag = planlægLag({
+            vaerk: { navn: k.vaerk.navn, kode: k.vaerk.kode, revision: k.vaerk.revision }, værk: b.rå, script: iVærk,
+            enheder: medtagne.map((n) => ({ navn: n, type: tekst(b.get(`units.${n}.type`)) ?? "" })), tanke,
+            henvisning: { enhedRække: rækkeAf, tankRække: new Map(tanke.map((n, j) => [n, PLADS.tanke.fra + j])), priserForskyd: o, solvarmeArk: !!sol },
+        });
         celler.push(...lag.celler);
         ({ endelig, former } = lag);
-        lagfaner = lag.faner; lagantal = lag.antal;
+        lagfaner = lag.faner; lagantal = lag.antal; lagafvigelser = lag.afvigelser;
         ikkeMed = lag.ikkeMed.map((t) => {
             const grund = t.grund ?? [...grunde.entries()].find(([p]) => t.sti === p || t.sti.startsWith(`${p}.`))?.[1];
             return { ...t, ...(grund ? { grund } : {}) };
@@ -416,7 +423,7 @@ export function planlæg(k: Eksportkilde): Eksportplan {
     // K11 F4: de stier, hvor modelscriptets læsning af arket ikke er værket. Importen kræver, at basis afviger fra
     // værket præcis her og ingen andre steder (fjv.revision.tjek_basis). Artefakter sammenlignes aldrig.
     const afvigelser = ikkeMed.map((t) => t.sti).filter((s) => !erArtefakt(s));
-    return { celler, træpillerRække: harPiller, braendselKolonne: biomasse, solvarmeArk: !!sol, forventet, endelig, lagfaner, former, lagantal, ikkeMed, afvigelser, serier, udfyldes, afrundes, nægter, noter };
+    return { celler, træpillerRække: harPiller, braendselKolonne: biomasse, solvarmeArk: !!sol, forventet, endelig, lagfaner, former, lagantal, lagafvigelser, ikkeMed, afvigelser, serier, udfyldes, afrundes, nægter, noter };
 }
 
 /** Varmepumpens målepunkter (cop_curve af typen table) som arkets rækker — tom for alt andet. */

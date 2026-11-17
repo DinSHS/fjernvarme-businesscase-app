@@ -15,13 +15,8 @@ VEKTORER = Path(__file__).resolve().parents[2] / "skema" / "vektorer" / "arklag"
 
 
 def laes_celle(sti: str, celle) -> dict:
-    """Som importen: typen fra kataloget, derefter feltets regler (en redigering i appen)."""
-    try:
-        j = FK.fra_celle(sti, celle)
-    except FK.FeltFejl as e:
-        return {"fejl": str(e)}
-    grund = FK.tjek(sti, j)
-    return {"fejl": grund} if grund else {"json": j}
+    """Importens regel (``FK.laes_celle``): tom, (findes ikke), værdien eller grunden."""
+    return FK.laes_celle(sti, celle)
 
 
 class Vektorer(unittest.TestCase):
@@ -36,6 +31,10 @@ class Vektorer(unittest.TestCase):
             afvist += "fejl" in t["ud"]
         self.assertGreater(godtaget, 50)
         self.assertGreater(afvist, 20)
+        # Runde 14, rettelser: tom og (findes ikke) betyder hver sin ting, og danske etiketter læses på koden.
+        self.assertTrue(any("tom" in t["ud"] for t in tilfaelde))
+        self.assertTrue(any("fjern" in t["ud"] for t in tilfaelde))
+        self.assertTrue(any(isinstance(t["celle"], str) and t["celle"].endswith(")") and "json" in t["ud"] for t in tilfaelde))
 
 
 if __name__ == "__main__":

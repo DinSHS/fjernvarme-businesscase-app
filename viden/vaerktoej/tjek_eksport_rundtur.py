@@ -424,6 +424,11 @@ def modproever(model: Path, kode: str, v: dict, plan: dict, eksport: Path, tmp: 
     loft = lagceller.get("balancing.ancillary_caps.total_mw")
     if loft is not None and loft.json is not None:
         proeve("lag_balance", celle_plus(loft, lambda v: float(v) + 1), {"balancing.ancillary_caps.total_mw"})
+    # Værket-blokken øverst i Start og drift (nettilslutning, modelperiode — brugertesten F5).
+    vaerket = [t for t in lagceller.values() if t.ark == LAG.START_OG_DRIFT and t.objekt is None and t.json is not None
+               and isinstance(json.loads(t.json), (int, float)) and not isinstance(json.loads(t.json), bool)]
+    if vaerket:
+        proeve("lag_vaerket", celle_plus(vaerket[0], lambda v: float(v) + 1), {vaerket[0].sti})
     tal = [t for t in lagceller.values() if t.ark == LAG.OEVRIGE and t.json is not None
            and isinstance(json.loads(t.json), (int, float)) and not isinstance(json.loads(t.json), bool)]
     # Ét almindeligt felt og ét i konverteringens egne sektioner (meta, solver, varmelastparametre): det sidste
