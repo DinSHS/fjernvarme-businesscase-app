@@ -2,7 +2,8 @@
 
 ``skriv_xlsx(sti, {"Anlaeg": {"A4": "navn", "C5": 12.5, "D5": True}})`` skriver tekst som delte strenge (som Excel)
 eller inline (``inline=True``, som appens eksport), tal som tal og sand/falsk som boolske celler. ``skjulte`` er
-arknavne med ``state="hidden"`` (appens markering ``_app``).
+arknavne med ``state="hidden"`` (appens markering ``_app``). En formel skrives som ``("=0.2", 0.2)`` (med gemt
+resultat) eller ``("=0.2", None)`` (uden).
 """
 from __future__ import annotations
 
@@ -31,6 +32,12 @@ def skriv_xlsx(sti: Path, ark: dict, *, inline: bool = False, skjulte: tuple = (
     delte: list[str] = []
 
     def celle(ref: str, v) -> str:
+        if isinstance(v, tuple):
+            # En formel: ("=0.2", gemt resultat eller None). Uden resultat er cellen, som openpyxl gemmer den, før
+            # Excel har regnet arket igennem.
+            formel, resultat = v
+            vaerdi = "" if resultat is None else f"<v>{resultat!r}</v>"
+            return f'<c r="{ref}"><f>{escape(formel.lstrip("="))}</f>{vaerdi}</c>'
         if isinstance(v, bool):
             return f'<c r="{ref}" t="b"><v>{int(v)}</v></c>'
         if isinstance(v, (int, float)):

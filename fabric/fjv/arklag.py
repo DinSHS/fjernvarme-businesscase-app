@@ -192,18 +192,32 @@ def _saml(fejl: list[str]) -> str:
 
 
 def _laes_fane(navn: str, c: dict, ud: Laesning, fejl: list) -> None:
-    sidste = AL.maks_raekke(c)
-    r = 1
-    while r <= sidste:
+    # Codex fund 2: en formel uden gemt resultat er ikke en tom celle. Den afvises med ark og celle, før noget læses —
+    # ellers ville den betyde "feltet sættes ikke" og tavst fjerne scriptets værdi.
+    for (r, k), v in sorted(c.items()):
+        if v is AL.FORMEL_UDEN_RESULTAT:
+            fejl.append(f"{navn}!{AL.ref(r, k)}: cellen har en formel uden et gemt resultat (arket er gemt af et "
+                        "program, der ikke regner formler ud). Åbn arket i Excel og gem det igen, eller skriv tallet "
+                        "i cellen i stedet for formlen")
+    if any(v is AL.FORMEL_UDEN_RESULTAT for v in c.values()):
+        return
+    # Codex fund 1: løkken går over de rækker, fanen HAR celler i — ikke over alle rækkenumre til den sidste celle.
+    raekker = AL.raekker(c)
+    sidste = raekker[-1] if raekker else 0
+    i = 0
+    while i < len(raekker):
+        r = raekker[i]
         a = AL.norm(c.get((r, 1)))
         if a == "felt" and _kolonne(c, r, STI_OVERSKRIFT):
-            r = _feltblok(navn, c, r, sidste, ud, fejl)
+            naeste = _feltblok(navn, c, r, sidste, ud, fejl)
         elif a in TABELNOEGLER and AL.norm(c.get((r + 1, 1))) == STI_OVERSKRIFT:
-            r = _tabel(navn, c, r, sidste, ud, fejl)
+            naeste = _tabel(navn, c, r, sidste, ud, fejl)
         elif a == "sti" and navn == OEVRIGE and _kolonne(c, r, "værdi"):
-            r = _oevrige(navn, c, r, sidste, ud, fejl)
+            naeste = _oevrige(navn, c, r, sidste, ud, fejl)
         else:
-            r += 1
+            naeste = r + 1
+        while i < len(raekker) and raekker[i] < naeste:
+            i += 1
 
 
 def _kolonne(c: dict, r: int, overskrift: str, praefiks: bool = False) -> int | None:
@@ -342,7 +356,7 @@ def _oevrige(navn: str, c: dict, h: int, sidste: int, ud: Laesning, fejl: list) 
     kv = _kolonne(c, h, "værdi")
     kb = _kolonne(c, h, "kun hvis", praefiks=True)
     set_stier: dict = {}
-    for r in range(h + 1, sidste + 1):
+    for r in (x for x in AL.raekker(c) if x > h):
         sti = c.get((r, 1))
         if sti is None or (isinstance(sti, str) and not sti.strip()):
             continue
@@ -582,15 +596,17 @@ def tjek_tavse_raekker(sti: Path) -> None:
     Blokkene findes som scriptet finder dem (overskriften i kolonne A)."""
     try:
         ark = AL.laes_ark(sti, kun=("Anlaeg", "Varmepumpe"))
-    except AL.LaeseFejl:
-        return                                       # scriptet siger selv, hvis filen ikke kan læses
+    except AL.LaeseFejl as e:
+        # Codex fund 1: et ark, læseren afviser (en celle uden for regnearkets grænser, for mange celler, entiteter),
+        # stoppes her, før modelscriptet kører — med læserens grund.
+        raise TavsRaekke(f"Arket kan ikke læses: {e}. Intet er gemt.") from e
     fejl: list[str] = []
     an = ark.get("Anlaeg") or {}
     hr = AL.find_raekke(an, "navn")
     if hr is not None:
         slut = AL.find_raekke(an, "lovlige værdier", praefiks=True, efter=hr)
         sidste = (slut - 1) if slut else hr + 19
-        for r in range(hr + 1, sidste + 1):
+        for r in (x for x in AL.raekker(an) if hr < x <= sidste):
             navn, type_ = an.get((r, 1)), an.get((r, 2))
             andet = [k for k in range(3, 15) if not _tom(an.get((r, k)))]
             if not _tom(navn) and _tom(type_):
@@ -626,7 +642,7 @@ def tjek_tavse_raekker(sti: Path) -> None:
     if vh is not None:
         note = AL.find_raekke(vp, "tjek cop", praefiks=True, efter=vh)
         foerste_uden = note + 1 if note else vh + 19
-        for r in range(foerste_uden, AL.maks_raekke(vp) + 1):
+        for r in (x for x in AL.raekker(vp) if x >= foerste_uden):
             tal = [k for k in (2, 3, 4) if isinstance(vp.get((r, k)), (int, float)) and not isinstance(vp.get((r, k)), bool)]
             if not _tom(vp.get((r, 1))) and len(tal) >= 2:
                 fejl.append(f"Varmepumpe række {r}: målepunktet for {str(vp[(r, 1)]).strip()!r} står under de rækker, "

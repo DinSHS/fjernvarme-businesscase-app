@@ -365,12 +365,16 @@ def oversaet(blade: dict, kort: dict) -> dict:
     return ud
 
 
-def tjek_basis(nuvaerende: dict, basis: dict, afvigelser: list) -> list[str]:
+def tjek_basis(nuvaerende: dict, basis: dict, afvigelser: list, lag: set | frozenset = frozenset()) -> list[str]:
     """Stier, hvor modelscriptets læsning af basis ikke er værket, og som eksporten ikke har erklæret (K11 F4).
-    Tom liste = basis er værkets eksport."""
+    Tom liste = basis er værkets eksport.
+
+    ``lag`` (runde 14, Codex' review fund 3) er de stier, appens egne faner bestemmer. De sammenlignes, også i
+    konverteringens sektioner: dér kan laget nu gemme en ændring (``forskelle``), så basis skal være værkets eksport på
+    netop de felter. Scriptets egne konverteringsartefakter — de felter, laget ikke bestemmer — sammenlignes stadig ikke."""
     tilladt = set(afvigelser)
     return [s for s in sorted(set(nuvaerende) | set(basis))
-            if not er_artefakt(s) and s not in tilladt and not samme_vaerdi(nuvaerende.get(s), basis.get(s))]
+            if (not er_artefakt(s) or s in lag) and s not in tilladt and not samme_vaerdi(nuvaerende.get(s), basis.get(s))]
 
 
 #: Ændringer i arket, som scriptet omsætter til konverteringens egne felter — og som derfor ikke gemmes (K11 F5).

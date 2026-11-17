@@ -459,10 +459,7 @@ class Import(Ark):
         kb, ka = self.k(), self.k(script_ark)
         VS.laeg_lag(kb, self.ark(**basis_faner))
         VS.laeg_lag(ka, self.ark(**ark_faner))
-        blade = lambda ps: {p.sti: p.vaerdi_json for p in ps}   # noqa: E731
-        laesning = {"basis": blade(kb.params), "arket": blade(ka.params),
-                    "script": {"basis": blade(kb.script_params), "arket": blade(ka.script_params)},
-                    "kilder": {**ka.lag.kilder, **ka.lag.fjernet}, "noter": list(ka.lag.noter)}
+        laesning = VS.laesning_af(kb, ka)
         v = {"id": "v", "kode": "testvaerk", "navn": "Testværk", "revision": 1, "arkiveret": False}
         m = {"grundlag": REV.grundlag(vaerk, {}), "afvigelser": ["meta.case_name"]}
         return VS.forbered_revision(v, {"forventet_revision": 1, "markering": m}, vaerk, {}, laesning, {}, None)
@@ -485,6 +482,25 @@ class Import(Ark):
         vaerk = blade_af(self, faner)
         f = self.revision(vaerk, faner, {"oevrige": {**OEVRIGE, "B10": 2027}})
         self.assertEqual([(x["sti"], x["ny_json"]) for x in f["plan"]["ret"]], [("meta.tax_year", "2027.0")])
+
+    def test_en_basis_der_ikke_er_vaerkets_eksport_afvises_ogsaa_paa_lagets_felter_i_konverteringens_sektioner(self):
+        # Codex' review, fund 3: værket har solver.mip_rel_gap = 0.002 (fra Øvrige felter); arket siger 0.003, og en
+        # forfalsket basis siger også 0.003. Før blev feltet sprunget over i tjek_basis (en "artefakt"), forskellen
+        # basis -> ark var nul, og importen sagde "ingen ændringer" — værket blev stående på 0.002.
+        faner = {"oevrige": {**OEVRIGE, "B8": 0.002}}
+        vaerk = blade_af(self, faner)
+        self.assertEqual(vaerk["solver.mip_rel_gap"], "0.002")
+        falsk = {"oevrige": {**OEVRIGE, "B8": 0.003}}
+        with self.assertRaises(VS.ArkFejl) as c:
+            self.revision(vaerk, falsk, falsk)
+        self.assertIn("basis er ikke værkets eksport", str(c.exception))
+        self.assertIn("solver.mip_rel_gap", str(c.exception))
+        # Den ægte basis og samme ark: ændringen gemmes.
+        f = self.revision(vaerk, faner, falsk)
+        self.assertEqual([(x["sti"], x["ny_json"]) for x in f["plan"]["ret"]], [("solver.mip_rel_gap", "0.003")])
+        # Scriptets egne konverteringsartefakter (felter, laget ikke bestemmer) sammenlignes stadig ikke.
+        # (Værket har en anden periode end den, scriptet skriver; feltet står ikke i appens faner her.)
+        self.assertIsNone(self.revision({**vaerk, "time.start": '"2026-03-02T00:00:00Z"'}, faner, faner)["ny_rev"])
 
     def test_revision_afviser_nye_brud_paa_modelkravene(self):
         faner = {"start": START}
@@ -560,3 +576,78 @@ class Katalog(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Laeseren(Ark):
+    """Codex' review af runde 14, fund 1 og 2: læseren må ikke kunne fastholdes af et lille ark, og en formel uden
+    gemt resultat må aldrig læses som en tom celle."""
+
+    def test_en_celle_uden_for_regnearkets_graenser_afvises(self):
+        # Fund 1: Anlaeg!A999999999999 fik kontrollen af tavse rækker til at gennemløbe en billion rækker.
+        for ref in ("A999999999999", "A1048577", "XFE1"):
+            sti = skriv_xlsx(self.tmp / f"{ref}.xlsx", {"Anlaeg": {"A4": "navn", ref: "Lovlige værdier"}})
+            with self.assertRaises(AL.LaeseFejl) as c:
+                AL.laes_ark(sti)
+            self.assertIn(ref, str(c.exception))
+            self.assertIn("uden for et regnearks grænser", str(c.exception))
+            with self.assertRaises(LAG.TavsRaekke):                      # importen afviser arket, den hænger ikke
+                LAG.tjek_tavse_raekker(sti)
+        self.assertEqual(AL.laes_ark(skriv_xlsx(self.tmp / "ok.xlsx", {"A": {"XFD1048576": 1}}))["A"], {(1048576, 16384): 1})
+
+    def test_et_sparsomt_ark_gennemloebes_paa_de_raekker_der_findes(self):
+        # Sidste lovlige række: arbejdet skal følge antallet af celler, ikke rækkenummeret.
+        opslag = {"n": 0}
+
+        class Taeller(dict):
+            def get(self, *a):
+                opslag["n"] += 1
+                return dict.get(self, *a)
+
+        # Codex' eksempel: "navn" i række 4 og "Lovlige værdier" i regnearkets sidste række.
+        ark = {"Anlaeg": Taeller({(4, 1): "navn", (5, 1): "kedel", (5, 2): "gas_boiler", (1048576, 1): "Lovlige værdier"}),
+               "Varmepumpe": Taeller({(5, 1): "navn", (1048000, 1): "x"}),
+               LAG.START_OG_DRIFT: Taeller({(4, 1): "navn", (5, 1): LAG.STI_OVERSKRIFT, (1048576, 1): "x"})}
+        gammel = AL.laes_ark
+        AL.laes_ark = lambda sti, kun=None, **kw: {k: v for k, v in ark.items() if kun is None or k in kun}
+        try:
+            LAG.tjek_tavse_raekker(self.tmp / "findes_ikke.xlsx")
+            LAG.laes(self.tmp / "findes_ikke.xlsx")
+        finally:
+            AL.laes_ark = gammel
+        self.assertLess(opslag["n"], 2000, "læseren gennemløber rækkenumre, ikke celler")
+
+    def test_laesningen_har_en_ressourcegraense(self):
+        mange = {f"A{r}": r for r in range(1, AL.MAKS_CELLER + 3)}
+        with self.assertRaises(AL.LaeseFejl) as c:
+            AL.laes_ark(skriv_xlsx(self.tmp / "mange.xlsx", {LAG.OEVRIGE: mange}), kun=LAG.FANER)
+        self.assertIn("flere end", str(c.exception))
+        self.assertIn(LAG.OEVRIGE, str(c.exception))
+        # Uden for de faner, appen selv læser, gælder grænsen ikke (Timedata har 8.760 rækker og læses af scriptet).
+        self.assertEqual(AL.laes_ark(skriv_xlsx(self.tmp / "td.xlsx", {"Timedata": mange}), kun=LAG.FANER), {})
+
+    def test_xml_med_entiteter_afvises(self):
+        import zipfile
+        sti = skriv_xlsx(self.tmp / "ent.xlsx", {LAG.OEVRIGE: {"A1": "x"}})
+        with zipfile.ZipFile(sti) as z:
+            dele = {n: z.read(n) for n in z.namelist()}
+        dele["xl/worksheets/sheet1.xml"] = (b'<?xml version="1.0"?><!DOCTYPE x [<!ENTITY a "aaaaaaaaaa">]>'
+                                             + dele["xl/worksheets/sheet1.xml"].split(b"?>", 1)[1])
+        with zipfile.ZipFile(sti, "w") as z:
+            for n, b in dele.items():
+                z.writestr(n, b)
+        with self.assertRaises(AL.LaeseFejl) as c:
+            AL.laes_ark(sti)
+        self.assertIn("DOCTYPE", str(c.exception))
+
+    def test_en_formel_uden_gemt_resultat_afvises_med_ark_og_celle(self):
+        # Fund 2: gasmotorens CO2-faktor som =0.2, gemt uden genberegning, blev læst som en tom celle.
+        besked = self.afvist("Start og drift!F6", start={**START, "F6": ("=0.2", None)})
+        self.assertIn("formel uden et gemt resultat", besked)
+        self.assertIn("Åbn arket i Excel og gem det igen", besked)
+        # Også i en nøglecelle (navnet) og i Øvrige felter.
+        self.afvist("Start og drift!A7", start={**START, "A7": ('="el_"&"kedel"', None)})
+        self.afvist("Øvrige felter!B5", oevrige={**OEVRIGE, "B5": ("=30+3", None)})
+
+    def test_en_formel_med_gemt_resultat_laeses_som_resultatet(self):
+        lag = self.lag(start={**START, "F6": ("=0.1+0.104", 0.204)})
+        self.assertEqual(lag.blade["units.gaskedel.co2_emissions_per_mwh_fuel"], "0.204")

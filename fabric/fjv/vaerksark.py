@@ -717,7 +717,12 @@ def forbered_revision(v: dict | None, rev: dict, nuvaerende: dict, aktive: dict,
         kort = REV.objektkort(nuvaerende, laesning["basis"], laesning["arket"])
         basis = REV.oversaet(laesning["basis"], kort)
         arket = REV.oversaet(laesning["arket"], kort)
-        afvig = REV.tjek_basis(nuvaerende, basis, m.get("afvigelser") or [])
+        # Codex fund 3: de felter, appens faner bestemmer — i arket ELLER i basis — kan gemmes, også i konverteringens
+        # egne sektioner (solver, meta, varmelastparametre). Basis skal da være værkets eksport på dem; ellers kunne en
+        # forfalsket basis med arkets værdi gøre en ændring usynlig.
+        lagstier = {REV.oversaet_sti(s, kort) for s in {**(laesning.get("kilder") or {}),
+                                                         **(laesning.get("basis_kilder") or {})}}
+        afvig = REV.tjek_basis(nuvaerende, basis, m.get("afvigelser") or [], lagstier)
         if afvig:
             raise REV.RevisionsFejl(
                 f"basis er ikke værkets eksport af revision {v['revision']} ({len(afvig)} felt(er) afviger, fx "
@@ -841,6 +846,17 @@ def afslut_nyt_vaerk(k: Konvertering) -> None:
         k.advarsler.insert(0, adv)
 
 
+def laesning_af(kb: Konvertering, k: Konvertering) -> dict:
+    """Det, ``forbered_revision`` får om de to læsninger: bladene efter laget, scriptets egne læsninger, de stier,
+    appens faner bestemmer i arket (``kilder``) og i basis (``basis_kilder``), og lagets linjer til loggen."""
+    blade = lambda ps: {p.sti: p.vaerdi_json for p in ps}   # noqa: E731
+    stier = lambda x: ({**x.lag.kilder, **x.lag.fjernet} if x.lag is not None else {})   # noqa: E731
+    return {"basis": blade(kb.params), "arket": blade(k.params),
+            "script": {"basis": blade(kb.script_params or kb.params), "arket": blade(k.script_params or k.params)},
+            "kilder": stier(k), "basis_kilder": stier(kb),
+            "noter": (list(k.lag.noter) + [f"Advarsel - {a}" for a in k.lag.advarsler] if k.lag is not None else [])}
+
+
 def importer_revision(lager, imp: dict, rev: dict, k, kode: Path, py: str, kilde: Path, arbejde: Path,
                       timeslut: bool, log: str, rap, files: str | None) -> dict:
     """Revision: scriptet på basis-arket også; forskellen (``fjv.revision``) gemmes af lageret i én transaktion."""
@@ -873,11 +889,7 @@ def importer_revision(lager, imp: dict, rev: dict, k, kode: Path, py: str, kilde
                           kildens_tidszone(kode, py, basis, "Solvarme"))
     # Runde 14: appens faner lægges på basis PRÆCIS som på arket, så kun brugerens ændringer er forskellen.
     laeg_lag(kb, basis)
-    blade = lambda ps: {p.sti: p.vaerdi_json for p in ps}   # noqa: E731
-    laesning = {"basis": blade(kb.params), "arket": blade(k.params),
-                "script": {"basis": blade(kb.script_params or kb.params), "arket": blade(k.script_params or k.params)},
-                "kilder": ({**k.lag.kilder, **k.lag.fjernet} if k.lag is not None else {}),
-                "noter": (list(k.lag.noter) + [f"Advarsel - {a}" for a in k.lag.advarsler] if k.lag is not None else [])}
+    laesning = laesning_af(kb, k)
     serier = serieforskelle(kb, k, timeslut)
     rap.trin("revision", {"vaerk_id": rev["vaerk_id"], "forventet_revision": rev["forventet_revision"],
                           "serier": {r: s["opsummering"] for r, s in serier.items()}})
