@@ -10,6 +10,7 @@ import { KoerselInput } from './KoerselInput.js';
 import { KoerselNoegletal } from './KoerselNoegletal.js';
 import { KoerselMaaned } from './KoerselMaaned.js';
 import { KoerselTime } from './KoerselTime.js';
+import { KoerselTimeDel } from './KoerselTimeDel.js';
 import { Motor } from './Motor.js';
 import { Tidsserie } from './Tidsserie.js';
 import { Vaerksarkimport } from './Vaerksarkimport.js';
@@ -27,6 +28,7 @@ export type FjvSchema = {
     KoerselNoegletal: KoerselNoegletal;
     KoerselMaaned: KoerselMaaned;
     KoerselTime: KoerselTime;
+    KoerselTimeDel: KoerselTimeDel;
     Motor: Motor;
     Tidsserie: Tidsserie;
     Vaerksarkimport: Vaerksarkimport;
@@ -34,5 +36,5 @@ export type FjvSchema = {
 
 export const schema = [
     Vaerk, VaerkParameter, Aendringslog, Aendringsanmodning, Scenarie, ScenarieAendring,
-    Bestilling, Koersel, KoerselInput, KoerselNoegletal, KoerselMaaned, KoerselTime, Motor, Tidsserie, Vaerksarkimport,
+    Bestilling, Koersel, KoerselInput, KoerselNoegletal, KoerselMaaned, KoerselTime, KoerselTimeDel, Motor, Tidsserie, Vaerksarkimport,
 ];

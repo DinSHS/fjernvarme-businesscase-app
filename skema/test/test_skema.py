@@ -54,9 +54,9 @@ def forventet(t: dict, dialekt: str) -> str:
 
 
 class Skemaet(unittest.TestCase):
-    def test_gyldigt_og_15_tabeller(self):
-        self.assertEqual(len(SKEMA["tabeller"]), 15)
-        self.assertEqual(SKEMA["version"], 1)
+    def test_gyldigt_og_16_tabeller(self):
+        self.assertEqual(len(SKEMA["tabeller"]), 16)
+        self.assertEqual(SKEMA["version"], 2)       # 2: KoerselTimeDel (runde 14b)
 
     def test_afledte_filer_er_i_takt(self):
         self.assertEqual(byg.main(["--tjek"]), 0)
@@ -64,7 +64,7 @@ class Skemaet(unittest.TestCase):
     def test_fastfrosset_struktur_kraever_ny_version(self):
         kopi = copy.deepcopy(SKEMA)
         S.tabel(kopi, "Vaerk")["kolonner"][1]["max"] = 61
-        frossen = json.loads((ROD / "versioner" / "1.json").read_text(encoding="utf-8"))
+        frossen = json.loads((ROD / "versioner" / f"{SKEMA['version']}.json").read_text(encoding="utf-8"))
         self.assertEqual(frossen, json.loads(json.dumps(S.struktur(SKEMA))))
         self.assertNotEqual(frossen, json.loads(json.dumps(S.struktur(kopi))))
 
@@ -165,11 +165,15 @@ class SqliteDDL(unittest.TestCase):
 
 
 class Migrationer(unittest.TestCase):
-    """En v1-database med data løftes til en tænkt v2 og skal derefter være som en frisk v2."""
+    """En database med data løftes et trin og skal derefter være som en frisk database ved den nye version:
+    den rigtige migration 1 -> 2 (KoerselTimeDel, runde 14b) og en tænkt næste version."""
+
+    NAESTE = SKEMA["version"] + 1
 
     def v2(self):
+        """Den tænkte næste version (navnet er historisk: den var 2, før version 2 fandtes)."""
         til = copy.deepcopy(S.struktur(SKEMA))
-        til["version"] = 2
+        til["version"] = self.NAESTE
         S.tabel(til, "Koersel")["kolonner"].append({"navn": "prioritet", "type": "set", "vaerdier": ["lav", "hoej"], "nullable": True})
         S.tabel(til, "Koersel")["kolonner"].append({"navn": "noter_af", "type": "text", "max": 200, "min": 1, "nullable": True})
         til["tabeller"].append({
@@ -189,7 +193,31 @@ class Migrationer(unittest.TestCase):
         idx = sorted(cn.execute("SELECT name, tbl_name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%'"))
         return ud, idx
 
-    def test_v1_til_v2_i_sqlite(self):
+    def test_den_rigtige_migration_1_til_2_i_sqlite(self):
+        """En database lavet ved version 1 med data + migrationer/0002.sqlite.sql = en frisk version 2-database."""
+        v1 = json.loads((ROD / "versioner" / "1.json").read_text(encoding="utf-8"))
+        cn = sqlite3.connect(":memory:", isolation_level=None)
+        cn.executescript(S.ddl("sqlite", v1))
+        v1_tabeller = {t["entitet"] for t in v1["tabeller"]}
+        for e, r in TILFAELDE["gyldige"].items():
+            if e in v1_tabeller:
+                indsaet(cn, e, r)
+        cn.executescript((ROD / "migrationer" / "0002.sqlite.sql").read_text(encoding="utf-8"))
+        self.assertEqual(self.skema_af(cn), self.skema_af(sqlite_db()))
+        self.assertEqual(cn.execute('SELECT MAX(version) FROM "_skema"').fetchone()[0], 2)
+        self.assertEqual(cn.execute('SELECT COUNT(*) FROM "KoerselTimes"').fetchone()[0], 1)        # data overlevede
+        indsaet(cn, "KoerselTimeDel", TILFAELDE["gyldige"]["KoerselTimeDel"])
+        with self.assertRaises(sqlite3.IntegrityError):                                          # invarianten virker
+            indsaet(cn, "KoerselTimeDel", dict(TILFAELDE["gyldige"]["KoerselTimeDel"], id=NYT_ID))
+        cn.close()
+
+    def test_migrationerne_er_rene_tilfoejelser(self):
+        for d in S.DIALEKTER:
+            sql = (ROD / "migrationer" / f"0002.{d}.sql").read_text(encoding="utf-8")
+            self.assertNotRegex(sql, r"(DROP|DELETE|UPDATE|ALTER)", d)
+            self.assertIn("KoerselTimeDels", sql)
+
+    def test_til_naeste_version_i_sqlite(self):
         fra, til = S.struktur(SKEMA), self.v2()
         cn = sqlite_db()
         for e, r in TILFAELDE["gyldige"].items():
@@ -198,7 +226,7 @@ class Migrationer(unittest.TestCase):
         frisk = sqlite3.connect(":memory:")
         frisk.executescript(S.ddl("sqlite", til))
         self.assertEqual(self.skema_af(cn), self.skema_af(frisk))
-        self.assertEqual(cn.execute('SELECT MAX(version) FROM "_skema"').fetchone()[0], 2)
+        self.assertEqual(cn.execute('SELECT MAX(version) FROM "_skema"').fetchone()[0], self.NAESTE)
         self.assertEqual(cn.execute('SELECT COUNT(*) FROM "Koersels" WHERE "prioritet" IS NULL').fetchone()[0], 1)  # data overlevede
         with self.assertRaises(sqlite3.IntegrityError):  # den nye kolonnes CHECK virker efter ALTER
             cn.execute('UPDATE "Koersels" SET "prioritet" = \'mellem\'')
@@ -226,14 +254,14 @@ class Migrationer(unittest.TestCase):
         for navn, aendr in tilfaelde.items():
             with self.subTest(navn):
                 til = copy.deepcopy(fra)
-                til["version"] = 2
+                til["version"] = self.NAESTE
                 aendr(til)
                 with self.assertRaises(S.IkkeAdditiv):
                     S.migration(fra, til, "sqlite")
 
     def test_springer_ikke_versioner_over(self):
         til = copy.deepcopy(S.struktur(SKEMA))
-        til["version"] = 3
+        til["version"] = self.NAESTE + 1
         with self.assertRaisesRegex(S.SkemaFejl, "ét trin"):
             S.migration(S.struktur(SKEMA), til, "sqlite")
 
@@ -335,7 +363,9 @@ class MaaltFabric(unittest.TestCase):
 
     # Tilføjet efter målingen 06:25 (KONTRAKT §6c/§6d, runde 3). Ikke målt, fordi az login er udløbet og
     # Function-vejen kræver et token, jeg ikke må hente; de er dækket af Rayfin-oraklet (rayfin.test.mjs).
-    IKKE_MAALT_TABELLER = {"Motors", "Tidsseries", "Vaerksarkimports"}
+    IKKE_MAALT_TABELLER = {"Motors", "Tidsseries", "Vaerksarkimports",
+                           # Skemaversion 2 (runde 14b): ikke udrullet i Fabric endnu (skemaafvigelsen, FABRIC.md).
+                           "KoerselTimeDels"}
     IKKE_MAALT_KOLONNER = {("Scenaries", "reference_scenarie_id"), ("Koersels", "modtaget")}
 
     def fysisk(self, d):

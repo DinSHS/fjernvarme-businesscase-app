@@ -13,6 +13,7 @@
     "KoerselNoegletal": {"id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "koersel_id": "88888888-8888-4888-8888-888888888888", "gruppe": "objektiv", "objekt": null, "marked": null, "noegle": "objektiv_dkk", "vaerdi": 844727.2785, "enhed": "DKK"},
     "KoerselMaaned": {"id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "koersel_id": "88888888-8888-4888-8888-888888888888", "maaned": "2026-01", "objekt": "halmkedel", "noegle": "varme_mwh", "vaerdi": 123.4567890123},
     "KoerselTime": {"id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc", "koersel_id": "88888888-8888-4888-8888-888888888888", "tid": "2026-01-05T01:00:00.000Z", "varmelast_mw": 19.74, "spotpris": -12.5, "t_ude": -3.2, "vaerdier_json": "{\"p_halmkedel_mw\":3.0}"},
+    "KoerselTimeDel": {"id": "c0c0c0c0-cccc-4ccc-8ccc-cccccccccccc", "koersel_id": "88888888-8888-4888-8888-888888888888", "tid": "2026-01-05T01:00:00.000Z", "delnr": 1, "vaerdier_json": "{\"tank_hoej_level_mwh\":96.0}"},
     "Motor": {"id": "00000000-0000-4000-8000-00000000f001", "model_commit": "b49aeb0af097be42938b80a0fea6acdd77162836", "data_commit": "392992c7fe35992e79fba8d1ba7b91967e8d1481", "sidste_jobstart": "2026-10-16T06:04:01.123Z", "sidste_job_id": null, "aendret": "2026-10-16T06:04:01.123Z"},
     "Tidsserie": {"id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd", "vaerk_id": "11111111-1111-4111-8111-111111111111", "rolle": "varmelast", "navn": "Målt 2025", "filnavn": "last.csv", "sti": "Files/fjv/tidsserier/andeby/0000000000000000000000000000000000000000000000000000000000000000.csv", "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "oploesning": "1h", "start": "2025-01-01T00:00:00.000Z", "slut": "2025-12-31T23:00:00.000Z", "antal_raekker": 8760, "antal_huller": 0, "enhed": "MW", "tidsstempel": "start", "tidszone": "UTC", "kilde": "csv", "status": "gyldig", "validering_json": "{}", "aktiv": true, "uploadet_af": "test@example.org", "uploadet": "2026-10-16T06:05:00.000Z"},
     "Vaerksarkimport": {"id": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", "filnavn": "vaerksdata_skabelon.xlsx", "sti": null, "status": "koe", "vaerk_id": null, "tidsserie_id": null, "log": null, "fabric_job_id": null, "timeslut": null, "uploadet_af": "test@example.org", "uploadet": "2026-10-16T06:06:00.000Z"}
@@ -39,6 +40,8 @@
     {"navn": "invariant: samme kilde og sti to gange i et input", "entitet": "KoerselInput", "saet": {}, "forventet": "afvist"},
     {"navn": "invariant: samme sti fra værk OG ændring i et input er fint", "entitet": "KoerselInput", "saet": {"kilde": "aendring", "vaerdi_json": "14.0"}, "forventet": "ok"},
     {"navn": "invariant: to intervaller med samme tid", "entitet": "KoerselTime", "saet": {}, "forventet": "afvist"},
+    {"navn": "invariant: to dele med samme nummer i samme interval", "entitet": "KoerselTimeDel", "saet": {}, "forventet": "afvist"},
+    {"navn": "intervallets næste del (runde 14b)", "entitet": "KoerselTimeDel", "saet": {"delnr": 2}, "forventet": "ok"},
     {"navn": "nøgletal: samme naturlige nøgle afvises IKKE af databasen (NULL-kolonner; valider-db fanger den)", "entitet": "KoerselNoegletal", "saet": {}, "forventet": "ok"}
   ]
 }
