@@ -139,17 +139,20 @@ class LokalKoerselLager:
                 return True
         return False
 
-    def publicer(self, noegletal, maaneder, timer, slutfelter: dict | None = None) -> dict:
+    def publicer(self, noegletal, maaneder, timer, slutfelter: dict | None = None, timedele=()) -> dict:
         _, KS = _fjv()
         f = _felter(dict(slutfelter or {}))
         k = self.k
         tn, tm, tt = self.db.t("KoerselNoegletal"), self.db.t("KoerselMaaned"), self.db.t("KoerselTime")
+        # Et bredt værks øvrige kolonner ud over 4000 tegn (runde 14b). Databasen har altid tabellen: serveren
+        # starter kun på skemaversion 2 (Database.kontroller).
+        td = self.db.t("KoerselTimeDel")
         with self.db.skriv() as cn:
             r = cn.execute(self.db.laas_raekke(select(k.c.status, k.c.arbejder_id, k.c.annuller_anmodet)
                                                 .where(k.c.id == self.id))).first()
             if r is None or r.status != "indlaeser" or r.arbejder_id != self.mig or r.annuller_anmodet is not None:
                 raise KS.Afbrudt(f"kørslen er ikke længere vores at publicere: {tuple(r) if r else None}")
-            for t in (tn, tm, tt):
+            for t in (tn, tm, tt, td):
                 cn.execute(t.delete().where(t.c.koersel_id == self.id))
             _indsaet(cn, tn, self.id, [{
                 "gruppe": str(x["gruppe"]), "objekt": x.get("objekt"), "marked": x.get("marked"),
@@ -163,10 +166,13 @@ class LokalKoerselLager:
                 "spotpris": _tal(x.get("spotpris"), 6), "t_ude": _tal(x.get("t_ude"), 6),
                 "vaerdier_json": None if x.get("vaerdier_json") is None else str(x["vaerdier_json"])}
                 for x in timer])
+            _indsaet(cn, td, self.id, [{"tid": x["tid"], "delnr": int(x["delnr"]),
+                                         "vaerdier_json": str(x["vaerdier_json"])} for x in timedele])
             antal = {}
             for t, forventet, noegle in ((tn, len(noegletal), ("gruppe", "objekt", "marked", "noegle")),
                                          (tm, len(maaneder), ("maaned", "objekt", "noegle")),
-                                         (tt, len(timer), ("tid",))):
+                                         (tt, len(timer), ("tid",)),
+                                         (td, len(timedele), ("tid", "delnr"))):
                 n = cn.execute(select(func.count()).select_from(t).where(t.c.koersel_id == self.id)).scalar()
                 d = select(*(t.c[x] for x in noegle)).where(t.c.koersel_id == self.id) \
                     .group_by(*(t.c[x] for x in noegle)).having(func.count() > 1).subquery()
@@ -370,7 +376,7 @@ class LokalImportLager:
     def gem_vaerk(self, imp: dict, k, model_sha: str, scriptlog: str, files: str | None = None) -> dict:
         """Værk + parametre + log + tidsserier + importens status i ÉN transaktion (som ``vaerksark.gem_vaerk``)."""
         from fjv.importer import gem_kildefil
-        from fjv.vaerksark import ArkFejl, _log_tekst
+        from fjv.vaerksark import ArkFejl, _log_tekst, oprettet_log, revisionsspor
         from . import vaerksskriv as VS
 
         hvem = (imp.get("uploadet_af") or "fjv_importer_vaerksark")[:200]
@@ -383,9 +389,11 @@ class LokalImportLager:
                 raise ArkFejl(f"der findes allerede et værk med koden {k.kode!r} - giv værket et andet "
                               "navn på arket Priser (feltet 'værkets navn'), eller kopiér det eksisterende")
             blade = [{**p.dict(), "bekraeft": bool(p.bekraeft)} for p in k.params]
+            # Runde 14: revision 1 = modelscriptets læsning, revision 2 = appens faner oven på den.
+            revision, spor = revisionsspor(k)
             vid = VS.opret_vaerk(self.db, cn, kode=k.kode, navn=k.navn, beskrivelse=k.beskrivelse, kilde="app",
                                  kilde_fil=f"vaerksark:{imp.get('filnavn') or ''}"[:300], repo_commit=model_sha,
-                                 blade=blade, hvem=hvem)
+                                 blade=blade, hvem=hvem, revision=revision, spor=spor)
             ts_ud = []
             for t in k.tidsserier:
                 tid, _ = VS.indsaet_tidsserie(self.db, cn, vid, k.kode, t["rolle"], t["navn"], t["filnavn"],
@@ -395,16 +403,7 @@ class LokalImportLager:
                               "raekker": t["res"].antal_raekker, "start": t["res"].start, "slut": t["res"].slut})
             varme = next((t["id"] for t in ts_ud if t["rolle"] == "varmelast"), None)
             sol = next((t["id"] for t in ts_ud if t["rolle"] == "solprofil"), None)
-            linjer = [f"Værket '{k.navn}' (kode {k.kode}) er oprettet med {len(blade)} parametre "
-                      f"({sum(1 for b in blade if b['bekraeft'])} skal bekræftes)."]
-            for t in ts_ud:
-                linjer.append(f"{'Varmelast' if t['rolle'] == 'varmelast' else 'Solprofil'}: "
-                              f"{t['raekker']} timer, {t['start']} til {t['slut']} (aktiv).")
-            if not varme:
-                linjer.append("Ingen målt varmelast i arket: varmen syntetiseres af modellen ud fra "
-                              "DMI-vejrdata og årsproduktionen.")
-            linjer += [f"Advarsel - {a}" for a in k.advarsler[:6]]
-            log = _log_tekst("\n".join(linjer), scriptlog)
+            log = _log_tekst("\n".join(oprettet_log(k, blade, ts_ud)), scriptlog)
             if cn.execute(i.update().where(and_(i.c.id == imp["id"], i.c.status == "koerer"))
                           .values(status="faerdig", vaerk_id=vid, tidsserie_id=varme or sol, log=log)).rowcount != 1:
                 raise ArkFejl("importens status blev ændret under importen")
@@ -412,7 +411,8 @@ class LokalImportLager:
             gem_kildefil(k.kode, k.tekst, files=files)
         except Exception as e:                     # visning; værket er gemt
             k.advarsler.append(f"kilde.yaml kunne ikke gemmes: {e}")
-        return {"vaerk_id": vid, "kode": k.kode, "parametre": len(blade), "tidsserier": ts_ud, "log": log}
+        return {"vaerk_id": vid, "kode": k.kode, "parametre": len(blade), "tidsserier": ts_ud, "log": log,
+                "revision": revision}
 
     def revision_for(self, import_id: str) -> dict | None:
         """Anmodningen bag importen (samme id): revision, hvis den bærer ``basis_sha256`` (runde 12)."""
@@ -466,7 +466,8 @@ class LokalImportLager:
                     log.append((x["sti"], "slet", x["gammel_json"], None))
                 for x in plan["opret"]:
                     VS.skriv_blade(self.db, cn, v["id"], [{"sti": x["sti"], "vaerdi_json": x["ny_json"], "sektion": x["sektion"],
-                                                          "objekt": x["objekt"], "raekkefoelge": naeste}], hvem)
+                                                          "objekt": x["objekt"], "raekkefoelge": naeste,
+                                                          "kommentar": x.get("kommentar")}], hvem)
                     naeste += 1
                     log.append((x["sti"], "opret", None, x["ny_json"]))
                 if cn.execute(v_.update().where(and_(v_.c.id == v["id"], v_.c.revision == v["revision"]))

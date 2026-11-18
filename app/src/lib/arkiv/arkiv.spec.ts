@@ -5,12 +5,15 @@
 // Databasen er rayfin/functions/test/arkiv-hukommelse.ts bag en datakilde, der paginerer som DAB.
 //-----------------------------------------------------------------------
 
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import { delTekst, importAnmodningJson, importerDel, kolonnenavne, sha256Tekst, tabelSha, type ImportTabel } from "../../../rayfin/functions/src/arkiv";
 import {
-    eksempelDb, hukommelsesLager, ID, opretAnmodning, REF_KOERSEL, rækkerFra, tællerFor, tomDb, type Række, type Tabeller,
+    eksempelDb, gørBred, hukommelsesLager, ID, opretAnmodning, REF_KOERSEL, rækkerFra, tællerFor, tomDb, type Række, type Tabeller,
 } from "../../../rayfin/functions/test/arkiv-hukommelse";
+import { fletTimedele, timedeleAntal } from "@/lib/data/timedele";
 import { sætLæseKilde, læs, type LæseKilde } from "@/lib/data/laes";
 import { difference, maanedstabel, samlNoegletal } from "@/sider/analyser/beregn";
 import { bygArkivBog, danskVægur, danskExcelSerie, læsArkivBog } from "./bog";
@@ -54,7 +57,7 @@ afterEach(() => sætLæseKilde(null));
 const skriverTil = (mål: Tabeller) => async (anm: string, del: string, bruger: string | undefined) =>
     importerDel(hukommelsesLager(mål), opretAnmodning(mål, anm, bruger ?? ""), del);
 
-const IMPORT_TABELLER: ImportTabel[] = ["Scenarie", "ScenarieAendring", "Bestilling", "Koersel", "KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime"];
+const IMPORT_TABELLER: ImportTabel[] = ["Scenarie", "ScenarieAendring", "Bestilling", "Koersel", "KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime", "KoerselTimeDel"];
 
 function målMedVaerk(kilde: Tabeller): Tabeller {
     const m = tomDb();
@@ -181,7 +184,7 @@ describe("eksport", () => {
     it("arket: danske overskrifter, skjult række med feltnavne, dansk tid ved siden af UTC, tal som tal, skjult _manifest", async () => {
         const e = await eksportérFra(eksempelDb(5));
         const ark = læsXlsx(e.bytes);
-        expect(ark.map((a) => a.navn)).toEqual(["Læs mig", "Scenarier", "Ændringer", "Bestillinger", "Kørsler", "Input", "Nøgletal", "Måneder", "Timer", "Værksændringer", "Værker", "Værksrevisioner", "Tidsserier", "_manifest"]);
+        expect(ark.map((a) => a.navn)).toEqual(["Læs mig", "Scenarier", "Ændringer", "Bestillinger", "Kørsler", "Input", "Nøgletal", "Måneder", "Timer", "Timedele", "Værksændringer", "Værker", "Værksrevisioner", "Tidsserier", "_manifest"]);
         const timer = ark.find((a) => a.navn === "Timer")!;
         expect(timer.skjulteRækker.has(2)).toBe(true);
         const navne = [...timer.celler.get(2)!.values()];
@@ -209,6 +212,38 @@ describe("eksport", () => {
             { id: "a", reference_scenarie_id: null, navn: "A ref" }, { id: "b", reference_scenarie_id: "a", navn: "B" },
             { id: "c", reference_scenarie_id: null, navn: "C alene" },
         ])).toEqual([["a", "b"], ["c"]]);
+    });
+});
+
+// ------------------------------------------------------------------ skemaversion 1
+
+describe("et arkiv fra skemaversion 1 (før runde 14b)", () => {
+    // Eksporteret af appen ved cd77e79 over eksempelDb(24, true) - se testdata/KILDE.md.
+    const v1 = new Uint8Array(readFileSync(resolve(import.meta.dirname, "testdata/arkiv_skemaversion1.xlsx")));
+
+    it("læses: manifestet og arkivets sha256 er over version 1's tabeller, og der er ingen timedele", () => {
+        const { indhold, manifest } = læsArkivBog(v1);
+        expect(manifest.skemaversion).toBe(1);
+        expect(læsXlsx(v1).some((a) => a.navn === "Timedele")).toBe(false);
+        expect(indhold.tabeller.KoerselTimeDel).toEqual([]);
+        expect(indhold.tabeller.KoerselTime).toHaveLength(48);           // 24 timer for hver af de to kørsler
+    });
+
+    it("importeres i en installation ved version 2 med de samme rækker som kilden", async () => {
+        const kilde = eksempelDb(24, true);
+        const mål = målMedVaerk(kilde);
+        const { plan } = await importérTil(mål, v1, "arkiv_skemaversion1.xlsx");
+        expect(plan.poster.map((p) => p.udfald)).toEqual(["opret", "opret", "opret", "opret"]);
+        for (const t of IMPORT_TABELLER) expect(tabelSha(rækkerFra(mål, t)), t).toBe(tabelSha(rækkerFra(kilde, t)));
+    });
+
+    it("et arkiv fra en NYERE version end appen afvises med en tekst", () => {
+        const filer = unzipSync(v1);
+        const sti = Object.keys(filer).find((f) => /worksheets\/sheet\d+\.xml$/.test(f) && strFromU8(filer[f]).includes(">skemaversion<"))!;
+        const xml = strFromU8(filer[sti]);
+        filer[sti] = strToU8(xml.replace(/(>skemaversion<\/t><\/is><\/c><c[^>]*><v>)1(<\/v>)/, "$199$2"));
+        expect(strFromU8(filer[sti])).not.toBe(xml);
+        expect(() => læsArkivBog(zipSync(filer))).toThrow(/skemaversion 99; appen her læser version 1–2/);
     });
 });
 
@@ -269,6 +304,49 @@ describe("rundtur eksport -> import", () => {
         }
         expect(difference(ea.k, eb.k)).toEqual(difference(fa.k, fb.k));
         expect(difference(ea.k, eb.k)!.delta).toBeCloseTo(-170, 6);       // scenariet er 170 kr. billigere end referencen
+    });
+
+    it("et bredt værk (runde 14b): timedelene rejser med, Timer-arket folder dem ud, og intervallerne er hele efter importen", async () => {
+        const kilde = eksempelDb(30, true);
+        const n = gørBred(kilde);
+        const e = await eksportérFra(kilde);
+        const ark = læsXlsx(e.bytes);
+        expect(e.manifest.tabeller.KoerselTimeDel.raekker).toBe(n);
+        const timer = ark.find((a) => a.navn === "Timer")!;
+        expect([...timer.celler.get(2)!.values()]).toContain("~json:solgt");       // fra del 1, foldet ud ved sin time
+        expect(læsArkivBog(e.bytes).indhold.tabeller.KoerselTimeDel).toHaveLength(n);
+
+        const mål = målMedVaerk(kilde);
+        const { plan } = await importérTil(mål, e.bytes, e.navn);
+        expect(plan.poster.map((p) => p.udfald)).toEqual(["opret", "opret", "opret", "opret"]);
+        for (const t of IMPORT_TABELLER) expect(tabelSha(rækkerFra(mål, t)), t).toBe(tabelSha(rækkerFra(kilde, t)));
+        sætLæseKilde(() => dabKilde(mål));
+        const k = (await læs("Koersel", { filter: { id: { eq: ID.koersel } } }))[0];
+        const tm = await læs("KoerselTime", { filter: { koersel_id: { eq: ID.koersel } }, sortering: { tid: "asc" } });
+        const td = await læs("KoerselTimeDel", { filter: { koersel_id: { eq: ID.koersel } } });
+        expect(timedeleAntal(k.manifest_json)).toBe(n);
+        expect(fletTimedele(tm, td).map((r) => Object.keys(JSON.parse(r.vaerdier_json)))).toEqual(tm.map(() => ["p_halmkedel_mw", "soc_tank_mwh", "solgt"]));
+    });
+
+    it("eksporten afviser en time uden sin sidste del, selv når det samlede antal passer (Codex, runde 14-review)", async () => {
+        const kilde = eksempelDb(5);
+        gørBred(kilde);
+        // Udefra: én times del er slettet, og en anden time har fået en ekstra - antallet er det samme som før.
+        const [første, anden] = [...kilde.KoerselTimeDel.values()];
+        kilde.KoerselTimeDel.delete(String(første.id));
+        const id = `${String(anden.id).slice(0, 9)}e0e0${String(anden.id).slice(13)}`;
+        kilde.KoerselTimeDel.set(id, { ...anden, id, delnr: 2, vaerdier_json: '{"ekstra":1.0}' });
+        await expect(eksportérFra(kilde)).rejects.toThrow(/ufuldstændige: 2 af 3 kolonner/);
+    });
+
+    it("et bredt værks Timedele-ark, der ikke passer med Timer, afvises", async () => {
+        const kilde = eksempelDb(5);
+        gørBred(kilde);
+        const e = await eksportérFra(kilde);
+        const filer = unzipSync(e.bytes);
+        const sti = Object.keys(filer).find((f) => /worksheets\/sheet\d+\.xml$/.test(f) && strFromU8(filer[f]).includes('{"solgt":true}'))!;
+        filer[sti] = strToU8(strFromU8(filer[sti]).replace('{"solgt":true}', '{"solgt":false}'));
+        expect(() => læsArkivBog(zipSync(filer))).toThrow(/rettet/);
     });
 
     it("anden import: alt findes og springes over; intet skrives", async () => {

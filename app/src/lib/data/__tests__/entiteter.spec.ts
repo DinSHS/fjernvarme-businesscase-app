@@ -19,10 +19,10 @@ function felter(kilde: string): { navn: string; decorator: string; optional: boo
 }
 
 describe("entiteterne", () => {
-    it("alle 15 fra kontrakt v2.3 findes og står i schema.ts", () => {
+    it("alle 16 (kontrakt v2.3 + KoerselTimeDel, skemaversion 2) findes og står i schema.ts", () => {
         expect(entiteter.map(([f]) => navn(f)).sort()).toEqual([
             "Aendringsanmodning", "Aendringslog", "Bestilling", "Koersel", "KoerselInput", "KoerselMaaned",
-            "KoerselNoegletal", "KoerselTime", "Motor", "Scenarie", "ScenarieAendring", "Tidsserie", "Vaerk",
+            "KoerselNoegletal", "KoerselTime", "KoerselTimeDel", "Motor", "Scenarie", "ScenarieAendring", "Tidsserie", "Vaerk",
             "VaerkParameter", "Vaerksarkimport",
         ]);
         const schema = Object.entries(kilder).find(([f]) => f.endsWith("schema.ts"))![1];
@@ -63,7 +63,7 @@ describe("entiteterne", () => {
 
 describe("rettigheder efter KONTRAKT v2 §3.0", () => {
     const k = Object.fromEntries(entiteter.map(([f, s]) => [navn(f), s]));
-    it.each(["Vaerk", "VaerkParameter", "Aendringslog", "KoerselInput", "Koersel", "KoerselNoegletal", "KoerselMaaned", "KoerselTime", "Motor", "Tidsserie", "Vaerksarkimport"])(
+    it.each(["Vaerk", "VaerkParameter", "Aendringslog", "KoerselInput", "Koersel", "KoerselNoegletal", "KoerselMaaned", "KoerselTime", "KoerselTimeDel", "Motor", "Tidsserie", "Vaerksarkimport"])(
         "%s er kun read for klienten", (e) => {
             const roller = k[e].match(/@authenticated\([^)]*\)/g) ?? [];
             expect(roller).toEqual(["@authenticated('read')"]);

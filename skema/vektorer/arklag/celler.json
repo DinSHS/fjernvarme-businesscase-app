@@ -1,0 +1,887 @@
+{
+ "_om": "Appens faner i værksarket: hvad en celle betyder (tom, (findes ikke), værdien eller grunden) efter feltkataloget (runde 14). Genereret af app/src/sider/konfiguration/eksport/lag.spec.ts (FJV_SKRIV_VEKTORER=1) fra TypeScript-udgaven (læsCelle); fabric/tests/test_arklag_vektorer.py kræver samme udfald af fjv.feltkatalog.laes_celle. Ret aldrig i hånden.",
+ "tilfaelde": [
+  {
+   "sti": "units.x.p_max_heat",
+   "celle": 12,
+   "ud": {
+    "json": "12.0"
+   }
+  },
+  {
+   "sti": "units.x.p_max_heat",
+   "celle": 12.5,
+   "ud": {
+    "json": "12.5"
+   }
+  },
+  {
+   "sti": "units.x.p_max_heat",
+   "celle": -1,
+   "ud": {
+    "json": "-1.0"
+   }
+  },
+  {
+   "sti": "units.x.p_max_heat",
+   "celle": "12,5",
+   "ud": {
+    "fejl": "Maks. varmeeffekt: skal være et tal (cellen indeholder teksten \"12,5\")"
+   }
+  },
+  {
+   "sti": "units.x.p_max_heat",
+   "celle": true,
+   "ud": {
+    "fejl": "Maks. varmeeffekt: skal være et tal (cellen indeholder sand)"
+   }
+  },
+  {
+   "sti": "units.x.p_max_heat",
+   "celle": "null",
+   "ud": {
+    "fejl": "Maks. varmeeffekt: påkrævet og må ikke være tom (null)."
+   }
+  },
+  {
+   "sti": "units.x.min_uptime",
+   "celle": 3,
+   "ud": {
+    "json": "3"
+   }
+  },
+  {
+   "sti": "units.x.min_uptime",
+   "celle": 3.5,
+   "ud": {
+    "fejl": "Min. driftstid: skal være et helt tal (cellen indeholder tallet 3,5)"
+   }
+  },
+  {
+   "sti": "units.x.min_uptime",
+   "celle": "3",
+   "ud": {
+    "fejl": "Min. driftstid: skal være et helt tal (cellen indeholder teksten \"3\")"
+   }
+  },
+  {
+   "sti": "units.x.commissioned",
+   "celle": 2015,
+   "ud": {
+    "json": "2015"
+   }
+  },
+  {
+   "sti": "units.x.enabled",
+   "celle": "ja",
+   "ud": {
+    "json": "true"
+   }
+  },
+  {
+   "sti": "units.x.enabled",
+   "celle": "Nej",
+   "ud": {
+    "json": "false"
+   }
+  },
+  {
+   "sti": "units.x.enabled",
+   "celle": " JA ",
+   "ud": {
+    "json": "true"
+   }
+  },
+  {
+   "sti": "units.x.enabled",
+   "celle": true,
+   "ud": {
+    "json": "true"
+   }
+  },
+  {
+   "sti": "units.x.enabled",
+   "celle": "måske",
+   "ud": {
+    "fejl": "Med i modellen: skriv ja eller nej (cellen indeholder teksten \"måske\")"
+   }
+  },
+  {
+   "sti": "units.x.enabled",
+   "celle": 1,
+   "ud": {
+    "fejl": "Med i modellen: skriv ja eller nej (cellen indeholder tallet 1)"
+   }
+  },
+  {
+   "sti": "units.x.enabled",
+   "celle": "sand",
+   "ud": {
+    "json": "true"
+   }
+  },
+  {
+   "sti": "units.x.enabled",
+   "celle": "false",
+   "ud": {
+    "json": "false"
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": "ja",
+   "ud": {
+    "json": "1"
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": "nej",
+   "ud": {
+    "json": "0"
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": 1,
+   "ud": {
+    "json": "1"
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": 0,
+   "ud": {
+    "json": "0"
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": 2,
+   "ud": {
+    "fejl": "Tændt ved periodens start: \"2\" er ikke tilladt. Tilladte: 0, 1."
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": 0.5,
+   "ud": {
+    "fejl": "Tændt ved periodens start: skriv ja eller nej (cellen indeholder tallet 0,5)"
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": "tændt",
+   "ud": {
+    "fejl": "Tændt ved periodens start: skriv ja eller nej (cellen indeholder teksten \"tændt\")"
+   }
+  },
+  {
+   "sti": "units.x.uc_enabled",
+   "celle": "nej",
+   "ud": {
+    "json": "false"
+   }
+  },
+  {
+   "sti": "units.x.co2_emissions_per_mwh_fuel",
+   "celle": 0.204,
+   "ud": {
+    "json": "0.204"
+   }
+  },
+  {
+   "sti": "units.x.co2_emissions_per_mwh_fuel",
+   "celle": -0.1,
+   "ud": {
+    "fejl": "CO₂-udledning: skal være ≥ 0."
+   }
+  },
+  {
+   "sti": "units.x.notes",
+   "celle": "ja",
+   "ud": {
+    "json": "\"ja\""
+   }
+  },
+  {
+   "sti": "units.x.notes",
+   "celle": "Under indkøring — ikke i drift.",
+   "ud": {
+    "json": "\"Under indkøring — ikke i drift.\""
+   }
+  },
+  {
+   "sti": "units.x.notes",
+   "celle": 2015,
+   "ud": {
+    "fejl": "Noter: skal være tekst (cellen indeholder tallet 2015; skriv en apostrof foran, hvis Excel gør teksten til et tal eller en dato)"
+   }
+  },
+  {
+   "sti": "units.x.notes",
+   "celle": " med kanter ",
+   "ud": {
+    "json": "\" med kanter \""
+   }
+  },
+  {
+   "sti": "units.x.notes",
+   "celle": "null",
+   "ud": {
+    "json": "\"null\""
+   }
+  },
+  {
+   "sti": "units.x.type",
+   "celle": "gas_boiler",
+   "ud": {
+    "json": "\"gas_boiler\""
+   }
+  },
+  {
+   "sti": "units.x.type",
+   "celle": "oliekedel",
+   "ud": {
+    "fejl": "Enhedstype: \"oliekedel\" er ikke tilladt. Tilladte: heat_pump, electric_boiler, biomass_boiler, gas_boiler, gas_engine_chp, solar_thermal, waste_heat."
+   }
+  },
+  {
+   "sti": "units.x.type",
+   "celle": " heat_pump ",
+   "ud": {
+    "json": "\"heat_pump\""
+   }
+  },
+  {
+   "sti": "units.x.fuel",
+   "celle": "natural_gas",
+   "ud": {
+    "json": "\"natural_gas\""
+   }
+  },
+  {
+   "sti": "units.x.ancillary.available_from",
+   "celle": "2026-03-01",
+   "ud": {
+    "json": "\"2026-03-01\""
+   }
+  },
+  {
+   "sti": "units.x.ancillary.available_from",
+   "celle": 46082,
+   "ud": {
+    "json": "\"2026-03-01\""
+   }
+  },
+  {
+   "sti": "units.x.ancillary.available_from",
+   "celle": 12,
+   "ud": {
+    "fejl": "Byder fra dato: skal være tekst (cellen indeholder tallet 12; skriv en apostrof foran, hvis Excel gør teksten til et tal eller en dato)"
+   }
+  },
+  {
+   "sti": "units.x.ancillary.bid_window.months",
+   "celle": "[10,11,12,1,2,3]",
+   "ud": {
+    "json": "[10,11,12,1,2,3]"
+   }
+  },
+  {
+   "sti": "units.x.ancillary.bid_window.months",
+   "celle": "10, 11, 12",
+   "ud": {
+    "json": "[10,11,12]"
+   }
+  },
+  {
+   "sti": "units.x.ancillary.bid_window.months",
+   "celle": 3,
+   "ud": {
+    "json": "[3]"
+   }
+  },
+  {
+   "sti": "units.x.ancillary.bid_window.months",
+   "celle": "vinter",
+   "ud": {
+    "fejl": "Budvindue: måneder: skal være en liste, fx [10,11,12] eller 10, 11, 12 (cellen indeholder teksten \"vinter\")"
+   }
+  },
+  {
+   "sti": "units.x.ancillary.bid_window.months",
+   "celle": "{\"a\":1}",
+   "ud": {
+    "json": "[{\"a\":1}]"
+   }
+  },
+  {
+   "sti": "units.x.ancillary.afrr_max_bid_mw",
+   "celle": 1.5,
+   "ud": {
+    "json": "1.5"
+   }
+  },
+  {
+   "sti": "units.x.findes_ikke",
+   "celle": 1,
+   "ud": {
+    "fejl": "stien findes ikke i feltkataloget (et felt, modellen ikke kender)"
+   }
+  },
+  {
+   "sti": "units.x",
+   "celle": "{}",
+   "ud": {
+    "fejl": "stien findes ikke i feltkataloget (et felt, modellen ikke kender)"
+   }
+  },
+  {
+   "sti": "units.x.ancillary",
+   "celle": "{}",
+   "ud": {
+    "fejl": "stien findes ikke i feltkataloget (et felt, modellen ikke kender)"
+   }
+  },
+  {
+   "sti": "storage.t.e_initial_mwh",
+   "celle": 96,
+   "ud": {
+    "json": "96.0"
+   }
+  },
+  {
+   "sti": "storage.t.e_initial_mwh",
+   "celle": -1,
+   "ud": {
+    "fejl": "Indhold ved start: skal være ≥ 0."
+   }
+  },
+  {
+   "sti": "storage.t.e_initial_mwh",
+   "celle": "null",
+   "ud": {
+    "fejl": "Indhold ved start: påkrævet og må ikke være tom (null)."
+   }
+  },
+  {
+   "sti": "storage.t.e_max_mwh",
+   "celle": "null",
+   "ud": {
+    "json": "null"
+   }
+  },
+  {
+   "sti": "storage.t.e_max_mwh",
+   "celle": "NULL",
+   "ud": {
+    "json": "null"
+   }
+  },
+  {
+   "sti": "storage.t.self_discharge_per_hour",
+   "celle": 0,
+   "ud": {
+    "json": "0.0"
+   }
+  },
+  {
+   "sti": "storage.t.self_discharge_per_hour",
+   "celle": 0.0005,
+   "ud": {
+    "json": "0.0005"
+   }
+  },
+  {
+   "sti": "storage.t.cycle_binding",
+   "celle": "nej",
+   "ud": {
+    "json": "false"
+   }
+  },
+  {
+   "sti": "storage.t.volume_m3",
+   "celle": 5000,
+   "ud": {
+    "json": "5000.0"
+   }
+  },
+  {
+   "sti": "balancing.method",
+   "celle": "activation_value",
+   "ud": {
+    "json": "\"activation_value\""
+   }
+  },
+  {
+   "sti": "balancing.method",
+   "celle": "gætværk",
+   "ud": {
+    "fejl": "Indtægtsmetode: \"gætværk\" er ikke tilladt. Tilladte: legacy, activation_value."
+   }
+  },
+  {
+   "sti": "balancing.robust_reservation",
+   "celle": "ja",
+   "ud": {
+    "json": "true"
+   }
+  },
+  {
+   "sti": "balancing.ancillary_caps.total_mw",
+   "celle": 14,
+   "ud": {
+    "json": "14.0"
+   }
+  },
+  {
+   "sti": "balancing.ancillary_caps.total_mw",
+   "celle": -1,
+   "ud": {
+    "fejl": "Samlet prækvalifikation: skal være ≥ 0."
+   }
+  },
+  {
+   "sti": "balancing.ancillary_caps.per_unit_mw.vp",
+   "celle": 6,
+   "ud": {
+    "json": "6.0"
+   }
+  },
+  {
+   "sti": "balancing.ancillary_caps.per_unit_market_mw.vp.afrr",
+   "celle": 2,
+   "ud": {
+    "json": "2.0"
+   }
+  },
+  {
+   "sti": "balancing.bid_strategy.up_markup_dkk_mwh",
+   "celle": 500,
+   "ud": {
+    "json": "500.0"
+   }
+  },
+  {
+   "sti": "balancing.reservation_gate.mode",
+   "celle": "bound",
+   "ud": {
+    "json": "\"bound\""
+   }
+  },
+  {
+   "sti": "balancing.reservation_gate.afrr.block_mw",
+   "celle": 3,
+   "ud": {
+    "json": "3.0"
+   }
+  },
+  {
+   "sti": "balancing.reservation_gate.afrr.opportunity_cost.reference_unit",
+   "celle": "vp_luft_vand",
+   "ud": {
+    "json": "\"vp_luft_vand\""
+   }
+  },
+  {
+   "sti": "balancing.activation.foresight",
+   "celle": "profile",
+   "ud": {
+    "json": "\"profile\""
+   }
+  },
+  {
+   "sti": "balancing.activation.afrr.model",
+   "celle": "system_share",
+   "ud": {
+    "json": "\"system_share\""
+   }
+  },
+  {
+   "sti": "balancing.activation.afrr.k",
+   "celle": 4,
+   "ud": {
+    "json": "4.0"
+   }
+  },
+  {
+   "sti": "balancing.availability.afrr.mw_by_month.2026-03",
+   "celle": 1.155,
+   "ud": {
+    "json": "1.155"
+   }
+  },
+  {
+   "sti": "balancing.availability.mode",
+   "celle": "energy",
+   "ud": {
+    "json": "\"energy\""
+   }
+  },
+  {
+   "sti": "grid.max_consumption_mw",
+   "celle": 33,
+   "ud": {
+    "json": "33.0"
+   }
+  },
+  {
+   "sti": "investment.enabled",
+   "celle": "nej",
+   "ud": {
+    "json": "false"
+   }
+  },
+  {
+   "sti": "meta.tax_year",
+   "celle": 2026,
+   "ud": {
+    "json": "2026.0"
+   }
+  },
+  {
+   "sti": "meta.description",
+   "celle": "Fiktivt referenceværk.",
+   "ud": {
+    "json": "\"Fiktivt referenceværk.\""
+   }
+  },
+  {
+   "sti": "meta.case_name",
+   "celle": "andeby",
+   "ud": {
+    "json": "\"andeby\""
+   }
+  },
+  {
+   "sti": "solver.mip_rel_gap",
+   "celle": 0.001,
+   "ud": {
+    "json": "0.001"
+   }
+  },
+  {
+   "sti": "solver.time_limit",
+   "celle": 3600,
+   "ud": {
+    "json": "3600.0"
+   }
+  },
+  {
+   "sti": "time.start",
+   "celle": "2026-03-02T00:00:00Z",
+   "ud": {
+    "json": "\"2026-03-02T00:00:00Z\""
+   }
+  },
+  {
+   "sti": "time.resolution",
+   "celle": "1h",
+   "ud": {
+    "json": "\"1h\""
+   }
+  },
+  {
+   "sti": "time.resolution",
+   "celle": "5min",
+   "ud": {
+    "fejl": "Tidsopløsning: \"5min\" er ikke tilladt. Tilladte: 1h, 15min."
+   }
+  },
+  {
+   "sti": "data.dmi_area",
+   "celle": "karup",
+   "ud": {
+    "json": "\"karup\""
+   }
+  },
+  {
+   "sti": "electricity.tariff_consumption_flat",
+   "celle": 125,
+   "ud": {
+    "json": "125.0"
+   }
+  },
+  {
+   "sti": "electricity.tariff_consumption.source",
+   "celle": "Fiktivt netselskab",
+   "ud": {
+    "json": "\"Fiktivt netselskab\""
+   }
+  },
+  {
+   "sti": "electricity.tariff_consumption.unit",
+   "celle": "kr_per_mwh",
+   "ud": {
+    "json": "\"kr_per_mwh\""
+   }
+  },
+  {
+   "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+   "celle": 0,
+   "ud": {
+    "json": "0.0"
+   }
+  },
+  {
+   "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+   "celle": "[10,11,12,1,2,3]",
+   "ud": {
+    "json": "[10,11,12,1,2,3]"
+   }
+  },
+  {
+   "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+   "celle": "spids",
+   "ud": {
+    "json": "\"spids\""
+   }
+  },
+  {
+   "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+   "celle": 4,
+   "ud": {
+    "json": "4.0"
+   }
+  },
+  {
+   "sti": "heat_load_params.baseline_profile_mw",
+   "celle": "[5.66,5.74,5.87]",
+   "ud": {
+    "json": "[5.66,5.74,5.87]"
+   }
+  },
+  {
+   "sti": "heat_load_params.baseline_profile_mw",
+   "celle": "[5.66, 5.0, 6]",
+   "ud": {
+    "json": "[5.66,5.0,6]"
+   }
+  },
+  {
+   "sti": "heat_load_params.gaf_mw_per_k",
+   "celle": 0.7653,
+   "ud": {
+    "json": "0.7653"
+   }
+  },
+  {
+   "sti": "heat_load_params.gaf_mw_per_k",
+   "celle": 0.00001,
+   "ud": {
+    "json": "1e-05"
+   }
+  },
+  {
+   "sti": "prices.co2_eua.unit",
+   "celle": "DKK/t",
+   "ud": {
+    "json": "\"DKK/t\""
+   }
+  },
+  {
+   "sti": "prices.straw.value",
+   "celle": 232,
+   "ud": {
+    "json": "232.0"
+   }
+  },
+  {
+   "sti": "prices.fyringsolie.value",
+   "celle": 900,
+   "ud": {
+    "fejl": "stien findes ikke i feltkataloget (et felt, modellen ikke kender)"
+   }
+  },
+  {
+   "sti": "units.x.co2_emissions_per_mwh_fuel",
+   "celle": null,
+   "ud": {
+    "tom": true
+   }
+  },
+  {
+   "sti": "units.x.co2_emissions_per_mwh_fuel",
+   "celle": "",
+   "ud": {
+    "tom": true
+   }
+  },
+  {
+   "sti": "units.x.co2_emissions_per_mwh_fuel",
+   "celle": "   ",
+   "ud": {
+    "tom": true
+   }
+  },
+  {
+   "sti": "units.x.co2_emissions_per_mwh_fuel",
+   "celle": "(findes ikke)",
+   "ud": {
+    "fjern": true
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": " (Findes ikke) ",
+   "ud": {
+    "fjern": true
+   }
+  },
+  {
+   "sti": "units.x.findes_ikke",
+   "celle": null,
+   "ud": {
+    "tom": true
+   }
+  },
+  {
+   "sti": "units.x.findes_ikke",
+   "celle": "(findes ikke)",
+   "ud": {
+    "fjern": true
+   }
+  },
+  {
+   "sti": "units.x.notes",
+   "celle": "(findes ikke)",
+   "ud": {
+    "fjern": true
+   }
+  },
+  {
+   "sti": "balancing.method",
+   "celle": null,
+   "ud": {
+    "tom": true
+   }
+  },
+  {
+   "sti": "balancing.method",
+   "celle": "aktiveringsværdi kvarter for kvarter – anbefalet (activation_value)",
+   "ud": {
+    "json": "\"activation_value\""
+   }
+  },
+  {
+   "sti": "balancing.method",
+   "celle": "aktiveringsværdi",
+   "ud": {
+    "fejl": "Indtægtsmetode: \"aktiveringsværdi\" er ikke tilladt. Tilladte: legacy, activation_value."
+   }
+  },
+  {
+   "sti": "balancing.method",
+   "celle": "noget (forkert)",
+   "ud": {
+    "fejl": "Indtægtsmetode: \"noget (forkert)\" er ikke tilladt. Tilladte: legacy, activation_value."
+   }
+  },
+  {
+   "sti": "balancing.activation.foresight",
+   "celle": "i går (lag24)",
+   "ud": {
+    "json": "\"lag24\""
+   }
+  },
+  {
+   "sti": "balancing.activation.foresight",
+   "celle": "i går ( lag24 )",
+   "ud": {
+    "json": "\"lag24\""
+   }
+  },
+  {
+   "sti": "balancing.activation.settle",
+   "celle": "efter det der skete (realized)",
+   "ud": {
+    "json": "\"realized\""
+   }
+  },
+  {
+   "sti": "balancing.activation.afrr.model",
+   "celle": "andel af systemets aktivering gange k (system_share)",
+   "ud": {
+    "json": "\"system_share\""
+   }
+  },
+  {
+   "sti": "balancing.reservation_gate.mode",
+   "celle": "reservér højst blokken (bound)",
+   "ud": {
+    "json": "\"bound\""
+   }
+  },
+  {
+   "sti": "balancing.availability.mode",
+   "celle": "loft på månedens MWh (energy)",
+   "ud": {
+    "json": "\"energy\""
+   }
+  },
+  {
+   "sti": "data.dmi_area",
+   "celle": "Karup (karup)",
+   "ud": {
+    "json": "\"karup\""
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": true,
+   "ud": {
+    "json": "1"
+   }
+  },
+  {
+   "sti": "units.x.initial_status",
+   "celle": false,
+   "ud": {
+    "json": "0"
+   }
+  },
+  {
+   "sti": "units.x.enabled",
+   "celle": false,
+   "ud": {
+    "json": "false"
+   }
+  },
+  {
+   "sti": "units.x.uc_enabled",
+   "celle": true,
+   "ud": {
+    "json": "true"
+   }
+  },
+  {
+   "sti": "storage.t.cycle_binding",
+   "celle": false,
+   "ud": {
+    "json": "false"
+   }
+  },
+  {
+   "sti": "units.x.min_uptime",
+   "celle": true,
+   "ud": {
+    "fejl": "Min. driftstid: skal være et helt tal (cellen indeholder sand)"
+   }
+  },
+  {
+   "sti": "units.x.notes",
+   "celle": false,
+   "ud": {
+    "fejl": "Noter: skal være tekst (cellen indeholder falsk; skriv en apostrof foran, hvis Excel gør teksten til et tal eller en dato)"
+   }
+  },
+  {
+   "sti": "units.x.ancillary.bid_window.months",
+   "celle": true,
+   "ud": {
+    "fejl": "Budvindue: måneder: skal være en liste, fx [10,11,12] eller 10, 11, 12 (cellen indeholder sand)"
+   }
+  }
+ ]
+}

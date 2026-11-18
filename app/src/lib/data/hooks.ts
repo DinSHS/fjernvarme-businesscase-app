@@ -13,6 +13,7 @@ import { læs, læsÉn } from "./laes";
 import { POLL_MS, erAktiv } from "./koersel-status";
 import { useOpdateringsVersion } from "./opdatering";
 import { hentDmiTemperatur, hentKildeYaml, hentTidsserie } from "./skriv";
+import { læsTimer, timedeleAntal } from "./timedele";
 import { MOTOR_ID } from "../../../rayfin/data/fjv.constants";
 
 export interface Hentet<T> {
@@ -281,20 +282,18 @@ export function useMaaneder(koerselId: string | undefined): Hentet<R<"KoerselMaa
 /**
  * Intervaldispatch i et vindue [fra, til). ALTID med vindue (KONTRAKT §3.10) —
  * hooken nægter et vindue over 31 døgn, så ingen side kommer til at hente et helt år.
+ * Et bredt værks KoerselTimeDel sættes på (runde 14b, `læsTimer`): én vaerdier_json pr. interval.
  */
 export const MAKS_VINDUE_DOEGN = 31;
-export function useTimer(koerselId: string | undefined, fra: Date | undefined, til: Date | undefined): Hentet<R<"KoerselTime">[]> {
-    const gyldigt = !!(koerselId && fra && til && til > fra);
-    const nøgle = gyldigt ? `timer:${koerselId}:${fra!.toISOString()}:${til!.toISOString()}` : null;
+export function useTimer(koersel: Pick<R<"Koersel">, "id" | "manifest_json"> | undefined, fra: Date | undefined, til: Date | undefined): Hentet<R<"KoerselTime">[]> {
+    const gyldigt = !!(koersel && fra && til && til > fra);
+    const dele = timedeleAntal(koersel?.manifest_json);
+    const nøgle = gyldigt ? `timer:${koersel!.id}:${dele}:${fra!.toISOString()}:${til!.toISOString()}` : null;
     return useHent(nøgle, async () => {
         if ((til!.getTime() - fra!.getTime()) / 86_400_000 > MAKS_VINDUE_DOEGN) {
             throw new Error(`Tidsvinduet er for langt (højst ${MAKS_VINDUE_DOEGN} døgn ad gangen).`);
         }
-        return læs("KoerselTime", {
-            filter: { and: [{ koersel_id: { eq: koerselId } }, { tid: { gte: fra } }, { tid: { lt: til } }] },
-            sortering: { tid: "asc" },
-            sidestørrelse: 1000,
-        });
+        return læsTimer(koersel!, fra!, til!);
     });
 }
 

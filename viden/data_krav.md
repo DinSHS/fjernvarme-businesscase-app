@@ -148,6 +148,49 @@ Kørt lokalt 2026-10-16 (`scripts/vaerksark_til_yaml.py` uændret, output i egen
   `tidsserie:solprofil`. Den syntetiske solprofil dækker 2025–2026; varmelasten kun det faste år.
 - `--timeslut` gælder både Timedata og Solvarme og flyttes **efter** UTC-omregning (scripts/vaerksark_til_yaml.py:361-367).
 
+### Appens egne faner i det eksporterede ark (runde 14)
+
+Målt 2026-11-17 ved `90fb16e` på katalogets 7 værker: skabelonen og scriptet bar 190–201 af et værks 190–232 blade,
+og 71–106 felter stod på listen *ikke med i arket* — hele `balancing`, `initial_status`, tankenes startfyldning og
+selvafladning, `commissioned`, enhedernes budlofter, `uc_enabled`, den flade eltarif, nettilslutning, `investment` …
+Appens eksport lægger derfor tre **egne** faner i arket efter modelrepoets. Scriptet læser dem ikke; appens import
+lægger deres værdier oven på scriptets læsning (`fabric/fjv/arklag.py`). Det er appens egen antagelse
+(`doc/TROFASTHED.md` afsnit 5), ikke modellens kontrakt.
+
+| Fane | Form | Felter |
+|---|---|---|
+| `Start og drift` | tabel pr. enhed og pr. tank; rækken under overskriften bærer stiskabelonen (`units.{enhed}.initial_status`) | `enabled`, `initial_status`, `uc_enabled`, `co2_emissions_per_mwh_fuel`, `commissioned`, `notes`; tank: `enabled`, `e_initial_mwh`, `self_discharge_per_hour`, `cycle_binding`, `notes` |
+| `Balancemarked` | feltblokke (felt, værdi/aFRR/mFRR, enhed, forklaring, sti i modellen), en tabel pr. enhed og en pr. måned | hele `balancing` og enhedernes `ancillary`-felter ud over "kan byde" i Anlaeg |
+| `Øvrige felter` | felt, værdi, *kun hvis modelscriptet giver*, enhed, forklaring, sti i modellen | hvert resterende blad; `(findes ikke)` fjerner et felt, scriptet ellers skriver |
+| `Læs først` | (læses ikke af importen) | værkets identitet, farver, og hvor modelrepoets faner ikke viser det, modellen bruger |
+
+- **Typen kommer fra feltkataloget, ikke fra cellen** (`viden/felt_katalog.json`): `number` gemmes som decimaltal,
+  `integer` som heltal, ja/nej som `true`/`false` (eller 1/0 for `initial_status`), lister som JSON-tekst. Et heltal,
+  hvor kataloget siger tal (`e_initial_mwh: 96`), kommer tilbage som 96 via markeringens skrivemåder (`_app`, `former`).
+- **En tom celle** betyder, at appen ikke rører feltet (scriptets værdi, som hvis rækken ikke fandtes); `(findes ikke)`
+  betyder, at feltet ikke sættes (modellens standard). Eksporten skriver altid en værdi eller `(findes ikke)`.
+- **Blokkene findes på overskrifterne** (en feltblok har `felt` i A og en kolonne `sti i modellen`; en tabel har rækken
+  `sti i modellen` lige under overskriften), og en blok slutter, hvor den næste begynder. Læserne går kun over rækker,
+  arket har celler i, og afviser celler uden for et regnearks grænser. En formel uden gemt resultat afvises.
+- **Lister vises på dansk** med koden i parentes; importen læser koden i parentesen (`i går (lag24)` → `lag24`).
+- **Start/stop-logik nej med startomkostning, min. drifts-/stoptid over 1 time eller min varme over 0** giver en
+  advarsel i importens log (feltkataloget: de virker kun med start/stop-logik).
+  En enhed uden række beholder scriptets værdier, og importens log siger det.
+- **En betinget række** i `Øvrige felter` gælder kun, når scriptet giver den værdi, rækken er skrevet til; ellers
+  vinder det, brugeren har rettet i modelrepoets faner, og loggen siger, at rækken ikke blev brugt.
+- **Afvisning med ark, celle og grund:** en sti, feltkataloget ikke kender; et enhedsnavn, der ikke står i Anlaeg; en
+  værdi af forkert type eller uden for feltets grænser; et færdigt værk, der ikke opfylder modellens minimumskrav
+  (`fabric/fjv/modelkrav.py`, samme vektorer som appens `tjekModelkrav`).
+- **Rækker, scriptet springer over uden besked**, afviser importen med rækkenummer, før scriptet kører: en enhed med
+  navn, men uden type (scripts/vaerksark_til_yaml.py:606), en tank uden volumen (:878) eller under de seks tankrækker
+  (:876), et målepunkt under varmepumpens tabel (:513-515).
+- **Advarsel i loggen**, når hver styrbar enhed har unit commitment og står til slukket ved start (scriptet skriver
+  `initial_status: 0`, scripts/vaerksark_til_yaml.py:855-856): værket kan ikke dække første time uden tank.
+- **Markeringen `_app` er format 3.** Et ark i format 2 (uden fanerne) afvises som revision ("eksportér igen") og
+  importeres som nyt værk som før. Et ark helt uden fanerne — modelrepoets rene skabelon — importeres uændret.
+- **Bevist i gaten** (`viden/vaerktoej/tjek_eksport_rundtur.py`): eksport → upload som nyt værk giver det oprindelige
+  værk blad for blad, bortset fra solprofilens sti, og `run_case` giver samme objektiv, også med balancemarked.
+
 ## 5. "Data i denne kørsel" (til fv-analyse2)
 
 `data_krav.json → data_i_koersel.linjer` er den præcise liste: df-data- og modelcommit, værksrevision, periode,

@@ -112,6 +112,12 @@ export const FELTER = {
         tal: ["varmelast_mw", "spotpris", "t_ude"],
         andre: ["id", "koersel_id"],
     }),
+    KoerselTimeDel: sæt<"KoerselTimeDel">({
+        tekst: ["vaerdier_json"],
+        dato: ["tid"],
+        tal: ["delnr"],
+        andre: ["id", "koersel_id"],
+    }),
     Motor: sæt<"Motor">({
         tekst: ["model_commit", "data_commit", "sidste_job_id"],
         dato: ["sidste_jobstart", "aendret"],

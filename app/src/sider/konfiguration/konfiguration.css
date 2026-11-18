@@ -145,3 +145,8 @@
 .kf-ikke-med td .kf-sti { display: block; }
 .kf-diff td[data-tal="true"] { font-variant-numeric: tabular-nums; }
 .kf-diff ins { text-decoration: none; font-weight: 600; }
+
+/* Runde 14c: "Tilføj et felt" under et afsnits felter (fold ud). */
+.kf-tilfoej { border-top: 1px solid var(--dash-hairline); margin-top: 10px; padding-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+.kf-tilfoej > summary { cursor: pointer; font-size: var(--t-brod); color: var(--dash-ink-2); padding: 2px 0; }
+.kf-tilfoej[open] { gap: 10px; }

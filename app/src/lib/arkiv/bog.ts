@@ -8,9 +8,11 @@
 // og genimporten kræver PRÆCIS de afledte kolonner, skriveren ville lave af de samme rækker (K10-F8):
 //   * tid: "<felt> (dansk tid)" som Excel-dato ved siden af "<felt> (UTC)" som ISO-tekst. Excels serietal har
 //     ingen tidszone, så det er ISO-teksten, der er data; den danske dato er vægur i Europe/Copenhagen.
-//   * Timer: værdierne i vaerdier_json foldet ud i hver sin kolonne (tal som tal).
+//   * Timer: værdierne i vaerdier_json foldet ud i hver sin kolonne (tal som tal) - for et bredt værk (runde 14b)
+//     sammen med intervallets KoerselTimeDel-dele, så hver kolonne står ét sted; delene selv står rå i "Timedele".
 // En tabel, der ikke kan være i ét ark (Excel: 1.048.576 rækker), deles i "Timer", "Timer (2)" … — aldrig afkortet.
 // Det skjulte ark `_manifest` har formatet, skemaversionen, app-versionen og pr. tabel ark, rækketal og sha256.
+// Et arkiv fra skemaversion 1 (før KoerselTimeDel) læses stadig: det har ingen timedele (TABELLER_I_VERSION).
 //-----------------------------------------------------------------------
 
 import {
@@ -18,17 +20,27 @@ import {
     type ImportTabel, type Kanonisk, type Kolonne,
 } from "../../../rayfin/functions/src/arkiv";
 import { EXCEL_MAKS_RÆKKER, læsXlsx, skrivXlsx, type Ark, type Celle, type Læst, type LæstArk } from "./xlsx";
+import { fletTekst } from "../data/timedele";
 
 /** Arkivets tabeller: de genimporterede, værksloggen (kun til orientering) og referencerne (værker, revisioner, tidsserier). */
 export const ARKIV_TABELLER = [
     "Scenarie", "ScenarieAendring", "Bestilling", "Koersel", "KoerselInput", "KoerselNoegletal", "KoerselMaaned", "KoerselTime",
-    "Aendringslog", "VaerkRef", "Vaerksrevision", "TidsserieRef",
+    "KoerselTimeDel", "Aendringslog", "VaerkRef", "Vaerksrevision", "TidsserieRef",
 ] as const;
 export type ArkivTabel = (typeof ARKIV_TABELLER)[number];
 
+/**
+ * Arkivets tabeller pr. skemaversion. Version 1 (før runde 14b) havde ingen KoerselTimeDel; dens manifest og
+ * samlede sha256 er over netop de tabeller, og et sådant arkiv læses med en tom KoerselTimeDel.
+ */
+export const TABELLER_I_VERSION: Readonly<Record<number, readonly ArkivTabel[]>> = {
+    1: ARKIV_TABELLER.filter((t) => t !== "KoerselTimeDel"),
+    2: ARKIV_TABELLER,
+};
+
 export const ARK_NAVN: Record<ArkivTabel, string> = {
     Scenarie: "Scenarier", ScenarieAendring: "Ændringer", Bestilling: "Bestillinger", Koersel: "Kørsler", KoerselInput: "Input",
-    KoerselNoegletal: "Nøgletal", KoerselMaaned: "Måneder", KoerselTime: "Timer", Aendringslog: "Værksændringer",
+    KoerselNoegletal: "Nøgletal", KoerselMaaned: "Måneder", KoerselTime: "Timer", KoerselTimeDel: "Timedele", Aendringslog: "Værksændringer",
     VaerkRef: "Værker", Vaerksrevision: "Værksrevisioner", TidsserieRef: "Tidsserier",
 };
 
@@ -70,7 +82,7 @@ const ETIKET: Record<string, string> = {
     varmelast_mw: "Varmelast (MW)", spotpris: "Spotpris (kr./MWh)", t_ude: "Udetemperatur (°C)", vaerdier_json: "Øvrige værdier (JSON)",
     revision: "Revision", handling: "Handling", gammel_json: "Gammel værdi (JSON)", ny_json: "Ny værdi (JSON)", aendret_af: "Ændret af",
     tidspunkt: "Tidspunkt", anmodning_id: "Anmodning (id)", kode: "Værkskode", parametre_sha256: "Parametrenes sha256",
-    rolle: "Rolle", filnavn: "Filnavn", sha256: "sha256", uploadet: "Uploadet",
+    rolle: "Rolle", filnavn: "Filnavn", sha256: "sha256", uploadet: "Uploadet", delnr: "Del nr.",
 };
 
 const etiket = (navn: string) => ETIKET[navn] ?? navn;
@@ -140,7 +152,21 @@ interface Kolonnespec { teknisk: string; etiket: string; bredde: number; værdi:
 export const AFLEDT_DK = "~dk:";
 export const AFLEDT_JSON = "~json:";
 
-function kolonnespecs(t: ArkivTabel, rækker: readonly (readonly Kanonisk[])[]): Kolonnespec[] {
+/** Et intervals timedele (runde 14b): nøgle `<koersel_id>|<tid>` -> delene. */
+export type Timedele = ReadonlyMap<string, readonly { delnr: number; vaerdier_json: string }[]>;
+
+export function timedeleAf(dele: readonly (readonly Kanonisk[])[]): Timedele {
+    const ks = arkivKolonner("KoerselTimeDel").map((k) => k.navn);
+    const [ki, ti, di, ji] = ["koersel_id", "tid", "delnr", "vaerdier_json"].map((n) => ks.indexOf(n));
+    const m = new Map<string, { delnr: number; vaerdier_json: string }[]>();
+    for (const d of dele) {
+        const n = `${String(d[ki])}|${String(d[ti])}`;
+        m.set(n, [...(m.get(n) ?? []), { delnr: Number(d[di]), vaerdier_json: String(d[ji]) }]);
+    }
+    return m;
+}
+
+function kolonnespecs(t: ArkivTabel, rækker: readonly (readonly Kanonisk[])[], timedele: Timedele = new Map()): Kolonnespec[] {
     const ks = arkivKolonner(t);
     const ud: Kolonnespec[] = [];
     ks.forEach((k, i) => {
@@ -153,9 +179,19 @@ function kolonnespecs(t: ArkivTabel, rækker: readonly (readonly Kanonisk[])[]):
         }
     });
     if (t === "KoerselTime") {
-        const j = ks.findIndex((k) => k.navn === "vaerdier_json");
-        for (const nøgle of udfoldedeNøgler(rækker.map((r) => r[j] as string))) {
-            ud.push({ teknisk: `${AFLEDT_JSON}${nøgle}`, etiket: nøgle, bredde: 14, værdi: (r) => udfold(r[j] as string, nøgle) });
+        const [j, ki, ti] = ["vaerdier_json", "koersel_id", "tid"].map((n) => ks.findIndex((k) => k.navn === n));
+        // Intervallets hele værdier: KoerselTime + dets timedele (runde 14b). Passer de ikke sammen, er arket rettet.
+        const hel = new Map<readonly Kanonisk[], string>();
+        for (const r of rækker) {
+            const hvor = `kl. ${String(r[ti])}`;
+            try {
+                hel.set(r, fletTekst(hvor, r[j] as string, timedele.get(`${String(r[ki])}|${String(r[ti])}`) ?? []));
+            } catch (e) {
+                afvis(`Timer og Timedele passer ikke sammen ${hvor}: ${(e as Error).message} Arket er rettet eller beskadiget.`);
+            }
+        }
+        for (const nøgle of udfoldedeNøgler([...hel.values()])) {
+            ud.push({ teknisk: `${AFLEDT_JSON}${nøgle}`, etiket: nøgle, bredde: 14, værdi: (r) => udfold(hel.get(r) ?? (r[j] as string), nøgle) });
         }
     }
     return ud;
@@ -194,13 +230,14 @@ export function bygArkivBog(i: ArkivIndhold, valg: Skrivevalg = {}): { bytes: Ui
     const maks = valg.maksDatarækker ?? EXCEL_MAKS_RÆKKER - 2;
     const tabelark: Ark[] = [];
     const arknavne = {} as Record<ArkivTabel, string[]>;
+    const timedele = timedeleAf(i.tabeller.KoerselTimeDel);
     for (const t of ARKIV_TABELLER) {
         const rækker = i.tabeller[t];
         const dele: (readonly Kanonisk[])[][] = [];
         for (let a = 0; a < Math.max(1, rækker.length); a += maks) dele.push(rækker.slice(a, a + maks));
         arknavne[t] = dele.map((_, d) => (d === 0 ? ARK_NAVN[t] : `${ARK_NAVN[t]} (${d + 1})`));
         dele.forEach((del, d) => {
-            const specs = kolonnespecs(t, del);
+            const specs = kolonnespecs(t, del, timedele);
             tabelark.push({
                 navn: arknavne[t][d],
                 rækker: [specs.map((s) => s.etiket), specs.map((s) => s.teknisk), ...del.map((r) => specs.map((s) => s.værdi(r)))],
@@ -231,7 +268,7 @@ function læsMigArk(i: ArkivIndhold, m: Manifest): Ark {
         ["Tid", "Databasen gemmer tid i UTC. Hver tidskolonne står to gange: \"(dansk tid)\" er en Excel-dato i vægur Europe/Copenhagen (Excel-datoer har ingen tidszone) og \"(UTC)\" er tidspunktet som ISO-tekst — det er den, genimporten læser."],
         ["Tal", "Tal arkiveres med dobbelt præcision (ca. 15–17 betydende cifre) — som appen læser dem fra databasen. Regnemotoren skriver selv tal med dobbelt præcision, så for dens tal er der intet tab. Databasens DECIMAL-kolonner kan rumme flere cifre; har en værdi flere (fx skrevet udefra med SQL), er den allerede afrundet til dobbelt præcision, når appen læser den, og arkivet gemmer den afrundede værdi. Tomme celler er tomme værdier (ikke 0)."],
         [],
-        ["Indhold", `${n("Scenarie")} scenarier, ${n("Koersel")} kørsler, ${n("KoerselTime")} timerækker, ${n("KoerselNoegletal")} nøgletal, ${n("KoerselMaaned")} månedsrækker, ${n("KoerselInput")} inputrækker.`],
+        ["Indhold", `${n("Scenarie")} scenarier, ${n("Koersel")} kørsler, ${n("KoerselTime")} timerækker${i.tabeller.KoerselTimeDel.length ? ` (+ ${n("KoerselTimeDel")} timedele)` : ""}, ${n("KoerselNoegletal")} nøgletal, ${n("KoerselMaaned")} månedsrækker, ${n("KoerselInput")} inputrækker.`],
         ["Eksporteret", danskTid(meta.eksporteret)],
         ["Eksporteret af", meta.eksporteret_af],
         ["App-version", `${meta.app_version} (commit ${meta.app_commit})`],
@@ -250,7 +287,8 @@ function læsMigArk(i: ArkivIndhold, m: Manifest): Ark {
             Scenarie: "scenarierne (værk, periode, gab, tidsgrænse, reference)", ScenarieAendring: "scenariernes ændringer i forhold til værket",
             Bestilling: "bestillingerne bag kørslerne", Koersel: "kørslerne: status, pins, objektiv, gab, løsetid",
             KoerselInput: "det frosne input pr. kørsel (det, der blev kørt)", KoerselNoegletal: "nøgletal pr. kørsel", KoerselMaaned: "månedsværdier pr. kørsel (dansk måned; 'periode' = hele kørslen)",
-            KoerselTime: "dispatch pr. interval (varmelast, spotpris, udetemperatur og de øvrige kolonner foldet ud)",
+            KoerselTime: "dispatch pr. interval (varmelast, spotpris, udetemperatur og de øvrige kolonner foldet ud — et bredt værks timedele med)",
+            KoerselTimeDel: "et bredt værks øvrige intervalværdier ud over 4000 tegn pr. række (del 1, 2, … pr. interval; foldet ud i Timer)",
             Aendringslog: "værkernes ændringslog — kun til orientering; den importeres ikke", VaerkRef: "værkerne, kørslerne bygger på (henvisning)",
             Vaerksrevision: "parametrenes sha256 pr. værksrevision, en kørsel bygger på", TidsserieRef: "værkernes tidsserier (henvisning via sha256)",
         };
@@ -278,13 +316,17 @@ function læsManifest(ark: LæstArk | undefined): Manifest {
     for (const [nr, r] of ark!.celler) if (nr > 1 && typeof r.get(1) === "string") kv.set(r.get(1) as string, r.get(2) as Læst);
     if (kv.get("format") !== ARKIV_FORMAT) afvis("Filen er ikke et arkiv fra appen (forkert format).");
     if (kv.get("formatversion") !== ARKIV_FORMATVERSION) afvis(`Arkivet har formatversion ${String(kv.get("formatversion"))}; appen læser version ${ARKIV_FORMATVERSION}.`);
-    if (kv.get("skemaversion") !== SKEMAVERSION) afvis(`Arkivet er lavet med skemaversion ${String(kv.get("skemaversion"))}; databasen her har version ${SKEMAVERSION}. Opdatér appen, eller eksportér igen fra en installation med samme version.`);
+    const version = kv.get("skemaversion");
+    // Et ældre arkiv læses (version 1: uden KoerselTimeDel); et nyere end appen ved den ikke, hvad indeholder.
+    if (typeof version !== "number" || !TABELLER_I_VERSION[version] || version > SKEMAVERSION) {
+        afvis(`Arkivet er lavet med skemaversion ${String(version)}; appen her læser version 1–${SKEMAVERSION}. Opdatér appen, eller eksportér igen fra en installation med samme version.`);
+    }
     const json = <T,>(k: string): T => {
         try { return JSON.parse(String(kv.get(k))) as T; } catch { return afvis(`_manifest: ${k} er beskadiget.`); }
     };
     return {
-        format: ARKIV_FORMAT, formatversion: ARKIV_FORMATVERSION, skemaversion: SKEMAVERSION, meta: json<ArkivMeta>("meta"),
-        tabeller: Object.fromEntries(ARKIV_TABELLER.map((t) => [t, json<TabelManifest>(`tabel:${t}`)])) as Record<ArkivTabel, TabelManifest>,
+        format: ARKIV_FORMAT, formatversion: ARKIV_FORMATVERSION, skemaversion: version as number, meta: json<ArkivMeta>("meta"),
+        tabeller: Object.fromEntries(TABELLER_I_VERSION[version as number].map((t) => [t, json<TabelManifest>(`tabel:${t}`)])) as Record<ArkivTabel, TabelManifest>,
         arkiv_sha256: String(kv.get("arkiv_sha256")),
     };
 }
@@ -302,7 +344,7 @@ function fraCelle(k: Kolonne, v: Læst | undefined, hvor: string): Kanonisk {
 
 const SERIE_TOLERANCE = 5e-9;      // ~0,4 ms: en Excel-dato skrevet og læst igen er ens; en rettet dato er ikke
 
-function læsTabel(t: ArkivTabel, ark: LæstArk[], m: TabelManifest): Kanonisk[][] {
+function læsTabel(t: ArkivTabel, ark: LæstArk[], m: TabelManifest, timedele: Timedele = new Map()): Kanonisk[][] {
     const ks = arkivKolonner(t);
     const ud: Kanonisk[][] = [];
     for (const a of ark) {
@@ -323,7 +365,7 @@ function læsTabel(t: ArkivTabel, ark: LæstArk[], m: TabelManifest): Kanonisk[]
             rækker.push({ r: ks.map((k) => fraCelle(k, celler.get(plads.get(k.navn)!), hvor)), celler, hvor });
         }
         // Præcis de kolonner, skriveren laver af netop disse rækker — hverken flere eller færre (K10-F8).
-        const specs = kolonnespecs(t, rækker.map((x) => x.r));
+        const specs = kolonnespecs(t, rækker.map((x) => x.r), timedele);
         const forventet = specs.map((x) => x.teknisk);
         const mangler = forventet.filter((n) => !plads.has(n));
         if (mangler.length) afvis(`Arket ${a.navn}: kolonnen ${mangler[0]} mangler — arket er rettet.`);
@@ -361,18 +403,22 @@ export function læsArkivBog(bytes: Uint8Array): LæstArkiv {
     const ark = læsXlsx(bytes);
     const efterNavn = new Map(ark.map((a) => [a.navn, a]));
     const manifest = læsManifest(efterNavn.get("_manifest"));
-    const tabeller = {} as Record<ArkivTabel, Kanonisk[][]>;
-    for (const t of ARKIV_TABELLER) {
+    const tabeller = Object.fromEntries(ARKIV_TABELLER.map((t) => [t, []])) as unknown as Record<ArkivTabel, Kanonisk[][]>;
+    const iArkivet = TABELLER_I_VERSION[manifest.skemaversion];
+    // Timedele læses før Timer: Timer-arkets udfoldede kolonner er afledt af begge.
+    const orden = [...iArkivet.filter((t) => t !== "KoerselTime"), ...iArkivet.filter((t) => t === "KoerselTime")];
+    for (const t of orden) {
         const m = manifest.tabeller[t];
         if (!m || !Array.isArray(m.ark) || !m.ark.length) afvis(`_manifest: ${ARK_NAVN[t]} mangler.`);
         const mine = m.ark.map((n) => efterNavn.get(n) ?? afvis(`Arket ${n} mangler.`));
         const andre = ark.filter((a) => a.navn !== ARK_NAVN[t] && a.navn.startsWith(`${ARK_NAVN[t]} (`) && !m.ark.includes(a.navn));
         if (andre.length) afvis(`Arket ${andre[0].navn} står ikke i manifestet.`);
-        tabeller[t] = læsTabel(t, mine, m);
+        tabeller[t] = læsTabel(t, mine, m, t === "KoerselTime" ? timedeleAf(tabeller.KoerselTimeDel) : undefined);
         const sha = tabelSha(tabeller[t]);
         if (sha !== m.sha256) afvis(`${ARK_NAVN[t]}: indholdet passer ikke med manifestets sha256 — arket er rettet eller beskadiget. Brug en uændret kopi af arkivet.`);
     }
     const indhold: ArkivIndhold = { tabeller, meta: manifest.meta };
-    if (arkivSha(tabelshas(indhold)) !== manifest.arkiv_sha256) afvis("Arkivets samlede sha256 passer ikke — manifestet er rettet.");
+    const shas = tabelshas(indhold);
+    if (arkivSha(Object.fromEntries(iArkivet.map((t) => [t, shas[t]]))) !== manifest.arkiv_sha256) afvis("Arkivets samlede sha256 passer ikke — manifestet er rettet.");
     return { indhold, manifest };
 }

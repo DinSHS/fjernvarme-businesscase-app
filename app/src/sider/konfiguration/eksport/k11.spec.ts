@@ -30,7 +30,7 @@ describe("K11 F1: objektnavne, som modelscriptet normaliserer", () => {
         const k = omdøb(andeby(), "halmkedel", "halm__kedel");
         const e = await eksporter(k, skabelon(), NU);
         expect(e.plan.nægter).toEqual([]);
-        expect(læsCeller(e.bytes).get("Anlaeg")!.get("A7")).toBe("halm__kedel");
+        expect(læsCeller(e.bytes).get("Anlaeg")!.get("A9")).toBe("halm__kedel");
         // Scriptet læser halm_kedel; forudsigelsen er i scriptets navne (rundturen holder den op mod scriptet) ...
         expect(e.plan.forventet.get("units.halm_kedel.var_om")).toBe("30.0");
         // ... men "ikke med i arket" og afvigelserne er i værkets: præcis som for Andeby med det oprindelige navn.
@@ -79,13 +79,18 @@ describe("K11 F4: markeringen binder arket til værkets grundlag", () => {
             .toBe("e5467d410bed30a40d8e36651175aae2658ae6bd65e0fb17d652a6ab1d3dfa03");
     });
 
-    it("format 2: grundlag og erklærede afvigelser; en anden aktiv serie giver et andet grundlag", async () => {
+    it("markeringen (format 3 fra runde 14): grundlag og erklærede afvigelser; en anden aktiv serie giver et andet grundlag", async () => {
+        // Afvigelserne er de felter, arket IKKE bærer. Med appens faner har Andeby ingen (før: bl.a. fliskedlens felter);
+        // et værk med et felt, feltkataloget ikke kender, har stadig én — og importen kræver netop den erklæret.
         const e = await eksporter(andeby(), skabelon(), NU);
         const m = læsMarkering(læsCeller(e.bytes))!;
-        expect(MARKOER_FORMAT).toBe("fjv-vaerksark-eksport/2");
+        expect(MARKOER_FORMAT).toBe("fjv-vaerksark-eksport/3");
         expect(m).toMatchObject({ format: MARKOER_FORMAT, vaerk_id: ANDEBY_ID, grundlag: await sha256Bytes(grundlagstekst(andeby())) });
         expect(m.afvigelser).toEqual(e.plan.afvigelser);
-        expect(m.afvigelser).toContain("units.fliskedel.enabled");
+        expect(m.afvigelser).toEqual([]);
+        const k3 = andeby();
+        const e3 = await eksporter({ ...k3, blade: [...k3.blade, { sti: "prices.fyringsolie.value", vaerdi_json: "900.0" }] }, skabelon(), NU);
+        expect(læsMarkering(læsCeller(e3.bytes))!.afvigelser).toEqual(["prices.fyringsolie.value"]);
         expect(m.afvigelser.filter(erArtefakt)).toEqual([]);
         const k2 = andeby();
         const e2 = await eksporter({ ...k2, solprofil: { ...k2.solprofil!, sha256: "ef".repeat(32) } }, skabelon(), NU);
@@ -98,7 +103,7 @@ describe("K11 F4: markeringen binder arket til værkets grundlag", () => {
         const wb = new Arbejdsbog(e.bytes);
         wb.regneark(MARKOER_ARK).sæt("B1", "fjv-vaerksark-eksport/1");
         expect(læsMarkering(læsCeller(wb.bytes()))).toBeNull();
-        expect(await analyserUpload(wb.bytes(), VAERKER, hent())).toEqual({ art: "nyt" });
+        expect(await analyserUpload(wb.bytes(), VAERKER, hent())).toMatchObject({ art: "nyt" });
     });
 });
 
@@ -108,7 +113,7 @@ describe("K11 F5: felter, som genupload ikke gemmer, siges før bekræftelse", (
         const wb = new Arbejdsbog(e.bytes);
         wb.regneark("Timedata").sæt("B3", 120);
         const a = await analyserUpload(wb.bytes(), VAERKER, hent());
-        expect(a).toEqual({ art: "ingen_aendringer", vaerk: VAERKER[0], ikkeGemt: [
+        expect(a).toMatchObject({ art: "ingen_aendringer", vaerk: VAERKER[0], ikkeGemt: [
             { hvor: "Timedata", felt: "Timedata: årsproduktion (GWh)", før: "100", nu: "120", gemmesIkke: GEMMES_IKKE.aarsproduktion },
         ] });
     });
@@ -117,7 +122,7 @@ describe("K11 F5: felter, som genupload ikke gemmer, siges før bekræftelse", (
         const e = await eksporter(andeby(), skabelon(), NU);
         const wb = new Arbejdsbog(e.bytes);
         wb.regneark("Timedata").sæt("B3", 120);
-        wb.regneark("Anlaeg").sæt("H7", 32.5);
+        wb.regneark("Anlaeg").sæt("H9", 32.5);
         wb.regneark("Priser").sæt("B30", "Andeby Nord");
         const a = await analyserUpload(wb.bytes(), VAERKER, hent());
         expect(a.art).toBe("revision");
@@ -192,7 +197,7 @@ describe("K11 F7: tegn, et regneark ikke kan bære", () => {
     });
     it("en bogstavelig _xHHHH_-sekvens nægtes (Excel læser den som et tegn, modelscriptet bogstaveligt)", () => {
         const k = omdøb(andeby(), "halmkedel", "halm_x0041_kedel");
-        expect(planlæg(k).nægter.join(" ")).toMatch(/Anlaeg!A7 .* "_x0041_"/);
+        expect(planlæg(k).nægter.join(" ")).toMatch(/Anlaeg!A9 .* "_x0041_"/);
     });
     it("xlsx-skriveren bygger aldrig en fil, der ikke er gyldig XML", () => {
         expect(() => new Arbejdsbog(skabelon()).regneark("Priser").sæt("B30", `a${KONTROLTEGN}b`)).toThrow(/XML 1\.0/);

@@ -178,6 +178,15 @@ describe("læsAnmodning og planlægParametre", () => {
         ["opret under et blad", { sti: "prices.straw.value.x", handling: "opret" as const, ny_json: "1.0" }, /allerede er en værdi/],
         ["opret over et blad", { sti: "prices.straw", handling: "opret" as const, ny_json: "1.0" }, /ligger under/],
     ])("afviser %s", (_n, æ, tekst) => expect(() => planlægParametre(nu, [æ])).toThrow(tekst));
+    it("opretter en hel balancing-blok, værket ikke har, og fjerner den igen (runde 14c, målt)", () => {
+        // Det, der manglede, var en handling i Konfiguration — planen tager allerede nye sektioner med `opret`.
+        const blok = [["balancing.method", '"activation_value"'], ["balancing.bid_strategy.up_markup_dkk_mwh", "500"],
+            ["balancing.ancillary_caps.per_unit_mw.halmkedel", "6.0"], ["balancing.ancillary_caps.total_mw", "14.0"]] as const;
+        const p = planlægParametre(nu, blok.map(([sti, v]) => ({ sti, handling: "opret" as const, ny_json: v })));
+        expect(p.opret.map((o) => [o.sti, o.ny_json, o.sektion, o.objekt])).toEqual(blok.map(([s, v]) => [s, v, "balancing", null]));
+        const efter = new Map([...nu, ...blok]);
+        expect(planlægParametre(efter, blok.map(([sti]) => ({ sti, handling: "slet" as const }))).slet.map((s) => s.sti)).toEqual(blok.map(([s]) => s));
+    });
     it("afviser en anmodning der ikke ændrer noget", () => {
         expect(() => planlægParametre(nu, [{ sti: "prices.straw.value", handling: "ret", ny_json: "45.0" }])).toThrow(/ingenting/);
     });

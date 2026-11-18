@@ -138,8 +138,11 @@ def kmd_kode() -> int:
     # kørsels kodeaftryk også siger, hvilke regler den brugte (fjv/datakrav.py).
     import hashlib
     viden = HER.parent / "viden"
+    # Runde 14: feltkataloget følger med, fordi importen validerer appens egne faner i værksarket mod det
+    # (fjv/feltkatalog.py) — samme katalog som appens redigering.
     for kilde, navn in ((viden / "vaerktoej" / "valider_tidsserie.py", "valider_tidsserie.py"),
-                        (viden / "data_krav.json", "data_krav.json")):
+                        (viden / "data_krav.json", "data_krav.json"),
+                        (viden / "felt_katalog.json", "felt_katalog.json")):
         data = kilde.read_bytes()
         upload(data, f"Files/{K.REL_MOTOR}/fjv/{navn}")
         print(f"  {navn}: sha256 {hashlib.sha256(data).hexdigest()[:16]} ({len(data)} bytes)")

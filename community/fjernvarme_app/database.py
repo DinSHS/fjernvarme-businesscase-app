@@ -108,19 +108,65 @@ class Database:
         fundne = set(self.tabeller_findes())
         if fundne & set(self.md.tables):
             return False
-        script = S.ddl(self.dialekt)
+        self._koer_script(S.ddl(self.dialekt))
+        return True
+
+    def _koer_script(self, script: str) -> None:
+        """Et DDL-script i ÉN transaktion (alle tre dialekter har transaktionel DDL); en fejl ruller det hele tilbage."""
         raw = self.engine.raw_connection()
         try:
             if self.dialekt == "sqlite":
-                raw.driver_connection.executescript(script)
+                cn = raw.driver_connection
+                try:
+                    # executescript committer en åben transaktion først; BEGIN/COMMIT gør scriptet til én.
+                    cn.executescript("BEGIN;\n" + script + "\nCOMMIT;")
+                except Exception:
+                    if cn.in_transaction:
+                        cn.rollback()
+                    raise
             else:
                 cur = raw.cursor()
-                for stmt in _saetninger(script):
-                    cur.execute(stmt)
-                raw.commit()
+                try:
+                    for stmt in _saetninger(script):
+                        cur.execute(stmt)
+                    raw.commit()
+                except Exception:
+                    raw.rollback()
+                    raise
         finally:
             raw.close()
-        return True
+
+    def migrer(self) -> list[int]:
+        """Løft databasen fra sin skemaversion til serverens med ``skema/migrationer`` (runde 14b).
+
+        Migrationerne er genereret af ``skema/byg.py`` og er kun tilføjelser (nye tabeller, NULL-kolonner, indeks);
+        hvert trin kører i én transaktion og indsætter sin egen række i ``_skema``. Returnerer de udførte trin."""
+        from . import skema as S
+        v = self.gemt_version()
+        if v is None:
+            raise RuntimeError("databasen har ingen _skema-tabel - den er ikke oprettet med skema/ddl/*.sql. Se SKEMA.md.")
+        if v > self.skemaversion:
+            raise RuntimeError(f"databasen har skemaversion {v}, nyere end serverens {self.skemaversion} - "
+                               "opdatér appen; databasen røres ikke.")
+        trin = []
+        for n in range(v + 1, self.skemaversion + 1):
+            self._koer_script(S.migration_sql(n, self.dialekt))
+            trin.append(n)
+        return trin
+
+    def sikkerhedskopi(self) -> Path | None:
+        """En kopi af en SQLite-database ved siden af den (``<fil>.skemaversion<n>.kopi``), før den migreres.
+        Med SQLites egen backup, så en database i WAL-tilstand kopieres hel. Andre databaser: ``None``."""
+        if self.dialekt != "sqlite" or not self.engine.url.database:
+            return None
+        import sqlite3
+        kilde = Path(self.engine.url.database)
+        maal = kilde.with_name(f"{kilde.name}.skemaversion{self.gemt_version()}.kopi")
+        if maal.exists():
+            raise RuntimeError(f"{maal} findes allerede - flyt den, før databasen migreres igen.")
+        with sqlite3.connect(kilde) as fra, sqlite3.connect(maal) as til:
+            fra.backup(til)
+        return maal
 
     def gemt_version(self) -> int | None:
         try:
@@ -136,8 +182,12 @@ class Database:
             raise RuntimeError("databasen har ingen _skema-tabel - den er ikke oprettet med skema/ddl/*.sql "
                                "(eller er ikke en fjernvarme-database). Se SKEMA.md.")
         if v != self.skemaversion:
-            raise RuntimeError(f"databasen har skemaversion {v}, serveren kræver {self.skemaversion}. "
-                               "Kør migrationerne i skema/migrationer/ (SKEMA.md).")
+            if v < self.skemaversion:
+                hjaelp = ("Løft den med: python -m fjernvarme_app migrer (med samme --data/--db; en SQLite-database "
+                          "får en kopi først). Se SKEMA.md › Versioner og migrationer.")
+            else:
+                hjaelp = "Databasen er nyere end appen - opdatér appen."
+            raise RuntimeError(f"databasen har skemaversion {v}, serveren kræver {self.skemaversion}. {hjaelp}")
 
     def ping(self) -> bool:
         with self.laes() as cn:

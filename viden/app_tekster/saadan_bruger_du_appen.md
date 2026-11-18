@@ -36,18 +36,56 @@ Et værk og en tidsserie oprettes af arket, og importen viser sin status og log.
 *Information → Hvilke data skal med?*. (Kilde: KONTRAKT §6d)
 
 **Ret et værk i Excel:** tryk **Eksportér værksark (.xlsx)** på værkets side (eller i værkslisten). Appen udfylder
-modellens egen skabelon med værket og viser først en liste over det, arket *ikke* kan bære — fx balancemarkedet,
-slåede-fra enheder og de værdier, modellens script sætter selv. Ret arket i Excel, og upload det under *Upload
-værksark*: appen genkender det, viser hvert ændret felt (gammel → ny) og timedata som en opsummering, og gemmer det som
+modellens egen skabelon med værket og tilføjer fire faner, som er appens egne: **Læs først** (forrest: hvilket værk
+arket hører til, hvad fanerne og farverne betyder, og hvor modellens faner ikke viser det, modellen bruger), **Start og
+drift** (værkets nettilslutning og modelperiode, og pr. enhed i drift, tændt ved
+start, start/stop-logik, CO₂-faktor og idriftsættelsesår pr. enhed; indhold ved start og varmetab pr. tank),
+**Balancemarked** (metode, budstrategi, lofter og reservationsregler) og **Øvrige felter** (resten, med sti, værdi og
+forklaring). Modellens script læser ikke de tre faner; appen læser dem ved upload og lægger værdierne oven på det,
+scriptet læser — det står øverst i hver fane, i importens log og i værkets revisionsspor. Før du henter arket, viser
+appen en liste over det, arket stadig *ikke* kan bære; for de fleste værker er den tom. I appens faner betyder en tom
+celle, at appen ikke rører feltet; *(findes ikke)* betyder, at feltet ikke sættes. Ret arket i Excel, og upload
+det under *Upload værksark*: appen genkender det, viser hvert ændret felt (gammel → ny) og timedata som en
+opsummering, og gemmer det som
 **næste revision af samme værk**. Kun det, du har ændret, ændres; felterne på listen røres ikke. En rettet time i
 timedata eller solvarme er også en ny revision. Felter, der ikke gemmes ved genupload (fx årsproduktionen i Timedata og
 værkets navn), markeres *gemmes ikke*, før du bekræfter. Er værket ændret, siden du eksporterede, afvises arket —
 eksportér igen. Uden appens markering (det skjulte ark `_app`) bliver arket et nyt
-værk som før. (Kilde: KONTRAKT §6d)
+værk — med hele indholdet, også appens faner. En række i arket med et navn, men uden type eller volumen, afviser
+importen med rækkenummer; modellens script ville springe den over uden besked. Står alle enheder til slukket ved
+start, advarer importens log: uden tank kan værket ikke dække den første time. (Kilde: KONTRAKT §6d; doc/EGNE_DATA.md)
 
 **Enheder:** "Ny enhed" laver en enhed ud fra en skabelon for typen; "Fjern enheden" kan kun bruges,
 når intet scenarie bruger enheden. Vil du bare regne uden en enhed, så brug et scenarie i stedet —
 så forbliver værket urørt.
+
+**Balancemarked på et værk uden:** værkets balancing-blok beskriver, *hvordan* værket byder; *om* der regnes med
+balancemarked, vælger du på scenariet. Uden blok kan scenarier ikke regne med balancemarkedet. Et værk, der er oprettet
+af modellens egen skabelon `vaerksdata_skabelon.xlsx`, har ingen blok — modellens script skriver den ikke. Der er to
+veje til en blok, og de giver de samme felter:
+
+1. **I appen:** under fanen **Balancering** står **Tilføj balancemarked…**. Vælg et udgangspunkt — Andebys blok eller
+   en af budprofilerne 1–4 i modellens `doc/BUDSTRATEGI.md` — og tag stilling til det, der er værkets eget: hvilke
+   el-enheder der er prækvalificeret, loftet pr. enhed og, for budprofil 4, den enhed budprisen regnes for.
+   Enhedsnavnene er værkets egne. Appen viser hele blokken felt for felt med fil og linje i modelrepoet; tallene fra
+   kilden er eksempler og kan rettes, før du bekræfter. Blokken gemmes som én revision, og de valgte enheder markeres
+   som prækvalificeret til både aFRR og mFRR (feltet kan rettes pr. marked bagefter under Enheder).
+2. **I værksarket:** eksportér værket (*Eksportér værksark*), udfyld fanen **Balancemarked**, og upload arket. En
+   udfyldt fane lægger blokken ind. Hvad en tom celle i fanen betyder, står øverst i fanen.
+
+**Fjern balancemarkedet…** sletter blokken igen (ikke mens et scenarie ændrer et felt i den); prækvalifikationen på
+enhederne står urørt. (Kilde: doc/BUDSTRATEGI.md:216-305; scripts/vaerksark_til_yaml.py)
+
+**Et felt, værket ikke har:** under hvert afsnits felter og under den valgte enhed kan **Tilføj et felt, værket ikke
+har** lægge et af modellens kendte felter til (fx en enheds budfelter, idriftsættelsesår eller den flade
+forbrugstarif), med forklaringen og modellens standardværdi som udgangspunkt. Med standardværdien regner modellen som
+før; feltet kan bagefter rettes og bruges i scenarier. Felter i en blok, hvis blotte tilstedeværelse ændrer regningen
+(COP-kurven, tarifprofilen, nettab), tilbydes ikke enkeltvis.
+
+**Starttilstand:** står alle enheder med start/stop-logik til slukket ved start, som værksarkets script sætter dem
+(scripts/vaerksark_til_yaml.py:856), viser værkets side en advarsel: uden tank, eller med tanken slået fra, kan en kørsel så blive uløselig (målt i januar
+2026 på værker fra værksarket). Sæt **Tændt ved periodens start** til tændt på den enhed, der kører, når perioden
+begynder: 1 under Konfiguration › Enheder, *ja* i værksarkets fane *Start og drift*.
 
 ## 2. Scenarier — stil et spørgsmål
 
@@ -70,7 +108,8 @@ tidsseriens periode ikke scenariets, advarer appen. En kørsel gemmer, hvilken t
 kontrolsum — så to kørsler altid kan sammenlignes på samme data. (Kilde: KONTRAKT §6d)
 
 Et scenarie kan kun ændre felter, der allerede findes i værket. Periode, solvergab og tidsgrænse har
-egne felter på scenariet. Skal der en ny enhed eller blok til, er det en ændring af værket.
+egne felter på scenariet. Skal der en ny enhed, et nyt felt eller en blok til, er det en ændring af værket
+(Konfiguration: Ny enhed, Tilføj et felt, Tilføj balancemarked).
 (Kilde: KONTRAKT §3.5; KONTRAKT §6c)
 
 Til differenser: brug gabet 0,0002 og det absolutte gab 100 kr. i både reference og scenarie; det

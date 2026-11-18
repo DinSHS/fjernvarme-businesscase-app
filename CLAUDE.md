@@ -62,6 +62,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install setuptools     # POS
 .venv/Scripts/python community/pakke.py --ud _lokal/wheel                  # kræver setuptools (pip wheel --no-build-isolation)
 .venv/Scripts/python -m pip install "_lokal/wheel/fjernvarme_app-<version>-py3-none-any.whl[model]"
 .venv/Scripts/python -m fjernvarme_app --demo --data C:\fjv
+.venv/Scripts/python -m fjernvarme_app migrer --data C:\fjv                # kun når serveren siger "skemaversion 1 … kræver 2"
 
 # Gaten (begge udgaver, 10–15 min; trofasthed kræver modelrepoet i ../fjernvarme-businesscase eller FJV_MODELREPO)
 cd app && npm run gate
@@ -98,7 +99,8 @@ FJV_MODELPYTHON=<python med modellens pakker> python viden/vaerktoej/tjek_ekspor
 - **Genererede filer** (ret ikke i hånden): `viden/modelspejl.json`, `app/src/lib/modelspejl.data.ts`,
   `app/src/sider/konfiguration/skalering.vektorer.json`, `app/src/sider/konfiguration/eksport/vaerksdata_skabelon.xlsx`
   (fra `byg_modelspejl.py`), `viden/felt_katalog.json`,
-  `viden/nyt_vaerk_skabelon.json`, `viden/data_krav.json`, `app/src/ibcs/tokens.*.ts` (`npm run tokens`) og
+  `viden/nyt_vaerk_skabelon.json`, `viden/data_krav.json`, `app/src/ibcs/tokens.*.ts` (`npm run tokens`),
+  `skema/vektorer/arklag/celler.json` (`FJV_SKRIV_VEKTORER=1 npx vitest run src/sider/konfiguration/eksport/lag.spec.ts`) og
   dokumentationskopierne under `app/src/sider/dokumentation/indhold/` (`kopier-indhold.mjs`).
 
 ---
@@ -122,6 +124,13 @@ FJV_MODELPYTHON=<python med modellens pakker> python viden/vaerktoej/tjek_ekspor
   (`fabric/fjv/revision.py`). Ændres den ene, fejler den delte vektor i `k11.spec.ts` og `test_revision.py`.
 - **Modelscriptets `slug()` er ikke injektiv** (`halm__kedel` og `halm_kedel` giver samme navn). Nye navne skal være
   slug-faste (`tjekNavn`); importen fører scriptets navne tilbage med `fjv.revision.objektkort` og afviser tvetydighed.
+- **Appens egne faner i værksarket findes to steder** (runde 14): eksporten skriver dem og forudsiger importen
+  (`eksport/lag.ts`), importen læser dem (`fabric/fjv/arklag.py`, `feltkatalog.py`). Typen kommer fra feltkataloget, ikke
+  fra cellen (12 og 12.0 er samme celle). Ændres den ene, fejler `skema/vektorer/arklag/celler.json` (`lag.spec.ts`,
+  `test_arklag_vektorer.py`) eller rundturens trin [4]. En række i *Øvrige felter* må aldrig skjule en celle i
+  modelrepoets faner: den er betinget af scriptets værdi (*kun hvis modelscriptet giver*).
+- **To rundture på samme maskine delte før den midlertidige mappe** `fjv_rundtur` og overskrev hinandens ark midt i en
+  modprøve. `tjek_eksport_rundtur.py` bruger nu en mappe pr. kørsel; gør det samme i nye værktøjer.
 - **Oraklet udfylder selv små huller i en solprofil**, når en kilde valideres. Et hul i en gemt serie laves derfor i den
   normaliserede fil, ikke ved at validere en kilde med et hul (`tjek_eksport_rundtur.py`, `andeby_hul`).
 

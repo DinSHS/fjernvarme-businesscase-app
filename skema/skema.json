@@ -1,6 +1,6 @@
 {
   "skema": "fjernvarme-businesscase",
-  "version": 1,
+  "version": 2,
   "kontrakt": "Projektets KONTRAKT v2.3 (§3, §6c, §6d)",
   "beskrivelse": "Den neutrale definition af appens database — eneste sandhed for begge udgaver. Fabric-udgaven deklarerer den samme struktur som Rayfin-entiteter (app/rayfin/data/*.ts); skema/test/rayfin.test.mjs fejler, hvis de to ikke er enige. Community-udgaven bygger sine tabeller herfra, og ddl/*.sql er genereret herfra (skema/byg.py). Læs SKEMA.md.",
   "konstanter": {
@@ -1233,7 +1233,7 @@
     {
       "entitet": "KoerselTime",
       "tabel": "KoerselTimes",
-      "beskrivelse": "KoerselTime — intervaldispatch, bredt med JSON (KONTRAKT §3.10). `_hourly.csv` har N-1 rækker (modellens rapport udelader første interval; begrundelsen, en ubundet lagerbalance i første time, er rettet i modellen fra eef950a, men rapporteringen er uændret). 1h og 15min (`Koersel.oploesning`). Appen læser ALTID filtreret på koersel_id + tidsvindue, sorteret, pagineret. `vaerdier_json` = de øvrige kolonner i `_hourly.csv` som objekt, kompakt, NaN -> null (`{\"p_halmkedel_mw\":3.0,…}`). Skrives kun af notebooken.",
+      "beskrivelse": "KoerselTime — intervaldispatch, bredt med JSON (KONTRAKT §3.10). `_hourly.csv` har N-1 rækker (modellens rapport udelader første interval; begrundelsen, en ubundet lagerbalance i første time, er rettet i modellen fra eef950a, men rapporteringen er uændret). 1h og 15min (`Koersel.oploesning`). Appen læser ALTID filtreret på koersel_id + tidsvindue, sorteret, pagineret. `vaerdier_json` = de øvrige kolonner i `_hourly.csv` som objekt, kompakt, NaN -> null (`{\"p_halmkedel_mw\":3.0,…}`). Fylder de mere end 4000 tegn (målt: et værk med 40 elenheder og balancemarked fylder ca. 21.000 i én time), står de første kolonner her og resten i `KoerselTimeDel` (skemaversion 2); `Koersel.manifest_json.time_dele` er antallet af de rækker. Én række pr. interval her, uanset bredden. Skrives kun af notebooken.",
       "klient": {
         "read": true,
         "create": false,
@@ -1298,6 +1298,63 @@
           ],
           "ddl": true,
           "kilde": "KONTRAKT §3.10 (tid = intervallets start i UTC; ingen dubletter, heller ikke ved sommertid)"
+        }
+      ]
+    },
+    {
+      "entitet": "KoerselTimeDel",
+      "tabel": "KoerselTimeDels",
+      "beskrivelse": "KoerselTimeDel — resten af et intervals øvrige kolonner, når de ikke kan stå i `KoerselTime.vaerdier_json` (4000 tegn; skemaversion 2, runde 14b). `delnr` = 1, 2, … pr. (`koersel_id`, `tid`); hver del er et kompakt JSON-objekt med de næste kolonner i `_hourly.csv`'s rækkefølge. Intervallets værdier er `{...KoerselTime.vaerdier_json, ...del 1, ...del 2, …}` — samme nøgler, rækkefølge og tal som modellens fil; intet afrundes. Kun brede værker har rækker her; `Koersel.manifest_json.time_dele` er deres antal, så en læser kun spørger efter dem, når de findes, og `time_kolonner` antallet af kolonner i hver sammensat time (`_hourly.csv` er rektangulær), så læseren kan opdage en manglende sidste del eller en time uden alle sine dele. Skrives kun af notebooken.",
+      "klient": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "kolonner": [
+        {
+          "navn": "id",
+          "type": "uuid",
+          "nullable": false,
+          "pk": true
+        },
+        {
+          "navn": "koersel_id",
+          "type": "uuid",
+          "nullable": false,
+          "ref": "Koersel"
+        },
+        {
+          "navn": "tid",
+          "type": "datetime",
+          "nullable": false,
+          "beskrivelse": "UTC, intervallets start — samme som KoerselTime-rækkens."
+        },
+        {
+          "navn": "delnr",
+          "type": "int",
+          "nullable": false,
+          "beskrivelse": "1, 2, … i den rækkefølge, delene sættes sammen (KoerselTime er del 0)."
+        },
+        {
+          "navn": "vaerdier_json",
+          "type": "text",
+          "max": 4000,
+          "min": 1,
+          "nullable": false
+        }
+      ],
+      "invarianter": [
+        {
+          "navn": "en_del_pr_nummer",
+          "type": "unik",
+          "kolonner": [
+            "koersel_id",
+            "tid",
+            "delnr"
+          ],
+          "ddl": true,
+          "kilde": "Runde 14b: delene af et interval nummereres entydigt; sammensætningen følger delnr"
         }
       ]
     },

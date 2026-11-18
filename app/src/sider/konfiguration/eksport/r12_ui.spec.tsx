@@ -28,9 +28,13 @@ afterEach(cleanup);
 
 async function vælgArk(bytes: Uint8Array, vaerker = [ANDEBY]) {
     const r = render(<VaerksarkKort vaerker={vaerker} bruger="test@example.org" />);
+    await vælgFil(bytes);
+    return r;
+}
+/** Et (nyt) filvalg i det kort, der allerede vises. */
+async function vælgFil(bytes: Uint8Array) {
     const fil = new File([bytes as BlobPart], "andeby_rev1.xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     await act(async () => { fireEvent.change(screen.getByLabelText("Vælg værksark"), { target: { files: [fil] } }); });
-    return r;
 }
 
 describe("eksportfanen", () => {
@@ -40,18 +44,31 @@ describe("eksportfanen", () => {
         render(<EksportKort vaerk={ANDEBY} />);
         const knap = await screen.findByRole("button", { name: "Hent andeby_rev1.xlsx" }, { timeout: 15_000 });
         expect(createObjectURL).not.toHaveBeenCalled();
-        expect(screen.getByText(/ikke med i arket, eller får modelscriptets egen værdi/)).toBeTruthy();
-        expect(screen.getByText("Enhed fliskedel")).toBeTruthy();
-        expect(screen.getByText("Balancemarked")).toBeTruthy();
+        // Runde 14: kortet siger, at de tre faner er appens egne, hvad der er med i dem, og hvad der stadig ikke er.
+        expect(screen.getByText(/1 felt er ikke med i arket — se listen, før du henter arket/)).toBeTruthy();
+        expect(screen.getByText(/appens egne \(egen antagelse\)/)).toBeTruthy();
+        expect(screen.getByText(/modelrepoets script læser dem ikke/)).toBeTruthy();
+        for (const fane of ["Start og drift", "Balancemarked", "Øvrige felter"]) {
+            expect(document.querySelector(`li[data-fane="${fane}"]`)?.textContent, fane).toMatch(/appens egen fane\): \d+ felter/);
+        }
+        expect(screen.getByText("Enhed solvarme")).toBeTruthy();              // det eneste, der stadig ikke er med
+        expect(screen.queryByText("Enhed fliskedel")).toBeNull();             // slået fra: nu med (Start og drift)
         expect(screen.getByText(/Målt solvarme \(arket Solvarme\): 8\.760 timer; 6\.624 timer er ikke med/)).toBeTruthy();
         fireEvent.click(knap);
         expect(createObjectURL).toHaveBeenCalledTimes(1);
     }, 30_000);
     it("et værk, arket ikke kan bære, nægtes med grunden", async () => {
+        // (Slåede-fra tanke nægtes ikke længere: fra runde 14 står de i arket med "i drift: nej".)
+        t.ret = { "data.dmi_area": '"groenland"' };
+        render(<EksportKort vaerk={ANDEBY} />);
+        expect((await screen.findByRole("alert", {}, { timeout: 15_000 })).textContent).toMatch(/DMI-området "groenland" findes ikke i skabelonen/);
+        expect(screen.queryByRole("button", { name: /Hent/ })).toBeNull();
+    }, 30_000);
+    it("et værk med alle tanke slået fra kan eksporteres: 'i drift: nej' står i Start og drift", async () => {
         t.ret = Object.fromEntries(andeby().blade.filter((b) => b.sti.endsWith(".enabled") && b.sti.startsWith("storage.")).map((b) => [b.sti, "false"]));
         render(<EksportKort vaerk={ANDEBY} />);
-        expect((await screen.findByRole("alert", {}, { timeout: 15_000 })).textContent).toMatch(/akkumuleringstank/);
-        expect(screen.queryByRole("button", { name: /Hent/ })).toBeNull();
+        expect(await screen.findByRole("button", { name: "Hent andeby_rev1.xlsx" }, { timeout: 15_000 })).toBeTruthy();
+        expect(screen.queryByRole("alert")).toBeNull();
     }, 30_000);
 });
 
@@ -59,7 +76,7 @@ describe("upload-kortet genkender et eksporteret ark", () => {
     it("ændret ark: diff før bekræftelse og 'Gem som revision 2 af Andeby'", async () => {
         const e = await eksporter(andeby(), skabelon());
         const wb = new Arbejdsbog(e.bytes);
-        wb.regneark("Anlaeg").sæt("H7", 32.5);
+        wb.regneark("Anlaeg").sæt("H9", 32.5);
         await vælgArk(wb.bytes());
         const knap = await screen.findByRole("button", { name: "Gem som revision 2 af Andeby — fiktivt referenceværk" }, { timeout: 15_000 });
         const tabel = screen.getByRole("table", { name: "Ændringer i arket" });
@@ -79,6 +96,28 @@ describe("upload-kortet genkender et eksporteret ark", () => {
         expect(screen.queryByRole("button", { name: /Gem|Upload/ })).toBeNull();
         expect(t.upload).not.toHaveBeenCalled();
     }, 30_000);
+    it("runde 14 (brugertesten F3): et markeret ark kan i stedet blive et nyt værk; en eksisterende kode spærrer", async () => {
+        const e = await eksporter(andeby(), skabelon());
+        t.revision = 2;                                                                  // en konflikt: som revision spærret
+        const kopi = { id: "11111111-2222-4333-8444-555555555555", kode: "andeby_fiktivt_referencevaerk", navn: "Kopi", revision: 1 };
+        await vælgArk(e.bytes, [{ ...ANDEBY, revision: 2 }, kopi]);
+        await screen.findByRole("alert", {}, { timeout: 15_000 });
+        const valg = screen.getByLabelText(/Opret som nyt værk i stedet — arket hører til Andeby — fiktivt referenceværk \(kode andeby\)/);
+        await act(async () => { fireEvent.click(valg); });
+        // Værkets navn i Priser giver koden andeby_fiktivt_referencevaerk, som findes: intet kan sendes.
+        expect(document.querySelector('[data-tilstand="kode_findes"]')?.textContent).toMatch(/koden andeby_fiktivt_referencevaerk findes allerede/);
+        expect(screen.queryByRole("button", { name: /Upload|Gem/ })).toBeNull();
+        cleanup();
+        // Et nyt navn i Priser: arket sendes som et nyt værk — uden basis, og Andeby røres ikke.
+        const wb = new Arbejdsbog(e.bytes);
+        wb.regneark("Priser").sæt("B30", "Mit Værk");
+        await vælgArk(wb.bytes(), [{ ...ANDEBY, revision: 2 }, kopi]);
+        await screen.findByRole("alert", {}, { timeout: 15_000 });
+        await act(async () => { fireEvent.click(screen.getByLabelText(/Opret som nyt værk i stedet/)); });
+        expect(document.querySelector('[data-tilstand="nyt_fra_markeret"]')?.textContent).toMatch(/med koden mit_vaerk/);
+        await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Upload og importér" })); });
+        expect(t.upload).toHaveBeenCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org");
+    }, 60_000);
     it("uændret ark: 'Ingen ændringer' og intet at gemme", async () => {
         const e = await eksporter(andeby(), skabelon());
         await vælgArk(e.bytes);
@@ -92,5 +131,48 @@ describe("upload-kortet genkender et eksporteret ark", () => {
         expect(screen.getByLabelText(/timens slut/)).toBeTruthy();
         await act(async () => { fireEvent.click(knap); });
         expect(t.upload).toHaveBeenCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org");
+    }, 30_000);
+    it("Codex' andet review: et tidligere 'timens slut' følger ikke med til et ark fra appen og nulstilles ved nyt filvalg", async () => {
+        await vælgArk(skabelon());
+        await screen.findByRole("button", { name: "Upload og importér" }, { timeout: 15_000 });
+        await act(async () => { fireEvent.click(screen.getByLabelText(/timens slut/)); });
+        expect((screen.getByLabelText(/timens slut/) as HTMLInputElement).checked).toBe(true);
+        // Brugeren vælger nu en eksport fra appen og opretter den som nyt værk: stemplerne er timens start i UTC.
+        const e = await eksporter(andeby(), skabelon());
+        const wb = new Arbejdsbog(e.bytes);
+        wb.regneark("Priser").sæt("B30", "Mit Værk");
+        await vælgFil(wb.bytes());
+        const valg = await screen.findByLabelText(/Opret som nyt værk i stedet/, {}, { timeout: 15_000 });
+        await act(async () => { fireEvent.click(valg); });
+        expect(screen.queryByLabelText(/timens slut/)).toBeNull();
+        await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Upload og importér" })); });
+        expect(t.upload).toHaveBeenLastCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org");
+        // Et nyt filvalg starter forfra: valget er ikke sat.
+        await vælgFil(skabelon());
+        const igen = await screen.findByLabelText(/timens slut/, {}, { timeout: 15_000 });
+        expect((igen as HTMLInputElement).checked).toBe(false);
+    }, 60_000);
+    it("et ark fra appen, hvis værk ikke findes her: nyt værk, men altid med timens start", async () => {
+        await vælgArk(skabelon(), []);
+        await screen.findByRole("button", { name: "Upload og importér" }, { timeout: 15_000 });
+        await act(async () => { fireEvent.click(screen.getByLabelText(/timens slut/)); });
+        await vælgFil((await eksporter(andeby(), skabelon())).bytes);
+        await screen.findByText(/som ikke findes her/, {}, { timeout: 15_000 });
+        expect(screen.queryByLabelText(/timens slut/)).toBeNull();
+        await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Upload og importér" })); });
+        expect(t.upload).toHaveBeenLastCalledWith("andeby_rev1.xlsx", expect.any(String), false, "test@example.org");
+    }, 60_000);
+    it("Codex' andet review: en formel uden gemt resultat i appens faner spærrer, før noget sendes", async () => {
+        const e = await eksporter(andeby(), skabelon());
+        const wb = new Arbejdsbog(e.bytes);
+        const fane = wb.regneark("Start og drift");
+        const [r, k] = [...fane.rækker].flatMap(([nr, x]) => [...x.celler].filter(([, c]) => /<t[^>]*>ja<\/t>/.test(c)).map(([kol]) => [nr, kol] as const))[0];
+        const ref = `${String.fromCharCode(64 + k)}${r}`;
+        fane.rækker.get(r)!.celler.set(k, `<c r="${ref}" t="b"><f>TRUE()</f><v/></c>`);
+        await vælgArk(wb.bytes());
+        const a = await screen.findByRole("alert", {}, { timeout: 15_000 });
+        expect(a.textContent).toMatch(new RegExp(`Start og drift!${ref}: cellen har en formel uden et gemt resultat.*Intet bliver gemt`));
+        expect(screen.queryByRole("button", { name: /Gem|Upload/ })).toBeNull();
+        expect(screen.queryByLabelText(/Opret som nyt værk i stedet/)).toBeNull();
     }, 30_000);
 });

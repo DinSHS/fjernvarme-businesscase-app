@@ -5804,5 +5804,286 @@ export const MODELSPEJL: Modelspejl = {
     ]
    }
   }
+ },
+ "budstrategi": {
+  "fil": "doc/BUDSTRATEGI.md",
+  "afsnit": [
+   216,
+   308
+  ],
+  "kvalificering_linje": 218,
+  "navne_linje": 220,
+  "blokke": [
+   {
+    "titel": "Fælles del (alle profiler)",
+    "linjer": [
+     224,
+     239
+    ],
+    "fortsaetter_balancing": false,
+    "blade": {
+     "balancing.method": [
+      "\"activation_value\"",
+      226,
+      null
+     ],
+     "balancing.bid_strategy.up_markup_dkk_mwh": [
+      "500",
+      228,
+      "aktiveringsbud = spot + 500 kr./MWh"
+     ],
+     "balancing.ancillary_caps.per_unit_mw.vp_luft_vand": [
+      "6.0",
+      231,
+      "prækvalificeret eloptag pr. enhed"
+     ],
+     "balancing.ancillary_caps.total_mw": [
+      "14.0",
+      232,
+      "samlet prækvalificeret kapacitet"
+     ],
+     "balancing.activation.foresight": [
+      "\"trailing30\"",
+      235,
+      null
+     ],
+     "balancing.activation.settle": [
+      "\"realized\"",
+      236,
+      null
+     ],
+     "balancing.activation.afrr.model": [
+      "\"system_share\"",
+      237,
+      null
+     ],
+     "balancing.activation.afrr.k": [
+      "4.0",
+      237,
+      null
+     ],
+     "balancing.activation.mfrr.model": [
+      "\"clear\"",
+      238,
+      null
+     ]
+    }
+   },
+   {
+    "titel": "Profil 1 · Fast melding",
+    "linjer": [
+     243,
+     252
+    ],
+    "fortsaetter_balancing": true,
+    "blade": {
+     "balancing.reservation_gate.enabled": [
+      "true",
+      245,
+      null
+     ],
+     "balancing.reservation_gate.mode": [
+      "\"driven\"",
+      246,
+      "blokken meldes ind, hver gang buddet går igennem"
+     ],
+     "balancing.reservation_gate.afrr.cm_threshold_dkk_mw_h": [
+      "50",
+      250,
+      "aFRR-blok + mFRR-blok må tilsammen IKKE overstige det, enhederne kan\nbruge af el på samme tid. Ellers kan modellen ikke løses.\nAndeby: varmepumpe + elkedel kan bruge ca. 5 MW el, så 2 + 3 MW."
+     ],
+     "balancing.reservation_gate.afrr.block_mw": [
+      "2.0",
+      250,
+      "aFRR-blok + mFRR-blok må tilsammen IKKE overstige det, enhederne kan\nbruge af el på samme tid. Ellers kan modellen ikke løses.\nAndeby: varmepumpe + elkedel kan bruge ca. 5 MW el, så 2 + 3 MW."
+     ],
+     "balancing.reservation_gate.mfrr.cm_threshold_dkk_mw_h": [
+      "50",
+      251,
+      null
+     ],
+     "balancing.reservation_gate.mfrr.block_mw": [
+      "3.0",
+      251,
+      null
+     ]
+    }
+   },
+   {
+    "titel": "Profil 2 · Fast pris, fast mængde",
+    "linjer": [
+     256,
+     262
+    ],
+    "fortsaetter_balancing": true,
+    "blade": {
+     "balancing.reservation_gate.enabled": [
+      "true",
+      258,
+      null
+     ],
+     "balancing.reservation_gate.mode": [
+      "\"bound\"",
+      259,
+      "op til blokken"
+     ],
+     "balancing.reservation_gate.afrr.cm_threshold_dkk_mw_h": [
+      "100",
+      260,
+      null
+     ],
+     "balancing.reservation_gate.afrr.block_mw": [
+      "3.0",
+      260,
+      null
+     ],
+     "balancing.reservation_gate.mfrr.cm_threshold_dkk_mw_h": [
+      "250",
+      261,
+      null
+     ],
+     "balancing.reservation_gate.mfrr.block_mw": [
+      "4.0",
+      261,
+      null
+     ]
+    }
+   },
+   {
+    "titel": "Profil 3 · Fast pris, alt vi kan",
+    "linjer": [
+     266,
+     272
+    ],
+    "fortsaetter_balancing": true,
+    "blade": {
+     "balancing.reservation_gate.enabled": [
+      "true",
+      268,
+      null
+     ],
+     "balancing.reservation_gate.mode": [
+      "\"bound\"",
+      269,
+      null
+     ],
+     "balancing.reservation_gate.afrr.cm_threshold_dkk_mw_h": [
+      "100",
+      270,
+      "blok = total_mw"
+     ],
+     "balancing.reservation_gate.afrr.block_mw": [
+      "14.0",
+      270,
+      "blok = total_mw"
+     ],
+     "balancing.reservation_gate.mfrr.cm_threshold_dkk_mw_h": [
+      "250",
+      271,
+      null
+     ],
+     "balancing.reservation_gate.mfrr.block_mw": [
+      "14.0",
+      271,
+      null
+     ]
+    }
+   },
+   {
+    "titel": "Profil 4 · Beregnet pris",
+    "linjer": [
+     276,
+     286
+    ],
+    "fortsaetter_balancing": true,
+    "blade": {
+     "balancing.reservation_gate.enabled": [
+      "true",
+      278,
+      null
+     ],
+     "balancing.reservation_gate.mode": [
+      "\"bound\"",
+      279,
+      null
+     ],
+     "balancing.reservation_gate.afrr.opportunity_cost.reference_unit": [
+      "\"vp_luft_vand\"",
+      281,
+      null
+     ],
+     "balancing.reservation_gate.afrr.opportunity_cost.floor_dkk_mw_h": [
+      "50",
+      281,
+      null
+     ],
+     "balancing.reservation_gate.afrr.block_mw": [
+      "3.0",
+      282,
+      null
+     ],
+     "balancing.reservation_gate.mfrr.opportunity_cost.reference_unit": [
+      "\"vp_luft_vand\"",
+      284,
+      null
+     ],
+     "balancing.reservation_gate.mfrr.opportunity_cost.floor_dkk_mw_h": [
+      "50",
+      284,
+      null
+     ],
+     "balancing.reservation_gate.mfrr.block_mw": [
+      "4.0",
+      285,
+      null
+     ]
+    }
+   },
+   {
+    "titel": "Profil 5 · Teoretisk loft",
+    "linjer": [
+     290,
+     294
+    ],
+    "fortsaetter_balancing": true,
+    "blade": {
+     "balancing.reservation_gate.enabled": [
+      "false",
+      292,
+      null
+     ]
+    }
+   },
+   {
+    "titel": "Valgfrit: budvindue på en enhed",
+    "linjer": [
+     298,
+     305
+    ],
+    "fortsaetter_balancing": false,
+    "blade": {
+     "units.elkedel.ancillary.afrr_qualified": [
+      "true",
+      302,
+      null
+     ],
+     "units.elkedel.ancillary.mfrr_qualified": [
+      "true",
+      303,
+      null
+     ],
+     "units.elkedel.ancillary.bid_window.months": [
+      "[10,11,12,1,2,3]",
+      304,
+      null
+     ],
+     "units.elkedel.ancillary.bid_window.hours_local": [
+      "[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]",
+      304,
+      null
+     ]
+    }
+   }
+  ]
  }
 };

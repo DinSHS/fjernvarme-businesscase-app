@@ -7,6 +7,8 @@
 // Appen læser ALTID filtreret på koersel_id + tidsvindue, sorteret, pagineret.
 // `vaerdier_json` = de øvrige kolonner i `_hourly.csv` som objekt, kompakt,
 // NaN -> null (`{"p_halmkedel_mw":3.0,…}`). Skrives kun af notebooken.
+// Fylder de mere end 4000 tegn, står resten i KoerselTimeDel (runde 14b);
+// her er der stadig præcis én række pr. interval.
 //
 // SQL-tabel: "KoerselTimes". Omdøb ikke klassen.
 // ⚠️ Må KUN importeres med `import type` fra src/ — se fjv.constants.ts.

@@ -9,6 +9,7 @@
 //-----------------------------------------------------------------------
 
 import { useMemo } from "react";
+import { TomSkabelonKnap } from "../konfiguration/eksport/TomSkabelon";
 import { DataTilstand, Gitter, Kort, Maerke, Side } from "@/components/layout";
 import type { Hentet } from "@/lib/data/hooks";
 import { rutehref } from "@/lib/rute";
@@ -178,6 +179,9 @@ function Eksternt({ dok }: { dok: Dok }) {
                     <div className="fjv-brod">
                         <p>{dok.beskrivelse}</p>
                         <p><LinkKnap href={href} ekstern sekundaer={false}>{pdf ? "Åbn PDF på GitHub" : "Hent regnearket"}</LinkKnap></p>
+                        {dok.id === "vaerksdata_skabelon" && (
+                            <p>Skal arket uploades i appen, så hent i stedet skabelonen med appens faner (Læs først, Start og drift, Balancemarked og Øvrige felter) — de bærer det, modellens faner ikke kan, fx tændt ved start og balancemarkedet. <TomSkabelonKnap /></p>
+                        )}
                     </div>
                 </Kort>
             </Gitter>

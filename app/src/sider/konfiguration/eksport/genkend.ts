@@ -16,10 +16,11 @@
 //-----------------------------------------------------------------------
 
 import { findFelt } from "../katalog";
-import { fraExcelSerie, læsCeller } from "./xlsx";
+import { LAGFANER, læsCelle, læsLag, ukendteOverskrifter, ukendtOverskriftTekst, type Lagcelle } from "./lag";
+import { fraExcelSerie, læsCeller, type Læstværdi } from "./xlsx";
 import { læsMarkering, type Markering } from "./eksporter";
 
-type V = number | string;
+type V = Læstværdi;
 type Celler = Map<string, V>;
 
 export interface Arkmodel {
@@ -30,6 +31,8 @@ export interface Arkmodel {
     timedata: Map<number, number>;
     solvarme: Map<number, number>;
     felter: Map<string, V>;                      // enkeltceller (tidszone, årsproduktion)
+    /** Runde 14: appens egne faner (Start og drift, Balancemarked, Øvrige felter) som sti -> celle. */
+    lag: Map<string, Lagcelle>;
 }
 
 /**
@@ -68,9 +71,9 @@ function rækkeMed(c: Celler, tekst: string, efter = 0, praefiks = false): numbe
 function tidsserie(c: Celler | undefined, fra: number): Map<number, number> {
     const ud = new Map<number, number>();
     if (!c) return ud;
-    let maks = 0;
-    for (const k of c.keys()) { const m = /^[AB](\d+)$/.exec(k); if (m) maks = Math.max(maks, Number(m[1])); }
-    for (let r = fra; r <= maks; r++) {
+    // De rækker, arket HAR en tidsstempelcelle i (Codex' review, fund 1) — ikke alle rækkenumre til den sidste celle.
+    const rækker = [...c.keys()].map((k) => /^A(\d+)$/.exec(k)).filter((m): m is RegExpExecArray => !!m).map((m) => Number(m[1])).filter((r) => r >= fra).sort((a, b) => a - b);
+    for (const r of rækker) {
         const t = c.get(`A${r}`), v = c.get(`B${r}`);
         if (typeof t === "number" && typeof v === "number") ud.set(fraExcelSerie(t), v);
     }
@@ -81,7 +84,7 @@ function tidsserie(c: Celler | undefined, fra: number): Map<number, number> {
 const AARSPRODUKTION = "Timedata: årsproduktion (GWh)";
 
 export function læsArkmodel(ark: Map<string, Celler>): Arkmodel {
-    const m: Arkmodel = { enheder: new Map(), tanke: new Map(), vp: new Map(), poster: new Map(), timedata: new Map(), solvarme: new Map(), felter: new Map() };
+    const m: Arkmodel = { enheder: new Map(), tanke: new Map(), vp: new Map(), poster: new Map(), timedata: new Map(), solvarme: new Map(), felter: new Map(), lag: læsLag(ark) };
     const an = ark.get("Anlaeg") ?? new Map();
     const hr = rækkeMed(an, "navn");
     if (hr) {
@@ -147,7 +150,17 @@ export const GEMMES_IKKE = {
     cop: "COP ved 0 °C bruges ikke af modelscriptet, når varmepumpen har målepunkter i arket Varmepumpe. Ret målepunkterne i stedet.",
 } as const;
 
-const vis = (v: V | undefined) => (v === undefined ? "–" : typeof v === "number" ? v.toLocaleString("da-DK", { maximumFractionDigits: 6 }) : v);
+const vis = (v: V | undefined) => (v === undefined ? "–" : typeof v === "number" ? v.toLocaleString("da-DK", { maximumFractionDigits: 6 }) : typeof v === "boolean" ? (v ? "ja" : "nej") : v);
+
+/**
+ * To celler i appens faner er ens, når de betyder det samme for feltet (`læsCelle`, importens regel): eksportens "ja"
+ * og en TRUE-celle er samme værdi, og importen gemmer intet. Ellers som før: samme celle.
+ */
+function sammeBetydning(sti: string, a: V | undefined, b: V | undefined): boolean {
+    if (lig(a, b)) return true;
+    const x = læsCelle(sti, a), y = læsCelle(sti, b);
+    return "json" in x && "json" in y && x.json === y.json;
+}
 
 function sammenlignFelter(hvor: string, a: Map<string, V> | undefined, b: Map<string, V> | undefined, kol: Record<string, { sti?: string; navn: string }>, ud: Ændring[],
     gemmesIkke: (kolonne: string) => string | undefined = () => undefined) {
@@ -191,16 +204,47 @@ export function sammenlign(basis: Arkmodel, ark: Arkmodel): Forskel {
         const x = basis.felter.get(n), y = ark.felter.get(n);
         if (!lig(x, y)) felter.push({ hvor: "Timedata", felt: n, før: vis(x), nu: vis(y), ...(n === AARSPRODUKTION ? { gemmesIkke: GEMMES_IKKE.aarsproduktion } : {}) });
     }
+    // Appens egne faner: felt for felt på stien (en flyttet række ligner ikke en ændring). En betinget række i
+    // Øvrige felter vises med sin betingelse, hvis den er rettet.
+    for (const sti of new Set([...basis.lag.keys(), ...ark.lag.keys()])) {
+        const x = basis.lag.get(sti), y = ark.lag.get(sti);
+        const fane = (y ?? x)!.hvor.split("!")[0];
+        const d = sti.split(".");
+        const objekt = ["units", "storage"].includes(d[0]) && d.length > 2 ? ` · ${d[1]}` : "";
+        const navn = `${findFelt(sti)?.etiket ?? sti}${objekt} (${sti})`;
+        if (!x || !y) felter.push({ hvor: fane, felt: navn, før: x ? vis(x.v) : "–", nu: y ? vis(y.v) : "rækken er slettet" });
+        else if (!sammeBetydning(sti, x.v, y.v)) felter.push({ hvor: fane, felt: navn, før: vis(x.v), nu: vis(y.v) });
+        else if (!sammeBetydning(sti, x.betingelse, y.betingelse)) felter.push({ hvor: fane, felt: `${navn}: kun hvis modelscriptet giver`, før: vis(x.betingelse), nu: vis(y.betingelse) });
+    }
     const serier = [serie("varmelast", basis.timedata, ark.timedata), serie("solprofil", basis.solvarme, ark.solvarme)].filter((x): x is Serieændring => !!x);
     const gemmes = felter.filter((x) => !x.gemmesIkke).length + serier.length;
     return { felter, serier, tom: felter.length === 0 && serier.length === 0, gemmes };
 }
 
-export interface Genkendt { markering: Markering | null; model: Arkmodel; celler: Map<string, Celler> }
+export interface Genkendt {
+    markering: Markering | null; model: Arkmodel; celler: Map<string, Celler>;
+    /** Grundene til, at appens faner ikke kan bruges (importen afviser samme): formler uden gemt resultat og rækker,
+     *  der ligner en overskrift uden at være en blok (Codex' andet review). Tom = fanerne kan læses. */
+    afvist: string[];
+}
 
-/** Et uploadet ark: markeringen (`_app`) og arket som model. */
+/** Et uploadet ark: markeringen (`_app`), arket som model, og om appens faner kan læses. */
 export function genkend(bytes: Uint8Array): Genkendt {
-    const celler = læsCeller(bytes);
-    return { markering: læsMarkering(celler), model: læsArkmodel(celler), celler };
+    const uden: string[] = [];
+    const celler = læsCeller(bytes, uden);
+    const faner = new Set<string>(LAGFANER);
+    // Modelrepoets faner læses som før (TRUE = 1): kun appens faner har ja/nej-felter, hvor sand/falsk betyder noget.
+    for (const [navn, c] of celler) {
+        if (faner.has(navn)) continue;
+        for (const [k, v] of c) if (typeof v === "boolean") c.set(k, v ? 1 : 0);
+    }
+    const afvist = uden.filter((x) => faner.has(x.split("!")[0])).map((x) => `${x}: cellen har en formel uden et gemt resultat (arket er gemt af et program, der ikke regner formler ud). Åbn arket i Excel og gem det igen, eller skriv tallet i cellen i stedet for formlen`);
+    if (!afvist.length) {
+        for (const navn of LAGFANER) {
+            const c = celler.get(navn);
+            if (c) for (const u of ukendteOverskrifter(navn, c)) afvist.push(ukendtOverskriftTekst(navn, u, c.get(u.ref)));
+        }
+    }
+    return { markering: læsMarkering(celler), model: læsArkmodel(celler), celler, afvist };
 }
 

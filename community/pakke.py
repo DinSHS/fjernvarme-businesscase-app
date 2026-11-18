@@ -31,10 +31,14 @@ KOPIER = [
     ("fabric/fjv", "fjernvarme_app/_motor/fjv"),
     ("fabric/maaleregister.json", "fjernvarme_app/_motor/maaleregister.json"),
     ("viden/data_krav.json", "fjernvarme_app/viden/data_krav.json"),
+    # Runde 14: feltkataloget validerer appens egne faner i værksarket (fjv.feltkatalog).
+    ("viden/felt_katalog.json", "fjernvarme_app/viden/felt_katalog.json"),
     ("viden/vaerktoej/valider_tidsserie.py", "fjernvarme_app/viden/vaerktoej/valider_tidsserie.py"),
     ("skema/skema.json", "fjernvarme_app/_ressourcer/skema/skema.json"),
     ("skema/fjv_skema.py", "fjernvarme_app/_ressourcer/skema/fjv_skema.py"),
     ("skema/ddl", "fjernvarme_app/_ressourcer/skema/ddl"),
+    # Runde 14b: `python -m fjernvarme_app migrer` løfter en eksisterende database med disse.
+    ("skema/migrationer", "fjernvarme_app/_ressourcer/skema/migrationer"),
     ("offentlig/kredit.json", "fjernvarme_app/_ressourcer/offentlig/kredit.json"),
     ("LICENSES", "fjernvarme_app/_ressourcer/LICENSES"),
 ]

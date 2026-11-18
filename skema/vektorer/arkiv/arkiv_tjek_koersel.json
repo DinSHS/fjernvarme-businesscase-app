@@ -1,9 +1,9 @@
 {
  "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
  "kilder": {
-  "app/rayfin/functions/src/arkiv.ts": "403b9a92037d85ac321e5f777a8e3dc2aa688f08e311cf4e4cd666d0ae57f629",
-  "app/rayfin/functions/src/skema.data.ts": "f505012e6b8616009b7479f5b6f76c6dc77be0b3fe99553b516c6ea967c55b48",
-  "app/rayfin/functions/test/arkiv-hukommelse.ts": "39b33f011d82c47502e301fd72596f911c580b749f0a2913aa49014e489c68ac"
+  "app/rayfin/functions/src/arkiv.ts": "f1ddb52e9e8e80c983f0d3cd3ddb9dfdf951d61bf08e44329009eb0f1799e108",
+  "app/rayfin/functions/src/skema.data.ts": "6900e53ad682d57eb471e9e6954927fec5f8842d70744d8c4bfe1299cc73161c",
+  "app/rayfin/functions/test/arkiv-hukommelse.ts": "07c726b47cd7842c8181033f18c97a0f90e7e1d33120cb2af2bdcee37e8298ec"
  },
  "tilfaelde": [
   {
@@ -55,13 +55,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -69,13 +71,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -191,13 +195,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -205,13 +211,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -327,13 +335,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -341,13 +351,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -463,13 +475,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 2
+      "KoerselTime": 2,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -477,13 +491,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -599,13 +615,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -613,13 +631,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -735,13 +755,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -749,13 +771,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -871,13 +895,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -885,13 +911,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -1007,13 +1035,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -1021,13 +1051,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -1141,13 +1173,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -1155,13 +1189,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -1277,13 +1313,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -1291,13 +1329,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -1411,13 +1451,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -1425,13 +1467,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -1547,13 +1591,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -1561,13 +1607,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -1681,13 +1729,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -1695,13 +1745,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -1817,13 +1869,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -1831,13 +1885,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -1934,13 +1990,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -1948,13 +2006,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [
@@ -2068,13 +2128,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "forventet": {
@@ -2082,13 +2144,15 @@
       "KoerselInput": 5,
       "KoerselNoegletal": 2,
       "KoerselMaaned": 2,
-      "KoerselTime": 3
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
      },
      "sha256": {
       "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
       "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
       "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
-      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0"
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
      }
     },
     "input": [

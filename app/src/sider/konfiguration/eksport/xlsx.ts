@@ -19,13 +19,22 @@ import { strFromU8, strToU8, unzipSync, zipSync, type Zippable } from "fflate";
 
 export type Celleværdi = number | string | null;
 
-/** "B12" -> { kol: 2, række: 12 }. */
+/** Et regnearks grænser (Excel): række 1.048.576, kolonne XFD. */
+export const MAKS_RAEKKE = 1_048_576;
+export const MAKS_KOLONNE = 16_384;
+
+/**
+ * "B12" -> { kol: 2, række: 12 }. En reference uden for regnearkets grænser afvises (Codex' review af runde 14,
+ * fund 1: en fil på 749 bytes med A999999999999 fik læserne til at gennemløbe en billion rækkenumre).
+ */
 export function delRef(ref: string): { kol: number; række: number } {
-    const m = /^([A-Z]{1,3})(\d+)$/.exec(ref);
-    if (!m) throw new Error(`Ugyldig cellereference: ${ref}`);
+    const m = /^([A-Z]{1,3})(\d{1,7})$/.exec(ref);
+    if (!m) throw new Error(`Ugyldig cellereference: ${ref.slice(0, 24)} (uden for et regnearks grænser)`);
     let kol = 0;
     for (const c of m[1]) kol = kol * 26 + (c.charCodeAt(0) - 64);
-    return { kol, række: Number(m[2]) };
+    const række = Number(m[2]);
+    if (kol > MAKS_KOLONNE || række < 1 || række > MAKS_RAEKKE) throw new Error(`Cellen ${ref} ligger uden for et regnearks grænser (række ${MAKS_RAEKKE}, kolonne XFD).`);
+    return { kol, række };
 }
 
 export function kolBogstav(kol: number): string {
@@ -187,6 +196,33 @@ export class Regneark {
         this.efter = this.efter.replace(fra, til);
     }
 
+    /** En fast rækkehøjde (til flettede celler med ombrudt tekst, som et regneark ikke selv gør højere). */
+    sætHøjde(nr: number, punkter: number): void {
+        this.række(nr).attr = `customFormat="false" ht="${punkter}" hidden="false" customHeight="true" outlineLevel="0" collapsed="false"`;
+    }
+
+    /**
+     * Opsætningen af et NYT ark (appens egne faner, runde 14): kolonnebredder, frosne overskriftsrækker, flettede
+     * celler, dropdowns (datavalidering som skabelonens egne) og rækkehøjder. Arket er skabt af `tilføjArk` uden
+     * flet og validering, så delene sættes ind ét sted hver.
+     */
+    opsæt(o: { kolonner: readonly number[]; frysRækker: number; flet: readonly string[]; valideringer: readonly { sqref: string; liste: readonly string[]; titel: string }[]; højder: readonly (readonly [number, number])[]; først?: boolean }): void {
+        const cols = `<cols>${o.kolonner.map((w, j) => `<col collapsed="false" customWidth="true" hidden="false" outlineLevel="0" max="${j + 1}" min="${j + 1}" style="0" width="${w}"/>`).join("")}</cols>`;
+        if (!/<cols>[\s\S]*?<\/cols>/.test(this.før) || !/<sheetViews>[\s\S]*?<\/sheetViews>/.test(this.før)) throw new Error(`${this.navn}: arket har ikke skabelonens form (<cols>, <sheetViews>).`);
+        const n = o.frysRækker;
+        const rude = n > 0 ? `<pane xSplit="0" ySplit="${n}" topLeftCell="A${n + 1}" activePane="bottomLeft" state="frozen"/><selection pane="topLeft" activeCell="A1" activeCellId="0" sqref="A1"/><selection pane="bottomLeft" activeCell="A${n + 1}" activeCellId="0" sqref="A${n + 1}"/>`
+            : `<selection pane="topLeft" activeCell="A1" activeCellId="0" sqref="A1"/>`;
+        const visning = `<sheetViews><sheetView showFormulas="false" showGridLines="false" showRowColHeaders="true" showZeros="true" rightToLeft="false" tabSelected="${o.først ? "true" : "false"}" showOutlineSymbols="true" defaultGridColor="true" view="normal" topLeftCell="A1" colorId="64" zoomScale="100" zoomScaleNormal="100" zoomScalePageLayoutView="100" workbookViewId="0">${rude}</sheetView></sheetViews>`;
+        this.før = this.før.replace(/<cols>[\s\S]*?<\/cols>/, cols).replace(/<sheetViews>[\s\S]*?<\/sheetViews>/, visning);
+        const flet = o.flet.length ? `<mergeCells count="${o.flet.length}">${o.flet.map((r) => `<mergeCell ref="${r}"/>`).join("")}</mergeCells>` : "";
+        const liste = (l: readonly string[]) => xmlTegn(`"${l.join(",")}"`);
+        const valg = o.valideringer.length ? `<dataValidations count="${o.valideringer.length}">${o.valideringer.map((v) =>
+            `<dataValidation allowBlank="true" error="${xmlTegn(`Vælg en værdi fra listen: ${v.liste.join(", ")}`)}" errorStyle="stop" errorTitle="${xmlTegn(v.titel)}" operator="between" prompt="Vælg fra listen" promptTitle="${xmlTegn(v.titel)}" showDropDown="false" showErrorMessage="true" showInputMessage="true" sqref="${v.sqref}" type="list"><formula1>${liste(v.liste)}</formula1><formula2>0</formula2></dataValidation>`).join("")}</dataValidations>` : "";
+        if (!this.efter.includes("<printOptions")) throw new Error(`${this.navn}: arket har ikke skabelonens form (<printOptions>).`);
+        this.efter = this.efter.replace("<printOptions", `${flet}${valg}<printOptions`);
+        for (const [nr, ht] of o.højder) this.sætHøjde(nr, ht);
+    }
+
     /** Tilføjer en kolonnebredde (<cols>), hvis kolonnen ikke har en. */
     sikrKolonnebredde(kol: number, bredde: number): void {
         if (new RegExp(`<col [^>]*\\bmin="${kol}"`).test(this.før)) return;
@@ -252,9 +288,11 @@ export class Arbejdsbog {
 
     /**
      * Tilføjer et nyt ark efter de eksisterende, bygget af et eksisterende arks XML (samme styles og kolonner),
-     * men uden dets celler. `skjult` = state="hidden" (fx `_app`).
+     * men uden dets celler. `skjult` = state="hidden" (fx `_app`). `først` (runde 14, fanen Læs først): arket står
+     * forrest og er det, arbejdsbogen åbner på; det hidtil valgte ark fravælges (kun dets fanevalg ændres — to valgte
+     * faner ville i Excel være en gruppe, hvor en indtastning rammer begge).
      */
-    tilføjArk(navn: string, formFra: string, skjult = false): Regneark {
+    tilføjArk(navn: string, formFra: string, skjult = false, først = false): Regneark {
         if (this.stier.has(navn)) throw new Error(`Arket "${navn}" findes allerede.`);
         // Kildearkets XML læses direkte (ikke åbnet til ændring), så kilden går byte for byte videre.
         const kildeXml = this.ark.get(formFra)?.xml() ?? this.tekst(this.stier.get(formFra) ?? `?${formFra}`);
@@ -271,8 +309,18 @@ export class Arbejdsbog {
             `<Relationship Id="${rid}" Type="${NS_REL}" Target="worksheets/sheet${n}.xml"/></Relationships>`));
         const wb = this.tekst("xl/workbook.xml");
         const sheetIder = [...wb.matchAll(/sheetId="(\d+)"/g)].map((m) => Number(m[1]));
-        this.filer["xl/workbook.xml"] = strToU8(wb.replace("</sheets>",
-            `<sheet name="${xmlTegn(navn)}" sheetId="${Math.max(0, ...sheetIder) + 1}" state="${skjult ? "hidden" : "visible"}" r:id="${rid}"/></sheets>`));
+        const ark = `<sheet name="${xmlTegn(navn)}" sheetId="${Math.max(0, ...sheetIder) + 1}" state="${skjult ? "hidden" : "visible"}" r:id="${rid}"/>`;
+        if (først) {
+            if (!/activeTab="0"/.test(wb)) throw new Error("Arbejdsbogen åbner ikke på sit første ark (activeTab) — forventet skabelonens form.");
+            for (const [n, s] of this.stier) {
+                if (this.ark.has(n)) throw new Error(`Arket ${n} er åbnet til ændring; tilføj fanen først, før andre ark åbnes.`);
+                const x = this.tekst(s);
+                if (/\btabSelected="true"/.test(x)) this.filer[s] = strToU8(x.replace(/\btabSelected="true"/, 'tabSelected="false"'));
+            }
+            this.filer["xl/workbook.xml"] = strToU8(wb.replace("<sheets>", `<sheets>${ark}`));
+        } else {
+            this.filer["xl/workbook.xml"] = strToU8(wb.replace("</sheets>", `${ark}</sheets>`));
+        }
         const ct = this.tekst("[Content_Types].xml");
         this.filer["[Content_Types].xml"] = strToU8(ct.replace("</Types>", `<Override PartName="/${sti}" ContentType="${CT_ARK}"/></Types>`));
         this.stier.set(navn, sti);
@@ -311,29 +359,43 @@ export class Arbejdsbog {
 /**
  * Alle arkenes celleværdier: arknavn -> ref -> værdi. Tal som tal, tekst (delte strenge, inline og formel-
  * tekst) som tekst; en formel giver sin gemte værdi (som pandas/openpyxl læser den). Tomme celler udelades.
+ *
+ * En formel UDEN gemt resultat (intet `<v>`, eller et tomt `<v/>` — også en boolsk) udelades også, men står i
+ * `udenResultat` som "Ark!A1", så den, der læser appens faner, kan afvise den i stedet for at læse den som tom
+ * (Codex' andet review: `<c t="b"><f>TRUE()</f><v/></c>` blev læst som 0 = nej). Samme regel som `fjv.arklaes`.
+ *
+ * En boolsk celle (`t="b"`, TRUE/FALSE) er sand/falsk, ikke 1/0 — som `fjv.arklaes`. Før gav den 1/0 her, så
+ * forhåndsvisningen og importen var uenige: TRUE i "i drift" (ja/nej) blev en ændring her og ingen i importen.
  */
-export function læsCeller(bytes: Uint8Array): Map<string, Map<string, number | string>> {
+/** En læst celle: tal, tekst eller sand/falsk. */
+export type Læstværdi = number | string | boolean;
+export function læsCeller(bytes: Uint8Array, udenResultat?: string[]): Map<string, Map<string, Læstværdi>> {
     const wb = new Arbejdsbog(bytes);
     let delte: string[] = [];
     try {
         const ss = wb.tekst("xl/sharedStrings.xml");
         delte = [...ss.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) => [...m[1].matchAll(/<t(?: [^>]*)?>([\s\S]*?)<\/t>/g)].map((t) => fraXml(t[1])).join(""));
     } catch { /* ingen delte strenge */ }
-    const ud = new Map<string, Map<string, number | string>>();
+    const ud = new Map<string, Map<string, Læstværdi>>();
     for (const navn of wb.arknavne()) {
         const a = wb.regneark(navn);
-        const celler = new Map<string, number | string>();
+        const celler = new Map<string, Læstværdi>();
         for (const [nr, r] of a.rækker) {
             for (const [kol, x] of r.celler) {
                 const t = /\bt="([^"]+)"/.exec(x.slice(0, x.indexOf(">")))?.[1] ?? "n";
                 const v = /<v>([\s\S]*?)<\/v>/.exec(x)?.[1];
-                let værdi: number | string | undefined;
+                // Først om der er et resultat, så dets type: et tomt <v></v> er intet resultat (ikke 0).
+                const harV = v !== undefined && v.trim() !== "";
+                let værdi: Læstværdi | undefined;
                 if (t === "inlineStr") værdi = [...x.matchAll(/<t(?: [^>]*)?>([\s\S]*?)<\/t>/g)].map((m) => fraXml(m[1])).join("");
-                else if (t === "s") værdi = v === undefined ? undefined : delte[Number(v)];
+                else if (t === "s") værdi = harV ? delte[Number(v)] : undefined;
                 else if (t === "str" || t === "e") værdi = v === undefined ? undefined : fraXml(v);
-                else if (t === "b") værdi = v === undefined ? undefined : Number(v);
-                else if (v !== undefined && v !== "") værdi = Number(v);
-                if (værdi === undefined || værdi === "" || (typeof værdi === "number" && Number.isNaN(værdi))) continue;
+                else if (t === "b") værdi = harV ? v!.trim() === "1" : undefined;
+                else if (harV) værdi = Number(v);
+                if (værdi === undefined || værdi === "" || (typeof værdi === "number" && Number.isNaN(værdi))) {
+                    if (udenResultat && /<f[\s>/]/.test(x)) udenResultat.push(`${navn}!${ref(kol, nr)}`);
+                    continue;
+                }
                 celler.set(ref(kol, nr), værdi);
             }
         }

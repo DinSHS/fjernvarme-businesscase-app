@@ -273,7 +273,7 @@ class TestMinneRevision(unittest.TestCase):
 
 
 class TestK11Binding(unittest.TestCase):
-    """``fjv.revision``: markeringen i arket (``_app``, format 2), objektnavne og basis-kontrollen."""
+    """``fjv.revision``: markeringen i arket (``_app``, format 2; format 3 fra runde 14), objektnavne og basis-kontrollen."""
 
     MARK = {"format": REV.FORMAT, "vaerk_id": VID, "revision": 3, "sha256": "1" * 64, "grundlag": "2" * 64, "afvigelser": ["balancing.method"]}
 
@@ -309,7 +309,9 @@ class TestK11Binding(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             for delte in (False, True):
                 m = REV.laes_markering(self.xlsx(Path(d) / f"a{delte}.xlsx", self.raekker(), delte))
-                self.assertEqual(m, {k: self.MARK[k] for k in ("format", "vaerk_id", "revision", "sha256", "grundlag", "afvigelser")})
+                # Runde 14 (format 3): markeringen bærer også skrivemåderne (``former``); uden rækken er den tom.
+                self.assertEqual(m, {**{k: self.MARK[k] for k in ("format", "vaerk_id", "revision", "sha256", "grundlag", "afvigelser")},
+                                     "former": {}})
             self.assertIsNone(REV.laes_markering(self.xlsx(Path(d) / "x.xlsx", self.raekker(revision="tre"))))
             (Path(d) / "ikke.xlsx").write_bytes(b"ikke en zip")
             self.assertIsNone(REV.laes_markering(Path(d) / "ikke.xlsx"))

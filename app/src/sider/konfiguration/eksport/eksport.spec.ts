@@ -41,9 +41,11 @@ describe("eksporten af Andeby", () => {
         const e = await eksporter(andeby(), skabelon(), NU);
         const før = filer(skabelon()), efter = filer(e.bytes);
         // Det, eksporten ikke skriver i, er skabelonens egne bytes: vejledning, styles, delte strenge, tema.
-        for (const f_ of ["xl/worksheets/sheet1.xml", "xl/styles.xml", "xl/sharedStrings.xml", "xl/theme/theme1.xml", "docProps/core.xml"]) {
+        for (const f_ of ["xl/styles.xml", "xl/sharedStrings.xml", "xl/theme/theme1.xml", "docProps/core.xml"]) {
             expect(strFromU8(efter[f_]), f_).toBe(strFromU8(før[f_]));
         }
+        // Vejledning: kun fanevalget er flyttet til fanen Læs først (runde 14, rettelser) — indholdet er uændret.
+        expect(strFromU8(efter["xl/worksheets/sheet1.xml"])).toBe(strFromU8(før["xl/worksheets/sheet1.xml"]).replace('tabSelected="true"', 'tabSelected="false"'));
         // Dropdowns (datavalidering) i Anlaeg og Priser står der stadig.
         const anlaeg = strFromU8(efter["xl/worksheets/sheet3.xml"]), priser = strFromU8(efter["xl/worksheets/sheet5.xml"]);
         expect(anlaeg).toContain('sqref="B5:B23"');
@@ -63,8 +65,10 @@ describe("eksporten af Andeby", () => {
         expect(strFromU8(filer(e.bytes)["xl/worksheets/sheet3.xml"])).not.toMatch(/<f[ >]/);
         expect(an.get("A5")).toBe("vp_luft_vand");
         expect(an.get("N4")).toBe("brændsel");                 // biomassekedel: brændslet står i kolonne N
+        // Runde 14: slåede-fra enheder (elkedel_gl, fliskedel) står også i Anlaeg, i værkets rækkefølge — appens fane
+        // Start og drift bærer "i drift: nej". Før stod de kun på listen "ikke med i arket".
         expect([...an.entries()].filter(([k, v]) => /^A(5|6|7|8|9|1\d|2[0-3])$/.test(k) && typeof v === "string").map(([, v]) => v))
-            .toEqual(["vp_luft_vand", "elkedel_ny", "halmkedel", "gasmotor", "gaskedel_agg", "solvarme"]);   // slåede-fra enheder er ikke med
+            .toEqual(["vp_luft_vand", "elkedel_ny", "elkedel_gl", "fliskedel", "halmkedel", "gasmotor", "gaskedel_agg", "solvarme"]);
         expect(pr.get("B6")).toBe(606);
         expect(pr.get("B30")).toBe("Andeby — fiktivt referenceværk");
         expect(c.get("Timedata")!.get("B3")).toBe(100);         // Andebys kalibrering × 1,0
@@ -82,15 +86,23 @@ describe("eksporten af Andeby", () => {
         expect(c.markering.sha256).not.toBe(a.markering.sha256);
     });
 
-    it("listen 'ikke med i arket' siger tabet højt: slåede-fra enheder, balancemarkedet, scriptets egne værdier", () => {
+    it("listen 'ikke med i arket': det, appens faner bærer, står ikke længere på den (runde 14)", () => {
         const p = planlæg(andeby());
         expect(p.nægter).toEqual([]);
         const stier = p.ikkeMed.map((t) => t.sti);
-        expect(stier).toContain("units.fliskedel.enabled");
-        expect(stier).toContain("balancing.method");
-        expect(stier).toContain("units.gasmotor.uc_enabled");
-        expect(p.ikkeMed.find((t) => t.sti === "units.fliskedel.p_max_heat")?.grund).toMatch(/slået fra/);
-        // Det, der går tabsfrit igennem, står IKKE på listen.
+        // Før runde 14 stod slåede-fra enheder, balancemarkedet og scriptets egne værdier her (80 felter for Andeby).
+        // Nu står de i Start og drift, Balancemarked og Øvrige felter, og importen gemmer værkets værdi (lag.spec.ts).
+        expect(stier).not.toContain("units.fliskedel.enabled");
+        expect(stier).not.toContain("balancing.method");
+        expect(stier).not.toContain("units.gasmotor.uc_enabled");
+        expect(p.endelig.get("units.fliskedel.enabled")).toBe("false");
+        expect(p.endelig.get("balancing.method")).toBe('"activation_value"');
+        expect(p.endelig.get("units.gasmotor.uc_enabled")).toBe("false");
+        // Modelscriptets egen læsning er uændret: den kender hverken balancemarkedet eller "slået fra".
+        expect(p.forventet.get("units.fliskedel.enabled")).toBe("true");
+        expect([...p.forventet.keys()].some((s) => s.startsWith("balancing."))).toBe(false);
+        expect(stier).toEqual(["units.solvarme.production_profile_path"]);
+        // Det, der går tabsfrit igennem modelrepoets faner, står heller IKKE på listen.
         expect(stier).not.toContain("units.halmkedel.var_om");
         expect(stier).not.toContain("prices.straw.value");
         expect(stier).not.toContain("units.vp_luft_vand.cop_curve.points");
@@ -121,7 +133,7 @@ describe("genupload: genkendelse og diff", () => {
     const hent = (rev = 1, ret: Record<string, string> = {}): Hentere => ({ kilde: async () => andeby(rev, ret), skabelon: async () => skabelon() });
 
     it("uden markering: et nyt værk som før", async () => {
-        expect(await analyserUpload(skabelon(), vaerker, hent())).toEqual({ art: "nyt" });
+        expect(await analyserUpload(skabelon(), vaerker, hent())).toMatchObject({ art: "nyt" });
     });
     it("markering, men værket findes ikke her: nyt værk, og det siges", async () => {
         const e = await eksporter(andeby(), skabelon(), NU);
@@ -144,7 +156,7 @@ describe("genupload: genkendelse og diff", () => {
     it("én ændret celle: diff med appens etiket og basis til importen", async () => {
         const e = await eksporter(andeby(), skabelon(), NU);
         const wb = new Arbejdsbog(e.bytes);
-        wb.regneark("Anlaeg").sæt("H7", 32.5);                     // halmkedlens D&V
+        wb.regneark("Anlaeg").sæt("H9", 32.5);                     // halmkedlens D&V (række 9: de slåede-fra enheder står foran)
         wb.regneark("Solvarme").sæt("B4000", 7.25);                 // én solvarmetime
         const a = await analyserUpload(wb.bytes(), vaerker, hent());
         expect(a.art).toBe("revision");
