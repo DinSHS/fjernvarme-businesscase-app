@@ -282,5 +282,68 @@ class Modproever(unittest.TestCase):
             self._gendan(g)
 
 
+class Lagersum(unittest.TestCase):
+    """Modprøver for sammenligningen på summen over lagre (runde 15, iagttagelse 3.7; ``lagersum.py``).
+
+    To timefiler med samme samlede lager, men en anden fordeling mellem tankene, er ens; ændres summen, en enheds
+    produktion eller noget andet, er de det ikke. Syntetiske filer i modellens egen form — kræver ikke modelrepoet."""
+
+    HOVED = ("timestamp,heat_load_mw,p_halmkedel_mw,tank_hoej_level_mwh,tank_hoej_level_pct,tank_hoej_charge_mw,"
+             "tank_hoej_discharge_mw,tank_hoej_net_mw,tank_lav_level_mwh,tank_lav_level_pct,tank_lav_charge_mw,"
+             "tank_lav_discharge_mw,tank_lav_net_mw")
+
+    @staticmethod
+    def fil(raekker):
+        return "\n".join([Lagersum.HOVED, *(",".join(str(x) for x in r) for r in raekker)]) + "\n"
+
+    def setUp(self):
+        import lagersum
+        self.L = lagersum
+        # Samme sum (209,5 MWh; netto −4,344 MW), fordelt forskelligt — som de to optimale løsninger, testen målte.
+        self.a = self.fil([["2026-01-05T01:00:00", 19.8, 12.0, 91.5, 47.7, 20.656, 0.0, 20.656, 118.0, 48.3, 0.0, 25.0, -25.0],
+                           ["2026-01-05T02:00:00", 19.9, 12.0, 100.0, 52.1, 8.5, 0.0, 8.5, 120.0, 49.1, 2.0, 0.0, 2.0]])
+        self.b = self.fil([["2026-01-05T01:00:00", 19.8, 12.0, 159.5, 83.1, 0.0, 4.344, -4.344, 50.0, 20.5, 0.0, 0.0, 0.0],
+                           ["2026-01-05T02:00:00", 19.9, 12.0, 170.0, 88.6, 10.5, 0.0, 10.5, 50.0, 20.5, 0.0, 0.0, 0.0]])
+
+    def test_samme_sum_anden_fordeling_er_ens(self):
+        r = self.L.sammenlign(self.a, self.b)
+        self.assertEqual((r["byte_ens"], r["ens_paa_sum"], r["forskelle"]), (False, True, []))
+        self.assertEqual(r["lagre"], ["tank_hoej", "tank_lav"])
+        self.assertAlmostEqual(r["maks_pr_lager_mwh"], 70.0)
+
+    def test_byte_ens_er_ens(self):
+        r = self.L.sammenlign(self.a, self.a)
+        self.assertEqual((r["byte_ens"], r["ens_paa_sum"]), (True, True))
+
+    def test_aendret_samlet_lager_er_en_forskel(self):
+        b = self.b.replace("159.5", "159.6")                     # summen 209,6 mod 209,5 MWh
+        r = self.L.sammenlign(self.a, b)
+        self.assertFalse(r["ens_paa_sum"])
+        self.assertRegex(r["forskelle"][0], r"linje 2: samlet lagerindhold")
+
+    def test_aendret_nettoeffekt_er_en_forskel(self):
+        b = self.b.replace("-4.344", "-4.300")                   # nettoen −4,300 mod −4,344 MW
+        r = self.L.sammenlign(self.a, b)
+        self.assertFalse(r["ens_paa_sum"])
+        self.assertRegex(r["forskelle"][0], r"samlet nettoeffekt")
+
+    def test_aendret_produktion_er_en_forskel_selv_med_samme_lagersum(self):
+        b = self.b.replace("19.9,12.0", "19.9,11.9")             # halmkedlen 11,9 mod 12,0 MW i time 2
+        r = self.L.sammenlign(self.a, b)
+        self.assertFalse(r["ens_paa_sum"])
+        self.assertRegex(r["forskelle"][0], r"linje 3, p_halmkedel_mw: 12.0 mod 11.9 \(ikke en lagerkolonne\)")
+
+    def test_en_manglende_raekke_er_en_forskel(self):
+        r = self.L.sammenlign(self.a, self.b.rsplit("\n", 2)[0] + "\n")
+        self.assertFalse(r["ens_paa_sum"])
+        self.assertRegex(r["forskelle"][0], r"antal rækker: 2 mod 1")
+
+    def test_et_lager_kraever_byte_lighed(self):
+        et = "timestamp,p_x_mw,tank_level_mwh,tank_net_mw\n2026-01-05T01:00:00,1.0,{},0.0\n"
+        r = self.L.sammenlign(et.format("50.0"), et.format("50.0000001"))
+        self.assertFalse(r["ens_paa_sum"])
+        self.assertRegex(r["forskelle"][0], r"færre end to lagre")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

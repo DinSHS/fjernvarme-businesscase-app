@@ -160,14 +160,24 @@ Mod modelrepoets `cases/<værk>.yaml` med de samme flag er **objektivet, den sam
 de samme, men fordelingen mellem flere lagre behøver ikke være det. Den uafhængige test 18. november 2026 målte det på
 Andeby i januarvinduerne: byte-identisk timefil mod appens `case.yaml`; mod `cases/andeby.yaml` en anden fordeling
 mellem `tank_lav` og `tank_hoej` (op til 68 MWh og 25 MW pr. tank), mens summen over de to tanke, produktionen og
-objektivet var ens (afvigelse < 1e-13). Det er en alternativ optimal løsning, ikke en regnefejl: to lagre uden
-tie-break gør tidsserierne pr. lager afhængige af, hvordan casefilen er skrevet (appen skriver `case.yaml` fra
-bladene), og resultatet er det samme på Linux og Windows — givet inputfilen er fordelingen deterministisk.
+objektivet var ens (afvigelse < 1e-13). Det er en alternativ optimal løsning, ikke en regnefejl: med to lagre uden
+tie-break er fordelingen mellem dem ikke bestemt af objektivet. Testen fandt samme fordeling på Linux og Windows —
+givet inputfilen er den deterministisk.
+
+*Hvad* i inputfilen der flytter fordelingen, er ikke fundet. Genmålt 23. november 2026 ved `939228a` (df-data
+`106b9fc`, highspy 1.15.1, Windows) gav `bevis_app_vej.py` **byte-ens** timefiler mod `cases/andeby.yaml` i begge
+januarvinduer (5.–6. og 5.–16. januar 2026): 866.568 og 3.441.004 kr. Også med parforslagets gab (0,02 % og 100 kr.)
+ad appens vej mod `--mip-gap 0.0002` direkte var de byte-ens. Testen blev kørt ved `90fb16e` gennem den kørende app;
+forskellen er altså hverken casefilens skrivemåde alene eller gabet alene.
 
 Derfor: **sammenlign summen over lagre, ikke hvert lager for sig.** Appen gør det samme, hvor et tal står pr. lager:
 lagertabellen i en sammenligning har rækken *Alle lagre*, og kortene *Lager* og *Intervaldispatch* siger, at
 fordelingen ikke er entydig, når kørslen har mere end ét lager (`app/src/sider/analyser/tekster.ts` ›
-`FLERE_LAGRE_FORBEHOLD`). Det samme gælder enheder med unit commitment (start/stop): to kørsler af samme input kan
+`FLERE_LAGRE_FORBEHOLD`). Beviset gør det samme: er timefilerne ikke byte-ens, sammenligner `bevis_app_vej.py` dem
+på summen over lagre (`viden/vaerktoej/lagersum.py`: samlet lagerindhold og samlet nettoeffekt pr. time) og melder
+casen som `ENS*` med den største forskel pr. lager. Alt uden for lagerkolonnerne, objektivet og `_kpi.csv` skal
+stadig være tegn for tegn ens; modprøverne står i `test_trofasthed.py` (`Lagersum`). Ingen af de målte cases har
+endnu udløst det. Det samme gælder enheder med unit commitment (start/stop): to kørsler af samme input kan
 ende i forskellige løsninger med samme objektiv inden for gabet — målt samme dag på Billund Spor B, hvor appen og den
 direkte kørsel gav samme objektiv, men en anden fordeling mellem flis- og halmkedel.
 

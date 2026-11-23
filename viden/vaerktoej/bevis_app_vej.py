@@ -10,6 +10,12 @@ tabel; uden kommando: appens egen antagelse, uden balancemarked og med syntetisk
 
 og der sammenlignes: manifestets objektiv, ``_hourly.csv`` og ``_kpi.csv`` byte for byte. Én kørsel ad gangen.
 
+A er modelrepoets EGEN casefil, B appens (skrevet fra bladene). Med to eller flere lagre er fordelingen mellem dem
+ikke entydig (runde 15, den uafhængige test 18. november 2026): i nogle vinduer vælger solveren en anden fordeling
+for de to filer, med samme objektiv, produktion og samlede lager. Er timefilerne ikke byte-ens, sammenlignes de derfor
+på summen over lagre (``lagersum.py``): alt uden for lagerkolonnerne skal stadig være tegn for tegn ens, objektivet
+og ``_kpi.csv`` ligeså. En sådan case meldes som ``ENS*`` med den største forskel pr. lager — ikke som byte-ens.
+
     python viden/vaerktoej/bevis_app_vej.py --model <modelrepo> [--ud <mappe>] [case.yaml …]
 
 ``--model`` er en klon af modelrepoet med den pinnede commit tjekket ud (``MODEL_COMMIT`` i fabric/fjv/konstanter.py)
@@ -36,6 +42,9 @@ sys.path.insert(0, str(ROD / "fabric"))
 from fjv import konstanter as K, modelkoersel as MK  # noqa: E402
 from fjv.byg_case import byg, raekker_fra_vaerk  # noqa: E402
 from fjv.flad import flad  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import lagersum  # noqa: E402
 
 
 def _sha(p: Path) -> str:
@@ -136,19 +145,34 @@ def main(argv: list[str]) -> int:
                 "argv_direkte": argv_a[2:-2], "argv_app": plan.cli, "sek": [round(ta), round(tb)]}
         if ra.returncode == 0 and rb.returncode == 0:
             A, B = _resultat(a_ud), _resultat(b_ud)
-            post.update(direkte=A, app=B, ens=A == B)
+            post.update(direkte=A, app=B, ens=A == B, maade="byte" if A == B else None)
+            if A != B and A["objektiv"] == B["objektiv"] and A["kpi"] == B["kpi"]:
+                # Kun timefilen afviger: er det fordelingen mellem flere lagre (samme sum), er kørslen den samme.
+                ls = lagersum.sammenlign(next(a_ud.glob("*_hourly.csv")).read_text(encoding="utf-8"),
+                                         next(b_ud.glob("*_hourly.csv")).read_text(encoding="utf-8"))
+                post.update(lagersum={k: ls[k] for k in ("ens_paa_sum", "lagre", "maks_pr_lager_mwh", "forskelle")})
+                if ls["ens_paa_sum"]:
+                    post.update(ens=True, maade="sum_over_lagre")
         else:
             post.update(ens=False, fejl=[(ra.stderr or ra.stdout)[-600:], (rb.stderr or rb.stdout)[-600:]])
         alle.append(post)
         kr = lambda x: f"{x:>12,.0f}".replace(",", ".")  # noqa: E731  (dansk tusindtalsskilletegn)
         obj = f"{kr(post['direkte']['objektiv'])} / {kr(post['app']['objektiv'])}" if "direkte" in post else "fejl".rjust(27)
-        print(f"{'ENS ' if post['ens'] else 'FORSKEL'} {fil:<34} {obj} kr.  ({post['kommando']}; {post['sek'][0]}+{post['sek'][1]} s)",
+        maerke = "ENS*" if post.get("maade") == "sum_over_lagre" else "ENS " if post["ens"] else "FORSKEL"
+        print(f"{maerke} {fil:<34} {obj} kr.  ({post['kommando']}; {post['sek'][0]}+{post['sek'][1]} s)",
               flush=True)
+        if post.get("maade") == "sum_over_lagre":
+            print(f"     * timefilen er ens på summen over lagre ({', '.join(post['lagersum']['lagre'])}); fordelingen mellem dem "
+                  f"afviger med højst {post['lagersum']['maks_pr_lager_mwh']:.1f} MWh pr. lager. Objektiv og _kpi.csv er ens.")
+        elif post.get("lagersum"):
+            print("     timefilen afviger også på summen over lagre:", post["lagersum"]["forskelle"][:1])
         if "fejl" in post:
             print("   ", post["fejl"][0].strip().splitlines()[-1:] or "", post["fejl"][1].strip().splitlines()[-1:] or "")
     (o.ud / "resultat.json").write_text(json.dumps(alle, ensure_ascii=False, indent=1), encoding="utf-8")
     n = sum(1 for p in alle if p["ens"])
-    print(f"{n} af {len(alle)} cases ens (objektiv, _hourly.csv og _kpi.csv byte for byte) · detaljer: {o.ud / 'resultat.json'}")
+    paa_sum = sum(1 for p in alle if p.get("maade") == "sum_over_lagre")
+    print(f"{n} af {len(alle)} cases ens (objektiv, _hourly.csv og _kpi.csv byte for byte"
+          + (f"; {paa_sum} af dem kun på summen over lagre, mærket ENS*" if paa_sum else "") + f") · detaljer: {o.ud / 'resultat.json'}")
     return 0 if n == len(alle) else 1
 
 
