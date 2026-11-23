@@ -322,6 +322,16 @@ export function loesningTekst(s: string | null | undefined): string {
 }
 
 /**
+ * Et gab eller en tolerance i kr. — uden at runde et lille gab ned til "0 kr." (runde 15, fund 3.4 fra den uafhængige
+ * test 18. november 2026: to kørsler med gab på få øre gav "solverens tolerance (0 kr.)", som læses som "løst uden
+ * gab"). Præcis 0 er "0 kr."; over 0 og under 1 kr. er "< 1 kr."; ellers beløbet i hele kroner.
+ */
+export function toleranceKr(kr: number): string {
+    if (kr > 0 && kr < 1) return "< 1 kr.";
+    return `${tal(kr)} kr.`;
+}
+
+/**
  * Usikkerheden er ENSIDET: ved minimering ligger det sande optimum mellem best
  * bound og objektivet, så objektivet kan kun være for højt. "højst 2.355 kr.
  * over det bedst mulige (0,050 %)" — eller forklaringen på, hvorfor det ikke kendes.
@@ -330,7 +340,9 @@ export function gabTekst(g: Gab): string {
     if (g.kr === null) return "ukendt (solverens log kunne ikke læses)";
     const rel = g.rel === null ? "" : ` (${gabPct(g.rel)})`;
     const loft = g.kilde === "oensket_loft" ? "; loft ud fra det ønskede gab" : "";
-    return `højst ${tal(g.kr)} kr. over det bedst mulige${rel}${loft}`;
+    // Fund 3.4: et gab under en krone er ikke "højst 0 kr.".
+    const hvor = g.kr > 0 && g.kr < 1 ? "under 1 kr." : `højst ${tal(g.kr)} kr.`;
+    return `${hvor} over det bedst mulige${rel}${loft}`;
 }
 
 export interface Difference {
@@ -383,7 +395,7 @@ export function differenceTekst(d: Difference): string {
     const kerne = kl === "nul" || tal(Math.abs(d.delta)) === "0"
         ? "Scenariet og referencen koster det samme"
         : d.retning === "dyrere" ? `Scenariet koster ${beløb} mere end referencen` : `Scenariet koster ${beløb} mindre end referencen`;
-    const tol = d.tolerance === null ? "" : `${tal(d.tolerance)} kr.`;
+    const tol = d.tolerance === null ? "" : toleranceKr(d.tolerance);
     switch (kl) {
         case "nul":
             if (d.tolerance === null) return `${kerne}; solverens tolerance kendes ikke for begge kørsler.`;

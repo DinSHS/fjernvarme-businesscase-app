@@ -16,7 +16,7 @@ import { tal, tidspunkt } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
 import {
     absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceMetode, balanceKolonner, co2Opgoerelse, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, kendtDelta, produktionsvarians, varianseOrden,
-    IKKE_ET_RESULTAT, relativAfvigelse, sammenlignelighed, sammenlignelighedsDom, sammenligningsBudskab, spor, type Profil,
+    IKKE_ET_RESULTAT, relativAfvigelse, sammenlignelighed, sammenlignelighedsDom, sammenligningsBudskab, spor, toleranceKr, type Profil,
 } from "./beregn";
 import { sideRoller, tilSide, usePakke, type Pakke } from "./data";
 import { historie, ordnPar, vurder } from "./anbefaling";
@@ -247,7 +247,7 @@ export function DeltaObjektiv({ a, b }: { a: Pakke; b: Pakke }) {
                 </div>
                 <Fakta par={[
                     ["Præcist", `${medFortegn(d.delta)} kr.`],
-                    ["Tolerance", d.tolerance === null ? "ukendt" : `${tal(d.tolerance)} kr. (summen af de to gab)`],
+                    ["Tolerance", d.tolerance === null ? "ukendt" : `${toleranceKr(d.tolerance)} (summen af de to gab)`],
                     ["Sandt Δ", intervalTekst(d)?.replace(/^Det sande Δ (ligger |er )/, "") ?? "ukendt"],
                     ["Relativt", rel == null ? "N/A" : `${medFortegn(rel * 100, (v) => dec(v, 2))} %`],
                 ]} />

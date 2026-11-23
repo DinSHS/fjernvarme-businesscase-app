@@ -191,7 +191,7 @@ function Objektiv({ d }: { d: Pakke }) {
             <Fakta par={[
                 ["Præcist", ellers(obj, (v) => `${tal(v)} kr.`)],
                 ["Opnået gab", d.k.opnaaet_gap != null ? gabPct(d.k.opnaaet_gap) : g.kilde === "oensket_loft" ? `≤ ${gabPct(g.rel ?? 0)} (loft)` : "ukendt"],
-                ["Usikkerhed", g.kr === null ? "ukendt" : `højst ${tal(g.kr)} kr. for højt`],
+                ["Usikkerhed", g.kr === null ? "ukendt" : g.kr > 0 && g.kr < 1 ? "under 1 kr. for højt" : `højst ${tal(g.kr)} kr. for højt`],
                 ["Ønsket gab", `${ellers(d.k.oensket_rel_gap, gabPct)} eller ${ellers(d.k.oensket_abs_gap, (x) => `${tal(x)} kr.`)}`],
                 d.k.best_bound != null && ["Bedste grænse", `${tal(d.k.best_bound)} kr.`],
                 d.k.loesetid_s != null && ["Løsetid", varighed(d.k.loesetid_s)],

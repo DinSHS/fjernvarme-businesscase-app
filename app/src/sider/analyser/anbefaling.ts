@@ -14,7 +14,7 @@
 import { effektivtInput, KOERSEL_PRAEFIKS, type InputRække } from "@/lib/data/afflad";
 import { tal } from "@/lib/format";
 import {
-    absolutGab, co2Opgoerelse, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, visJson,
+    absolutGab, co2Opgoerelse, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, toleranceKr, visJson,
     type InputForskel, type Koersel, type Profil, type Samlet,
 } from "./beregn";
 import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
@@ -350,6 +350,23 @@ export function neutralSaetning(delta: number, indenTolerance: boolean): string 
 }
 
 /**
+ * Trin 5's begrundelse: HVILKEN af de to regler binder (runde 15, fund 3.4 fra den uafhængige test 18. november 2026).
+ * Reglerne er uændrede — |Δ| ≤ 2 × T (T = summen af de to kørslers gab) eller |Δ| ≤ V (V = den største af 1.000 kr. og
+ * 0,1 % af referencens driftsomkostning; egen antagelse, anbefalingsregler.json) — men før stod de som ét "inden for
+ * tolerancen (0 kr.) eller under væsentlighedsgrænsen (1.000 kr.)", ved siden af mærket "over 100 × tolerancen".
+ * Tolerancen skrives med `toleranceKr`, så et gab under en krone ikke bliver til "0 kr.".
+ */
+function trin5Begrundelse(delta: number, T: number, V: number | null): string {
+    const indenTolerance = Math.abs(delta) <= 2 * T, underV = V !== null && Math.abs(delta) <= V;
+    const forskel = `Forskellen på ${krRund(delta)}`;
+    const vTekst = V === null ? "" : `væsentlighedsgrænsen på ${krRund(V)} (den største af 1.000 kr. og 0,1 % af referencens driftsomkostning)`;
+    const tolRegel = `2 × summen af de to kørslers gab (${toleranceKr(T)})`;
+    if (indenTolerance && underV) return `${forskel} er både inden for solverens tolerance — højst ${tolRegel} — og under ${vTekst}. Den kan ikke skelnes fra nul.`;
+    if (indenTolerance) return `${forskel} er inden for solverens tolerance: den er højst ${tolRegel}, og det er den regel, der binder. Den kan ikke skelnes fra nul.`;
+    return `${forskel} er større end solverens tolerance (${toleranceKr(T)}), men under ${vTekst} — det er den regel, der binder. Forskellen er for lille til at bære en anbefaling.`;
+}
+
+/**
  * Den 9-trins beslutningsrækkefølge (anbefalingsregler.json). `bekraeft` er de
  * værksstier, der er markeret [BEKRÆFT] (VaerkParameter.bekraeft).
  */
@@ -414,11 +431,11 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     // Følsomheder og metoder får ingen beslutningskategori (anbefalingsregler.json → ikke_beslutning).
     if (type === "foelsomhed" || type === "metode") {
         const inden = Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V);
-        return svar("foelsomhed", inden ? udfyld(TRIN["5"], { delta: krRund(delta), T: krRund(T), V: krRund(V ?? 0) }) : "En følsomhed eller et metodevalg — ikke noget værket selv beslutter.");
+        return svar("foelsomhed", inden ? trin5Begrundelse(delta, T, V) : "En følsomhed eller et metodevalg — ikke noget værket selv beslutter.");
     }
     // 5. Inden for tolerance eller under væsentlighed
     if (Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V)) {
-        return svar("kan_ikke_afgoeres", udfyld(TRIN["5"], { delta: krRund(delta), T: krRund(T), V: krRund(V ?? 0) }));
+        return svar("kan_ikke_afgoeres", trin5Begrundelse(delta, T, V));
     }
     const nTekst = n === null ? "begge kørsler er løst til optimum" : n > 100 ? "mere end 100" : String(n);
     // 6. Forbehold, der nedgraderer begge retninger
