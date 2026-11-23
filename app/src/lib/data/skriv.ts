@@ -284,6 +284,27 @@ export async function bestilKoersel(
     }
 }
 
+/**
+ * Hvad blev der af den bestilling, en klientnøgle gav? `null`: der står ingen bestilling for denne bruger og dette
+ * scenarie under nøglen. Ellers bestillingen — og kørslen, hvis den blev til en (`Koersel.bestilling_id` er unik).
+ * KASTER, hvis et af opslagene fejler teknisk: "ved ikke" er ikke "ingen".
+ *
+ * Tredje rettelsesrunde, P2-1: bruges, når indholdet er ændret siden et forsøg, hvis udfald ikke er kendt — så siden
+ * kan sige, at det gamle forsøg blev til en kørsel af det tidligere indhold (bestillingsforsoeg.ts › bestilHusket).
+ */
+export async function bestillingensKoersel(
+    klientNoegle: string, scenarieId: string, bruger: string | undefined,
+): Promise<{ bestilling_id: string; koersel_id?: string } | null> {
+    if (!bruger) return null;
+    const fundet = await slåNøgleOp(klientNoegle, scenarieId, bruger);
+    if (fundet.art !== "egen") return null;
+    const q = kilde().data.Koersel?.select?.(["id", "bestilling_id"]);
+    if (!q) throw new Error("kørsler kan ikke læses i denne udgave");
+    const side = await q.where({ bestilling_id: { eq: fundet.id } }).first(1).executePaginated();
+    const k = (side?.items ?? [])[0] as { id: string } | undefined;
+    return { bestilling_id: fundet.id, ...(k ? { koersel_id: String(k.id) } : {}) };
+}
+
 export const annullerKoersel = (koerselId: string) => kald("annullerKoersel", { koerselId });
 
 /** Afstemmer kørsler mod jobstatus og starter en arbejder ved behov (KONTRAKT §6). Kaldes ved appstart og "Opdatér". */

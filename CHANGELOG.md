@@ -190,8 +190,16 @@ præsentationen og i datahåndteringen omkring kørslerne.
   klientnøgle og scenarie, til udfaldet er kendt: et nyt klik sender samme bestilling, og der kommer højst én kørsel.
   Et svar, hvor ingen ved, om kørslen blev bestilt (et afbrudt kald eller en teknisk fejl), siger det — "Vi ved ikke,
   om kørslen blev bestilt — prøv igen" — i stedet for "blev ikke bestilt", og knappen hedder *Prøv igen*. En afvisning,
-  hvor bestillingen blev stående (Fabric-udgaven), genoptages ligeledes med samme nøgle. Nøglen huskes, så længe
-  appen er åben — ikke hen over en genindlæsning af siden.
+  hvor bestillingen blev stående (Fabric-udgaven), genoptages ligeledes med samme nøgle. Nøglen huskes i fanen, også
+  hen over en genindlæsning af siden (se næste punkt).
+- **En redigering kunne kvitteres som en kørsel med de gamle input** (tredje rettelsesrunde, P2-1). Var første forsøg
+  nået frem til serveren, uden at svaret kom hjem, og rettede man derefter scenariet, sendte næste klik samme
+  bestilling og kvitterede "Kørslen er bestilt" — for kørslen af det gamle indhold. Et forsøg hører nu til brugeren
+  og til det indhold, der blev bestilt (et fingeraftryk af det gemte scenarie og værkets revision). Uændret indhold:
+  *Prøv igen* genoptager som før, og knappen viser den åbne tilstand, også når siden åbnes igen. Ændret indhold:
+  der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
+  det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
+  genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
 - **Et kort opslagssvigt kunne udløse en ekstra kørsel** (tredje rettelsesrunde, P2-2). Et genforsøg slår den
   eksisterende bestilling op på klientnøglen. Fejlede netop det opslag et øjeblik, blev svaret til "Bestillingen er
   allerede sendt", nøglen blev skiftet, og næste klik bestilte en kørsel mere; parflowet arkiverede desuden det

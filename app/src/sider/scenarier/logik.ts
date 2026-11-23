@@ -530,6 +530,23 @@ export function frossetRækker(ændringer: readonly Ændring[], felter: Scenarie
     return ud;
 }
 
+/**
+ * Fingeraftrykket af det, en bestilling af scenariet ville fryse — til at afgøre, om et uafklaret bestillingsforsøg
+ * gælder SAMME indhold som nu (tredje rettelsesrunde i runde 15, P2-1; lib/data/bestillingsforsoeg.ts).
+ *
+ * Det er klientens forudsigelse af det frosne input: scenariets rækker (`frossetRækker`), dets valg af tidsserie
+ * (som fryses som en anden række og derfor ikke står blandt dem) og værkets revision (værkets blade fryses med).
+ * Rækkefølgen af ændringerne og 12 mod 12.0 gør ingen forskel. Værkets AKTIVE tidsserier og Motorens pins er ikke med:
+ * de er ikke scenariets indhold, og tidsserierne er ikke altid hentet, når knappen vises — et aftryk, der skiftede med
+ * indlæsningen, ville få et uændret scenarie til at ligne et ændret og give en ekstra kørsel.
+ */
+export function bestillingsaftryk(vaerk: { id: string; revision: number }, ændringer: readonly Ændring[], felter: Scenariefelter, blade: Blade): string {
+    const rækker = frossetRækker(ændringer, felter, blade).map((r) => [r.kilde, r.sti, kanon(r.vaerdi_json)]);
+    const valg = ændringer.filter((æ) => æ.type === "set" && æ.sti.startsWith("_tidsserie.")).map((æ) => ["valg", æ.sti, kanon(æ.vaerdi_json ?? "null")]);
+    const alle = [...rækker, ...valg].map((r) => JSON.stringify(r)).sort();
+    return JSON.stringify([vaerk.id, vaerk.revision, alle]);
+}
+
 /** Hele det input, en kørsel af scenariet ville få (værkets blade + frosne ændringer), uden pins. */
 export function forventetInput(ændringer: readonly Ændring[], felter: Scenariefelter, blade: Blade, serier?: readonly TidsserieInfo[]): InputRad[] {
     return [...[...blade].map(([sti, vaerdi_json]) => ({ kilde: "vaerk" as const, sti, vaerdi_json })), ...frossetRækker(ændringer, felter, blade, serier)];

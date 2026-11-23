@@ -29,6 +29,10 @@ export function lager(
         opslagFejler?: (nr: number) => Error | "tomt" | undefined;
         /** Kaster `startBestilling` kald nr. `nr` — FØR serveren har rørt noget? */
         kaldFejlerFør?: (nr: number) => Error | undefined;
+        /** Afviser serveren kald nr. `nr` uden at oprette en kørsel (bestillingen bliver stående, som i Fabric)? */
+        afvisFør?: (nr: number) => Svar | undefined;
+        /** Hænger svaret på kald nr. `nr` — EFTER at kørslen er committet? (En genindlæsning midt i kaldet.) */
+        vent?: (nr: number) => Promise<void> | undefined;
     } = {},
 ): Lager {
     const l: Lager = { bestillinger: [], scenarier: [], kørsler: new Map(), frosset: new Map(), indhold: { nu: "A" }, opslag: { antal: 0 } };
@@ -72,12 +76,16 @@ export function lager(
                     kald += 1;
                     const før = valg.kaldFejlerFør?.(kald);
                     if (før) throw før;
+                    const nej = valg.afvisFør?.(kald);
+                    if (nej) return nej;
                     if (!l.kørsler.has(i.bestillingId)) {                                              // committet
                         const k = `k${l.kørsler.size + 1}`;
                         l.kørsler.set(i.bestillingId, k);
                         l.frosset.set(k, l.indhold.nu);
                     }
-                    const s = svar(kald, l.kørsler.get(i.bestillingId)!);
+                    const nr = kald;
+                    await valg.vent?.(nr);
+                    const s = svar(nr, l.kørsler.get(i.bestillingId)!);
                     if (s instanceof Error) throw s;
                     return s;
                 },

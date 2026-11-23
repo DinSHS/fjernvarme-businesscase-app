@@ -29,7 +29,7 @@ afterEach(() => { cleanup(); sætSkriveKilde(null); });
 describe("P2-2 · Kør scenariet: et fejlet opslag på nøglen er uafklaret", () => {
     it("K1 committet, svaret tabt, opslaget fejler én gang: stadig én bestilling og én kørsel", async () => {
         const l = lager((nr, k) => (nr === 1 ? TABT : ok(k)), { opslagFejler: (nr) => (nr === 1 ? NET : undefined) });
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
         await klik("Kør scenariet");
         expect(status()).toMatch(UAFKLARET);
         await klik("Prøv igen");                                    // unikhedsfejl + opslaget fejler

@@ -88,7 +88,7 @@ afterEach(() => { cleanup(); sætSkriveKilde(null); sætLæseKilde(null); });
 describe("fund B · Kør scenariet: klientnøglen beholdes, til udfaldet er kendt", () => {
     it("svaret går tabt efter commit, og brugeren klikker igen: stadig én bestilling og én kørsel", async () => {
         const l = lager((nr, k) => (nr === 1 ? TABT : ok(k)));
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
         await klik("Kør scenariet");
         expect(status()).toMatch(UAFKLARET);                       // før: "Failed to fetch" — og nøglen var glemt
         expect(status()).not.toMatch(/blev ikke bestilt|blev afvist/);
@@ -100,7 +100,7 @@ describe("fund B · Kør scenariet: klientnøglen beholdes, til udfaldet er kend
     });
     it("teknisk: true er også uafklaret — samme nøgle næste gang", async () => {
         const l = lager((nr, k) => (nr === 1 ? TEKNISK : ok(k)));
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
         await klik("Kør scenariet");
         expect(status()).toMatch(UAFKLARET);
         expect(status()).toContain("forbindelsen døde");            // den tekniske detalje står stadig i teksten
@@ -110,16 +110,16 @@ describe("fund B · Kør scenariet: klientnøglen beholdes, til udfaldet er kend
     });
     it("nøglen overlever, at siden forlades og åbnes igen (komponenten monteres på ny)", async () => {
         const l = lager((nr, k) => (nr === 1 ? TABT : ok(k)));
-        const første = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" />);
+        const første = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
         await klik("Kør scenariet");
         første.unmount();
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
         await klik(/Kør scenariet|Prøv igen/);
         expect(l.bestillinger.length).toBe(1);
     });
     it("et kendt udfald afslutter forsøget: næste klik er en NY kørsel (som brugeren beder om)", async () => {
         const l = lager((_nr, k) => ok(k));
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
         await klik("Kør scenariet");
         await klik("Kør scenariet");
         expect(l.bestillinger.length).toBe(2);
@@ -127,19 +127,19 @@ describe("fund B · Kør scenariet: klientnøglen beholdes, til udfaldet er kend
     });
     it("et andet scenarie er en anden kørsel: dets nøgle er dets egen, og det første scenaries uafklarede forsøg huskes", async () => {
         const l = lager((nr, k) => (nr === 1 ? TABT : ok(k)));
-        const a = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" />);
+        const a = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
         await klik("Kør scenariet");
         a.unmount();
-        const b = render(<KoerKnap s={scenarie("s2")} bruger="a@b.dk" />);
+        const b = render(<KoerKnap s={scenarie("s2")} bruger="a@b.dk" aftryk="A" />);
         await klik("Kør scenariet");
         b.unmount();
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
         await klik(/Kør scenariet|Prøv igen/);
         expect(l.bestillinger.map((x) => x.scenarie_id)).toEqual(["s1", "s2"]);
     });
     it("en endelig afvisning vises ordret og kaldes ikke uafklaret", async () => {
         lager(() => ({ ok: false, afvist: "Du har allerede 3 kørsler i kø; højst 3 ad gangen. Vent til en er færdig, eller annullér en.", ryddet: true }));
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
         await klik("Kør scenariet");
         expect(status()).toBe("Du har allerede 3 kørsler i kø; højst 3 ad gangen. Vent til en er færdig, eller annullér en.");
         expect(screen.getByRole("button", { name: "Kør scenariet" })).toBeInTheDocument();

@@ -33,7 +33,7 @@ import { modReference, sammenlignHref } from "./koersel-logik";
 import { TidsgraenseMaerke } from "../analyser/dele";
 import { importTekst, useArkivimporter } from "@/lib/arkiv/markering";
 import {
-    datoTilFelt, effektivTidsgraense, erTil, feltTilDato, forventetVarighed, objekter, parretsReference, tjekPeriode, tjekÆndringer, visBeskrivelse,
+    bestillingsaftryk, datoTilFelt, effektivTidsgraense, erTil, feltTilDato, forventetVarighed, objekter, parretsReference, tjekPeriode, tjekÆndringer, visBeskrivelse,
     type Blade, type Fund, type Scenariefelter, type Ændring,
 } from "./logik";
 import { ANBEFALET_GAB, FASTE_VINDUER } from "./viden.data";
@@ -211,6 +211,13 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     const varighed = gemtPeriode.doegn ? forventetVarighed({ rodKode: rod, doegn: gemtPeriode.doegn, medBalancering: s.med_balancering, settleRealized: settle }) : undefined;
     const tidsgrænse = effektivTidsgraense(s.tidsgraense_s, blade);
 
+    // P2-1: fingeraftrykket af det, en kørsel NU ville fryse — af det gemte scenarie, som varighed og budskab.
+    const aftryk = useMemo(() => bestillingsaftryk(vaerk, aendringer.map((a) => ({ type: a.type, sti: a.sti, vaerdi_json: a.vaerdi_json })), {
+        periode_start: s.periode_start ?? null, periode_slut: s.periode_slut ?? null, med_balancering: s.med_balancering,
+        balancing_method: (s.balancing_method ?? null) as Scenariefelter["balancing_method"], mip_rel_gap: s.mip_rel_gap ?? null, mip_abs_gap: s.mip_abs_gap ?? null,
+        tidsgraense_s: s.tidsgraense_s ?? null, ekstra_flag: s.ekstra_flag ?? null, heat_csv: s.heat_csv ?? null,
+    }, blade), [vaerk, aendringer, s, blade]);
+
     const gem = async () => {
         setGemmer(true);
         setGemSvar(undefined);
@@ -343,7 +350,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                     budskab={seneste ? `${STATUS_TEKST[seneste.status]}${seneste.fase && erAktiv(seneste.status) ? ` · ${seneste.fase}` : ""}.`
                         : varighed ? `Forventet ${forventetTekst(varighed)} regnetid ved ${gemtPeriode.doegn ? Math.round(gemtPeriode.doegn) : "?"} døgn.` : undefined}
                     fod={`Tidsgrænse ${tal(tidsgrænse)} s. Status opdateres hvert 20. sekund, mens kørslen er i gang og fanen er synlig.`}>
-                    <KoerKnap s={s} bruger={bruger} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
+                    <KoerKnap s={s} bruger={bruger} aftryk={aftryk} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
                     <DataTilstand h={koersler}>
                         {() => (seneste
                             ? <KoerselDetaljer k={seneste} varighed={varighed} reference={frossetHentet ? reference : undefined} frosset={frosset} tidsgraense_s={tidsgrænse}
