@@ -22,9 +22,15 @@
 // hvor bestillingen blev stående (Fabric-udgaven sletter ikke), beholdes scenariet og dets id: "Prøv igen" sender
 // samme klientnøgle, og `bestilKoersel` genoptager den eksisterende bestilling. Før blev scenariet arkiveret på
 // ethvert `ok: false`, og genforsøget oprettede et nyt scenarie, som den gamle bestilling så spærrede for.
+//
+// Efterprøvningen af rettelserne (fund B): et svar med `teknisk: true` — eller et kald, der kastede, fordi svaret gik
+// tabt — er UAFKLARET: ingen ved, om kørslen blev bestilt. Det hed "blev ikke bestilt"; nu har det sin egen tekst
+// (`uafklaretTekst`), og et kastet bestillingskald når ikke længere siden som en rå fejl. Tilstanden er den samme:
+// scenarie og nøgle beholdes, og "Prøv igen" genoptager bestillingen.
 //-----------------------------------------------------------------------
 
 import type { ÆndringUdkast, ScenarieFelter } from "@/lib/data/skriv";
+import { bestilMedUdfald, uafklaretTekst } from "@/lib/data/bestillingsforsoeg";
 import type { Scenarie } from "../../../rayfin/data/Scenarie";
 import type { Forslag, Pins, Scenariefelter } from "./logik";
 import { pinsPasser } from "./logik";
@@ -142,12 +148,14 @@ Reference: ${input.forklaring}`),
         }
         if (!t.refKoerselId) {
             påSkridt?.("Bestiller referencen…");
-            const r = await deps.bestilKoersel(t.refScenarieId, bruger, `${nøgle}-r`);
-            if (!r.ok || !r.koersel_id) {
-                await rydAfvist("ref", r.ryddet);
-                return `Referencen blev ikke bestilt: ${r.afvist ?? "afvist uden forklaring."}`;
+            const refId = t.refScenarieId;
+            const u = await bestilMedUdfald(() => deps.bestilKoersel(refId, bruger, `${nøgle}-r`));
+            if (u.art === "uafklaret") return uafklaretTekst("referencen", u.detalje);
+            if (u.art !== "bestilt") {
+                await rydAfvist("ref", u.art === "ryddet");
+                return `Referencen blev ikke bestilt: ${u.tekst}`;
             }
-            t.refKoerselId = r.koersel_id;
+            t.refKoerselId = u.koersel_id;
         }
         return undefined;
     };
@@ -175,12 +183,14 @@ Reference: ${input.forklaring}`),
     }
     if (!t.scenKoerselId) {
         påSkridt?.("Bestiller scenariet…");
-        const r = await deps.bestilKoersel(t.scenScenarieId!, bruger, `${nøgle}-s`);
-        if (!r.ok || !r.koersel_id) {
-            await rydAfvist("scen", r.ryddet);
-            return { ok: false, tilstand: t, afvist: `Scenariet blev ikke bestilt: ${r.afvist ?? "afvist uden forklaring."}` };
+        const scenId = t.scenScenarieId;
+        const u = await bestilMedUdfald(() => deps.bestilKoersel(scenId, bruger, `${nøgle}-s`));
+        if (u.art === "uafklaret") return { ok: false, tilstand: t, afvist: uafklaretTekst("scenariet", u.detalje) };
+        if (u.art !== "bestilt") {
+            await rydAfvist("scen", u.art === "ryddet");
+            return { ok: false, tilstand: t, afvist: `Scenariet blev ikke bestilt: ${u.tekst}` };
         }
-        t.scenKoerselId = r.koersel_id;
+        t.scenKoerselId = u.koersel_id;
     }
     // K3-N4: Motor kan have skiftet pins mellem visning og bestilling. Fik scenariet andre frosne
     // pins end den genbrugte reference, er parret ikke sammenligneligt — bestil en ny reference.

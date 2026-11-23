@@ -1,13 +1,18 @@
 //-----------------------------------------------------------------------
 // #/konfiguration/<kode>/kom-i-gang — efter "Nyt værk fra bunden":
 // listen over [BEKRÆFT]-felter, der bør rettes, og "Bestil en prøvekørsel
-// (2 døgn)" (opretScenarie + bestilKoersel, én klientnøgle pr. klik).
+// (2 døgn)" (opretScenarie + bestilKoersel).
+//
+// Efterprøvningen af rettelserne i runde 15, fund B: hvert klik oprettede et nyt scenarie og en ny klientnøgle. Gik
+// svaret tabt, efter serveren havde committet kørslen, gav næste klik endnu et scenarie og endnu en kørsel. Nu huskes
+// scenariet og nøglen pr. værk (bestilHusket), til udfaldet er kendt; et uafklaret svar siger, at det er uafklaret.
 //-----------------------------------------------------------------------
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Gitter, Knap, Kort, Maerke, Tabel } from "@/components/layout";
 import { useKoersler } from "@/lib/data/hooks";
 import { bestilKoersel, opretScenarie } from "@/lib/data/skriv";
+import { bestilHusket, harÅbentForsøg, uafklaretTekst } from "@/lib/data/bestillingsforsoeg";
 import { opdaterAlt } from "@/lib/data/opdatering";
 import { rutehref } from "@/lib/rute";
 import { AFSNIT, afsnitFor, findFelt } from "./katalog";
@@ -30,26 +35,29 @@ export function KomIGang({ vaerk, g, bruger, gåTil }: {
     const rettet = (b: { aendret?: Date | string | null }) => erRettet(b.aendret, vaerk.oprettet);
     const tilbage = bekræft.filter((b) => !rettet(b)).length;
     const [sender, setSender] = useState(false);
-    const [svar, setSvar] = useState<{ ok: boolean; tekst: string; scenarie?: string }>();
-    const nøgle = useRef<string | null>(null);
+    const [svar, setSvar] = useState<{ ok: boolean; tekst: string; scenarie?: string; uafklaret?: boolean }>();
+    const mål = `proeve:${vaerk.id}`;
     const tidStart = g.alle.find((b) => b.sti === "time.start")?.vaerdi_json;
     const tidSlut = g.alle.find((b) => b.sti === "time.end")?.vaerdi_json;
     const iVindue = !!tidStart && !!tidSlut && JSON.parse(tidStart) <= `${PRØVEPERIODE.start}T00:00:00Z` && JSON.parse(tidSlut) >= `${PRØVEPERIODE.slut}T23:00:00Z`;
 
     const bestil = async () => {
         setSender(true); setSvar(undefined);
-        nøgle.current ??= crypto.randomUUID();
         try {
-            const s = await opretScenarie(prøvekørselFelter(vaerk.id), bruger);
-            const r = await bestilKoersel(s.id, bruger, nøgle.current);
-            setSvar(r.ok
-                ? { ok: true, tekst: r.arbejder?.startet ? "Prøvekørslen er bestilt, og beregningen er startet." : `Prøvekørslen er bestilt. ${r.arbejder?.grund ?? ""}`, scenarie: s.id }
-                : { ok: false, tekst: r.afvist ?? "Bestillingen blev afvist.", scenarie: s.id });
+            // Scenariet oprettes kun ved forsøgets FØRSTE klik; et nyt klik efter et uafklaret svar bruger det samme.
+            const u = await bestilHusket(mål, async () => (await opretScenarie(prøvekørselFelter(vaerk.id), bruger)).id,
+                (id, nøgle) => bestilKoersel(id, bruger, nøgle));
+            const a = u.art === "bestilt" ? u.svar.arbejder : undefined;
+            setSvar(u.art === "bestilt"
+                ? { ok: true, tekst: a?.startet ? "Prøvekørslen er bestilt, og beregningen er startet." : `Prøvekørslen er bestilt. ${a?.grund ?? ""}`, scenarie: u.scenarieId }
+                // Linket til scenariet vises kun, når der står noget at følge — ikke ved et uafklaret svar.
+                : { ok: false, tekst: u.art === "uafklaret" ? uafklaretTekst("prøvekørslen", u.detalje) : u.tekst, uafklaret: u.art === "uafklaret", scenarie: u.art === "uafklaret" ? undefined : u.scenarieId });
             opdaterAlt();
         } catch (e) {
             setSvar({ ok: false, tekst: e instanceof Error ? e.message : String(e) });
-        } finally { nøgle.current = null; setSender(false); }
+        } finally { setSender(false); }
     };
+    const fortsætter = !sender && svar?.ok === false && harÅbentForsøg(mål);
 
     return (
         <Gitter form="8-4">
@@ -69,7 +77,7 @@ export function KomIGang({ vaerk, g, bruger, gåTil }: {
                 budskab={koersler.data?.length ? `Værket er kørt ${koersler.data.length} ${koersler.data.length === 1 ? "gang" : "gange"}.` : "En kort kørsel viser, om modellen accepterer værket, før du bruger tid på et helår."}
                 fod="Prøven er uden balancemarked, med gab 0,0002 og 100 kr. Tallene er ikke et resultat — kun et bevis for, at modellen accepterer og kan regne værket.">
                 <div className="kf-handlinger">
-                    <Knap onClick={bestil} disabled={sender || !bruger || !iVindue}>{sender ? "Bestiller…" : "Bestil en prøvekørsel (2 døgn)"}</Knap>
+                    <Knap onClick={bestil} disabled={sender || !bruger || !iVindue}>{sender ? "Bestiller…" : fortsætter ? "Prøv igen" : "Bestil en prøvekørsel (2 døgn)"}</Knap>
                     {!iVindue && <Maerke tone="advarsel">Perioden ligger uden for værkets tidsvindue</Maerke>}
                 </div>
                 {svar && (

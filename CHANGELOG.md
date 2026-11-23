@@ -184,6 +184,14 @@ præsentationen og i datahåndteringen omkring kørslerne.
   objektiv består en case ikke. Scriptet kræver derfor xarray (fra modellens pakker). Målt igen 23. november 2026:
   Andeby 5.–6. januar 2026 giver 866.567,7207319243 kr. ad begge veje, begge filer byte-ens; de 7 cases
   10.–11. marts 2026 er stadig 7 af 7.
+- **Et mistet svar kunne give en ekstra kørsel** (efterprøvningen af rettelserne, fund B). Committede serveren en
+  kørsel, og svaret gik tabt, glemte *Kør scenariet* sin klientnøgle, og næste klik bestilte en kørsel mere; *Bestil
+  en prøvekørsel* oprettede desuden et nyt scenarie pr. klik. Alle tre indgange (også parflowet) beholder nu
+  klientnøgle og scenarie, til udfaldet er kendt: et nyt klik sender samme bestilling, og der kommer højst én kørsel.
+  Et svar, hvor ingen ved, om kørslen blev bestilt (et afbrudt kald eller en teknisk fejl), siger det — "Vi ved ikke,
+  om kørslen blev bestilt — prøv igen" — i stedet for "blev ikke bestilt", og knappen hedder *Prøv igen*. En afvisning,
+  hvor bestillingen blev stående (Fabric-udgaven), genoptages ligeledes med samme nøgle. Nøglen huskes, så længe
+  appen er åben — ikke hen over en genindlæsning af siden.
 
 ## [Ikke udgivet] — 0.4.0
 

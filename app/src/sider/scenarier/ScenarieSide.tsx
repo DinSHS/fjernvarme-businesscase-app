@@ -4,10 +4,10 @@
 // til sammenligningen med referencen. Arkivér (ingen sletning).
 //-----------------------------------------------------------------------
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { DataTilstand, Gitter, Kort, Knap, Maerke, Side, StatusMaerke, Tabel } from "@/components/layout";
 import { useKoersler, useKoerselStatus, useScenarie, useScenarieAendringer, useScenarier, useVaerker } from "@/lib/data/hooks";
-import { bestilKoersel, gemScenarieAendringer, opdaterScenarie, type ÆndringUdkast } from "@/lib/data/skriv";
+import { gemScenarieAendringer, opdaterScenarie, type ÆndringUdkast } from "@/lib/data/skriv";
 import { STATUS_TEKST, erAktiv } from "@/lib/data/koersel-status";
 import { opdaterAlt } from "@/lib/data/opdatering";
 import { kodVaerdi, visVaerdi } from "@/lib/data/vaerdi";
@@ -27,6 +27,7 @@ import { enhedAf, gabProcent, katalogpost, læsTal, rodKode, stiEtiket, sætbare
 import { kodVarmelast, læsVarmelast, tjekSolprofil, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst, type TidsserieInfo } from "./varmelast";
 import { ScenarieHistorie } from "./HistorieKort";
 import { KoerselDetaljer } from "./KoerselKort";
+import { KoerKnap } from "./KoerKnap";
 import { differenceTekst } from "../analyser/beregn";
 import { modReference, sammenlignHref } from "./koersel-logik";
 import { TidsgraenseMaerke } from "../analyser/dele";
@@ -332,7 +333,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                     budskab={seneste ? `${STATUS_TEKST[seneste.status]}${seneste.fase && erAktiv(seneste.status) ? ` · ${seneste.fase}` : ""}.`
                         : varighed ? `Forventet ${forventetTekst(varighed)} regnetid ved ${gemtPeriode.doegn ? Math.round(gemtPeriode.doegn) : "?"} døgn.` : undefined}
                     fod={`Tidsgrænse ${tal(tidsgrænse)} s. Status opdateres hvert 20. sekund, mens kørslen er i gang og fanen er synlig.`}>
-                    <KørKnap s={s} bruger={bruger} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
+                    <KoerKnap s={s} bruger={bruger} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
                     <DataTilstand h={koersler}>
                         {() => (seneste
                             ? <KoerselDetaljer k={seneste} varighed={varighed} reference={reference} tidsgraense_s={tidsgrænse}
@@ -422,39 +423,6 @@ function KørselsLinks({ k, reference }: { k: Koersel; reference?: Koersel }) {
             <a className="fs-link" href={rutehref("analyser", k.id)}>Se</a>
             {reference?.status === "faerdig" && reference.id !== k.id && <a className="fs-link" href={sammenlignHref(reference.id, k.id)}>Sammenlign</a>}
         </span>
-    );
-}
-
-/** "Kør"-knappen: én klientnøgle pr. klik; afvisningen vises ordret. */
-function KørKnap({ s, bruger, spærret }: { s: Scenarie; bruger: string | undefined; spærret?: string }) {
-    const [svar, setSvar] = useState<{ ok: boolean; tekst: string } | undefined>();
-    const [sender, setSender] = useState(false);
-    const nøgle = useRef<string | null>(null);
-    const kør = async () => {
-        setSender(true);
-        setSvar(undefined);
-        nøgle.current ??= crypto.randomUUID();
-        try {
-            const r = await bestilKoersel(s.id, bruger, nøgle.current);
-            setSvar(r.ok
-                ? { ok: true, tekst: r.arbejder?.startet ? "Kørslen er bestilt, og beregningen er startet." : `Kørslen er bestilt. ${r.arbejder?.grund ?? ""}` }
-                : { ok: false, tekst: r.afvist ?? "Bestillingen blev afvist." });
-            opdaterAlt();
-        } catch (e) {
-            setSvar({ ok: false, tekst: e instanceof Error ? e.message : String(e) });
-        } finally {
-            nøgle.current = null;
-            setSender(false);
-        }
-    };
-    return (
-        <div className="fs-blok">
-            <div className="fs-raekke">
-                <Knap onClick={kør} disabled={sender || !bruger || !!spærret} title={spærret}>{sender ? "Bestiller…" : "Kør scenariet"}</Knap>
-                {spærret && <span className="fs-lille">{spærret}</span>}
-            </div>
-            {svar && <p className="fs-tekst" role="status" style={{ color: svar.ok ? "var(--dash-pos)" : "var(--dash-neg)" }}>{svar.tekst}</p>}
-        </div>
     );
 }
 
