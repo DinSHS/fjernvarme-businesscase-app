@@ -226,8 +226,9 @@ class TestStartBestilling(Grund):
         svar = S.start_bestilling(self.l, bid, self.arbejder, AF)
         self.assertIs(svar.get("ryddet"), True)
         verber = [v for _, v in kald]
-        # Låsen er det FØRSTE, transaktionen gør — før kørslen og bestillingen læses.
-        self.assertEqual(verber[:3], ["laas_bestilling", "koersel_for_bestilling", "bestilling"])
+        # Låsen er det FØRSTE, transaktionen gør — før bestillingen og kørslen læses. (Anden rettelsesrunde, fund C:
+        # bestillingen læses før kørslen, fordi ejeren tjekkes, før noget om kørslen slås op.)
+        self.assertEqual(verber[:3], ["laas_bestilling", "bestilling", "koersel_for_bestilling"])
         # Før rettelsen: afvisningen i transaktion 2 (rullet tilbage), oprydningen i transaktion 3 — uden lås imellem.
         self.assertEqual({n for n, v in kald if v in ("laas_bestilling", "bestilling", "slet_bestilling")}, {1})
         self.assertEqual(len({n for n, _ in kald}), 1, kald)
@@ -238,18 +239,51 @@ class TestStartBestilling(Grund):
         igen = S.start_bestilling(self.l, bid, self.arbejder, AF)
         self.assertEqual((igen["ok"], igen["koersel_id"], igen["ny"]), (True, svar["koersel_id"], False))
         # Kørslen findes: reglerne spørges ikke igen (kvoten kunne ellers afvise en bestilling, der allerede kører).
-        self.assertEqual([v for _, v in kald], ["laas_bestilling", "koersel_for_bestilling"])
+        self.assertEqual([v for _, v in kald], ["laas_bestilling", "bestilling", "koersel_for_bestilling"])
 
     def test_fund2_kun_ejeren_kan_udloese_sletning(self):
         for kalder in (None, "kollega@lokal", AF.upper()):
             bid = self._afvist_bestilling()
             svar = S.start_bestilling(self.l, bid, self.arbejder, kalder)
             self.assertEqual(set(svar), {"ok", "afvist"}, kalder)                   # afvist — men hverken ryddet eller teknisk
-            self.assertIn("som ikke findes i værket", svar["afvist"])
+            # Anden rettelsesrunde, fund C: en KENDT anden kalder når ikke til reglerne; en ukendt (None, portens
+            # spejl af Fabric, hvor identiteten ikke findes) får reglernes afvisning som før.
+            if kalder is None:
+                self.assertIn("som ikke findes i værket", svar["afvist"])
+            else:
+                self.assertEqual(svar["afvist"], S.IKKE_EJER)
             self.assertEqual(len(self.l.raekker("Bestillings", id=bid)), 1, kalder)
         # Ejeren selv: samme bestilling ryddes.
         self.assertIs(S.start_bestilling(self.l, bid, self.arbejder, AF).get("ryddet"), True)
         self.assertEqual(self.l.raekker("Bestillings", id=bid), [])
+
+    def test_fundC_kun_ejeren_kan_faa_bestillingen_behandlet(self):
+        """Efterprøvningen af rettelserne, fund C: en kendt kalder, der ikke er ejeren, afvises FØR kørslen slås op
+        og FØR noget fryses — ingen kvotelås, ingen læsning af scenarie og værk, ingen kørsel."""
+        b = self.l.indsaet("Bestillings", {"scenarie_id": self.s["id"], "bestilt_af": AF, "klient_noegle": "c1"})["id"]
+        kald = self._med_spion()
+        svar = S.start_bestilling(self.l, b, self.arbejder, "kollega@lokal")
+        # Før rettelsen: {"ok": True, "ny": True, ...} — kørslen blev oprettet i ejerens navn.
+        self.assertEqual(svar, {"ok": False, "afvist": S.IKKE_EJER})
+        self.assertEqual([v for _, v in kald], ["laas_bestilling", "bestilling"])
+        self.assertEqual(self.l.raekker("Koersels"), [])
+        self.assertEqual(self.starter, [])                                       # arbejderen startes ikke i en andens navn
+        self.assertEqual(len(self.l.raekker("Bestillings", id=b)), 1)
+
+    def test_fundC_en_anden_faar_ikke_den_eksisterende_koersel(self):
+        bid, svar = self.bestil()
+        self.assertTrue(svar["ok"])
+        self.starter.clear()
+        self.assertEqual(S.start_bestilling(self.l, bid, self.arbejder, "kollega@lokal"), {"ok": False, "afvist": S.IKKE_EJER})
+        self.assertEqual(self.starter, [])
+
+    def test_fundC_ukendt_kalder_er_portens_spejl_af_fabric(self):
+        """``kalder=None`` betyder "identiteten findes ikke" (Fabric: tokenet bærer ingen e-mail). Dér kan ejeren ikke
+        tjekkes, og bestillingen behandles som før — men ryddes aldrig. Den lokale udgaves binding
+        (``betroet_lager.Tjenester``) giver aldrig None videre (community/tests/test_r15_bestilling.py)."""
+        b = self.l.indsaet("Bestillings", {"scenarie_id": self.s["id"], "bestilt_af": AF, "klient_noegle": "c2"})["id"]
+        svar = S.start_bestilling(self.l, b, self.arbejder)
+        self.assertEqual((svar["ok"], svar["ny"]), (True, True))
 
     def test_fund2_lageret_sletter_kun_ejerens_raekke(self):
         """Også lagerets eget udsagn er bundet til ejeren (to værn, ikke ét)."""

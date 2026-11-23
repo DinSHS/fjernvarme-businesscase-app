@@ -24,7 +24,10 @@ har noget til fælles: ``start_arbejder() -> {"startet": bool, "grund": str, ["f
 Identitet: som i Fabric stoler forløbene på ``bestilt_af``/``anmodet_af`` på rækken, som skrivelaget (DAB-policyen;
 i community REST-laget) har verificeret ved oprettelse — de kender ikke kalderen. Én undtagelse (kodegennemgangen af
 runde 15, fund 2): ``start_bestilling`` får ``kalder`` (lokalt sessionens bruger; i Fabric findes ingen verificeret
-e-mail, så dér er den altid ukendt), fordi kun bestillingens ejer må kunne udløse, at en afvist bestilling slettes.
+e-mail, så dér er den altid ukendt), fordi kun bestillingens ejer må kunne udløse, at en afvist bestilling slettes —
+og (efterprøvningen af rettelserne, fund C) at den overhovedet behandles: en kendt kalder, der ikke er ejeren, afvises,
+før kørslen slås op, og før noget fryses. I Fabric findes identiteten ikke, og begrænsningen står i
+``doc/FABRIC.md`` (*Det der gælder altid*).
 """
 
 from __future__ import annotations
@@ -42,7 +45,11 @@ from .vaerksark import behandl_vaerksark
 
 __all__ = ["start_bestilling", "udfoer_aendring", "annuller_koersel", "upload_tidsserie", "hent_tidsserie",
            "upload_vaerksark", "hent_kilde_yaml", "hent_dmi_temperatur", "afstem", "DOED_EFTER_MIN", "DOEDE_TEKSTER",
-           "teknisk_fejl"]
+           "teknisk_fejl", "IKKE_EJER"]
+
+#: Svaret til en kalder, der ikke er bestillingens ejer (efterprøvningen af rettelserne i runde 15, fund C). En endelig
+#: afvisning uden ``ryddet`` og uden ``teknisk``: bestillingen står urørt, og intet om den eller dens kørsel er oplyst.
+IKKE_EJER = "Bestillingen er oprettet af en anden bruger. Kun den, der har bestilt den, kan få den behandlet."
 
 _UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.ASCII | re.I)
 _BASE64 = re.compile(r"[A-Za-z0-9+/]+={0,2}", re.ASCII)
@@ -180,7 +187,11 @@ def start_bestilling(lager, bestilling_id: str, start_arbejder, kalder: str | No
     * ingen af delene — en endelig afvisning, men bestillingen står (kalderen er ikke ejeren eller er ukendt, eller
       oprydningen fejlede). Et nyt forsøg genoptager den.
 
-    ``kalder`` er den verificerede bruger bag kaldet (sessionens), eller ``None`` når den ikke kendes."""
+    ``kalder`` er den verificerede bruger bag kaldet (sessionens), eller ``None`` når identiteten ikke FINDES (portens
+    spejl af Fabric, hvor tokenet ikke bærer en e-mail). Efterprøvningen af rettelserne, fund C: en kendt kalder, der
+    ikke er bestillingens ``bestilt_af``, får ``IKKE_EJER`` — tjekket står under låsen, FØR en eksisterende kørsel slås
+    op og FØR frysningen, så en kollega hverken kan oprette en kørsel i ejerens navn (og kø), starte arbejderen eller
+    få kørslens id. Den lokale udgaves binding (``betroet_lager.Tjenester``) giver aldrig ``None`` videre."""
     if not _uuid(bestilling_id):
         return {"ok": False, "afvist": "Ugyldigt bestillings-id."}
 
@@ -189,15 +200,19 @@ def start_bestilling(lager, bestilling_id: str, start_arbejder, kalder: str | No
             return tx.koersel_for_bestilling(bestilling_id)
 
     foer = koersel_id = afvist = None
-    ryddet = False
+    ryddet = ikke_ejer = False
     try:
         with lager.transaktion() as tx:
             # Fund 1: én lås pr. bestilling, FØR den læses — to kald om samme bestilling går efter hinanden fra
             # læsning til indsættelse eller oprydning. Rækkefølgen bestilling -> kvote er den samme overalt.
             tx.laas_bestilling(bestilling_id)
-            foer = tx.koersel_for_bestilling(bestilling_id)
-            if not foer:
-                b = tx.bestilling(bestilling_id)
+            b = tx.bestilling(bestilling_id)
+            if b is not None and kalder is not None and kalder != b["bestilt_af"]:
+                # Fund C: ikke ejeren. Intet er læst om kørslen, intet fryses, intet slettes; bestillingen står.
+                ikke_ejer = True
+            else:
+                foer = tx.koersel_for_bestilling(bestilling_id)
+            if not ikke_ejer and not foer:
                 try:
                     f = _frys(tx, b)
                 except Afvisning as e:
@@ -228,6 +243,8 @@ def start_bestilling(lager, bestilling_id: str, start_arbejder, kalder: str | No
             return {"ok": False, "afvist": afvist}
         return {"ok": False, "afvist": teknisk_fejl("startBestilling", e), "teknisk": True}
 
+    if ikke_ejer:
+        return {"ok": False, "afvist": IKKE_EJER}
     if foer:
         return {"ok": True, "koersel_id": _lc(foer["id"]), "status": foer["status"], "ny": False, "arbejder": start_arbejder()}
     if afvist is not None:

@@ -175,7 +175,8 @@ class Fund2Ejer(Grund):
         bid = self.afvist_bestilling()
         svar = self.start(bid, bruger=ANDEN)
         self.assertFalse(svar["ok"])
-        self.assertIn("som ikke findes i værket", svar["afvist"])
+        # Anden rettelsesrunde, fund C: en anden bruger når slet ikke til reglerne — svaret er ejerafvisningen.
+        self.assertEqual(svar["afvist"], S.IKKE_EJER)
         # Før rettelsen: [] — kollegaens kald slettede rækken og dens klientnøgle.
         self.assertEqual(len(self.l.raekker("Bestillings", id=bid)), 1)
         self.assertIsNot(svar.get("ryddet"), True)
@@ -192,6 +193,58 @@ class Fund2Ejer(Grund):
         bid = self.afvist_bestilling()
         self.start(bid, bruger=AF)
         svar = self.start(bid, bruger=ANDEN)
+        self.assertEqual((svar["ok"], svar["afvist"]), (False, "Bestillingen findes ikke."))
+
+
+class FundCEjerVedBehandling(Grund):
+    """Efterprøvningen af rettelserne (anden rettelsesrunde), fund C (P2): ejerskabet var kun et værn mod SLETNING.
+    Et direkte kald med en kollegas bestillings-id (rækken er læsbar for alle) kunne stadig få bestillingen behandlet:
+    kørslen blev oprettet i kollegaens navn og talte i kollegaens køkvote. Nu kan kun bestillingens ejer få den
+    behandlet — tjekket står før opslaget af en eksisterende kørsel og før frysningen.
+
+    Legitime kaldere uden session er eftersøgt (rapporten): arbejderen tager kørsler fra køen og kalder aldrig
+    ``start_bestilling``; ``afstem`` starter kun arbejderen; den manuelle vej (``manuel.py``) opretter selv Bestilling
+    og Koersel. Den eneste kalder er ``funktioner.kald``, som altid har sessionens bruger."""
+
+    def test_en_kollega_kan_ikke_faa_en_andens_bestilling_behandlet(self):
+        bid = self.bestilling()                                    # ejerens egen, gyldige, ubehandlede bestilling
+        svar = self.start(bid, bruger=ANDEN)
+        # Før rettelsen: {"ok": True, "ny": True, ...} — en kørsel i ejerens navn, i ejerens kø.
+        self.assertEqual(svar, {"ok": False, "afvist": S.IKKE_EJER})
+        self.assertEqual(self.l.raekker("Koersels", bestilling_id=bid), [])
+        self.assertEqual(len(self.l.raekker("Bestillings", id=bid)), 1)        # og intet er slettet
+        # Ejeren selv kan stadig bestille.
+        egen = self.start(bid, bruger=AF)
+        self.assertEqual((egen["ok"], egen["ny"]), (True, True), egen)
+
+    def test_en_kollega_faar_heller_ikke_den_eksisterende_koersel(self):
+        """Tjekket står FØR opslaget af kørslen: et gentaget kald fra en anden starter ikke arbejderen i ejerens navn."""
+        bid = self.bestilling()
+        egen = self.start(bid, bruger=AF)
+        self.assertTrue(egen["ok"], egen)
+        svar = self.start(bid, bruger=ANDEN)
+        self.assertEqual(svar, {"ok": False, "afvist": S.IKKE_EJER})
+        # Ejerens eget gentagne kald er stadig idempotent.
+        igen = self.start(bid, bruger=AF)
+        self.assertEqual((igen["ok"], igen["koersel_id"], igen["ny"]), (True, egen["koersel_id"], False))
+
+    def test_en_kollega_kan_ikke_bruge_ejerens_koekvote(self):
+        """Tre kald fra en kollega på ejerens bestillinger fylder ikke ejerens kø."""
+        for _ in range(3):
+            self.assertFalse(self.start(self.bestilling(), bruger=ANDEN)["ok"])
+        self.assertEqual(self.l.raekker("Koersels", bestilt_af=AF), [])
+        self.assertTrue(self.start(self.bestilling(), bruger=AF)["ok"])
+
+    def test_uden_en_kendt_kalder_behandles_intet_i_den_lokale_udgave(self):
+        """Serverens binding kræver en kalder: et kald uden bruger er ikke en legitim vej i den lokale udgave."""
+        bid = self.bestilling()
+        for kalder in (None, ""):
+            svar = BL.tjenester(self.app).start_bestilling(bid, kalder)
+            self.assertEqual(svar, {"ok": False, "afvist": S.IKKE_EJER}, repr(kalder))
+        self.assertEqual(self.l.raekker("Koersels", bestilling_id=bid), [])
+
+    def test_en_bestilling_der_ikke_findes_svarer_som_foer(self):
+        svar = self.start(self.l.ny_id(), bruger=ANDEN)
         self.assertEqual((svar["ok"], svar["afvist"]), (False, "Bestillingen findes ikke."))
 
 

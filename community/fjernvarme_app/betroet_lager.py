@@ -427,7 +427,15 @@ class Tjenester:
         self.lager, self.filer = SqlBetroetLager(app.db), LokaleFiler(app.files)
 
     def start_bestilling(self, bestilling_id, kalder=None):
-        """``kalder`` er sessionens bruger (funktioner.kald): kun bestillingens ejer kan få en afvist bestilling ryddet."""
+        """``kalder`` er sessionens bruger (funktioner.kald): kun bestillingens ejer kan få den behandlet — og en
+        afvist bestilling ryddet.
+
+        Efterprøvningen af rettelserne i runde 15, fund C: den lokale udgave HAR en identitet, så her er en ukendt
+        kalder ikke en legitim vej. Eftersøgt: arbejderen tager kørsler fra køen og kalder aldrig denne funktion,
+        ``afstem`` starter kun arbejderen, og den manuelle vej (``manuel.py``) opretter selv Bestilling og Koersel.
+        ``None`` til forløbet betyder "identiteten findes ikke" (Fabric) og gives derfor aldrig videre herfra."""
+        if not kalder:
+            return {"ok": False, "afvist": self.T.IKKE_EJER}
         return self.T.start_bestilling(self.lager, bestilling_id, self.app.motor.start_arbejder, kalder)
 
     def udfoer_aendring(self, anmodning_id):

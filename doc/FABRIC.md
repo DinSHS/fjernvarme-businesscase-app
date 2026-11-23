@@ -164,6 +164,12 @@ og bygget lykkes alligevel:
 
 * **Kør Rayfin fra `app/`** (CLI'en finder projektet ud fra den aktuelle mappe). Giv altid `--workspace-id` — `scripts/installation.py rayfin-up` gør det.
 * **Én solver ad gangen** og **kun appens egen kø**: notebooken tager en global SQL-lås; en anden arbejder afslutter uden at røre noget.
+* **Functions kender ikke kalderen** (begrænsning, efterprøvningen af runde 15). Rayfin-tokenet bærer ingen e-mail, kun brugerens objekt-id, og
+  `Bestilling.bestilt_af` er en e-mail, som DAB verificerede, da rækken blev oprettet. `startBestilling` kan derfor ikke kræve, at kalderen er
+  bestillingens ejer. Appen sender kun brugerens egne bestillinger, men et direkte kald til funktionen med en kollegas bestillings-id (rækken kan
+  læses af alle appens brugere) får bestillingen behandlet: kørslen oprettes i kollegaens navn og tæller i kollegaens køkvote (højst 3 i kø).
+  Der bliver stadig højst én kørsel pr. bestilling, og Functions sletter ingen bestilling. Den lokale udgave kender sessionens bruger og afviser
+  kaldet. At lukke det i Fabric kræver en verificerbar identitet i funktionen eller en ejerafgrænset indgang; det er ikke lavet.
 * En kørsel gemmer de fulde pinnede commits (model og df-data), den brugte. Skift pins bevidst (`fabric/fjv/konstanter.py`, `CREDITS.md`, `app/src/sider/dokumentation/kilde.ts`
   — `scripts/tjek.py` fejler, hvis de ikke er ens), og deploy med `deploy.py kode`, så `dbo.Motors` følger med. Arbejderen **afviser** (status `fejl`) en
   kørsel, hvis frosne pins ikke er den motor, der kører den — fx en bestilling lagt, mens `dbo.Motors` stadig stod på den forrige motor. Bestil den igen.

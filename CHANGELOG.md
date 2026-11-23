@@ -171,6 +171,12 @@ præsentationen og i datahåndteringen omkring kørslerne.
   bestillingens lås — den samme, som bestillingsvejen tager — før bestillingen læses, i sorteret orden ved flere
   bestillinger. Ingen fremmednøgle i denne runde. sqlite kan ikke genskabe kapløbet (én skriver ad gangen); det er
   afprøvet mod en model med READ COMMITTED og ventende låse, ikke mod en rigtig PostgreSQL eller SQL Server.
+- **En kollega kunne få en andens bestilling behandlet** (efterprøvningen af rettelserne, fund C). Ejerskabet var kun
+  et værn mod sletning: et direkte kald til `startBestilling` med en andens bestillings-id oprettede kørslen i ejerens
+  navn og brugte ejerens køkvote. *Lokal udgave:* kun bestillingens ejer (sessionens bruger) kan nu få den behandlet;
+  tjekket står før opslaget af en eksisterende kørsel og før frysningen, og en anden får "Bestillingen er oprettet af
+  en anden bruger …". *Fabric-udgaven:* uændret — funktionen har intet identitetsgrundlag (tokenet bærer ingen
+  e-mail). Begrænsningen står i [`doc/FABRIC.md`](doc/FABRIC.md#det-der-gælder-altid).
 
 ## [Ikke udgivet] — 0.4.0
 
