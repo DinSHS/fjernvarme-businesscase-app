@@ -1,5 +1,5 @@
 {
-  "_om": "Enhedstyper i fjernvarmemodellen @ 90fb16e. Typen er en etiket; økonomien styres af fuel og alpha. Standardværdier fra src/config.py (dataclass Unit).",
+  "_om": "Enhedstyper i fjernvarmemodellen @ 939228a. Typen er en etiket; økonomien styres af fuel og alpha. Standardværdier fra src/config.py (dataclass Unit).",
   "kilde": {
     "dataclass": "src/config.py:492",
     "validering": "src/config.py:522",
@@ -28,6 +28,7 @@
     "electricity": "El",
     "solar": "Sol",
     "natural_gas": "Naturgas",
+    "fuel_oil": "Fyringsolie",
     "straw": "Halm",
     "flis": "Flis",
     "wood_pellets": "Træpiller",
@@ -284,6 +285,63 @@
       },
       "noter": [
         "co2_emissions_per_mwh_fuel ca. 0,2 t/MWh for naturgas."
+      ]
+    },
+    "oil_boiler": {
+      "navn": "Oliekedel",
+      "beskrivelse": "Fyringsolie eller gasolie, typisk spids og reserve. Kræver en pris for fyringsolie og en CO₂-pris (gerne 0).",
+      "fuel": [
+        "fuel_oil"
+      ],
+      "paakraevede": [
+        "type",
+        "p_max_heat",
+        "p_min_heat",
+        "alpha",
+        "fuel",
+        "eta_fuel_to_heat"
+      ],
+      "valgfri": [
+        "enabled",
+        "var_om",
+        "uc_enabled",
+        "start_cost",
+        "min_uptime",
+        "min_downtime",
+        "initial_status",
+        "commissioned",
+        "notes",
+        "co2_emissions_per_mwh_fuel"
+      ],
+      "irrelevante": [
+        "cop_curve",
+        "production_profile_path"
+      ],
+      "kan_byde_balance": false,
+      "skabelon": {
+        "enabled": true,
+        "type": "oil_boiler",
+        "p_max_heat": 15.0,
+        "p_min_heat": 0.0,
+        "alpha": 0.0,
+        "fuel": "fuel_oil",
+        "eta_fuel_to_heat": 0.95,
+        "var_om": 30.0,
+        "start_cost": 500.0,
+        "min_uptime": 1,
+        "min_downtime": 1,
+        "uc_enabled": false,
+        "co2_emissions_per_mwh_fuel": 0.266,
+        "ancillary": {
+          "afrr_qualified": false,
+          "mfrr_qualified": false,
+          "fcr_qualified": false
+        }
+      },
+      "noter": [
+        "co2_emissions_per_mwh_fuel 0,266 t/MWh for fyringsolie og gasolie (74 kg CO₂/GJ, Energistyrelsens standardfaktor); tung fuelolie ca. 0,28.",
+        "Olieprisen opgives pr. MWh olie (ca. 10 kWh pr. liter) inkl. energiafgift.",
+        "Der er én CO₂-pris for værket: står CO₂-afgiften i gasprisen og CO₂-prisen til 0, skal den også være med i olieprisen."
       ]
     },
     "gas_engine_chp": {

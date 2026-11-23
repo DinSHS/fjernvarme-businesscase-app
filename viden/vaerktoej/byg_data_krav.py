@@ -22,7 +22,7 @@ sys.stdout.reconfigure(errors="replace")
 HER = Path(__file__).resolve().parent
 UD = HER.parent / "data_krav.json"
 
-PIN = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
+PIN = "939228aa048563c8498382a79d207c8b03fbda57"
 DF_DATA = "392992c7fe35992e79fba8d1ba7b91967e8d1481"
 
 # ---------------------------------------------------------------- datakilder
@@ -582,12 +582,12 @@ VAERKSARK = {
         },
         "Anlaeg": {
             "enheder": "blok under overskriften 'navn' (række 4): navn, type, maks varme, min varme, varme virkningsgrad, COP ved 0 °C, elvirkningsgrad, D&V, startomkostning, min driftstid, min stoptid, kan byde (ja/nej), solvarme årsproduktion (GWh); valgfri kolonne N brændsel (halm/træpiller/flis)",
-            "typer": ["heat_pump", "electric_boiler", "biomass_boiler", "gas_boiler", "gas_engine_chp", "solar_thermal", "waste_heat"],
+            "typer": ["heat_pump", "electric_boiler", "biomass_boiler", "gas_boiler", "oil_boiler", "gas_engine_chp", "solar_thermal", "waste_heat"],
             "tanke": "blok under overskriften 'tank': navn, volumen (m3), maks fyldning (MWh), lade- og afladeeffekt (MW); mindst én tank kræves",
             "formler": "skal have en beregnet værdi (gemt i Excel), ellers stop",
         },
         "Varmepumpe": "målepunkter fra række 6: navn (som i Anlaeg), udetemperatur, varme MW, el MW; mindst to pr. pumpe; COP 1,5-6",
-        "Priser": "læses på etiketterne i kolonne A: brændsler (naturgas, halm, træpiller, flis, overskudsvarme, CO2), valgfri blok gasafgifter, elafgift, Energinet, netselskabets D&V, indfødningstarif, tarifbånd lav/høj/spids vinter og sommer, nærmeste DMI-område, priszone, værkets navn",
+        "Priser": "læses på etiketterne i kolonne A: brændsler (naturgas, fyringsolie, halm, træpiller, flis, overskudsvarme, CO2), valgfri blok gasafgifter, elafgift, Energinet, netselskabets D&V, indfødningstarif, tarifbånd lav/høj/spids vinter og sommer, nærmeste DMI-område, priszone, værkets navn",
         "Solvarme": "valgfrit ark opbygget som Timedata (B2 tidszone, B3 årsproduktion, overskrift 'tidsstempel'); erstatter den syntetiske solprofil",
     },
     "output": {
@@ -595,7 +595,7 @@ VAERKSARK = {
         "<data-dir>/<slug>_abvaerk_hourly.csv": "kun hvis Timedata har værdier: timestamp,heat_mw_abvaerk i UTC, timens start, huller udeladt",
         "<data-dir>/<slug>_<enhed>_profil.csv": "syntetisk solprofil (time,power_mw) for HELE kalenderår fra start- til slutåret",
         "<data-dir>/<slug>_<enhed>_maalt.csv": "målt solprofil fra arket Solvarme, rundet ud til hele døgn, huller udfyldt",
-        "slug": "værkets navn (Priser B30) i små bogstaver, æ/ø/å -> ae/oe/aa, andet -> _ (fx 'Andeby Fjernvarme' -> andeby_fjernvarme)",
+        "slug": "værkets navn (arket Priser, rækken 'værkets navn') i små bogstaver, æ/ø/å -> ae/oe/aa, andet -> _ (fx 'Andeby Fjernvarme' -> andeby_fjernvarme)",
     },
     "laek_vagt": "Scriptet nægter at læse arket eller skrive, hvis stien ligger i et git-repo og ikke er git-ignoreret (scripts/vaerksark_til_yaml.py:1467-1508). I Fabric: læg arket og output uden for ethvert git-repo (fx Files/fjv/uploads/ og en tmp-mappe) - så gælder vagten ikke, og --tillad-offentlig skal aldrig bruges. Uden git installeret behandles stien som 'uden for repo'.",
     "til_appen": [

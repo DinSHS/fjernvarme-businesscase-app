@@ -35,7 +35,7 @@ HER = Path(__file__).resolve().parent
 VIDEN = HER.parent
 REPO = Path(os.environ.get("FJV_MODELREPO",
                            VIDEN.parent.parent / "fjernvarme-businesscase"))
-PIN = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
+PIN = "939228aa048563c8498382a79d207c8b03fbda57"
 
 fejl: dict[str, list[str]] = {}
 
@@ -323,6 +323,9 @@ else:
     from src.config import load_case  # noqa: E402
     raw = yaml.safe_load(git("show", f"{PIN}:cases/andeby.yaml"))
     raw["prices"]["wood_pellets"] = {"value": 300.0, "unit": "DKK/MWh_fuel"}
+    # Runde 15 (939228a): oliekedlens skabelon kræver prices.fuel_oil, som Andeby ikke har. Målt: uden prisen afviser
+    # modellen selv casen ("En enhed bruger fyringsolie, men prisen for fyringsolie er ikke sat under prices").
+    raw["prices"]["fuel_oil"] = {"value": 900.0, "unit": "DKK/MWh_fuel"}
     typer = data["enhedstyper.json"]["typer"]
     for typ, d in typer.items():
         raw["units"][f"ny_{typ}"] = dict(d["skabelon"])

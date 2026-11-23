@@ -1,6 +1,6 @@
 {
   "_om": "Minimalt gyldigt værk som blade (KONTRAKT §3.2): én gaskedel, intet lager, varmelast skaleret fra et årligt varmebehov med modelrepoets egen regel. Genereres af viden/vaerktoej/byg_nyt_vaerk.py fra viden/modelspejl.json; valideret af vaerktoej/tjek_nyt_vaerk.py (afflad -> modellens load_case -> 2-døgns kørsel) og tjek_trofasthed.py. 'kilde' pr. blad: modelrepoet (fil:linje @ commit) eller 'egen antagelse'. bekraeft = skønnet værdi, som skal rettes.",
-  "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
+  "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
   "standard_varmebehov_gwh": 50.0,
   "skalering": {
     "divisor_gwh": 100.0,
@@ -46,7 +46,7 @@
       "heat_load_params.nettab_slope_mw_per_k": 4,
       "heat_load_params.baseline_profile_mw": 3
     },
-    "kilde": "scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (grundtal scripts/vaerksark_til_yaml.py:1582-1598)",
+    "kilde": "scripts/vaerksark_til_yaml.py:1600 @ 939228a (grundtal scripts/vaerksark_til_yaml.py:1601-1617)",
     "formel": {
       "faktor": "f = round(G / 100, 4) når G > 1, ellers f = 1",
       "heat_load_params.gaf_mw_per_k": "round(0.7653 × f, 4)",
@@ -208,8 +208,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "navn",
-      "kommentar": "Dokumentation; læses ikke af modellen. Kilde: Andeby, cases/andeby.yaml:72 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:72 @ 90fb16e"
+      "kommentar": "Dokumentation; læses ikke af modellen. Kilde: Andeby, cases/andeby.yaml:72 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:72 @ 939228a"
     },
     {
       "sti": "meta.timezone_reporting",
@@ -217,8 +217,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "navn",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:73 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:73 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:73 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:73 @ 939228a"
     },
     {
       "sti": "meta.discount_rate_real",
@@ -226,8 +226,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "navn",
-      "kommentar": "Real kalkulationsrente til annuitet; læses ikke af modellen. Kilde: Andeby, cases/andeby.yaml:74 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:74 @ 90fb16e"
+      "kommentar": "Real kalkulationsrente til annuitet; læses ikke af modellen. Kilde: Andeby, cases/andeby.yaml:74 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:74 @ 939228a"
     },
     {
       "sti": "data.dmi_area",
@@ -235,8 +235,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "klima",
-      "kommentar": "Vælg efter beliggenhed: vestkyst, karup, fyn, ringsted. Kilde: Andeby, cases/andeby.yaml:89 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:89 @ 90fb16e"
+      "kommentar": "Vælg efter beliggenhed: vestkyst, karup, fyn, ringsted. Kilde: Andeby, cases/andeby.yaml:89 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:89 @ 939228a"
     },
     {
       "sti": "data.price_zone",
@@ -244,8 +244,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "klima",
-      "kommentar": "DK1 vest for Storebælt, DK2 øst for. Kilde: Andeby, cases/andeby.yaml:90 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:90 @ 90fb16e"
+      "kommentar": "DK1 vest for Storebælt, DK2 øst for. Kilde: Andeby, cases/andeby.yaml:90 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:90 @ 939228a"
     },
     {
       "sti": "electricity.spot_area",
@@ -253,8 +253,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "klima",
-      "kommentar": "Skal være lig data.price_zone. Kilde: Andeby, cases/andeby.yaml:190 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:190 @ 90fb16e"
+      "kommentar": "Skal være lig data.price_zone. Kilde: Andeby, cases/andeby.yaml:190 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:190 @ 939228a"
     },
     {
       "sti": "time.start",
@@ -262,8 +262,8 @@
       "bekraeft": false,
       "obligatorisk": true,
       "trin": "tid",
-      "kommentar": "Rullende år; dækket af df-data. Kilde: Andeby, cases/andeby.yaml:115 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:115 @ 90fb16e"
+      "kommentar": "Rullende år; dækket af df-data. Kilde: Andeby, cases/andeby.yaml:115 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:115 @ 939228a"
     },
     {
       "sti": "time.end",
@@ -271,8 +271,8 @@
       "bekraeft": false,
       "obligatorisk": true,
       "trin": "tid",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:116 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:116 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:116 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:116 @ 939228a"
     },
     {
       "sti": "time.resolution",
@@ -280,8 +280,8 @@
       "bekraeft": false,
       "obligatorisk": true,
       "trin": "tid",
-      "kommentar": "Version 1 kører kun 1h (KONTRAKT §6c). Kilde: Andeby, cases/andeby.yaml:117 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:117 @ 90fb16e"
+      "kommentar": "Version 1 kører kun 1h (KONTRAKT §6c). Kilde: Andeby, cases/andeby.yaml:117 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:117 @ 939228a"
     },
     {
       "sti": "solver.mip_rel_gap",
@@ -289,8 +289,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "tid",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:143 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:143 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:143 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:143 @ 939228a"
     },
     {
       "sti": "solver.mip_abs_gap",
@@ -298,8 +298,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "tid",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:144 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:144 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:144 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:144 @ 939228a"
     },
     {
       "sti": "solver.time_limit",
@@ -307,8 +307,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "tid",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:145 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:145 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:145 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:145 @ 939228a"
     },
     {
       "sti": "heat_load_params.gaf_mw_per_k",
@@ -316,8 +316,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "varmebehov",
-      "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov).",
-      "kilde": "scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov)"
+      "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov).",
+      "kilde": "scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov)"
     },
     {
       "sti": "heat_load_params.t_ref",
@@ -325,8 +325,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "varmebehov",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:154 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:154 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:154 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:154 @ 939228a"
     },
     {
       "sti": "heat_load_params.thermal_inertia_hours",
@@ -334,8 +334,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "varmebehov",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:155 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:155 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:155 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:155 @ 939228a"
     },
     {
       "sti": "heat_load_params.nettab_slope_mw_per_k",
@@ -343,8 +343,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "varmebehov",
-      "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov).",
-      "kilde": "scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov)"
+      "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov).",
+      "kilde": "scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov)"
     },
     {
       "sti": "heat_load_params.t_net",
@@ -352,8 +352,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "varmebehov",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:157 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:157 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:157 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:157 @ 939228a"
     },
     {
       "sti": "heat_load_params.baseline_profile_mw",
@@ -361,8 +361,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "varmebehov",
-      "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov).",
-      "kilde": "scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov)"
+      "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov).",
+      "kilde": "scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov)"
     },
     {
       "sti": "heat_load_params.weekly_dip",
@@ -370,12 +370,12 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "varmebehov",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:163 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:163 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:163 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:163 @ 939228a"
     },
     {
       "sti": "heat_load_params._source",
-      "vaerdi_json": "\"Skabelon: Andeby × round(50/100, 4) (modelrepoets skalering, scripts/vaerksark_til_yaml.py:1581)\"",
+      "vaerdi_json": "\"Skabelon: Andeby × round(50/100, 4) (modelrepoets skalering, scripts/vaerksark_til_yaml.py:1600)\"",
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "varmebehov",
@@ -397,8 +397,8 @@
       "bekraeft": false,
       "obligatorisk": true,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:374 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:374 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:374 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:374 @ 939228a"
     },
     {
       "sti": "units.gaskedel.p_max_heat",
@@ -406,8 +406,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "enheder",
-      "kommentar": "Skal dække spidslasten (ca. 20.0 MW ved 50 GWh, f = 0.5). Kilde: egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved 90fb16e).",
-      "kilde": "egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved 90fb16e)"
+      "kommentar": "Skal dække spidslasten (ca. 20.0 MW ved 50 GWh, f = 0.5). Kilde: egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved 939228a).",
+      "kilde": "egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved 939228a)"
     },
     {
       "sti": "units.gaskedel.p_min_heat",
@@ -415,8 +415,8 @@
       "bekraeft": false,
       "obligatorisk": true,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:376 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:376 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:376 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:376 @ 939228a"
     },
     {
       "sti": "units.gaskedel.alpha",
@@ -424,8 +424,8 @@
       "bekraeft": false,
       "obligatorisk": true,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:377 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:377 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:377 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:377 @ 939228a"
     },
     {
       "sti": "units.gaskedel.fuel",
@@ -433,8 +433,8 @@
       "bekraeft": false,
       "obligatorisk": true,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:378 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:378 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:378 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:378 @ 939228a"
     },
     {
       "sti": "units.gaskedel.eta_fuel_to_heat",
@@ -442,8 +442,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:379 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:379 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:379 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:379 @ 939228a"
     },
     {
       "sti": "units.gaskedel.var_om",
@@ -451,8 +451,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:380 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:380 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:380 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:380 @ 939228a"
     },
     {
       "sti": "units.gaskedel.start_cost",
@@ -460,8 +460,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:381 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:381 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:381 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:381 @ 939228a"
     },
     {
       "sti": "units.gaskedel.min_uptime",
@@ -469,8 +469,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:382 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:382 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:382 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:382 @ 939228a"
     },
     {
       "sti": "units.gaskedel.min_downtime",
@@ -478,8 +478,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:383 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:383 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:383 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:383 @ 939228a"
     },
     {
       "sti": "units.gaskedel.uc_enabled",
@@ -487,8 +487,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:384 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:384 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:384 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:384 @ 939228a"
     },
     {
       "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
@@ -496,8 +496,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:385 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:385 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:385 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:385 @ 939228a"
     },
     {
       "sti": "units.gaskedel.ancillary.afrr_qualified",
@@ -505,8 +505,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:386 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:386 @ 939228a"
     },
     {
       "sti": "units.gaskedel.ancillary.mfrr_qualified",
@@ -514,8 +514,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:386 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:386 @ 939228a"
     },
     {
       "sti": "units.gaskedel.ancillary.fcr_qualified",
@@ -523,8 +523,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "enheder",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:386 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:386 @ 939228a"
     },
     {
       "sti": "storage",
@@ -541,8 +541,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "priser",
-      "kommentar": "Ekskl. moms pr. MWh brændsel. Kilde: Andeby, cases/andeby.yaml:171 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:171 @ 90fb16e"
+      "kommentar": "Ekskl. moms pr. MWh brændsel. Kilde: Andeby, cases/andeby.yaml:171 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:171 @ 939228a"
     },
     {
       "sti": "prices.natural_gas.unit",
@@ -550,8 +550,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:172 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:172 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:172 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:172 @ 939228a"
     },
     {
       "sti": "prices.co2_eua.value",
@@ -559,8 +559,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "priser",
-      "kommentar": "Kr. pr. ton CO₂; 0 hvis gasprisen indeholder CO₂-afgiften. Kilde: Andeby, cases/andeby.yaml:183 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:183 @ 90fb16e"
+      "kommentar": "Kr. pr. ton CO₂; 0 hvis gasprisen indeholder CO₂-afgiften. Kilde: Andeby, cases/andeby.yaml:183 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:183 @ 939228a"
     },
     {
       "sti": "prices.co2_eua.unit",
@@ -568,8 +568,8 @@
       "bekraeft": false,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:184 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:184 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:184 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:184 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption_flat",
@@ -577,8 +577,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:191 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:191 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:191 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:191 @ 939228a"
     },
     {
       "sti": "electricity.tariff_production_flat",
@@ -586,8 +586,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:231 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:231 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:231 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:231 @ 939228a"
     },
     {
       "sti": "electricity.electricity_tax",
@@ -595,8 +595,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "priser",
-      "kommentar": "Skal være lig fixed_components.elafgift_net. Kilde: Andeby, cases/andeby.yaml:232 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:232 @ 90fb16e"
+      "kommentar": "Skal være lig fixed_components.elafgift_net. Kilde: Andeby, cases/andeby.yaml:232 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:232 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.unit",
@@ -604,8 +604,8 @@
       "bekraeft": false,
       "obligatorisk": true,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:211 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:211 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:211 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:211 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.source",
@@ -622,8 +622,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:215 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:215 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:215 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:215 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
@@ -631,8 +631,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:216 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:216 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:216 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:216 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.fixed_components.energinet",
@@ -640,8 +640,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:214 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:214 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:214 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:214 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
@@ -649,8 +649,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:219 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:219 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:219 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:219 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
@@ -658,8 +658,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:220 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:220 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:220 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:220 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
@@ -667,8 +667,8 @@
       "bekraeft": true,
       "obligatorisk": true,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:221 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:221 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:221 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:221 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
@@ -676,8 +676,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:224 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:224 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:224 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:224 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
@@ -685,8 +685,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:225 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:225 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
@@ -694,8 +694,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:225 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:225 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
@@ -703,8 +703,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:225 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:225 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
@@ -712,8 +712,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:226 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:226 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
@@ -721,8 +721,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:226 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:226 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
@@ -730,8 +730,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:226 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:226 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
@@ -739,8 +739,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:228 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:228 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:228 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:228 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
@@ -748,8 +748,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:229 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:229 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:229 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:229 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
@@ -757,8 +757,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:229 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:229 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:229 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:229 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
@@ -766,8 +766,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:230 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:230 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:230 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:230 @ 939228a"
     },
     {
       "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
@@ -775,8 +775,8 @@
       "bekraeft": true,
       "obligatorisk": false,
       "trin": "priser",
-      "kommentar": "Kilde: Andeby, cases/andeby.yaml:230 @ 90fb16e.",
-      "kilde": "Andeby, cases/andeby.yaml:230 @ 90fb16e"
+      "kommentar": "Kilde: Andeby, cases/andeby.yaml:230 @ 939228a.",
+      "kilde": "Andeby, cases/andeby.yaml:230 @ 939228a"
     }
   ]
 }

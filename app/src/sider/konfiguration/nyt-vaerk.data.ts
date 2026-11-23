@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_katalog.py fra viden/nyt_vaerk_skabelon.json
-// (fv-ekspert). Ret ikke i hånden. 67 blade, model 90fb16e.
+// (fv-ekspert). Ret ikke i hånden. 67 blade, model 939228a.
 //-----------------------------------------------------------------------
 
 import type { NytVaerkSkabelon } from "./nyt-vaerk";
@@ -32,138 +32,138 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
    "sti": "meta.timezone_internal",
    "vaerdi_json": "\"UTC\"",
    "bekraeft": false,
-   "kommentar": "Dokumentation; læses ikke af modellen. Kilde: Andeby, cases/andeby.yaml:72 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:72 @ 90fb16e"
+   "kommentar": "Dokumentation; læses ikke af modellen. Kilde: Andeby, cases/andeby.yaml:72 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:72 @ 939228a"
   },
   {
    "sti": "meta.timezone_reporting",
    "vaerdi_json": "\"Europe/Copenhagen\"",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:73 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:73 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:73 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:73 @ 939228a"
   },
   {
    "sti": "meta.discount_rate_real",
    "vaerdi_json": "0.035",
    "bekraeft": true,
-   "kommentar": "Real kalkulationsrente til annuitet; læses ikke af modellen. Kilde: Andeby, cases/andeby.yaml:74 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:74 @ 90fb16e"
+   "kommentar": "Real kalkulationsrente til annuitet; læses ikke af modellen. Kilde: Andeby, cases/andeby.yaml:74 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:74 @ 939228a"
   },
   {
    "sti": "data.dmi_area",
    "vaerdi_json": "\"karup\"",
    "bekraeft": true,
-   "kommentar": "Vælg efter beliggenhed: vestkyst, karup, fyn, ringsted. Kilde: Andeby, cases/andeby.yaml:89 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:89 @ 90fb16e"
+   "kommentar": "Vælg efter beliggenhed: vestkyst, karup, fyn, ringsted. Kilde: Andeby, cases/andeby.yaml:89 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:89 @ 939228a"
   },
   {
    "sti": "data.price_zone",
    "vaerdi_json": "\"DK1\"",
    "bekraeft": true,
-   "kommentar": "DK1 vest for Storebælt, DK2 øst for. Kilde: Andeby, cases/andeby.yaml:90 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:90 @ 90fb16e"
+   "kommentar": "DK1 vest for Storebælt, DK2 øst for. Kilde: Andeby, cases/andeby.yaml:90 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:90 @ 939228a"
   },
   {
    "sti": "electricity.spot_area",
    "vaerdi_json": "\"DK1\"",
    "bekraeft": true,
-   "kommentar": "Skal være lig data.price_zone. Kilde: Andeby, cases/andeby.yaml:190 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:190 @ 90fb16e"
+   "kommentar": "Skal være lig data.price_zone. Kilde: Andeby, cases/andeby.yaml:190 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:190 @ 939228a"
   },
   {
    "sti": "time.start",
    "vaerdi_json": "\"2025-07-01T00:00:00Z\"",
    "bekraeft": false,
-   "kommentar": "Rullende år; dækket af df-data. Kilde: Andeby, cases/andeby.yaml:115 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:115 @ 90fb16e"
+   "kommentar": "Rullende år; dækket af df-data. Kilde: Andeby, cases/andeby.yaml:115 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:115 @ 939228a"
   },
   {
    "sti": "time.end",
    "vaerdi_json": "\"2026-06-30T23:00:00Z\"",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:116 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:116 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:116 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:116 @ 939228a"
   },
   {
    "sti": "time.resolution",
    "vaerdi_json": "\"1h\"",
    "bekraeft": false,
-   "kommentar": "Version 1 kører kun 1h (KONTRAKT §6c). Kilde: Andeby, cases/andeby.yaml:117 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:117 @ 90fb16e"
+   "kommentar": "Version 1 kører kun 1h (KONTRAKT §6c). Kilde: Andeby, cases/andeby.yaml:117 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:117 @ 939228a"
   },
   {
    "sti": "solver.mip_rel_gap",
    "vaerdi_json": "0.001",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:143 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:143 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:143 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:143 @ 939228a"
   },
   {
    "sti": "solver.mip_abs_gap",
    "vaerdi_json": "1000.0",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:144 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:144 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:144 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:144 @ 939228a"
   },
   {
    "sti": "solver.time_limit",
    "vaerdi_json": "3600.0",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:145 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:145 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:145 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:145 @ 939228a"
   },
   {
    "sti": "heat_load_params.gaf_mw_per_k",
    "vaerdi_json": "0.3826",
    "bekraeft": true,
-   "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov).",
-   "kilde": "scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov)"
+   "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov).",
+   "kilde": "scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov)"
   },
   {
    "sti": "heat_load_params.t_ref",
    "vaerdi_json": "15.0",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:154 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:154 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:154 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:154 @ 939228a"
   },
   {
    "sti": "heat_load_params.thermal_inertia_hours",
    "vaerdi_json": "24",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:155 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:155 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:155 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:155 @ 939228a"
   },
   {
    "sti": "heat_load_params.nettab_slope_mw_per_k",
    "vaerdi_json": "0.2384",
    "bekraeft": true,
-   "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov).",
-   "kilde": "scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov)"
+   "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov).",
+   "kilde": "scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov)"
   },
   {
    "sti": "heat_load_params.t_net",
    "vaerdi_json": "12.0",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:157 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:157 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:157 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:157 @ 939228a"
   },
   {
    "sti": "heat_load_params.baseline_profile_mw",
    "vaerdi_json": "[2.219,2.25,2.301,2.384,2.411,2.556,2.795,2.803,2.678,2.478,2.388,2.348,2.281,2.235,2.207,2.179,2.215,2.301,2.364,2.384,2.368,2.364,2.305,2.195]",
    "bekraeft": true,
-   "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov).",
-   "kilde": "scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (modelrepoets skalering af Andeby til et årsbehov)"
+   "kommentar": "Andeby × f, f = round(50/100, 4) = 0.5. Kilde: scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov).",
+   "kilde": "scripts/vaerksark_til_yaml.py:1600 @ 939228a (modelrepoets skalering af Andeby til et årsbehov)"
   },
   {
    "sti": "heat_load_params.weekly_dip",
    "vaerdi_json": "0.02",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:163 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:163 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:163 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:163 @ 939228a"
   },
   {
    "sti": "heat_load_params._source",
-   "vaerdi_json": "\"Skabelon: Andeby × round(50/100, 4) (modelrepoets skalering, scripts/vaerksark_til_yaml.py:1581)\"",
+   "vaerdi_json": "\"Skabelon: Andeby × round(50/100, 4) (modelrepoets skalering, scripts/vaerksark_til_yaml.py:1600)\"",
    "bekraeft": false,
    "kommentar": null,
    "kilde": null
@@ -179,106 +179,106 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
    "sti": "units.gaskedel.type",
    "vaerdi_json": "\"gas_boiler\"",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:374 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:374 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:374 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:374 @ 939228a"
   },
   {
    "sti": "units.gaskedel.p_max_heat",
    "vaerdi_json": "25.0",
    "bekraeft": true,
-   "kommentar": "Skal dække spidslasten (ca. 20.0 MW ved 50 GWh, f = 0.5). Kilde: egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved 90fb16e).",
-   "kilde": "egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved 90fb16e)"
+   "kommentar": "Skal dække spidslasten (ca. 20.0 MW ved 50 GWh, f = 0.5). Kilde: egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved 939228a).",
+   "kilde": "egen antagelse: round(50 × f) MW; spidslasten ca. 40.02 × f MW (egen måling: Andeby 40,02 MW med f = 1, D11 ved 939228a)"
   },
   {
    "sti": "units.gaskedel.p_min_heat",
    "vaerdi_json": "0.0",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:376 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:376 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:376 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:376 @ 939228a"
   },
   {
    "sti": "units.gaskedel.alpha",
    "vaerdi_json": "0.0",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:377 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:377 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:377 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:377 @ 939228a"
   },
   {
    "sti": "units.gaskedel.fuel",
    "vaerdi_json": "\"natural_gas\"",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:378 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:378 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:378 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:378 @ 939228a"
   },
   {
    "sti": "units.gaskedel.eta_fuel_to_heat",
    "vaerdi_json": "0.95",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:379 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:379 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:379 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:379 @ 939228a"
   },
   {
    "sti": "units.gaskedel.var_om",
    "vaerdi_json": "89.0",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:380 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:380 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:380 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:380 @ 939228a"
   },
   {
    "sti": "units.gaskedel.start_cost",
    "vaerdi_json": "500.0",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:381 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:381 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:381 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:381 @ 939228a"
   },
   {
    "sti": "units.gaskedel.min_uptime",
    "vaerdi_json": "1",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:382 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:382 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:382 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:382 @ 939228a"
   },
   {
    "sti": "units.gaskedel.min_downtime",
    "vaerdi_json": "1",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:383 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:383 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:383 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:383 @ 939228a"
   },
   {
    "sti": "units.gaskedel.uc_enabled",
    "vaerdi_json": "false",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:384 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:384 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:384 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:384 @ 939228a"
   },
   {
    "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
    "vaerdi_json": "0.2",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:385 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:385 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:385 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:385 @ 939228a"
   },
   {
    "sti": "units.gaskedel.ancillary.afrr_qualified",
    "vaerdi_json": "false",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:386 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:386 @ 939228a"
   },
   {
    "sti": "units.gaskedel.ancillary.mfrr_qualified",
    "vaerdi_json": "false",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:386 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:386 @ 939228a"
   },
   {
    "sti": "units.gaskedel.ancillary.fcr_qualified",
    "vaerdi_json": "false",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:386 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:386 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:386 @ 939228a"
   },
   {
    "sti": "storage",
@@ -291,57 +291,57 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
    "sti": "prices.natural_gas.value",
    "vaerdi_json": "606.0",
    "bekraeft": true,
-   "kommentar": "Ekskl. moms pr. MWh brændsel. Kilde: Andeby, cases/andeby.yaml:171 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:171 @ 90fb16e"
+   "kommentar": "Ekskl. moms pr. MWh brændsel. Kilde: Andeby, cases/andeby.yaml:171 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:171 @ 939228a"
   },
   {
    "sti": "prices.natural_gas.unit",
    "vaerdi_json": "\"DKK/MWh_fuel\"",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:172 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:172 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:172 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:172 @ 939228a"
   },
   {
    "sti": "prices.co2_eua.value",
    "vaerdi_json": "600.0",
    "bekraeft": true,
-   "kommentar": "Kr. pr. ton CO₂; 0 hvis gasprisen indeholder CO₂-afgiften. Kilde: Andeby, cases/andeby.yaml:183 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:183 @ 90fb16e"
+   "kommentar": "Kr. pr. ton CO₂; 0 hvis gasprisen indeholder CO₂-afgiften. Kilde: Andeby, cases/andeby.yaml:183 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:183 @ 939228a"
   },
   {
    "sti": "prices.co2_eua.unit",
    "vaerdi_json": "\"DKK/t\"",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:184 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:184 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:184 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:184 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption_flat",
    "vaerdi_json": "125.0",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:191 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:191 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:191 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:191 @ 939228a"
   },
   {
    "sti": "electricity.tariff_production_flat",
    "vaerdi_json": "4.1",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:231 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:231 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:231 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:231 @ 939228a"
   },
   {
    "sti": "electricity.electricity_tax",
    "vaerdi_json": "4.0",
    "bekraeft": true,
-   "kommentar": "Skal være lig fixed_components.elafgift_net. Kilde: Andeby, cases/andeby.yaml:232 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:232 @ 90fb16e"
+   "kommentar": "Skal være lig fixed_components.elafgift_net. Kilde: Andeby, cases/andeby.yaml:232 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:232 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.unit",
    "vaerdi_json": "\"kr_per_mwh\"",
    "bekraeft": false,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:211 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:211 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:211 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:211 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.source",
@@ -354,127 +354,127 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
    "sti": "electricity.tariff_consumption.fixed_components.dv",
    "vaerdi_json": "0.0",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:215 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:215 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:215 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:215 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
    "vaerdi_json": "4.0",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:216 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:216 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:216 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:216 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.fixed_components.energinet",
    "vaerdi_json": "115.0",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:214 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:214 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:214 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:214 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
    "vaerdi_json": "7.4",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:219 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:219 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:219 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:219 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
    "vaerdi_json": "14.8",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:220 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:220 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:220 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:220 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
    "vaerdi_json": "29.5",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:221 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:221 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:221 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:221 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
    "vaerdi_json": "[10,11,12,1,2,3]",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:224 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:224 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:224 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:224 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
    "vaerdi_json": "\"lav\"",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:225 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:225 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
    "vaerdi_json": "\"spids\"",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:225 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:225 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
    "vaerdi_json": "\"hoej\"",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:225 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:225 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:225 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
    "vaerdi_json": "\"lav\"",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:226 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:226 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
    "vaerdi_json": "\"hoej\"",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:226 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:226 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
    "vaerdi_json": "\"hoej\"",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:226 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:226 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:226 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
    "vaerdi_json": "[4,5,6,7,8,9]",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:228 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:228 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:228 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:228 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
    "vaerdi_json": "\"lav\"",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:229 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:229 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:229 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:229 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
    "vaerdi_json": "\"hoej\"",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:229 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:229 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:229 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:229 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
    "vaerdi_json": "\"lav\"",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:230 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:230 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:230 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:230 @ 939228a"
   },
   {
    "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
    "vaerdi_json": "\"lav\"",
    "bekraeft": true,
-   "kommentar": "Kilde: Andeby, cases/andeby.yaml:230 @ 90fb16e.",
-   "kilde": "Andeby, cases/andeby.yaml:230 @ 90fb16e"
+   "kommentar": "Kilde: Andeby, cases/andeby.yaml:230 @ 939228a.",
+   "kilde": "Andeby, cases/andeby.yaml:230 @ 939228a"
   }
  ],
  "varmelast": {
@@ -526,7 +526,7 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
    "heat_load_params.nettab_slope_mw_per_k": 4,
    "heat_load_params.baseline_profile_mw": 3
   },
-  "kilde": "scripts/vaerksark_til_yaml.py:1581 @ 90fb16e (grundtal scripts/vaerksark_til_yaml.py:1582-1598)",
+  "kilde": "scripts/vaerksark_til_yaml.py:1600 @ 939228a (grundtal scripts/vaerksark_til_yaml.py:1601-1617)",
   "tekst": "f = round(G / 100, 4) når G > 1, ellers f = 1; gaf_mw_per_k = round(0.7653 × f, 4), nettab_slope_mw_per_k = round(0.4768 × f, 4), baseline_profile_mw = Andebys 24 værdier × f, 3 decimaler; uændret: t_ref, thermal_inertia_hours, t_net og weekly_dip som Andeby",
   "forbehold": "Har værket målt varmelast, er den bedre end syntesen (doc/VARMELAST_OG_NETTAB.md)."
  },
@@ -545,7 +545,7 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
   "DK1",
   "DK2"
  ],
- "kilde": "viden/nyt_vaerk_skabelon.json @ 90fb16e",
+ "kilde": "viden/nyt_vaerk_skabelon.json @ 939228a",
  "trinRegler": {
   "navn": "kode: små bogstaver, tal og _ (KONTRAKT §3.1); unik.",
   "klima": "spot_area sættes lig price_zone automatisk.",

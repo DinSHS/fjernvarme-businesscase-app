@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_sammensaetning.py fra viden/data_krav.json (fv-data):
 // data_i_koersel og datakilder. Ret ikke i hånden.
-// data_krav version 1 · 2026-10-16 · modelrepo 90fb16eb1e2d5aa8e619b5a951b93760fa803985
+// data_krav version 1 · 2026-10-16 · modelrepo 939228aa048563c8498382a79d207c8b03fbda57
 //-----------------------------------------------------------------------
 
 /** Linjerne i "Data i denne kørsel". `vaerdi` er en skabelon; alternativer er adskilt af " | ". */

@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_etiketter.py fra viden/anbefalingsregler.json og
 // viden/knapper.json (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: 90fb16eb1e2d5aa8e619b5a951b93760fa803985 · 16 knapper · 12 forbehold
+// Modelcommit: 939228aa048563c8498382a79d207c8b03fbda57 · 16 knapper · 12 forbehold
 //-----------------------------------------------------------------------
 
 export const KATEGORIER: Readonly<Record<string, { maerke: string; tone: string; betydning: string }>> = {

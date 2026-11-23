@@ -1,12 +1,12 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_viden.py fra viden/knapper.json og viden/felt_katalog.json
 // (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: 90fb16eb1e2d5aa8e619b5a951b93760fa803985 · 16 knapper · 151 felter
+// Modelcommit: 939228aa048563c8498382a79d207c8b03fbda57 · 16 knapper · 152 felter
 //-----------------------------------------------------------------------
 
 import type { Feltpost, Knap, FastVindue, Regel } from "./viden";
 
-export const MODEL_COMMIT = "90fb16eb1e2d5aa8e619b5a951b93760fa803985";
+export const MODEL_COMMIT = "939228aa048563c8498382a79d207c8b03fbda57";
 
 export const FAELLES_REGLER: readonly Regel[] = [
  {
@@ -1685,7 +1685,7 @@ export const FELTER: readonly Feltpost[] = [
   "tilladte": null,
   "min": null,
   "max": null,
-  "forklaring": "Én blok pr. brændsel med value (og unit som dokumentation). Brændselspriser er ekskl. moms pr. MWh brændsel. Kendte nøgler: natural_gas, straw, flis, wood_pellets, waste_heat, co2_eua.",
+  "forklaring": "Én blok pr. brændsel med value (og unit som dokumentation). Brændselspriser er ekskl. moms pr. MWh brændsel. Kendte nøgler: natural_gas, fuel_oil, straw, flis, wood_pellets, waste_heat, co2_eua.",
   "avanceret": false,
   "kan_saettes_i_scenarie": false
  },
@@ -1698,7 +1698,7 @@ export const FELTER: readonly Feltpost[] = [
   "tilladte": null,
   "min": null,
   "max": null,
-  "forklaring": "Pris pr. ton CO₂. Ganges på enhedernes co2_emissions_per_mwh_fuel. Skriv 0, hvis gasprisen allerede indeholder CO₂-afgiften.",
+  "forklaring": "Pris pr. ton CO₂. Ganges på enhedernes co2_emissions_per_mwh_fuel. Skriv 0, hvis gasprisen allerede indeholder CO₂-afgiften. Der er én CO₂-pris for værket: med en oliekedel skal afgiften da også være med i olieprisen.",
   "avanceret": false,
   "kan_saettes_i_scenarie": true
  },
@@ -1712,6 +1712,19 @@ export const FELTER: readonly Feltpost[] = [
   "min": null,
   "max": null,
   "forklaring": "Pris pr. MWh gas ekskl. moms, gerne inkl. de afgifter, der gælder alle gasenheder.",
+  "avanceret": false,
+  "kan_saettes_i_scenarie": true
+ },
+ {
+  "sti": "prices.fuel_oil.value",
+  "sektion": "prices",
+  "etiket": "Fyringsoliepris",
+  "enhed": "DKK/MWh brændsel",
+  "type": "number",
+  "tilladte": null,
+  "min": null,
+  "max": null,
+  "forklaring": "Pris pr. MWh fyringsolie eller gasolie (ca. 10 kWh pr. liter) ekskl. moms, inkl. energiafgift. CO₂ behandles som for naturgas: CO₂-prisen ganges med enhedens udledningsfaktor.",
   "avanceret": false,
   "kan_saettes_i_scenarie": true
  },
@@ -1991,13 +2004,14 @@ export const FELTER: readonly Feltpost[] = [
    "electric_boiler",
    "biomass_boiler",
    "gas_boiler",
+   "oil_boiler",
    "gas_engine_chp",
    "solar_thermal",
    "waste_heat"
   ],
   "min": null,
   "max": null,
-  "forklaring": "Varmepumpe, elkedel, biomassekedel, gaskedel, gasmotor, solvarme eller overskudsvarme. Typen er en etiket; økonomien styres af fuel og alpha. Kun heat_pump har en særregel (cop_curve).",
+  "forklaring": "Varmepumpe, elkedel, biomassekedel, gaskedel, oliekedel, gasmotor, solvarme eller overskudsvarme. Typen er en etiket; økonomien styres af fuel og alpha. Kun heat_pump har en særregel (cop_curve).",
   "avanceret": false,
   "kan_saettes_i_scenarie": true
  },
@@ -2063,6 +2077,7 @@ export const FELTER: readonly Feltpost[] = [
    "electricity",
    "solar",
    "natural_gas",
+   "fuel_oil",
    "straw",
    "flis",
    "wood_pellets",
@@ -2177,7 +2192,7 @@ export const FELTER: readonly Feltpost[] = [
   "tilladte": null,
   "min": 0,
   "max": null,
-  "forklaring": "Ton CO₂ pr. MWh brændsel. Naturgas ca. 0,2; biomasse 0 (regnes neutral).",
+  "forklaring": "Ton CO₂ pr. MWh brændsel. Naturgas ca. 0,2; fyringsolie og gasolie 0,266 (tung fuelolie ca. 0,28); biomasse 0 (regnes neutral).",
   "avanceret": false,
   "kan_saettes_i_scenarie": true
  },
