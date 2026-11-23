@@ -200,6 +200,11 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **Analysers kopi af README-referencerne var forældet** (fundet i tredje rettelsesrunde). De to Andeby-referencer
+  fik i anden rettelsesrunde deres egen solprofil (`solprofil_sha256`), men den genererede kopi, Analysers
+  kørselsliste læser (`sammensaetning.data.ts`), blev ikke bygget igen. En Andeby-kørsel med casens egen solprofil
+  frosset som tidsserie var derfor en måling under *Information › Referencetal* og "kørt på et andet grundlag" i
+  Analyser. Kopien er bygget igen, og en test binder den til `viden/referencetal.json`.
 - ***Målt varmelast* mistede resultatet for værkets egne tidsserier** (tredje rettelsesrunde, P2-3). Parret er en
   syntetisk reference mod et målt scenarie. Referencens udtrykkelige valg af syntesen frøs ingen række, så det frosne
   input ikke kunne bevise valget, og over for en af værkets egne serier blev dommen *kan ikke afgøres* — uden ΔRef og
