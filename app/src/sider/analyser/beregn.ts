@@ -16,6 +16,7 @@
 import type { FjvSchema } from "../../../rayfin/data/schema";
 import { KOERSEL_PRAEFIKS, effektivtInput, type InputRække } from "@/lib/data/afflad";
 import { tal } from "@/lib/format";
+import { VISNINGSNAVNE } from "./anbefaling.data";
 import { ENHEDSTYPER, FELTER, FORBRUGSMODREGNING_VERSIONER, REGISTER } from "./etiketter.data";
 import { dec, gabPct, periodeTekst } from "./fmt";
 
@@ -994,13 +995,15 @@ export function tidsgraenseForslag(ref: Koersel, scen: Koersel, o: { graenser: r
 // ================================================================= CO₂: er udledningen opgjort?
 
 /**
- * Brændsler, hvis forbrænding udleder fossil CO₂. Ved modelversion 90fb16e bruger casene kun `natural_gas`; olie og
- * kul står her, så en ny enhedstype ikke stille bliver regnet som CO₂-fri (egen antagelse — modellen har ingen liste).
+ * Brændsler, hvis forbrænding udleder fossil CO₂. Modelrepoets fossile brændsler ved 939228a er `natural_gas` og
+ * `fuel_oil` (oliekedlen, v0.11.0; modelspejlets `vaerksark_typer`). De øvrige navne står her, så et nyt brændsel ikke
+ * stille bliver regnet som CO₂-frit (egen antagelse — modellen har ingen liste over, hvad der er fossilt).
  */
-const FOSSILT_BRAENDSEL = /^(natural_gas|naturgas|gas|oil|fuel_oil|gas_oil|gasoil|olie|fyringsolie|diesel|lpg|coal|kul)$/i;
-/** Enhedstyper, der brænder fossilt, også hvis `fuel` mangler. */
+const FOSSILT_BRAENDSEL = /^(natural_gas|fuel_oil|naturgas|gas|oil|gas_oil|gasoil|olie|fyringsolie|diesel|lpg|coal|kul)$/i;
+/** Enhedstyper, der brænder fossilt, også hvis `fuel` mangler: modelrepoets gaskedel, gasmotor og oliekedel (`oil_boiler`). */
 const FOSSIL_TYPE = /^(gas_boiler|gas_engine_chp|oil_boiler)$/;
-const BRAENDSELSNAVN: Record<string, string> = { natural_gas: "naturgas", oil: "olie", fuel_oil: "olie", gas_oil: "olie", coal: "kul" };
+/** Brændslets navn, som resten af appen skriver det (knapper.json → visningsnavne: "Naturgas", "Fyringsolie"), med småt. */
+const braendselsnavn = (fuel: string): string => VISNINGSNAVNE.braendsel?.[fuel]?.toLowerCase() ?? fuel;
 
 export interface Co2Opgoerelse {
     /** false: modellens `co2_ton` dækker ikke alle fossile enheder, der producerede — tallet må ikke vises som udledningen. */
@@ -1042,7 +1045,7 @@ export function co2Opgoerelse(input: readonly InputRække[], samlet: Pick<Samlet
         if (!produktion.has(navn)) continue;
         const mwh = produktion.get(navn);
         if (mwh != null && !(mwh > 0)) continue;
-        ramt.push({ navn, braendsel: typeof fuel === "string" ? BRAENDSELSNAVN[fuel] ?? fuel : "fossilt brændsel" });
+        ramt.push({ navn, braendsel: typeof fuel === "string" ? braendselsnavn(fuel) : "fossilt brændsel" });
     }
     if (ramt.length === 0) return { opgjort: true, enheder: [], grund: null };
     const enheder = ramt.map((x) => x.navn);

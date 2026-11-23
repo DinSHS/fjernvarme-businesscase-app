@@ -113,3 +113,40 @@ describe("4E: appen viser ikke '0 t' som udledning, når den ikke er opgjort", (
         expect(tekst).not.toMatch(/CO₂/);
     });
 });
+
+// Opfølgning efter fletningen med modelskiftet til 939228a: modelrepoets oliekedel er typen `oil_boiler` med brændslet
+// `fuel_oil` (i appen "Fyringsolie"), og modelscriptets CO₂-faktor er 0,266 t/MWh. Reglen fra 4E skal ramme den med de
+// navne — og kalde brændslet det samme, som resten af appen gør.
+describe("4E og oliekedlen (oil_boiler / fuel_oil ved 939228a)", () => {
+    const olie = (faktor: number | null, medBraendsel = true): InputRække[] => [
+        ind("vaerk", "units.oliekedel.type", "\"oil_boiler\""), ...(medBraendsel ? [ind("vaerk", "units.oliekedel.fuel", "\"fuel_oil\"")] : []),
+        ind("vaerk", "units.oliekedel.enabled", "true"),
+        ...(faktor === null ? [] : [ind("vaerk", "units.oliekedel.co2_emissions_per_mwh_fuel", String(faktor))]),
+        ind("vaerk", "units.fliskedel.type", "\"biomass_boiler\""), ind("vaerk", "units.fliskedel.fuel", "\"flis\""), ind("vaerk", "units.fliskedel.enabled", "true"),
+        ind("scenarie", "_koersel.start", "\"2026-01-05\""), ind("scenarie", "_koersel.slut", "\"2026-01-06\""), ind("scenarie", "_koersel.med_balancering", "false"),
+    ];
+    // Spor M's måling: oliekedlen 480,1 MWh 5.–6. januar 2026, CO₂ 207,4 t med faktoren 0,266.
+    const PROD_OLIE = { oliekedel: 480.1, fliskedel: 300 };
+
+    it("faktor 0,266 (modelscriptets): udledningen er opgjort, og modellens 207,4 t vises", () => {
+        const p = pakke("olie", olie(0.266), tal(207.4, PROD_OLIE));
+        expect(co2Opgoerelse(p.input, p.samlet)).toMatchObject({ opgjort: true, enheder: [], grund: null });
+        expect(render(<VarmeOgMiljoe d={p} />).container.textContent).toMatch(/CO₂-udledning\s*207 t/);
+    });
+    it("faktor 0: ikke opgjort — og brændslet hedder fyringsolie, som i resten af appen", () => {
+        const p = pakke("olie0", olie(0), tal(0, PROD_OLIE));
+        const o = co2Opgoerelse(p.input, p.samlet);
+        expect(o.opgjort).toBe(false);
+        expect(o.enheder).toEqual(["oliekedel"]);
+        expect(o.grund).toMatch(/er 0 for oliekedel, som producerede varme på fyringsolie/);
+        expect(render(<VarmeOgMiljoe d={p} />).container.textContent).toMatch(/CO₂-udledning\s*ikke opgjort/);
+    });
+    it("typen alene (oil_boiler uden fuel-felt) er nok til at være fossil", () => {
+        const p = pakke("olie uden fuel", olie(0, false), tal(0, PROD_OLIE));
+        expect(co2Opgoerelse(p.input, p.samlet)).toMatchObject({ opgjort: false, enheder: ["oliekedel"] });
+    });
+    it("feltet mangler på oliekedlen (modellens standard 0,0): ikke opgjort", () => {
+        const p = pakke("olie uden faktor", olie(null), tal(0, PROD_OLIE));
+        expect(co2Opgoerelse(p.input, p.samlet).opgjort).toBe(false);
+    });
+});
