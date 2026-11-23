@@ -317,7 +317,7 @@ class Lagersum(unittest.TestCase):
 
     def test_fund7_kun_byte_lighed_bestaar(self):
         import bevis_app_vej as B
-        ens = {"objektiv": 866568, "hourly": "aa", "kpi": "bb"}
+        ens = {"objektiv": 866568, "objektiv_fuldt": 866567.72, "hourly": "aa", "kpi": "bb"}
         self.assertTrue(B.bestaaet(ens, dict(ens)))
         # Kun timefilen afviger (samme objektiv og _kpi.csv): før gav det ENS* og en bestået case, når summen passede.
         self.assertFalse(B.bestaaet(ens, {**ens, "hourly": "cc"}))
@@ -326,6 +326,68 @@ class Lagersum(unittest.TestCase):
         kilde = Path(B.__file__).read_text(encoding="utf-8")
         self.assertNotIn('ens=True, maade="sum_over_lagre"', kilde)     # den gamle vej til en bestået case
         self.assertNotIn("ENS*", kilde.split('"""', 2)[2])              # mærket findes ikke længere uden for docstringen
+
+    # ---- efterprøvningen af rettelserne, fund H: det FULDE objektiv og hele filen ---------------------------
+
+    def _koersel(self, mappe: Path, objektiv: float, hourly: str = "t,x\n1,2\n", kpi: str = "k,v\n1,2\n") -> Path:
+        """En kørsels uddata i modellens form: manifestet med objektivet afrundet til hele kroner
+        (``src/manifest.py:208``) og ``_dispatch.nc`` med det uafrundede (``src/solve.py:216``, ``run_case.py:733``)."""
+        try:
+            import xarray as xr
+        except ImportError:
+            self.skipTest("kræver xarray (modellens pakker) for at skrive en _dispatch.nc")
+        import json
+        mappe.mkdir(parents=True)
+        (mappe / "x_manifest.json").write_text(json.dumps({"noegletal": {"objektiv_dkk": round(objektiv, 0)}}), encoding="utf-8")
+        (mappe / "x_hourly.csv").write_bytes(hourly.encode("utf-8"))      # bytes: write_text oversætter \n på Windows
+        (mappe / "x_kpi.csv").write_bytes(kpi.encode("utf-8"))
+        xr.Dataset(attrs={"objective_value": float(objektiv)}).to_netcdf(mappe / "x_dispatch.nc")
+        return mappe
+
+    def test_fundH_objektiver_der_afrunder_ens_er_en_forskel(self):
+        """Efterprøvningens tilfælde: 866.567,51 og 866.568,49 kr. står begge som 866.568 i manifestet. Med samme
+        time- og nøgletalsfil bestod casen — beviset sammenlignede det afrundede tal."""
+        import bevis_app_vej as B
+        with tempfile.TemporaryDirectory() as t:
+            a = B._resultat(self._koersel(Path(t) / "a", 866567.51))
+            b = B._resultat(self._koersel(Path(t) / "b", 866568.49))
+            self.assertEqual((a["objektiv"], b["objektiv"]), (866568, 866568))      # manifestet kan ikke skelne dem
+            self.assertEqual((a["objektiv_fuldt"], b["objektiv_fuldt"]), (866567.51, 866568.49))
+            self.assertFalse(B.bestaaet(a, b))                                       # før: True
+            ens = B._resultat(self._koersel(Path(t) / "c", 866567.51))
+            self.assertTrue(B.bestaaet(a, ens))
+            # Også den mindste forskel, en double kan bære:
+            import math
+            naer = B._resultat(self._koersel(Path(t) / "d", math.nextafter(866567.51, math.inf)))
+            self.assertFalse(B.bestaaet(a, naer))
+
+    def test_fundH_filerne_sammenlignes_paa_hele_sha256(self):
+        """Før: de første 16 hextegn (64 af 256 bit). Nu hele hashen af filens bytes."""
+        import hashlib
+
+        import bevis_app_vej as B
+        with tempfile.TemporaryDirectory() as t:
+            a = B._resultat(self._koersel(Path(t) / "a", 1.0))
+            self.assertEqual(a["hourly"], hashlib.sha256(b"t,x\n1,2\n").hexdigest())
+            self.assertEqual(len(a["kpi"]), 64)
+            b = B._resultat(self._koersel(Path(t) / "b", 1.0, hourly="t,x\n1,2\r\n"))    # kun linjeskiftet afviger
+            self.assertFalse(B.bestaaet(a, b))
+            c = B._resultat(self._koersel(Path(t) / "c", 1.0, kpi="k,v\n1,2 \n"))        # et mellemrum
+            self.assertFalse(B.bestaaet(a, c))
+
+    def test_fundH_uden_et_fuldt_objektiv_bestaar_intet(self):
+        """Mangler modellens resultatfil, eller er objektivet ikke et endeligt tal, er det en fejl — beviset falder
+        ikke tilbage til manifestets hele kroner."""
+        import bevis_app_vej as B
+        with tempfile.TemporaryDirectory() as t:
+            a = self._koersel(Path(t) / "a", 5.0)
+            (a / "x_dispatch.nc").unlink()
+            with self.assertRaises(Exception):
+                B._resultat(a)
+            n = B._resultat(self._koersel(Path(t) / "n", float("nan")))
+            self.assertFalse(B.bestaaet(n, n))                                      # NaN er aldrig "ens"
+        halv = {"objektiv": 5, "hourly": "aa", "kpi": "bb"}                           # den gamle form, uden det fulde tal
+        self.assertFalse(B.bestaaet(halv, dict(halv)))
 
     def test_fund7_modeksempel_1_brutto_skjult_af_netto(self):
         """Gennemgangens første modeksempel: 5/5 MWh uden drift mod 6/4 MWh, hvor det ene lager lader 1 MW, mens det

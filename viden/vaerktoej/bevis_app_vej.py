@@ -8,7 +8,13 @@ tabel; uden kommando: appens egen antagelse, uden balancemarked og med syntetisk
   B) appen:    casen som blade (fjv.flad) -> frosset input (fjv.byg_case.raekker_fra_vaerk, som startBestilling)
                -> case.yaml + argv (fjv.byg_case.byg) -> fabric/fjv/model_wrapper.py, som fjv.koersel kører den
 
-og der sammenlignes: manifestets objektiv, ``_hourly.csv`` og ``_kpi.csv`` byte for byte. Én kørsel ad gangen.
+og der sammenlignes: modellens FULDE objektiv, ``_hourly.csv`` og ``_kpi.csv`` byte for byte. Én kørsel ad gangen.
+
+Objektivet er modellens eget, uafrundede tal: attributten ``objective_value`` i ``<stem>_dispatch.nc``, som
+``run_case.py`` skriver for begge veje (``run_case.py:733``, ``src/solve.py:216``). Manifestets ``objektiv_dkk`` er
+afrundet til hele kroner (``src/manifest.py:208``) og bruges kun til udskriften: 866.567,51 og 866.568,49 kr. står
+begge som 866.568 dér (efterprøvningen af rettelserne i runde 15, fund H). De to filer sammenlignes på hele deres
+SHA-256 (før: de første 16 hextegn).
 
 En case BESTÅR, når — og kun når — alle tre er ens (``bestaaet``). A er modelrepoets EGEN casefil, B appens (skrevet
 fra bladene). Med to eller flere lagre er fordelingen mellem dem ikke entydig (runde 15, den uafhængige test
@@ -25,13 +31,15 @@ og modellens pakker installeret i det Python, der kører scriptet (``pip install
 Begge veje bruger samme df-data-klon (``<modelrepo>/data/df-data``; run_case.py kloner den første gang), så
 sammenligningen gælder uanset dens commit — men tallene i CHANGELOG/TROFASTHED er målt med ``DF_DATA_SHA``.
 Windows: hold ``--ud`` kort (fx ``C:\\fjvb``); modellens filnavne er lange, og grænsen er 260 tegn pr. sti.
-Exit 0, når alle cases er ens; 1 ellers. Kun standardbibliotek + PyYAML (fra modellens pakker).
+Exit 0, når alle cases er ens; 1 ellers. Kun standardbibliotek + PyYAML og xarray (begge fra modellens pakker;
+xarray læser ``_dispatch.nc``).
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import math
 import os
 import subprocess
 import sys
@@ -50,19 +58,35 @@ import lagersum  # noqa: E402
 
 
 def _sha(p: Path) -> str:
-    return hashlib.sha256(p.read_bytes()).hexdigest()[:16]
+    """Hele SHA-256 af filens bytes (fund H: før de første 16 hextegn, 64 af 256 bit)."""
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+def _objektiv_fuldt(ud: Path) -> float:
+    """Modellens uafrundede objektiv: ``objective_value`` på resultatet, som ``run_case.py`` gemmer i
+    ``<stem>_dispatch.nc``. Kaster, hvis filen eller attributten mangler — beviset falder ikke tilbage til manifestets
+    hele kroner."""
+    import xarray as xr                      # modellens pakke; importeres først her, så --help virker uden
+    with xr.open_dataset(next(ud.glob("*_dispatch.nc"))) as ds:
+        return float(ds.attrs["objective_value"])
 
 
 def _resultat(ud: Path) -> dict:
     m = json.loads(next(ud.glob("*_manifest.json")).read_text(encoding="utf-8"))
-    return {"objektiv": m["noegletal"]["objektiv_dkk"], "hourly": _sha(next(ud.glob("*_hourly.csv"))),
-            "kpi": _sha(next(ud.glob("*_kpi.csv")))}
+    return {"objektiv": m["noegletal"]["objektiv_dkk"],          # hele kroner — kun til udskriften
+            "objektiv_fuldt": _objektiv_fuldt(ud),
+            "hourly": _sha(next(ud.glob("*_hourly.csv"))), "kpi": _sha(next(ud.glob("*_kpi.csv")))}
 
 
 def bestaaet(a: dict, b: dict) -> bool:
-    """Beståelseskravet for én case: manifestets objektiv, ``_hourly.csv`` og ``_kpi.csv`` er ens byte for byte
-    (``_resultat``). Intet andet består — heller ikke en timefil, der "kun" afviger i fordelingen mellem lagre
-    (kodegennemgangen af runde 15, fund 7; diagnosen står i ``lagersum.py``)."""
+    """Beståelseskravet for én case: modellens fulde objektiv er det samme tal (en endelig double, ikke et afrundet),
+    og ``_hourly.csv`` og ``_kpi.csv`` er ens byte for byte — sammenlignet på hele SHA-256 (``_resultat``). Intet andet
+    består: ikke en timefil, der "kun" afviger i fordelingen mellem lagre (kodegennemgangen af runde 15, fund 7;
+    diagnosen står i ``lagersum.py``), og ikke to objektiver, der blot afrunder til samme krone (efterprøvningen,
+    fund H). Uden et fuldt, endeligt objektiv på begge sider består casen ikke."""
+    fulde = [x.get("objektiv_fuldt") for x in (a, b)]
+    if not all(isinstance(f, float) and math.isfinite(f) for f in fulde):
+        return False
     return a == b
 
 
@@ -152,8 +176,13 @@ def main(argv: list[str]) -> int:
         tb = time.time() - t0
         post = {"case": fil, "kommando": (st or {}).get("kilde") or "egen antagelse (ingen kommando i modelrepoet)",
                 "argv_direkte": argv_a[2:-2], "argv_app": plan.cli, "sek": [round(ta), round(tb)]}
+        A = B = None
         if ra.returncode == 0 and rb.returncode == 0:
-            A, B = _resultat(a_ud), _resultat(b_ud)
+            try:
+                A, B = _resultat(a_ud), _resultat(b_ud)
+            except Exception as e:                                # noqa: BLE001 — en ulæselig resultatfil er en FORSKEL
+                post.update(ens=False, fejl=[f"resultatet kunne ikke læses: {type(e).__name__}: {e}"[-600:], ""])
+        if A is not None and B is not None:
             post.update(direkte=A, app=B, ens=bestaaet(A, B))
             if A["hourly"] != B["hourly"]:
                 # Diagnose, ikke dom: hvad består forskellen i timefilerne af? Casen er en FORSKEL uanset svaret.
@@ -161,7 +190,7 @@ def main(argv: list[str]) -> int:
                                          next(b_ud.glob("*_hourly.csv")).read_text(encoding="utf-8"))
                 post.update(diagnose={**{k: ls[k] for k in ("ens_paa_sum", "sum", "lagre", "maks_pr_lager_mwh", "forskelle")},
                                       "tekst": lagersum.diagnose(ls)})
-        else:
+        elif "fejl" not in post:
             post.update(ens=False, fejl=[(ra.stderr or ra.stdout)[-600:], (rb.stderr or rb.stdout)[-600:]])
         alle.append(post)
         kr = lambda x: f"{x:>12,.0f}".replace(",", ".")  # noqa: E731  (dansk tusindtalsskilletegn)
@@ -169,6 +198,9 @@ def main(argv: list[str]) -> int:
         maerke = "ENS " if post["ens"] else "FORSKEL"
         print(f"{maerke} {fil:<34} {obj} kr.  ({post['kommando']}; {post['sek'][0]}+{post['sek'][1]} s)",
               flush=True)
+        if "direkte" in post and post["direkte"]["objektiv_fuldt"] != post["app"]["objektiv_fuldt"]:
+            # Også når udskriften ovenfor viser samme hele krone: det er det fulde tal, der sammenlignes.
+            print(f"     objektivet afviger uafrundet: {post['direkte']['objektiv_fuldt']!r} mod {post['app']['objektiv_fuldt']!r} kr.")
         if post.get("diagnose"):
             print(f"     diagnose (ikke bestået): {post['diagnose']['tekst']}")
         if "fejl" in post:
@@ -176,7 +208,7 @@ def main(argv: list[str]) -> int:
     (o.ud / "resultat.json").write_text(json.dumps(alle, ensure_ascii=False, indent=1), encoding="utf-8")
     n = sum(1 for p in alle if p["ens"])
     kun_fordeling = sum(1 for p in alle if not p["ens"] and (p.get("diagnose") or {}).get("ens_paa_sum"))
-    print(f"{n} af {len(alle)} cases ens (objektiv, _hourly.csv og _kpi.csv byte for byte)"
+    print(f"{n} af {len(alle)} cases ens (modellens fulde objektiv; _hourly.csv og _kpi.csv byte for byte)"
           + (f"; {kun_fordeling} af forskellene er ifølge diagnosen kun fordelingen mellem lagre — de består ikke" if kun_fordeling else "")
           + f" · detaljer: {o.ud / 'resultat.json'}")
     return 0 if n == len(alle) else 1

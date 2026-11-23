@@ -131,7 +131,10 @@ python app/viden/vaerktoej/bevis_app_vej.py --model model --ud bevis
 
 For hver af de 7 cases køres 10.–11. marts 2026 to gange med modelrepoets egen kommando for casen: **A** direkte
 (`python run_case.py cases/<fil> --data-source github …`) og **B** ad appens vej (blade → frosset input → `case.yaml` +
-argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.csv` byte for byte. Målt 2026-11-23 ved
+argv → wrapperen). Scriptet sammenligner modellens **fulde** objektiv og `_hourly.csv` og `_kpi.csv` byte for byte
+(hele SHA-256). Objektivet er modellens eget uafrundede tal — `objective_value` i `_dispatch.nc`, som `run_case.py`
+skriver for begge veje — ikke manifestets `objektiv_dkk`, der er afrundet til hele kroner (`src/manifest.py:208`);
+tabellen nedenfor viser det i hele kroner. Målt 2026-11-23 ved
 `939228a` med df-data **`106b9fc`** (= appens pin; scriptet melder `df-data 106b9fc, appens pin 106b9fc`), linopy 0.10.0,
 highspy 1.15.1, i en klon af modelrepoet ved pinnen. Objektiverne er de samme som ved `90fb16e` (2026-11-14):
 modelrepoets 0.10.0 og 0.11.0 flytter ingen tal:
@@ -146,7 +149,8 @@ modelrepoets 0.10.0 og 0.11.0 flytter ingen tal:
 | billund_sporB | med, målt (`cases/billund_sporB.yaml:17-19`) | 54.619 | byte-ens | 51.764 |
 | billund_sporB_rullende | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.859 | byte-ens | 236.659 |
 
-**7 af 7 er ens** ved alle tre versioner. En ottende case, som ikke står i modelrepoet, er kørt samme vej: Andeby med
+**7 af 7 er ens** ved alle tre versioner — ved `939228a` også på det fulde, uafrundede objektiv og hele SHA-256
+(kørt igen 2026-11-23 med det rettede script). En ottende case, som ikke står i modelrepoet, er kørt samme vej: Andeby med
 en oliekedel på 20 MW i stedet for gaskedlen (`oil_boiler`, `fuel_oil` 900 kr./MWh, ny ved `939228a`). 5.–6. januar 2026:
 **1.083.242 kr.** direkte = ad appens vej, begge filer byte-ens, og 1.083.242,38 kr. gennem hele arbejderkæden
 (oliekedlen 480,1 MWh, CO₂ 207,4 t mod 159,2 t med gaskedlen); 5.–16. januar: 4.001.969 kr. ad alle tre veje
@@ -175,8 +179,11 @@ lagertabellen i en sammenligning har rækken *Alle lagre*, og kortene *Lager* og
 fordelingen ikke er entydig, når kørslen har mere end ét lager (`app/src/sider/analyser/tekster.ts` ›
 `FLERE_LAGRE_FORBEHOLD`).
 
-**Beviset kræver stadig byte-lighed.** En case består i `bevis_app_vej.py`, når — og kun når — objektivet,
-`_hourly.csv` og `_kpi.csv` er ens byte for byte (`bestaaet`). Er timefilerne ikke byte-ens, er casen en `FORSKEL`,
+**Beviset kræver stadig byte-lighed.** En case består i `bevis_app_vej.py`, når — og kun når — modellens fulde
+objektiv er det samme tal, og `_hourly.csv` og `_kpi.csv` er ens byte for byte (`bestaaet`). Før efterprøvningen af
+rettelserne i runde 15 sammenlignede scriptet manifestets objektiv i hele kroner og de første 16 hextegn af hver fils
+SHA-256: to objektiver på 866.567,51 og 866.568,49 kr. ville begge stå som 866.568 og bestå. Nu læses det uafrundede
+tal, og en kørsel uden det består ikke. Er timefilerne ikke byte-ens, er casen en `FORSKEL`,
 og beviset skriver en *diagnose* ved siden af (`viden/vaerktoej/lagersum.py`): om alt uden for lagerkolonnerne er
 tegn for tegn ens, og om summen over lagrene er den samme time for time for hver af de fire størrelser — niveau,
 netto, opladning og afladning. Diagnosen kræver endelige tal og komplette serier og er til at forstå en forskel med;

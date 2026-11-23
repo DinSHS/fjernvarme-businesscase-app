@@ -177,6 +177,13 @@ præsentationen og i datahåndteringen omkring kørslerne.
   tjekket står før opslaget af en eksisterende kørsel og før frysningen, og en anden får "Bestillingen er oprettet af
   en anden bruger …". *Fabric-udgaven:* uændret — funktionen har intet identitetsgrundlag (tokenet bærer ingen
   e-mail). Begrænsningen står i [`doc/FABRIC.md`](doc/FABRIC.md#det-der-gælder-altid).
+- **Beviset sammenlignede et afrundet objektiv** (efterprøvningen af rettelserne, fund H).
+  `viden/vaerktoej/bevis_app_vej.py` læste manifestets objektiv, som modellen afrunder til hele kroner, og
+  sammenlignede de to filer på de første 16 hextegn af deres SHA-256. Det læser nu modellens uafrundede
+  `objective_value` fra `_dispatch.nc` (begge veje skriver den) og sammenligner hele SHA-256; uden et fuldt, endeligt
+  objektiv består en case ikke. Scriptet kræver derfor xarray (fra modellens pakker). Målt igen 23. november 2026:
+  Andeby 5.–6. januar 2026 giver 866.567,7207319243 kr. ad begge veje, begge filer byte-ens; de 7 cases
+  10.–11. marts 2026 er stadig 7 af 7.
 
 ## [Ikke udgivet] — 0.4.0
 
