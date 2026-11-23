@@ -3,7 +3,7 @@
 =========================  ===========================================================================
 Function (TS)              Her
 =========================  ===========================================================================
-``startBestilling``        ``start_bestilling(lager, bestilling_id, start_arbejder)``
+``startBestilling``        ``start_bestilling(lager, bestilling_id, start_arbejder, kalder)``
 ``udfoerAendring``         ``udfoer_aendring(lager, anmodning_id)`` (parametre, kopier_vaerk, opret_vaerk,
                            aktiver_tidsserie)
 ``annullerKoersel``        ``annuller_koersel(lager, koersel_id)``
@@ -22,7 +22,9 @@ har noget til fælles: ``start_arbejder() -> {"startet": bool, "grund": str, ["f
 ``None``.
 
 Identitet: som i Fabric stoler forløbene på ``bestilt_af``/``anmodet_af`` på rækken, som skrivelaget (DAB-policyen;
-i community REST-laget) har verificeret ved oprettelse — de kender ikke kalderen.
+i community REST-laget) har verificeret ved oprettelse — de kender ikke kalderen. Én undtagelse (kodegennemgangen af
+runde 15, fund 2): ``start_bestilling`` får ``kalder`` (lokalt sessionens bruger; i Fabric findes ingen verificeret
+e-mail, så dér er den altid ukendt), fordi kun bestillingens ejer må kunne udløse, at en afvist bestilling slettes.
 """
 
 from __future__ import annotations
@@ -101,22 +103,84 @@ def _dt(iso_tekst):
 # ================================================================== startBestilling
 
 
-def _fjern_afvist_bestilling(lager, bestilling_id: str) -> None:
-    """Runde 15, fund 3.2 (den uafhængige test 18. november 2026): en AFVIST bestilling efterlader ingen
-    Bestilling-række. Klienten må kun oprette og læse den, så kun den betroede logik kan rydde op. Rækken var også i
-    vejen: klientnøglen er unik, så et genforsøg med samme nøgle ramte den afviste række ("Bestillingen er allerede
-    sendt"). Slettes i sin egen transaktion efter rollback af bestillingen; fejler oprydningen, er afvisningen stadig
-    svaret. En teknisk fejl er ikke en afvisning og rydder ikke. Samme regel i function_app.ts (fjernAfvistBestilling)."""
-    try:
-        with lager.transaktion() as tx:
-            tx.slet_bestilling(bestilling_id)
-    except Exception:                                          # noqa: BLE001 — oprydning må aldrig skjule afvisningen
-        pass
+def _frys(tx, b: dict | None) -> dict:
+    """Bestillingens regler og det frosne input — KUN læsninger (og kvotelåsen). Kaster ``Afvisning``, før noget er
+    skrevet; det er derfor, ``start_bestilling`` kan rydde en afvist bestilling i SAMME transaktion."""
+    if not b:
+        raise Afvisning("Bestillingen findes ikke.")
+    # K2-F9: kvoten tælles og forbruges under en lås pr. bruger (på tværs af værker).
+    tx.laas_kvote(b["bestilt_af"])
+    s = tx.scenarie(b["scenarie_id"], laas=True)
+    if not s:
+        raise Afvisning("Scenariet findes ikke.")
+    if s.get("arkiveret"):
+        raise Afvisning("Scenariet er arkiveret.")
+    # Lås på værket: serialiserer mod udfoerAendring, så revision og blade hører sammen.
+    v = tx.vaerk(s["vaerk_id"], laas=True)
+    if not v:
+        raise Afvisning("Værket findes ikke.")
+    if v.get("arkiveret"):
+        raise Afvisning("Værket er arkiveret.")
+    ventende = int(tx.antal_i_koe(b["bestilt_af"]))
+    if ventende >= GRAENSER["ventende_pr_bruger"]:
+        raise Afvisning(f"Du har allerede {_n(ventende)} kørsler i kø; højst {GRAENSER['ventende_pr_bruger']} ad "
+                        f"gangen. Vent til en er færdig, eller annullér en.")
+    params = [{"sti": p["sti"], "vaerdi_json": p["vaerdi_json"]} for p in tx.parametre(v["id"])]
+    aendr = tx.scenarie_aendringer(s["id"], laas=True)
+    motor = tx.motor()
+    if not motor or not motor.get("model_commit") or not motor.get("data_commit"):
+        raise Afvisning("Regnemotoren har endnu ikke registreret sin model- og dataversion. Prøv igen om lidt.")
+    scenarie = {
+        "periode_start": s.get("periode_start"), "periode_slut": s.get("periode_slut"),
+        "med_balancering": bool(s.get("med_balancering")), "balancing_method": s.get("balancing_method"),
+        "mip_rel_gap": _tal(s.get("mip_rel_gap")), "mip_abs_gap": _tal(s.get("mip_abs_gap")),
+        "tidsgraense_s": _tal(s.get("tidsgraense_s")),
+        "ekstra_flag": s.get("ekstra_flag"), "heat_csv": s.get("heat_csv"),
+    }
+    tidsserier = [{**t, "id": _lc(t["id"]), "aktiv": bool(t.get("aktiv")), "start": _iso(t["start"]),
+                   "slut": _iso(t["slut"])} for t in tx.gyldige_tidsserier(v["id"], laas=True)]
+    frossen = byg_frosset_input(params, aendr, scenarie,
+                                {"model_commit": motor["model_commit"], "data_commit": motor["data_commit"]},
+                                tidsserier)
+    return {"s": s, "v": v, "motor": motor, "frossen": frossen}
 
 
-def start_bestilling(lager, bestilling_id: str, start_arbejder) -> dict:
+def _ryd_afvist(tx, b: dict | None, bestilling_id: str, kalder: str | None) -> bool:
+    """Fjerner en AFVIST bestilling i den transaktion, der afviste den, og svarer på, om den er væk.
+
+    Runde 15, fund 3.2 (den uafhængige test 18. november 2026): en afvist bestilling efterlader ingen Bestilling-række.
+    Klienten må kun oprette og læse den, så kun den betroede logik kan rydde op, og rækkens unikke klientnøgle stod i
+    vejen for "Prøv igen". Kodegennemgangen af runde 15 fandt to huller, som denne funktion lukker:
+
+    * Fund 1: oprydningen kørte i en ny transaktion EFTER rollback. Imellem de to kunne et andet kald gøre samme
+      bestilling til en kørsel (genskabt i community/tests/test_r15_bestilling.py). Nu sker den under bestillingens lås
+      (``laas_bestilling``, taget før bestillingen læses) i samme transaktion som afvisningen — ``_frys`` har intet
+      skrevet, så der er intet at rulle tilbage.
+    * Fund 2: kun bestillingens EJER kan udløse en sletning. ``kalder`` er sessionens bruger (funktioner.kald); uden en
+      kendt kalder, eller med en anden end ``bestilt_af``, bliver rækken stående, og afvisningen er stadig svaret.
+
+    Sand = Bestilling-rækken findes ikke længere, og ingen kørsel peger på den (svarets ``ryddet``)."""
+    if b is None:
+        return True                         # intet at rydde; under låsen er det tjekket, at der heller ingen kørsel er
+    if kalder is None or kalder != b["bestilt_af"]:
+        return False
+    return tx.slet_bestilling(bestilling_id, b["bestilt_af"]) == 1
+
+
+def start_bestilling(lager, bestilling_id: str, start_arbejder, kalder: str | None = None) -> dict:
     """Bestilling -> Koersel(``koe``) + KoerselInput (+ frosne pins), og start en arbejder. Idempotent på
-    bestillingen. Returnerer TS' ``Bestillingssvar``: ``{ok, koersel_id?, status?, ny?, afvist?, arbejder?}``."""
+    bestillingen. Returnerer TS' ``Bestillingssvar``: ``{ok, koersel_id?, status?, ny?, afvist?, ryddet?, teknisk?,
+    arbejder?}``.
+
+    Et svar med ``ok: False`` er ét af tre (kodegennemgangen af runde 15, fund 3), og klienten handler forskelligt:
+
+    * ``ryddet: True`` — en ENDELIG afvisning, og bestillingen er væk (ingen Bestilling-række, ingen kørsel). Kun da
+      må klienten arkivere det scenarie, den oprettede til bestillingen.
+    * ``teknisk: True`` — en teknisk fejl. Intet er afgjort; bestillingen står og kan behandles igen.
+    * ingen af delene — en endelig afvisning, men bestillingen står (kalderen er ikke ejeren eller er ukendt, eller
+      oprydningen fejlede). Et nyt forsøg genoptager den.
+
+    ``kalder`` er den verificerede bruger bag kaldet (sessionens), eller ``None`` når den ikke kendes."""
     if not _uuid(bestilling_id):
         return {"ok": False, "afvist": "Ugyldigt bestillings-id."}
 
@@ -124,70 +188,50 @@ def start_bestilling(lager, bestilling_id: str, start_arbejder) -> dict:
         with lager.transaktion() as tx:
             return tx.koersel_for_bestilling(bestilling_id)
 
-    foer = findes()
-    if foer:
-        return {"ok": True, "koersel_id": _lc(foer["id"]), "status": foer["status"], "ny": False, "arbejder": start_arbejder()}
-
+    foer = koersel_id = afvist = None
+    ryddet = False
     try:
         with lager.transaktion() as tx:
-            b = tx.bestilling(bestilling_id)
-            if not b:
-                raise Afvisning("Bestillingen findes ikke.")
-            # K2-F9: kvoten tælles og forbruges under en lås pr. bruger (på tværs af værker).
-            tx.laas_kvote(b["bestilt_af"])
-            s = tx.scenarie(b["scenarie_id"], laas=True)
-            if not s:
-                raise Afvisning("Scenariet findes ikke.")
-            if s.get("arkiveret"):
-                raise Afvisning("Scenariet er arkiveret.")
-            # Lås på værket: serialiserer mod udfoerAendring, så revision og blade hører sammen.
-            v = tx.vaerk(s["vaerk_id"], laas=True)
-            if not v:
-                raise Afvisning("Værket findes ikke.")
-            if v.get("arkiveret"):
-                raise Afvisning("Værket er arkiveret.")
-            ventende = int(tx.antal_i_koe(b["bestilt_af"]))
-            if ventende >= GRAENSER["ventende_pr_bruger"]:
-                raise Afvisning(f"Du har allerede {_n(ventende)} kørsler i kø; højst {GRAENSER['ventende_pr_bruger']} ad "
-                                f"gangen. Vent til en er færdig, eller annullér en.")
-            params = [{"sti": p["sti"], "vaerdi_json": p["vaerdi_json"]} for p in tx.parametre(v["id"])]
-            aendr = tx.scenarie_aendringer(s["id"], laas=True)
-            motor = tx.motor()
-            if not motor or not motor.get("model_commit") or not motor.get("data_commit"):
-                raise Afvisning("Regnemotoren har endnu ikke registreret sin model- og dataversion. Prøv igen om lidt.")
-            scenarie = {
-                "periode_start": s.get("periode_start"), "periode_slut": s.get("periode_slut"),
-                "med_balancering": bool(s.get("med_balancering")), "balancing_method": s.get("balancing_method"),
-                "mip_rel_gap": _tal(s.get("mip_rel_gap")), "mip_abs_gap": _tal(s.get("mip_abs_gap")),
-                "tidsgraense_s": _tal(s.get("tidsgraense_s")),
-                "ekstra_flag": s.get("ekstra_flag"), "heat_csv": s.get("heat_csv"),
-            }
-            tidsserier = [{**t, "id": _lc(t["id"]), "aktiv": bool(t.get("aktiv")), "start": _iso(t["start"]),
-                           "slut": _iso(t["slut"])} for t in tx.gyldige_tidsserier(v["id"], laas=True)]
-            frossen = byg_frosset_input(params, aendr, scenarie,
-                                        {"model_commit": motor["model_commit"], "data_commit": motor["data_commit"]},
-                                        tidsserier)
-            koersel_id = lager.ny_id()
-            tx.indsaet_koersel({
-                "id": koersel_id, "bestilling_id": b["id"], "scenarie_id": s["id"], "vaerk_id": v["id"],
-                "vaerk_revision": v["revision"], "input_hash": frossen["hash"], "status": "koe", "fase": "I kø",
-                "bestilt_af": b["bestilt_af"], "bestilt": b.get("bestilt"), "forsoeg": 0, "kilde": "app",
-                "oensket_rel_gap": frossen["effektiv"]["mip_rel_gap"], "oensket_abs_gap": frossen["effektiv"]["mip_abs_gap"],
-                "model_commit": motor["model_commit"], "data_commit": motor["data_commit"],
-            })
-            tx.indsaet_input(koersel_id, frossen["raekker"])
-    except Afvisning as e:
-        _fjern_afvist_bestilling(lager, bestilling_id)
-        return {"ok": False, "afvist": str(e)}
+            # Fund 1: én lås pr. bestilling, FØR den læses — to kald om samme bestilling går efter hinanden fra
+            # læsning til indsættelse eller oprydning. Rækkefølgen bestilling -> kvote er den samme overalt.
+            tx.laas_bestilling(bestilling_id)
+            foer = tx.koersel_for_bestilling(bestilling_id)
+            if not foer:
+                b = tx.bestilling(bestilling_id)
+                try:
+                    f = _frys(tx, b)
+                except Afvisning as e:
+                    afvist = str(e)
+                    ryddet = _ryd_afvist(tx, b, bestilling_id, kalder)
+                else:
+                    s, v, motor, frossen = f["s"], f["v"], f["motor"], f["frossen"]
+                    koersel_id = lager.ny_id()
+                    tx.indsaet_koersel({
+                        "id": koersel_id, "bestilling_id": b["id"], "scenarie_id": s["id"], "vaerk_id": v["id"],
+                        "vaerk_revision": v["revision"], "input_hash": frossen["hash"], "status": "koe", "fase": "I kø",
+                        "bestilt_af": b["bestilt_af"], "bestilt": b.get("bestilt"), "forsoeg": 0, "kilde": "app",
+                        "oensket_rel_gap": frossen["effektiv"]["mip_rel_gap"], "oensket_abs_gap": frossen["effektiv"]["mip_abs_gap"],
+                        "model_commit": motor["model_commit"], "data_commit": motor["data_commit"],
+                    })
+                    tx.indsaet_input(koersel_id, frossen["raekker"])
     except UnikBrud:
-        # To samtidige kald med samme bestilling: den anden taber på den unikke bestilling_id.
+        # Værn: med bestillingens lås kan to kald ikke længere nå hertil samtidig, men den unikke bestilling_id er
+        # stadig databasens sidste ord.
         efter = findes()
         if efter:
             return {"ok": True, "koersel_id": _lc(efter["id"]), "status": efter["status"], "ny": False}
-        return {"ok": False, "afvist": teknisk_fejl("startBestilling", UnikBrud("unik nøgle brudt"))}
+        return {"ok": False, "afvist": teknisk_fejl("startBestilling", UnikBrud("unik nøgle brudt")), "teknisk": True}
     except Exception as e:                                     # noqa: BLE001 — svar læsbart, som TS
-        return {"ok": False, "afvist": teknisk_fejl("startBestilling", e)}
+        if afvist is not None:
+            # Reglerne havde talt; det var oprydningen (eller dens commit), der fejlede. Afvisningen er stadig
+            # svaret, men uden "ryddet": bestillingen står.
+            return {"ok": False, "afvist": afvist}
+        return {"ok": False, "afvist": teknisk_fejl("startBestilling", e), "teknisk": True}
 
+    if foer:
+        return {"ok": True, "koersel_id": _lc(foer["id"]), "status": foer["status"], "ny": False, "arbejder": start_arbejder()}
+    if afvist is not None:
+        return {"ok": False, "afvist": afvist, "ryddet": True} if ryddet else {"ok": False, "afvist": afvist}
     arbejder = start_arbejder()
     nu = findes()
     return {"ok": True, "koersel_id": koersel_id, "status": _nn((nu or {}).get("status"), "koe"), "ny": True,

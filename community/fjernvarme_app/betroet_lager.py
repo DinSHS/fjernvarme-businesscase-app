@@ -69,11 +69,27 @@ class SqlTransaktion:
         b = self.t("Bestilling")
         return self._en(select(b.c.id, b.c.scenarie_id, b.c.bestilt_af, b.c.bestilt).where(b.c.id == id.lower()))
 
-    def slet_bestilling(self, id: str) -> int:
-        """Fund 3.2: kun en bestilling, der ikke blev til en kørsel (samme betingelse som Fabric-udgavens SQL)."""
+    def laas_bestilling(self, id: str) -> None:
+        """Kodegennemgangen af runde 15, fund 1: en transaktionsejet lås pr. bestilling, taget FØR bestillingen læses,
+        så to kald om samme bestilling går efter hinanden fra læsning til indsættelse eller oprydning. Samme mønster
+        som ``arkiv_laas_koersler``. sqlite: BEGIN IMMEDIATE har allerede serialiseret alle skrivere."""
+        d = self.db.dialekt
+        if d == "postgresql":
+            self.cn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": "fjv_bestilling:" + id.lower()})
+        elif d == "mssql":
+            # sp_getapplock melder en fejlet lås i sin RETURKODE (< 0), ikke som en fejl (K10b-N1).
+            rc = self.cn.execute(text("DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
+                                      "@LockOwner = 'Transaction', @LockTimeout = 30000; SELECT @rc AS rc;"),
+                                 {"k": "fjv_bestilling:" + id.lower()}).scalar()
+            if rc is None or int(rc) < 0:
+                raise RuntimeError(f"Kunne ikke få bestillingens lås (sp_getapplock = {rc}).")
+
+    def slet_bestilling(self, id: str, bestilt_af: str) -> int:
+        """Fund 3.2: kun en bestilling, der ikke blev til en kørsel — og (gennemgangens fund 2) kun ejerens egen."""
         b, k = self.t("Bestilling"), self.t("Koersel")
         har_koersel = select(k.c.id).where(k.c.bestilling_id == id.lower()).exists()
-        return self.cn.execute(b.delete().where(and_(b.c.id == id.lower(), ~har_koersel))).rowcount
+        return self.cn.execute(b.delete().where(and_(b.c.id == id.lower(), b.c.bestilt_af == bestilt_af,
+                                                     ~har_koersel))).rowcount
 
     def laas_kvote(self, email: str) -> None:
         d = self.db.dialekt
@@ -399,8 +415,9 @@ class Tjenester:
         self.T, self.app = T, app
         self.lager, self.filer = SqlBetroetLager(app.db), LokaleFiler(app.files)
 
-    def start_bestilling(self, bestilling_id):
-        return self.T.start_bestilling(self.lager, bestilling_id, self.app.motor.start_arbejder)
+    def start_bestilling(self, bestilling_id, kalder=None):
+        """``kalder`` er sessionens bruger (funktioner.kald): kun bestillingens ejer kan få en afvist bestilling ryddet."""
+        return self.T.start_bestilling(self.lager, bestilling_id, self.app.motor.start_arbejder, kalder)
 
     def udfoer_aendring(self, anmodning_id):
         return self.T.udfoer_aendring(self.lager, anmodning_id)

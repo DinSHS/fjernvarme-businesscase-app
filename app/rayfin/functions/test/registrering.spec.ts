@@ -36,13 +36,12 @@ describe("registrerede Functions", () => {
         }
     });
     it("indeholder ingen DELETE mod andre tabeller end resultat-/inputtabeller i betroet kode", () => {
-        // Tilladte DELETE: VaerkParameters (udfoerAendring 'slet') og — fra runde 15, fund 3.2 i den uafhængige test
-        // 18. november 2026 — Bestillings: startBestilling fjerner en AFVIST bestilling, og kun hvis ingen kørsel peger
-        // på den (fjernAfvistBestilling). Klienten må ikke selv slette den, og rækken spærrede et genforsøg med samme
-        // klientnøgle. Alt andet er en ny slettevej og skal begrundes.
-        const deletes = [...kilde.matchAll(/DELETE FROM dbo\.(\w+)/g)].map((m) => m[1]);
-        expect([...new Set(deletes)].sort()).toEqual(["Bestillings", "VaerkParameters"]);
-        // Sletningen af en bestilling er altid betinget af, at den ikke blev til en kørsel.
-        expect(kilde).toContain("DELETE FROM dbo.Bestillings WHERE id = @b AND NOT EXISTS (SELECT 1 FROM dbo.Koersels WHERE bestilling_id = @b)");
+        // Tilladt DELETE: VaerkParameters (udfoerAendring 'slet'). Alt andet er en ny slettevej og skal begrundes.
+        // Runde 15 (fund 3.2) tilføjede Bestillings: startBestilling fjernede en AFVIST bestilling. Kodegennemgangen
+        // (fund 1 og 2) tog den ud igen: funktionen kender ikke kalderen, og enhver registreret funktion kan kaldes
+        // af enhver appbruger med et bestillings-id efter eget valg. Den lokale udgave rydder ejerens egen.
+        const kilder = kilde + readFileSync(new URL("../src/bestilling.ts", import.meta.url), "utf8");
+        const deletes = [...kilder.matchAll(/DELETE FROM dbo\.(\w+)/g)].map((m) => m[1]);
+        expect([...new Set(deletes)].sort()).toEqual(["VaerkParameters"]);
     });
 });

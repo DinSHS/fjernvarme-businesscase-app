@@ -56,3 +56,18 @@ export async function låsKvote(req: () => sql.Request, email: string): Promise<
     const rc = Number(r.recordset[0]?.rc);
     if (rc < 0) throw new Error(`Kunne ikke få kvotelåsen (sp_getapplock = ${rc}).`);
 }
+
+/**
+ * Lås pr. bestilling for resten af transaktionen (kodegennemgangen af runde 15, fund 1). Tages som det FØRSTE i
+ * startBestilling's transaktion — før bestillingen læses — så to kald om samme bestilling går efter hinanden fra
+ * læsning til indsættelse. Samme mønster som `låsKvote`; rækkefølgen er altid bestilling -> kvote. Id'et er valideret
+ * som uuid af kalderen. IKKE kørt mod en Fabric-database (rapporten for rettelserne, runde 15).
+ */
+export async function låsBestilling(req: () => sql.Request, bestillingId: string): Promise<void> {
+    const r = await req().input('res', sql.NVarChar(255), `fjv_bestilling:${bestillingId.toLowerCase()}`).query(
+        "DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = @res, @LockMode = N'Exclusive', " +
+        "@LockOwner = N'Transaction', @LockTimeout = 15000; SELECT @rc AS rc;",
+    );
+    const rc = Number(r.recordset[0]?.rc);
+    if (rc < 0) throw new Error(`Kunne ikke få bestillingens lås (sp_getapplock = ${rc}).`);
+}
