@@ -17,7 +17,7 @@ import {
     absolutGab, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, visJson,
     type InputForskel, type Koersel, type Profil, type Samlet,
 } from "./beregn";
-import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, SKALERING_TEKST, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
+import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
 import { dec, periodeTekst } from "./fmt";
 import { aendringsResume } from "./kandidater";
 
@@ -41,7 +41,7 @@ export type Kategori = "anbefalet" | "fraraades" | "kan_ikke_afgoeres" | "unders
  * < 10.000: nærmeste 100 kr.; < 1 mio.: nærmeste 1.000 kr.; ≥ 1 mio.: én decimal og "mio. kr.". Uden fortegn.
  * Codex K9 F4: er det afrundede beløb ikke beløbet i hele kroner, står "ca." foran ("ca. 200 kr." for 170,18 kr.), så
  * fortællingen ikke ser uenig ud med overskriftens præcise "170 kr."; et beløb, der afrundes til 0, er "under 100 kr.".
- * `ca = false`, hvor teksten selv siger "ca." (skaleringen), og til nultjekket (`krNul`).
+ * `ca = false` til nultjekket (`krNul`).
  */
 export function krRund(v: number, ca = true): string {
     const a = Math.abs(v);
@@ -200,7 +200,11 @@ export interface Vurdering {
     naesteSkridt: string[];
     /** Investeringsforbeholdet for knapper, der er investeringer. */
     investering: string | null;
-    skalering: string | null;
+    /**
+     * Årets beløb i kr. — KUN når perioden selv er mindst 365 døgn, og så er det periodens Δ uændret. Ellers null:
+     * appen skalerer ikke en kortere periode til et år (runde 15, fund 3.1).
+     */
+    aarligt: number | null;
     delta: number | null;
     tolerance: number | null;
     vaesentlighed: number | null;
@@ -216,6 +220,14 @@ export interface Vurdering {
 }
 
 const DØGN = 86_400_000;
+/**
+ * Fra denne længde er periodens tal et årstal (runde 15, fund 3.1 fra den uafhængige test 18. november 2026). Før
+ * blev Δ × 365 / døgn vist for alle perioder på 7–364 døgn: 12 januardøgn i Andeby (tankværdi 23.516 kr.) blev til
+ * "ca. 715.000 kr." om året, og Billund Spor B's 121 forårsdøgn (ca. 2,18 mio. kr.) til ca. 6,6 mio. kr. En sæson
+ * kan ikke ganges op — tanken tjener på elprisens udsving, og varmebehov og priser er anderledes resten af året.
+ * Appen opfinder derfor intet årstal: under 365 døgn vises kun periodens beløb.
+ */
+export const HELAAR_DOEGN = 365;
 /** Periodens længde i døgn fra den præcise periode (inkl. sidste interval). */
 export function doegn(p: Profil): number | null {
     if (!p.periode_fra || !p.periode_til) return null;
@@ -356,8 +368,10 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     const T = ga === null || gb === null ? null : ga + gb;
     const V = ref.k.objektiv_dkk != null ? Math.max(1000, 0.001 * Math.abs(ref.k.objektiv_dkk)) : null;
     const n = delta !== null && T !== null && T > 0 ? Math.floor(Math.abs(delta) / T) : null;
-    const aarligt = delta !== null && d !== null && d >= 7 && d < 365 ? (delta * 365) / d : null;
-    const skaleret = aarligt !== null ? ` (skaleret til et år ca. ${krRund(aarligt, false)})` : "";
+    // Fund 3.1: intet Δ × 365 / døgn. Et årstal findes kun, når perioden selv er et år — og er da periodens tal.
+    const aarligt = delta !== null && d !== null && d >= HELAAR_DOEGN ? delta : null;
+    // Knappernes pladsholder {skaleret} (knapper.json) udfyldes kun for et helår, og da uden omregning.
+    const skaleret = aarligt !== null ? " (et helt år)" : "";
     const investering = p.knap && INVESTERING.knapper.includes(p.knap) ? INVESTERING.tekst : null;
     const indenTol = delta !== null && T !== null && (Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V));
     const svar = (kategori: Kategori, begrundelse: string, saetning?: string, sammenlignelig = true): Vurdering => ({
@@ -365,8 +379,7 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
         saetning: saetning ?? (delta === null ? "Mindst én af kørslerne har ingen driftsomkostning."
             : kategori === "kan_ikke_afgoeres" || (kategori === "foelsomhed" && indenTol) ? neutralSaetning(delta, indenTol)
                 : knapSaetning(p, delta, skaleret)),
-        begrundelse, forbehold: nedgrader, noter, naesteSkridt: næste, investering,
-        skalering: aarligt !== null ? udfyld(SKALERING_TEKST, { aarligt: krRund(aarligt, false) }) : null,
+        begrundelse, forbehold: nedgrader, noter, naesteSkridt: næste, investering, aarligt,
         delta, tolerance: T, vaesentlighed: V, n, doegn: d, knap: p.knap, sammenlignelig,
     });
 

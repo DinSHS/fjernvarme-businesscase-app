@@ -1,6 +1,6 @@
 // Codex K9 F4: samme resultat stod som "170 kr. mindre" (overskriften, præcist) og "200 kr. billigere" (fortællingen,
 // afrundet efter historie.afrunding) uden afrundingsmarkør. Reglen (viden/anbefalingsregler.json): fortællingen afrunder
-// stadig, men et afrundet beløb, der ikke er beløbet i hele kroner, står med "ca." — som skaleringen og energitallene
+// stadig, men et afrundet beløb, der ikke er beløbet i hele kroner, står med "ca." — som energitallene
 // ("ca. 87 MWh") allerede gør. Skrevet FØR rettelsen.
 import { describe, expect, it } from "vitest";
 import type { InputRække } from "@/lib/data/afflad";
@@ -22,7 +22,7 @@ describe("kr.-reglen med afrundingsmarkør", () => {
         expect([krNul(0), krNul(30), krNul(-49.9), krNul(50)]).toEqual([true, true, true, false]);
         expect(neutralSaetning(30, true)).toBe("Scenariet og referencen har samme driftsomkostning i perioden (forskellen er under 100 kr.).");
     });
-    it("uden markør, hvor teksten selv siger 'ca.' (skaleringen)", () => {
+    it("uden markør (ca = false), som nultjekket bruger", () => {
         expect(krRund(170.18, false)).toBe("200 kr.");
     });
 });

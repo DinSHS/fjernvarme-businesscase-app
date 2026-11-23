@@ -5,7 +5,8 @@
 import { useState } from "react";
 import { Knap, Kort, Maerke } from "@/components/layout";
 import { rutehref } from "@/lib/rute";
-import type { Par, Vurdering } from "./anbefaling";
+import { tal } from "@/lib/format";
+import { HELAAR_DOEGN, type Par, type Vurdering } from "./anbefaling";
 import { KATEGORIER } from "./anbefaling.data";
 
 /** Næste skridt med link: "Kør helåret …" → Scenarier med værk og knap valgt. */
@@ -60,7 +61,12 @@ export function AnbefalingKort({ v, vaerkKode, kopiTekst }: { v: Vurdering; vaer
             handling={<div className="fjv-a-raekke"><Maerke tone={v.tone}>{v.maerke}</Maerke><KopierKnap tekst={kopiTekst} etiket="Kopiér" /></div>}
             fod={<>{KATEGORIER[v.kategori]?.betydning}{v.investering ? ` ${v.investering}` : ""}</>}>
             <p className="fjv-brod"><strong>Begrundelse:</strong> {v.begrundelse}</p>
-            {v.skalering && <p className="fjv-brod">{v.skalering}</p>}
+            {/* Fund 3.1 (den uafhængige test 18. november 2026): intet "skaleret til et år". Kortet siger, hvad beløbet gælder. */}
+            {v.sammenlignelig && v.delta !== null && v.doegn !== null && (
+                <p className="fjv-brod">{v.aarligt !== null
+                    ? `Perioden er et helt år (${tal(v.doegn)} døgn): beløbet er årets, ikke et skøn.`
+                    : `Beløbet gælder de ${tal(v.doegn)} døgn, kørslerne dækker. Appen skalerer det ikke til et år: en kortere periode er ikke repræsentativ for året (varmebehov, elpriser og tankens udnyttelse følger årstiden). Et årstal kræver en kørsel på mindst ${HELAAR_DOEGN} døgn.`}</p>
+            )}
             {v.forbehold.length > 0 && (
                 <div className="fjv-brod"><strong>Forbehold</strong>
                     <ul className="fjv-a-liste">{v.forbehold.map((f) => <li key={f.id}>{f.tekst}</li>)}</ul>
