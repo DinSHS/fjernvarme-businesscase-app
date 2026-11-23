@@ -11,15 +11,19 @@
 
 import { læsVaerdi } from "@/lib/data/vaerdi";
 import { GRAENSER } from "../../../rayfin/data/fjv.constants";
-import { findFelt, kendteObjektfelter, type FeltPost } from "./katalog";
+import { BRAENDSEL, findFelt, kendteObjektfelter, type FeltPost } from "./katalog";
 import { KWH_PR_M3_K, copPunkter } from "./gruppering";
 import { laesTarif } from "./tarif";
 
 export interface Fund { sti: string; besked: string; alvor: "fejl" | "advarsel" }
 
+// fuel_oil kom til ved modelrepoets 939228a (oliekedel). oliekedel.spec.tsx prøver, at hver enhedstypes brændsel
+// får sin pris krævet: en aktiv enhed med et købt brændsel uden pris afvises af modellens load_case (fuel_price).
 const BRAENDSELS_PRIS: Record<string, string> = {
-    natural_gas: "natural_gas", straw: "straw", flis: "flis", wood_pellets: "wood_pellets", waste_heat: "waste_heat",
+    natural_gas: "natural_gas", fuel_oil: "fuel_oil", straw: "straw", flis: "flis", wood_pellets: "wood_pellets", waste_heat: "waste_heat",
 };
+/** Brændslet med modellens ord ("fyringsolie", "naturgas"), som i dens egen besked (src/config.py, fuel_price). */
+const braendselNavn = (fuel: string): string => (BRAENDSEL[fuel] ?? fuel).toLowerCase();
 const IKKE_BRAENDSEL = new Set(["electricity", "solar"]);
 const BALANCING_NOEGLER = new Set(["method", "bid_strategy", "ancillary_caps", "reservation_gate", "activation", "availability", "shared_reserve_cap_mw", "robust_reservation"]);
 const MARKEDER = ["afrr", "mfrr"] as const;
@@ -117,7 +121,7 @@ export function validerVaerk(v: V): Fund[] {
         const til = værdi(v, `${p}.enabled`) !== false;
         if (fuel && !IKKE_BRAENDSEL.has(fuel) && num(v, `${p}.eta_fuel_to_heat`) === null) fejl(`${p}.eta_fuel_to_heat`, `${u}: brændselsenhed mangler eta_fuel_to_heat.`);
         if (til && fuel && BRAENDSELS_PRIS[fuel] && num(v, `prices.${BRAENDSELS_PRIS[fuel]}.value`) === null) {
-            fejl(`prices.${BRAENDSELS_PRIS[fuel]}.value`, `En enhed (${u}) bruger ${fuel}, men prisen for ${fuel} er ikke sat under prices.`);
+            fejl(`prices.${BRAENDSELS_PRIS[fuel]}.value`, `En enhed (${u}) bruger ${braendselNavn(fuel)}, men prisen for ${braendselNavn(fuel)} er ikke sat under prices.`);
         }
         const alpha = num(v, `${p}.alpha`);
         if (alpha !== null && fuel === "electricity" && alpha >= 0) adv(`${p}.alpha`, `${u}: alpha bør være negativ for en el-forbrugende enhed.`);
