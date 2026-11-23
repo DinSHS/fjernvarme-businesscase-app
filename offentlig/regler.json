@@ -296,11 +296,11 @@
       "grund": "modelforfatterens egen vaerksdata_skabelon.xlsx (kildens indhold, ikke et tema)"
     },
     {
-      "fil": "app/src/sider/konfiguration/eksport/vaerksdata_skabelon.xlsx::xl/sharedStrings.xml",
+      "fil": "app/src/sider/konfiguration/eksport/vaerksdata_skabelon.xlsx::xl/worksheets/sheet1.xml",
       "regler": [
         "tema"
       ],
-      "grund": "modelforfatterens egen vaerksdata_skabelon.xlsx, kopieret byte for byte af byg_modelspejl.py til eksporten (runde 12; kildens kontaktlinje, ikke et tema)"
+      "grund": "modelforfatterens egen vaerksdata_skabelon.xlsx, kopieret byte for byte af byg_modelspejl.py til eksporten (runde 12; kildens kontaktlinje i arket Vejledning, ikke et tema). Fra modelrepoets 939228a er skabelonen skrevet af openpyxl, og linjen staar i arkets XML; foer stod den i xl/sharedStrings.xml (runde 15: samme linje, samme regel, kun stien er flyttet)"
     },
     {
       "fil": "fabric/tests/data/*.log",
