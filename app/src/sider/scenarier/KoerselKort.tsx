@@ -14,13 +14,17 @@ import { opdaterAlt } from "@/lib/data/opdatering";
 import { tal, tidspunkt } from "@/lib/format";
 import { rutehref } from "@/lib/rute";
 import type { Koersel } from "../../../rayfin/data/Koersel";
-import { differenceTekst } from "../analyser/beregn";
+import { GRAENSER } from "../../../rayfin/data/fjv.constants";
+import { absolutGab, differenceTekst, gabTekst, tidsgraenseForslag } from "../analyser/beregn";
+import { TidsgraenseMaerke } from "../analyser/dele";
 import { NoegletalKort, TKR } from "../analyser/ibcs-grafer";
 import { modReference, sammenlignHref } from "./koersel-logik";
 import { varighedTekst } from "./logik";
 import { rådFor, type Rådkontekst } from "./raad";
 
-export function KoerselDetaljer({ k, varighed, reference, rådkontekst }: {
+export function KoerselDetaljer({ k, varighed, reference, rådkontekst, tidsgraense_s }: {
+    /** Scenariets gældende tidsgrænse i sekunder — den, en ny kørsel vil få (til forslaget om en længere). */
+    tidsgraense_s?: number;
     k: Koersel;
     /** Forventet regnetid (for en aktiv kørsel). */
     varighed?: { lav: number; høj: number };
@@ -35,6 +39,9 @@ export function KoerselDetaljer({ k, varighed, reference, rådkontekst }: {
     const råd = k.status === "fejl" ? rådFor(k.fejlbesked, rådkontekst) : undefined;
     // Runde 15 (mail 1): differensen findes kun mod en færdig, direkte sammenlignelig reference (koersel-logik.ts).
     const { diff, afviger: afvig } = modReference(reference, k);
+    // Testrapportens afsnit 2a + mail 1: en kørsel, der stoppede på tidsgrænsen, vises som det — og er usikkerheden en
+    // væsentlig del af forskellen mod referencen, foreslås en ny kørsel med længere tidsgrænse.
+    const forslag = diff && reference ? tidsgraenseForslag(reference, k, { graenser: [null, tidsgraense_s ?? null], maks: GRAENSER.maksTidsgraenseS }) : null;
 
     const annullér = async () => {
         setSender(true);
@@ -53,6 +60,7 @@ export function KoerselDetaljer({ k, varighed, reference, rådkontekst }: {
         <div className="fs-blok">
             <div className="fs-raekke">
                 <StatusMaerke status={k.status} />
+                <TidsgraenseMaerke k={k} />
                 {k.fase && k.status !== "faerdig" && <span className="fjv-brod">{k.status === "fejl" ? `stoppede under: ${k.fase}` : k.fase}</span>}
                 {k.annuller_anmodet && aktiv && <Maerke tone="advarsel">Annullering anmodet</Maerke>}
             </div>
@@ -71,10 +79,14 @@ export function KoerselDetaljer({ k, varighed, reference, rådkontekst }: {
                 {k.status === "faerdig" && (
                     <><dt>Opnået gab</dt><dd className="fjv-tal">{k.opnaaet_gap != null ? `${(k.opnaaet_gap * 100).toLocaleString("da-DK", { maximumFractionDigits: 3 })} %` : "ukendt (ikke i solverloggen)"}</dd></>
                 )}
+                {k.status === "faerdig" && (k.solve_status ?? "").toLowerCase().includes("time") && (
+                    <><dt>Usikkerhed</dt><dd>{gabTekst(absolutGab(k))} — den bedste løsning, solveren nåede; ikke bevist optimal</dd></>
+                )}
                 {diff && (
                     <><dt>Mod reference</dt><dd>{differenceTekst(diff)}</dd></>
                 )}
             </dl>
+            {forslag && <p className="fjv-tilstand" data-tone="advarsel" role="status">{forslag.tekst}</p>}
             {k.status === "fejl" && k.fejlbesked && (
                 <div className="fs-blok">
                     <p className="fjv-tilstand" data-tone="fejl" role="alert">{k.fejlbesked}</p>

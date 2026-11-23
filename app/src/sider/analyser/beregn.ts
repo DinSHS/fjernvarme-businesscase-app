@@ -936,6 +936,61 @@ export function stoersteEnhed(enheder: readonly EnhedTal[]): EnhedTal | null {
     return enheder.filter((e) => (e.produktion_mwh ?? 0) > 0)[0] ?? null;
 }
 
+// ================================================================= tidsgrænsen: forslag om en længere
+
+/** Stoppede solveren på tidsgrænsen? HiGHS' status er "time_limit"; alt med "time" tæller (som `loesningTekst`). */
+export function stoppetPaaTid(s: string | null | undefined): boolean {
+    return !!s && s.toLowerCase().includes("time");
+}
+
+/** Modellens tidsgrænse, når hverken værket eller scenariet sætter en (src/config.py › SolverConfig.time_limit). */
+export const MODELLENS_TIDSGRAENSE_S = 600;
+
+/**
+ * Hvornår er usikkerheden "en væsentlig del" af differensen? EGEN ANTAGELSE (doc/TROFASTHED.md §5): når den er mindst
+ * 10 % af |ΔRef|. Testrapportens målte tilfælde (Billund Spor B: 3.926 kr. af ca. 2,18 mio. kr. = 0,2 %) ligger langt
+ * under, og dér holdt konklusionen; ved 10 % kan forskellens størrelse flytte sig mærkbart, selv om fortegnet holder.
+ */
+export const TIDSGRAENSE_VAESENTLIG_ANDEL = 0.1;
+
+export interface TidsgraenseForslag {
+    /** De kørsler, der stoppede på tidsgrænsen. */
+    roller: ("referencen" | "scenariet")[];
+    /** Summen af deres usikkerhed (højst så meget for højt); null hvis en af dem ikke kendes. */
+    usikkerhed_kr: number | null;
+    /** usikkerhed / |ΔRef|; null når usikkerheden er ukendt, Infinity når ΔRef er 0. */
+    andel: number | null;
+    tekst: string;
+}
+
+/**
+ * Forslaget fra den uafhængige test 18. november 2026 (testrapportens afsnit 2a): stoppede en af et pars kørsler på
+ * tidsgrænsen, og er usikkerheden en væsentlig del af ΔRef, så foreslå en ny kørsel med længere tidsgrænse. `graenser`
+ * er de to kørslers tidsgrænse i sekunder [reference, scenarie] (null = ukendt), `maks` appens loft. Er usikkerheden
+ * ukendt, foreslås det altid: forskellen kan da slet ikke vurderes. Null = intet at foreslå.
+ */
+export function tidsgraenseForslag(ref: Koersel, scen: Koersel, o: { graenser: readonly [number | null, number | null]; maks: number }): TidsgraenseForslag | null {
+    if (tom(ref.objektiv_dkk) || tom(scen.objektiv_dkk)) return null;
+    const ramt = ([["referencen", ref, o.graenser[0]], ["scenariet", scen, o.graenser[1]]] as const).filter(([, k]) => stoppetPaaTid(k.solve_status));
+    if (ramt.length === 0) return null;
+    const gab = ramt.map(([, k]) => absolutGab(k).kr);
+    const usikkerhed_kr = gab.some((g) => g === null) ? null : gab.reduce<number>((a, g) => a + (g ?? 0), 0);
+    const delta = Math.abs(scen.objektiv_dkk - ref.objektiv_dkk);
+    const andel = usikkerhed_kr === null ? null : delta > 0 ? usikkerhed_kr / delta : Infinity;
+    if (andel !== null && andel < TIDSGRAENSE_VAESENTLIG_ANDEL) return null;
+    const roller = ramt.map(([r]) => r);
+    const hvem = opremsning(roller);
+    const grund = usikkerhed_kr === null ? "usikkerheden kendes ikke, så forskellen kan ikke vurderes"
+        : !Number.isFinite(andel) ? `usikkerheden (højst ${tal(usikkerhed_kr)} kr.) er større end forskellen`
+            : `usikkerheden (højst ${tal(usikkerhed_kr)} kr.) er ${tal((andel ?? 0) * 100)} % af forskellen på ${tal(delta)} kr.`;
+    const kendte = ramt.map(([, , g]) => g).filter((g): g is number => g !== null);
+    if (kendte.length === ramt.length && kendte.every((g) => g >= o.maks)) {
+        return { roller, usikkerhed_kr, andel, tekst: `${hvem.charAt(0).toUpperCase()}${hvem.slice(1)} stoppede på tidsgrænsen, som allerede er appens højeste (${tal(o.maks)} s), og ${grund}. Del perioden i kortere vinduer, eller læs forskellen med den usikkerhed.` };
+    }
+    const nu = kendte.length ? `nu ${opremsning([...new Set(kendte)].map((g) => `${tal(g)} s`))}; ` : "";
+    return { roller, usikkerhed_kr, andel, tekst: `Kør ${hvem} igen med en længere tidsgrænse (${nu}appen tillader op til ${tal(o.maks)} s): ${hvem} stoppede på tidsgrænsen, og ${grund}.` };
+}
+
 // ================================================================= CO₂: er udledningen opgjort?
 
 /**

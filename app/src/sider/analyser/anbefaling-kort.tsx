@@ -9,14 +9,20 @@ import { tal } from "@/lib/format";
 import { HELAAR_DOEGN, type Par, type Vurdering } from "./anbefaling";
 import { KATEGORIER } from "./anbefaling.data";
 
-/** Næste skridt med link: "Kør helåret …" → Scenarier med værk og knap valgt. */
-export function NaesteSkridt({ skridt, vaerkKode, knap }: { skridt: readonly string[]; vaerkKode: string | null; knap: string | null }) {
+/**
+ * Næste skridt med link: "Kør helåret …" → Scenarier med værk og knap valgt. Forslaget om en længere tidsgrænse
+ * (testrapportens afsnit 2a) linker til det scenarie, hvis tidsgrænse skal sættes op.
+ */
+export function NaesteSkridt({ skridt, vaerkKode, knap, tidsgraense }: { skridt: readonly string[]; vaerkKode: string | null; knap: string | null; tidsgraense?: Vurdering["tidsgraense"] }) {
     if (!skridt.length) return null;
     const href = vaerkKode ? rutehref("scenarier", "nyt", vaerkKode, ...(knap ? [knap] : [])) : rutehref("scenarier");
     return (
         <ol className="fjv-a-liste">
             {skridt.map((s) => (
-                <li key={s}>{s}{/^Kør helåret/.test(s) && <> — <a className="fjv-a-link" href={href}>Bestil helårskørsel</a></>}</li>
+                <li key={s}>{s}{/^Kør helåret/.test(s) && <> — <a className="fjv-a-link" href={href}>Bestil helårskørsel</a></>}
+                    {tidsgraense && s === tidsgraense.tekst && tidsgraense.scenarieIder.map((id, i) => (
+                        <span key={id}> — <a className="fjv-a-link" href={rutehref("scenarier", id)}>Sæt tidsgrænsen på {tidsgraense.roller[i]}</a></span>
+                    ))}</li>
             ))}
         </ol>
     );
@@ -77,7 +83,7 @@ export function AnbefalingKort({ v, vaerkKode, kopiTekst }: { v: Vurdering; vaer
                     <ul className="fjv-a-liste">{v.noter.map((f) => <li key={f.id}>{f.tekst}</li>)}</ul>
                 </div>
             )}
-            <div className="fjv-brod"><strong>Næste skridt</strong><NaesteSkridt skridt={v.naesteSkridt} vaerkKode={vaerkKode} knap={v.knap} /></div>
+            <div className="fjv-brod"><strong>Næste skridt</strong><NaesteSkridt skridt={v.naesteSkridt} vaerkKode={vaerkKode} knap={v.knap} tidsgraense={v.tidsgraense} /></div>
         </Kort>
     );
 }

@@ -5,7 +5,7 @@
 import type { ReactNode } from "react";
 import { Maerke } from "@/components/layout";
 import { rutehref } from "@/lib/rute";
-import { kodeOprindelse } from "./beregn";
+import { kodeOprindelse, stoppetPaaTid } from "./beregn";
 
 /** Navn/værdi-par som definitionsliste. */
 export function Fakta({ par }: { par: readonly (readonly [string, ReactNode] | null | false)[] }) {
@@ -26,6 +26,15 @@ export function Commit({ sha }: { sha: string | null | undefined }) {
 
 export function KoerselLink({ id, children }: { id: string; children: ReactNode }) {
     return <a className="fjv-a-link" href={rutehref("analyser", id)}>{children}</a>;
+}
+
+/**
+ * En færdig kørsel, der stoppede på solverens tidsgrænse, er ikke bare "Færdig" (runde 15, mail 1: "tjek også en
+ * kørsel, der stoppede på tidsgrænsen"): løsningen er den bedste fundne, ikke bevist optimal. Vises ved statusmærket.
+ */
+export function TidsgraenseMaerke({ k }: { k: { status: string; solve_status?: string | null } }) {
+    if (k.status !== "faerdig" || !stoppetPaaTid(k.solve_status)) return null;
+    return <Maerke tone="advarsel">Stoppet på tidsgrænsen</Maerke>;
 }
 
 /** Advarslen, når kørslens modelkode eller df-data ikke er hentet som zip af regnemotoren (fund 3.6; beregn.ts › kodeOprindelse). */

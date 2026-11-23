@@ -13,9 +13,11 @@
 
 import { effektivtInput, KOERSEL_PRAEFIKS, type InputRække } from "@/lib/data/afflad";
 import { tal } from "@/lib/format";
+import { GRAENSER } from "../../../rayfin/data/fjv.constants";
 import {
-    absolutGab, co2Opgoerelse, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, toleranceKr, visJson,
-    type InputForskel, type Koersel, type Profil, type Samlet,
+    absolutGab, co2Opgoerelse, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, MODELLENS_TIDSGRAENSE_S, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor,
+    tidsgraenseForslag, toleranceKr, visJson,
+    type InputForskel, type Koersel, type Profil, type Samlet, type TidsgraenseForslag,
 } from "./beregn";
 import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
 import { dec, periodeTekst } from "./fmt";
@@ -217,6 +219,11 @@ export interface Vurdering {
      * det, må hverken sætningen eller historien sige "billigere"/"dyrere" (runde 15, mail 1).
      */
     sammenlignelig: boolean;
+    /**
+     * Forslaget om en længere tidsgrænse (testrapportens afsnit 2a): en af kørslerne stoppede på tidsgrænsen, og
+     * usikkerheden er en væsentlig del af Δ. Teksten står også først i `naesteSkridt`. `scenarieIder`: hvor grænsen sættes.
+     */
+    tidsgraense: (TidsgraenseForslag & { scenarieIder: string[] }) | null;
 }
 
 const DØGN = 86_400_000;
@@ -391,12 +398,19 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     const skaleret = aarligt !== null ? " (et helt år)" : "";
     const investering = p.knap && INVESTERING.knapper.includes(p.knap) ? INVESTERING.tekst : null;
     const indenTol = delta !== null && T !== null && (Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V));
+    // Testrapportens afsnit 2a: stoppede en kørsel på tidsgrænsen, og er usikkerheden en væsentlig del af Δ, er første
+    // næste skridt en ny kørsel med længere tidsgrænse. Kørslens grænse læses af det frosne input (ellers modellens 600 s).
+    const graense = (s: Side) => { const g = blad(s, "solver.time_limit"); return typeof g === "number" && Number.isFinite(g) ? g : MODELLENS_TIDSGRAENSE_S; };
+    const tg0 = ref.k.status === "faerdig" && scen.k.status === "faerdig"
+        ? tidsgraenseForslag(ref.k, scen.k, { graenser: [graense(ref), graense(scen)], maks: GRAENSER.maksTidsgraenseS }) : null;
+    const tg = tg0 ? { ...tg0, scenarieIder: tg0.roller.map((r) => (r === "referencen" ? ref : scen).k.scenarie_id) } : null;
     const svar = (kategori: Kategori, begrundelse: string, saetning?: string, sammenlignelig = true): Vurdering => ({
         kategori, maerke: KATEGORIER[kategori]?.maerke ?? kategori, tone: (KATEGORIER[kategori]?.tone ?? "neutral") as Vurdering["tone"],
         saetning: saetning ?? (delta === null ? "Mindst én af kørslerne har ingen driftsomkostning."
             : kategori === "kan_ikke_afgoeres" || (kategori === "foelsomhed" && indenTol) ? neutralSaetning(delta, indenTol)
                 : knapSaetning(p, delta, skaleret)),
-        begrundelse, forbehold: nedgrader, noter, naesteSkridt: næste, investering, aarligt,
+        begrundelse, forbehold: nedgrader, noter, naesteSkridt: tg && sammenlignelig ? [tg.tekst, ...næste] : næste, investering, aarligt,
+        tidsgraense: sammenlignelig ? tg : null,
         delta, tolerance: T, vaesentlighed: V, n, doegn: d, knap: p.knap, sammenlignelig,
     });
 

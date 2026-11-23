@@ -12,6 +12,7 @@ import { STATUS_TEKST, erAktiv } from "@/lib/data/koersel-status";
 import { tal, tidspunkt } from "@/lib/format";
 import { TKR, tkr } from "../analyser/ibcs-grafer";
 import { periodeTekst } from "../analyser/fmt";
+import { TidsgraenseMaerke } from "../analyser/dele";
 import { GRAENSER, type KoerselStatus } from "../../../rayfin/data/fjv.constants";
 import type { OmraadeProps } from "../typer";
 import { findReference, køTid, oversigtsbudskab, type Reference, type ScenarieRække } from "./oversigt-logik";
@@ -87,7 +88,7 @@ export default function Oversigt({ gåTil, bruger }: OmraadeProps) {
                                     // Fund 3.3 (den uafhængige test 18. november 2026): parflowet giver alle par af samme spørgsmål samme
                                     // navn ("Hvad er tanken værd? · reference"); perioden ved navnet skelner dem.
                                     { navn: "Scenarie", vis: (x) => <div>{x.s.navn}<div className="fs-lille">{periodeTekst(x.s.periode_start, x.s.periode_slut)}</div></div> },
-                                    { navn: "Seneste kørsel", vis: (x) => (x.seneste ? <StatusMaerke status={x.seneste.status} /> : <span className="fs-lille">ikke kørt</span>) },
+                                    { navn: "Seneste kørsel", vis: (x) => (x.seneste ? <><StatusMaerke status={x.seneste.status} /> <TidsgraenseMaerke k={x.seneste} /></> : <span className="fs-lille">ikke kørt</span>) },
                                     { navn: "Driftsomkostning (t.kr.)", tal: true, vis: (x) => <span style={{ whiteSpace: "nowrap" }} title={x.seneste?.objektiv_dkk != null ? `${tal(x.seneste.objektiv_dkk)} kr.` : undefined}>{tkr(x.seneste?.objektiv_dkk)}</span> },
                                     { navn: "ΔRef (t.kr.)", tal: true, vis: (x) => { const d = delta(x); return d !== null ? formatDelta(d, TKR) : "–"; } },
                                     { navn: "Reference", vis: (x) => <ReferenceCelle r={x.reference} /> },

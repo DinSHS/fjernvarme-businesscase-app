@@ -29,6 +29,7 @@ import { ScenarieHistorie } from "./HistorieKort";
 import { KoerselDetaljer } from "./KoerselKort";
 import { differenceTekst } from "../analyser/beregn";
 import { modReference, sammenlignHref } from "./koersel-logik";
+import { TidsgraenseMaerke } from "../analyser/dele";
 import { importTekst, useArkivimporter } from "@/lib/arkiv/markering";
 import {
     datoTilFelt, effektivTidsgraense, erTil, feltTilDato, forventetVarighed, objekter, parretsReference, tjekPeriode, tjekÆndringer, visBeskrivelse,
@@ -333,7 +334,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                     <KørKnap s={s} bruger={bruger} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
                     <DataTilstand h={koersler}>
                         {() => (seneste
-                            ? <KoerselDetaljer k={seneste} varighed={varighed} reference={reference}
+                            ? <KoerselDetaljer k={seneste} varighed={varighed} reference={reference} tidsgraense_s={tidsgrænse}
                                 rådkontekst={{ medBalancering: s.med_balancering, start: gemtPeriode.start, slut: gemtPeriode.slut, dmi: læsTekst(blade.get("data.dmi_area")) }} />
                             : <p className="fs-lille">Scenariet er ikke kørt endnu.</p>)}
                     </DataTilstand>
@@ -395,7 +396,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                             <Tabel rækker={levende} nøgle={(x) => x.id} tom="Scenariet er ikke kørt endnu."
                                 kolonner={[
                                     { navn: "Bestilt", vis: (x) => tidspunkt(x.bestilt) },
-                                    { navn: "Status", vis: (x) => { const i = importer.data?.get(x.id); return <><StatusMaerke status={x.status} />{i && <> <Maerke>{importTekst(i)}</Maerke></>}</>; } },
+                                    { navn: "Status", vis: (x) => { const i = importer.data?.get(x.id); return <><StatusMaerke status={x.status} /> <TidsgraenseMaerke k={x} />{i && <> <Maerke>{importTekst(i)}</Maerke></>}</>; } },
                                     { navn: "Revision", tal: true, vis: (x) => x.vaerk_revision },
                                     { navn: "Driftsomkostning (t.kr.)", tal: true, vis: (x) => tkr(x.objektiv_dkk) },
                                     { navn: "Opnået gab", tal: true, vis: (x) => (x.opnaaet_gap != null ? `${(x.opnaaet_gap * 100).toLocaleString("da-DK", { maximumFractionDigits: 3 })} %` : "–") },
