@@ -654,6 +654,14 @@ export function domNavne(dom: Dom, alvor: "advarsel" | "ukendt"): string[] {
 /** Sætningen, der står i stedet for et resultat, når parret ikke er direkte sammenligneligt. */
 export const IKKE_ET_RESULTAT = "Forskellen i driftsomkostning er derfor ikke scenariets virkning.";
 
+/**
+ * Samme sætning efter dommen (kodegennemgangen af runde 15, fund 4): en UKENDT dom afviser ikke parret — den siger
+ * kun, at forskellen ikke kan læses som en virkning, så længe grundlaget ikke kendes.
+ */
+export function ikkeEtResultat(dom: Dom): string {
+    return dom.status === "ukendt" ? "Forskellen i driftsomkostning kan derfor ikke læses som scenariets virkning." : IKKE_ET_RESULTAT;
+}
+
 // ================================================================= måneder
 
 export interface Maanedstabel {

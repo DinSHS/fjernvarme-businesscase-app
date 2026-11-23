@@ -17,7 +17,9 @@ import type { Koersel } from "../../../../rayfin/data/Koersel";
 import type { Scenarie } from "../../../../rayfin/data/Scenarie";
 import { maanedstabel, profil, samlNoegletal, sammenlignelighedsDom, type Noegletal as NT } from "../../analyser/beregn";
 import type { Pakke } from "../../analyser/data";
-import { Sammenlignelighed, Vandfald } from "../../analyser/sammenlign";
+import { DeltaObjektiv, Noegletal, Sammenlignelighed, Vandfald } from "../../analyser/sammenlign";
+import { ordnPar, vurder } from "../../analyser/anbefaling";
+import { tilSide } from "../../analyser/data";
 import { KoerselDetaljer } from "../KoerselKort";
 import { modReference } from "../koersel-logik";
 import { findReference } from "../oversigt-logik";
@@ -168,5 +170,26 @@ describe("fund 4: teksterne i Analyser følger dommen", () => {
             expect(container.textContent).toMatch(/neutrale/);
             cleanup();
         }
+    });
+});
+
+describe("fund 4: også Analysers egne tekster skelner den ukendte dom fra en afvisning", () => {
+    const par = () => [pakke(koersel(ref, 866_567.72, TO, UDEN)), pakke(koersel(scen, 843_051.76, TO, UDEN))] as const;
+    it("Δ driftsomkostning og nøgletal: 'kan ikke afgøres' — ikke 'kan ikke sammenlignes' eller 'ikke sammenlignelige'", () => {
+        const [a, b] = par();
+        for (const kort of [<DeltaObjektiv key="d" a={a} b={b} />, <Noegletal key="n" a={a} b={b} />]) {
+            const { container } = render(kort);
+            expect(container.textContent).toMatch(/kan ikke afgøres/i);
+            expect(container.textContent).not.toMatch(/kan ikke sammenlignes direkte|ikke sammenlignelige|ikke direkte sammenlignelige|er derfor ikke scenariets virkning/i);
+            expect(container.querySelectorAll("[data-impact='good'], [data-impact='bad']")).toHaveLength(0);
+            cleanup();
+        }
+    });
+    it("anbefalingens sætning: 'kan ikke afgøres', og ingen anbefaling", () => {
+        const [a, b] = par();
+        const v = vurder(ordnPar(tilSide(a), tilSide(b)), new Set());
+        expect(v.kategori).toBe("kan_ikke_afgoeres");
+        expect(v.saetning).toMatch(/kan ikke afgøres/i);
+        expect(`${v.saetning} ${v.begrundelse}`).not.toMatch(/kan ikke sammenlignes direkte/);          // før: sætningen sagde det
     });
 });

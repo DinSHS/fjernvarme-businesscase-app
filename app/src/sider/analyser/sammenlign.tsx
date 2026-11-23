@@ -16,7 +16,7 @@ import { tal, tidspunkt } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
 import {
     absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceMetode, balanceKolonner, co2Opgoerelse, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, kendtDelta, produktionsvarians, varianseOrden,
-    IKKE_ET_RESULTAT, relativAfvigelse, sammenlignelighed, sammenlignelighedsDom, sammenligningsBudskab, spor, toleranceKr, type Profil,
+    ikkeEtResultat, relativAfvigelse, sammenlignelighed, sammenlignelighedsDom, sammenligningsBudskab, spor, toleranceKr, type Profil,
 } from "./beregn";
 import { sideRoller, tilSide, usePakke, type Pakke } from "./data";
 import { historie, ordnPar, vurder } from "./anbefaling";
@@ -48,7 +48,7 @@ export default function Sammenlign({ a, b, gåTil }: { a: string; b: string; gå
         if (!roller) return undefined;
         // Runde 15 (mail 1): sidens budskab siger ikke "driften bliver X kr. billigere" om to kørsler, der ikke kan sammenlignes.
         const dom = sammenlignelighedsDom(roller.ref.profil, roller.scen.profil);
-        if (dom.status !== "ja") return `${dom.tekst} ${IKKE_ET_RESULTAT} Tallene står side om side.`;
+        if (dom.status !== "ja") return `${dom.tekst} ${ikkeEtResultat(dom)} Tallene står side om side.`;
         const v = produktionsvarians(roller.ref.samlet.enheder, roller.scen.samlet.enheder);
         return sammenligningsBudskab(v, difference(roller.ref.k, roller.scen.k), energi);
     }, [roller]);
@@ -226,11 +226,11 @@ export function DeltaObjektiv({ a, b }: { a: Pakke; b: Pakke }) {
     if (dom.status !== "ja") {
         return (
             <Kort titel="Δ driftsomkostning" afgraensning="scenarie − reference, t.kr. — ikke en differens efter differensmetoden"
-                budskab={`${dom.tekst} ${IKKE_ET_RESULTAT}`}
+                budskab={`${dom.tekst} ${ikkeEtResultat(dom)}`}
                 handling={<Maerke tone="advarsel">{dom.status === "nej" ? "Ikke sammenlignelige" : "Kan ikke afgøres"}</Maerke>}
                 fod="Differensmetoden kræver, at kun det, scenariet ændrer, er forskelligt. Tallet er de to driftsomkostninger trukket fra hinanden og kan hverken læses som en besparelse eller en meromkostning.">
                 {d && <>
-                    <div className="fjv-a-helt"><span className="fjv-a-svag">{medFortegn(d.delta / 1000, (v) => dec(v, 1))}</span><small>t.kr. (ikke sammenlignelige)</small></div>
+                    <div className="fjv-a-helt"><span className="fjv-a-svag">{medFortegn(d.delta / 1000, (v) => dec(v, 1))}</span><small>{dom.status === "nej" ? "t.kr. (ikke sammenlignelige)" : "t.kr. (kan ikke afgøres)"}</small></div>
                     <Fakta par={[["Præcist", `${medFortegn(d.delta)} kr.`]]} />
                 </>}
             </Kort>
@@ -294,7 +294,7 @@ export function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
     const d = difference(a.k, b.k);
     const co2 = !co2Opgjort ? "; CO₂-udledningen er ikke opgjort" : sa.co2_ton != null && sb.co2_ton != null ? `; CO₂ ${medFortegn(sb.co2_ton - sa.co2_ton)} t` : "";
     const co2Fod = co2Opgjort ? "" : ` CO₂-udledning: ${(co2b.opgjort ? co2a : co2b).grund} (appens egen antagelse).`;
-    const budskab = dom.status !== "ja" ? `${dom.tekst} ${IKKE_ET_RESULTAT}`
+    const budskab = dom.status !== "ja" ? `${dom.tekst} ${ikkeEtResultat(dom)}`
         : d
             ? `Scenariet koster ${tkr(Math.abs(d.delta))} t.kr. ${d.delta > 0 ? "mere" : d.delta < 0 ? "mindre" : "det samme"} end referencen${co2}.`
             : "Mindst én af kørslerne mangler et objektiv.";
@@ -302,7 +302,7 @@ export function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
         <Kort titel="Nøgletal" afgraensning="Scen med ΔRef og ΔRef%" budskab={budskab}
             fod={dom.status === "ja"
                 ? `Værdien er scenariets; ΔRef = scenarie − reference. Grøn = bedre, rød = dårligere, blå = neutral; et ΔRef, der afrundes til 0, har ingen farve. ΔRef% er N/A, når referencen er 0.${co2Fod}`
-                : `Værdien er scenariets; ΔRef = scenarie − reference. Alle ΔRef er neutrale (blå): kørslerne er ikke direkte sammenlignelige, så et ΔRef er hverken bedre eller dårligere. ΔRef% er N/A, når referencen er 0.${co2Fod}`}>
+                : `Værdien er scenariets; ΔRef = scenarie − reference. Alle ΔRef er neutrale (blå): ${dom.status === "nej" ? "kørslerne er ikke direkte sammenlignelige" : "det kan ikke afgøres, om kørslerne kan sammenlignes"}, så et ΔRef er hverken bedre eller dårligere. ΔRef% er N/A, når referencen er 0.${co2Fod}`}>
             <NoegletalKort tal={tal_} fremhaev={dom.status === "ja" ? "Driftsomkostning" : undefined} />
         </Kort>
     );

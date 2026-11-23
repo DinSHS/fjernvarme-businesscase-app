@@ -41,7 +41,7 @@ function Raekke({ c, denne }: { c: Kandidat; denne: string }) {
             <div className="fjv-a-kand-tal">
                 <div><span className="fjv-a-tal">{c.k.objektiv_dkk == null ? "–" : `${tal(c.k.objektiv_dkk)} kr.`}</span> <span className="fjv-a-svag">driftsomkostning</span></div>
                 {/* Runde 15 (mail 1): ingen "billigere/dyrere end denne" om en kørsel, der ikke kan sammenlignes direkte. */}
-                <div className={c.delta == null ? "fjv-a-svag" : undefined}>{c.status === "ja" || !c.faerdig ? deltaTekst(c.delta) : "ingen differens — kan ikke sammenlignes direkte"}</div>
+                <div className={c.delta == null ? "fjv-a-svag" : undefined}>{c.status === "ja" || !c.faerdig ? deltaTekst(c.delta) : c.status === "ukendt" ? "ingen differens — det kan ikke afgøres, om den kan sammenlignes" : "ingen differens — kan ikke sammenlignes direkte"}</div>
             </div>
         </>
     );
@@ -79,7 +79,7 @@ export default function Kandidatliste({ pakke, alle }: { pakke: Pakke; alle: Hen
                                 samme værk og periode uden ændringer, og med samme gab som denne kørsel.</p>}
                         {andre.length > 0 && (
                             <details open={anbefalet.length === 0}>
-                                <summary className="fjv-a-svag" style={{ cursor: "pointer" }}>Andre kørsler — kan ikke sammenlignes direkte ({andre.length})</summary>
+                                <summary className="fjv-a-svag" style={{ cursor: "pointer" }}>Andre kørsler — {andre.some((c) => c.status === "ukendt") ? "kan ikke sammenlignes direkte, eller det kan ikke afgøres" : "kan ikke sammenlignes direkte"} ({andre.length})</summary>
                                 <ul className="fjv-a-kand">{andre.map((c) => <Raekke key={c.k.id} c={c} denne={pakke.k.id} />)}</ul>
                             </details>
                         )}

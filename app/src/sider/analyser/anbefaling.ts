@@ -420,9 +420,11 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     if (sammenlignelighedStatus(af) !== "ja") {
         const felter = af.filter((x) => x.alvor !== "note").map((x) => lille(x.navn));
         const ukendt = sammenlignelighedStatus(af) === "ukendt";
+        // Gennemgangens fund 4: en ukendt dom siger ikke "kan ikke sammenlignes" — kun at det ikke kan afgøres.
         return svar("kan_ikke_afgoeres", ukendt
             ? `Det kan ikke afgøres, om kørslerne er sammenlignelige: ${liste(felter)} kendes ikke for begge.`
-            : udfyld(TRIN["1"], { felter: liste(felter) }), IKKE, false);
+            : udfyld(TRIN["1"], { felter: liste(felter) }),
+        ukendt ? "Det kan ikke afgøres, om kørslerne kan sammenlignes, så forskellen i driftsomkostning kan ikke læses som scenariets virkning." : IKKE, false);
     }
     if (delta === null) return svar("kan_ikke_afgoeres", "Mindst én af kørslerne har ingen driftsomkostning.");
     // 2. Flere ændringer på én gang (eller ingen)
