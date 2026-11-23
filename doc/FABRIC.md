@@ -112,14 +112,22 @@ repoværk som `uaendret`, og værket beholder sin `repo_commit` (`fabric/fjv/imp
 køen med de gamle pins, afvises (status `fejl`); bestil den igen. Tal fra kørsler ved `eef950a` kan ikke sammenlignes med
 nye. Udrullet i én installation 16. november 2026: `deploy.py kode` (pins læst tilbage som `90fb16e` / `106b9fc`) og
 `deploy.py koer fjv_importer_vaerker` (rækketallene i `Vaerks`, `VaerkParameters` og `Aendringslogs` uændrede). Appen
-kunne ikke udrulles med `rayfin-up` (skemaafvigelse, se nedenfor) og blev udrullet med de to deltrin. Ingen kørsel er
-endnu bestilt i Fabric ved `90fb16e`; referencetallet er kun målt lokalt.
+kunne den dag ikke udrulles med `rayfin-up` (skemaafvigelse, løst 18. november, se nedenfor) og blev udrullet med de to
+deltrin. Ingen kørsel er endnu bestilt i Fabric ved `90fb16e`; referencetallet er kun målt lokalt.
 
 **Skemaversion 2: tabellen `KoerselTimeDels` (runde 14b, version 0.4.0).** Et værk med mange enheder og balancemarked
 fylder mere end 4.000 tegn pr. time (målt: 17 enheder 4.002, 40 elenheder ca. 21.000; `noter/maaling_timebredde_r14b.md`).
 Resten af timen står nu i den nye tabel. Den kommer i databasen med `rayfin-db-apply` (eller `rayfin-up`). Det er en
 ny tabel uden rækker, så den giver ingen nye standardværdier, men **i en installation med skemaafvigelsen kan den ikke
-anvendes, før afvigelsen er løst** (se nedenfor). Indtil da kan koden alligevel udrulles: `deploy.py kode` og de to deltrin.
+anvendes, før afvigelsen er løst** (se *Skemaafvigelse* nedenfor; dér står også, hvordan den blev løst). Indtil da kan
+koden alligevel udrulles: `deploy.py kode` og de to deltrin.
+
+Udrullet i én installation 18. november 2026: `deploy.py kode`, `deploy.py notebook` og de to deltrin, mens afvigelsen
+stod; derefter blev afvigelsen løst, og `rayfin-db-apply` oprettede tabellen (tjenestens svar: `driftCheckRan: true`).
+En fuld `rayfin-up` bagefter gik igennem. Målt efter udrulningen: tabellen findes med 0 rækker, og rækketallene i
+`Vaerks`, `Koersels` og `KoerselTimes` er uændrede. **Ikke afprøvet i Fabric:** ingen kørsel er bestilt efter
+udrulningen, så et bredt værk, der skriver timedele, er kun målt i den lokale udgave.
+
 Appens egen antagelse, ikke afprøvet i Fabric: en database uden tabellen virker som før for alle værker, hvis timer kan stå
 i én række. Et bredt værk afvises ved indlæsningen med beskeden *"… databasen mangler tabellen KoerselTimeDels …"*, og
 intet publiceres. Et arkiv med timedele afvises ved importen med samme grund. Kørsler fra før skemaversion 2 læses uændret.
@@ -185,7 +193,7 @@ og bygget lykkes alligevel:
 | `fab: kommando findes ikke` | `fab` er ikke på PATH — sæt `FJV_FAB` til den fulde sti |
 | Appen starter, men en kørsel bliver stående i `koe` | `notebooks.koer_scenarie` er tom eller forkert i `konfig.ts` — kør `paafoer` + `rayfin-up` igen |
 | *The field `x` does not exist on the type `Query`* efter et deploy | databaseskemaet blev ikke anvendt — kør `rayfin-db-apply` (en fejlet `db apply` inde i `rayfin up` er ikke fatal for CLI'en; `installation.py` melder den nu med exit 1) |
-| `rayfin-up`/`rayfin-db-apply`: *409 Schema drift detected; no migration SQL was applied* | Rayfin-tjenesten sammenligner databasen med sin egen registrering af skemaet og fandt en forskel. CLI 1.36.1 viser kun overskriften; se *Skemaafvigelse* nedenfor |
+| `rayfin-up`/`rayfin-db-apply`: *409 Schema drift detected; no migration SQL was applied* | Rayfin-tjenesten sammenligner databasen med sin egen registrering af skemaet og fandt en forskel. CLI 1.36.1 viser kun overskriften; se *Skemaafvigelse* nedenfor (med den løsning, der virkede) |
 | `rayfin up db apply`: *No remote endpoint configured* | `app/rayfin/.deployments.json` mangler i denne mappe — se *Udrul appen i deltrin* |
 | Appen har mistet installationens tema efter en udrulning | brugerfladen blev bygget uden `app/src/styles/temaer/privat/` — læg mappen ind og kør `npx rayfin up staticapp deploy` |
 | `rayfin-up`: *mangler app/rayfin/functions/host.json* | filen er committet; hent den med `git checkout -- app/rayfin/functions/host.json` |
@@ -211,7 +219,39 @@ De er systemnavngivne (`DF__…`) og oprettet 16. oktober 2026 kl. 06:05:02 UTC,
 `Bestillings` og `KoerselInputs`. Appens egen antagelse: de stammer fra Rayfins migration, da kolonnerne blev tilføjet
 til tabeller med rækker. Ingen kode bruger dem; motoren og Functions skriver alle seks kolonner ved hver indsættelse.
 
-Hvad der er prøvet:
+**Løst 18. november 2026 ved at fjerne de seks standardværdier i databasen.** Det var installationsejerens valg. Det
+er en manuel ændring uden om Rayfin, og den ændrer hverken kolonner eller rækker. Fremgangsmåden:
+
+1. Læs og gem definitionerne, så de kan lægges tilbage. `id`-kolonnernes `(newid())` hører til entiteterne og skal blive:
+
+   ```sql
+   SELECT t.name AS tabel, c.name AS kolonne, dc.name AS regel, dc.definition
+   FROM sys.default_constraints dc
+   JOIN sys.tables t ON t.object_id = dc.parent_object_id
+   JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+   WHERE SCHEMA_NAME(t.schema_id) = 'dbo' AND dc.definition <> '(newid())';
+   ```
+
+2. Sammenlign listen med tjenestens. Fjern kun dem, tjenesten nævner, og kun hvis ingen kode bruger dem (søg efter
+   indsættelser, der udelader kolonnen).
+3. Fjern dem i én transaktion. Navnene er systemnavngivne og forskellige fra database til database; brug dem fra trin 1:
+
+   ```sql
+   SET XACT_ABORT ON;
+   BEGIN TRAN;
+   ALTER TABLE dbo.Vaerks DROP CONSTRAINT <regel fra trin 1>;
+   -- … én linje pr. regel
+   COMMIT;
+   ```
+
+4. Kør `rayfin-db-apply`. Målt: *Configuration applied successfully* med `driftCheckRan: true`, og en fuld `rayfin-up`
+   bagefter uden fejl.
+
+Fortrydes med `ALTER TABLE dbo.<tabel> ADD DEFAULT (<definition>) FOR <kolonne>;` pr. regel; så kommer afvigelsen igen.
+Værktøj: `sqlcmd` med `--authentication-method ActiveDirectoryAzCli` (målt: `ActiveDirectoryDefault` valgte en konto
+uden adgang).
+
+Hvad der blev prøvet inden:
 
 * At skrive `default` ind i de seks dekoratorer fjerner **ikke** fejlen. Tjenesten sammenligner databasen med sin
   registrering, ikke med entiteterne.
@@ -220,6 +260,7 @@ Hvad der er prøvet:
   tjenestens registrering uden at ændre databasen. En tørkørsel (`--all --dry-run`) lod alle tre tabeller stå: den kan
   ikke læse `@set(...KONSTANT)`. Samme CLI har `rayfin up db apply --skip-drift-check`; ikke prøvet.
 
-Indtil afvigelsen er løst, kan en skemaændring ikke udrulles i en sådan installation. En app uden skemaændring udrulles
+Så længe afvigelsen står, kan en skemaændring ikke udrulles i en sådan installation. En app uden skemaændring udrulles
 med deltrinene ovenfor. En nyoprettet database har ikke de seks standardværdier, så længe ingen påkrævet kolonne er
-tilføjet til en tabel med rækker.
+tilføjet til en tabel med rækker. Appens egen antagelse: afvigelsen kan opstå igen, næste gang en påkrævet kolonne
+tilføjes til en tabel med rækker; så gælder samme fremgangsmåde.
