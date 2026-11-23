@@ -330,6 +330,7 @@ export const KNAPPER: Readonly<Record<string, { spoergsmaal: string; anbefaling:
 export const VISNINGSNAVNE: Readonly<Record<string, Readonly<Record<string, string>>>> = {
  "braendsel": {
   "natural_gas": "Naturgas",
+  "fuel_oil": "Fyringsolie",
   "straw": "Halm",
   "flis": "Flis",
   "wood_pellets": "Træpiller",

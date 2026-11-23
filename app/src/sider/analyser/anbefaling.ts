@@ -89,9 +89,10 @@ const TYPENAVN: Record<string, [string, string]> = {
     heat_pump: ["varmepumpen", "varmepumpe"], electric_boiler: ["elkedlen", "elkedel"], biomass_boiler: ["biomassekedlen", "biomassekedel"],
     gas_boiler: ["gaskedlen", "gaskedel"], gas_engine_chp: ["gasmotoren", "gasmotor"], solar_thermal: ["solvarmen", "solvarme"],
     waste_heat: ["overskudsvarmen", "overskudsvarme"],
+    oil_boiler: ["oliekedlen", "oliekedel"],          // ny enhedstype ved modelrepoets 939228a (oliekedel.spec.ts)
 };
 
-const BRÆNDSLER = /^prices\.(natural_gas|straw|flis|wood_pellets|waste_heat)\.value$/;
+const BRÆNDSLER = /^prices\.(natural_gas|fuel_oil|straw|flis|wood_pellets|waste_heat)\.value$/;
 const ELAFGIFT = "electricity.electricity_tax", ELAFGIFT_NET = "electricity.tariff_consumption.fixed_components.elafgift_net";
 
 /**

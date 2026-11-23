@@ -58,6 +58,7 @@ export const ANBEFALET_GAB = {
 export const VISNINGSNAVNE: Record<string, Record<string, string>> = {
  "braendsel": {
   "natural_gas": "Naturgas",
+  "fuel_oil": "Fyringsolie",
   "straw": "Halm",
   "flis": "Flis",
   "wood_pellets": "Træpiller",
@@ -440,6 +441,7 @@ export const KNAPPER: readonly Knap[] = [
     "fra": "prices",
     "tilladte": [
      "natural_gas",
+     "fuel_oil",
      "straw",
      "flis",
      "wood_pellets",
@@ -472,7 +474,7 @@ export const KNAPPER: readonly Knap[] = [
    "billund_sporb_rullende"
   ],
   "noter": [
-   "wood_pellets findes i intet af repoets værker; de øvrige fire findes i alle syv."
+   "wood_pellets og fuel_oil (fyringsolie, ny ved modelversion 939228a) findes i intet af repoets værker; de øvrige fire findes i alle syv."
   ],
   "advarsler": [
    "Står flis ikke med egen pris i værket, bruger flis halmprisen; så flytter en ændret halmpris også flisen. (Alle repoets værker har egen flispris.)",
