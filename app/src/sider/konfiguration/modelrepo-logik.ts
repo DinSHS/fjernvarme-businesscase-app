@@ -8,7 +8,7 @@ import { afdrift, harAfdrift, koerselskilde, SPEJL_COMMIT, spejlcase, type Afdri
 export { afdrift, harAfdrift };
 export const kort = (s: string | null | undefined) => (s ?? "").slice(0, 7);
 
-/** Feltets værdikilde i modelrepoet: "cases/andeby.yaml:184 @ 90fb16e" — eller at værket afviger fra den. */
+/** Feltets værdikilde i modelrepoet: "cases/andeby.yaml:184 @ 939228a" — eller at værket afviger fra den. */
 export function vaerdikilde(rod: string, sti: string, vaerdi_json: string): string | undefined {
     const c = spejlcase(rod);
     const b = c?.blade[sti];

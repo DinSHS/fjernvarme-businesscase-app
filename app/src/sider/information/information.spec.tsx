@@ -30,8 +30,10 @@ const antalBegraensninger = (begraensningerRå.match(/^\| \*\*/gm) ?? []).length
 
 const vis = (sti: string[]) => render(<Information sti={sti} gåTil={() => {}} bruger="a@b.dk" />);
 const k = (o: Partial<Koersel>) => ({
-    id: "2e345787-3a37-4c5f-a1b4-ecfd321355c1", vaerk_id: "v1", scenarie_id: "s1", status: "faerdig", objektiv_dkk: 5069700.33,
-    afsluttet: new Date("2026-10-26T07:32:12Z"), oensket_rel_gap: 0.005, oensket_abs_gap: 5000, opnaaet_gap: 0.000501, model_commit: "eef950a2ac7b3808a9456dcf48742ce08e52366a",
+    // Spor A ved appens pin: README's tal er fra modelrepoets 939228a regnet efter spotrettelsen (5.204.555), og en kørsel
+    // ved 90fb16e eller 939228a er en måling af det (referencetal.json › spora_anker › regnet_ved).
+    id: "2e345787-3a37-4c5f-a1b4-ecfd321355c1", vaerk_id: "v1", scenarie_id: "s1", status: "faerdig", objektiv_dkk: 5204526.33,
+    afsluttet: new Date("2026-11-23T07:32:12Z"), oensket_rel_gap: 0.005, oensket_abs_gap: 5000, opnaaet_gap: 0.000501, model_commit: "939228aa048563c8498382a79d207c8b03fbda57",
     data_commit: "106b9fce9a2e3610090b1a542559024056449b88", ...o,
 }) as Koersel;
 
@@ -91,7 +93,7 @@ describe("Information", () => {
     it("referencetal uden kørsler: README-tallene vises, og status siger 'ikke kørt endnu'", async () => {
         vis(["referencetal"]);
         expect(await screen.findAllByText("ikke kørt endnu")).toHaveLength(5);
-        expect(screen.getAllByText("5.069.729").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("5.204.555").length).toBeGreaterThan(0);          // Spor A-ankeret ved 939228a (før: 5.069.729)
     });
 
     it("referencetal med Spor A-kørslen: Fabric-tal, afvigelse og link til kørslen", async () => {
@@ -100,9 +102,9 @@ describe("Information", () => {
         expect(await screen.findByText("inden for tolerancen")).toBeInTheDocument();
         expect(screen.getByText("0,5 % og 5.000 kr.")).toBeInTheDocument(); // kørslens gab vises (I1)
         expect(screen.getByText(/opnået 0,0501 %/)).toBeInTheDocument();
-        expect(screen.getByText("5.069.700")).toBeInTheDocument();
+        expect(screen.getByText("5.204.526")).toBeInTheDocument();
         expect(screen.getByText("−0,0006 %")).toBeInTheDocument();
-        expect(screen.getByText("±25.349")).toBeInTheDocument();
+        expect(screen.getByText("±26.023")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /2e345787/ })).toHaveAttribute("href", "#/analyser/2e345787-3a37-4c5f-a1b4-ecfd321355c1");
         expect((await screen.findAllByText(/1 af 5 er genskabt/)).length).toBeGreaterThan(0);
     });
@@ -119,7 +121,8 @@ describe("Information", () => {
     });
 
     it("I1: Spor B kørt med strammere gab vises som genskabt — ikke som 'ikke kørt endnu' — med kørslens gab", async () => {
-        const tæt = { ...k({ id: "d09aaaaa-0000-0000-0000-000000000000", objektiv_dkk: 4204128.43, oensket_rel_gap: 0.0002, oensket_abs_gap: 1000, opnaaet_gap: 0.000185 }), vaerk_id: "v2", scenarie_id: "s2" } as Koersel;
+        // Spor B's README-tal er stadig fra før spotrettelsen: kun en kørsel ved eef950a er en måling af det.
+        const tæt = { ...k({ id: "d09aaaaa-0000-0000-0000-000000000000", objektiv_dkk: 4204128.43, oensket_rel_gap: 0.0002, oensket_abs_gap: 1000, opnaaet_gap: 0.000185, model_commit: "eef950a2ac7b3808a9456dcf48742ce08e52366a" }), vaerk_id: "v2", scenarie_id: "s2" } as Koersel;
         state.koersler = [tæt];
         state.vaerker = [{ id: "v2", kode: "billund_sporb" }];
         state.scenarier = [{ id: "s2", vaerk_id: "v2", med_balancering: true, heat_csv: "billund_abvaerk_hourly_splejset_jun2026.csv", mip_rel_gap: 0.0002, mip_abs_gap: 1000 }];
@@ -130,15 +133,16 @@ describe("Information", () => {
         expect(screen.getAllByText("ikke kørt endnu")).toHaveLength(4);
     });
 
-    it("Codex ved 90fb16e: en kørsel ved en anden modelversion end README-tallene står som det — ikke som 'ikke kørt endnu'", async () => {
-        state.koersler = [k({ objektiv_dkk: 5204555.28, model_commit: "90fb16eb1e2d5aa8e619b5a951b93760fa803985" })];
+    it("Codex ved 90fb16e: en kørsel ved en anden modelversion end README-tallets står som det — ikke som 'ikke kørt endnu'", async () => {
+        // Ved 939228a er det for Spor A en kørsel ved eef950a (README's tal før spotrettelsen var 5.069.729).
+        state.koersler = [k({ objektiv_dkk: 5069729.03, model_commit: "eef950a2ac7b3808a9456dcf48742ce08e52366a" })];
         const { container } = vis(["referencetal"]);
         const række = (await screen.findByText("kørt ved en anden modelversion")).closest("tr")!;
         expect(screen.getAllByText("ikke kørt endnu")).toHaveLength(4);
         // Fabric, afvigelse og tolerance er "–": ingen afvigelse mod et tal fra en anden version; kørslen linkes stadig
-        expect([...række.querySelectorAll("td.fjv-h")].map((c) => c.textContent)).toEqual(["5.069.729", "–", "–", "–"]);
+        expect([...række.querySelectorAll("td.fjv-h")].map((c) => c.textContent)).toEqual(["5.204.555", "–", "–", "–"]);
         expect(række.querySelector("a")?.textContent).toMatch(/^2e345787/);
-        expect(container.textContent ?? "").toMatch(/regnet ved den modelversion, README-tallene er regnet ved \(eef950a\)/);
+        expect(container.textContent ?? "").toMatch(/regnet ved den modelversion, README-tallene er regnet ved \(eef950a; Spor A-anker: 90fb16e eller 939228a\)/);
     });
 
     it("§6d: 'Hvilke data skal med?' har en side — tabellen over data pr. kørsel, formatkravene og værksarket", async () => {

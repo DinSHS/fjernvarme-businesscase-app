@@ -163,7 +163,9 @@ Rediger aldrig `_byg/*.ipynb` i hånden.
   ved casens 0,5 % gab. Sammenlign differenser med stramt gab (rel 0,0002 + abs ≤ 1.000).
 - **Genpublicering:** ændres `maaleregister.json`, kan færdige kørsler udtrækkes igen fra den gemte output
   uden omregning: `deploy.py koer fjv_selvtest "probe:string=genpubliser:<id>,<id>"`.
-- **Windows**: `run_case.py` læser YAML med `read_text()` uden encoding → `PYTHONUTF8=1`; lange
+- **Windows**: til og med modelversion 90fb16e læste `run_case.py` YAML med `read_text()` uden encoding → `PYTHONUTF8=1`.
+  Fra 939228a (modelrepoets 0.10.0) læser modellen selv UTF-8; variablen sættes stadig, fordi den ikke skader, og en
+  kørsel ved en ældre pin kræver den. Lange
   output-stems rammer 260-tegnsgrænsen → kort arbejdsmappe (`C:\fjvt`) lokalt.
 - **`andeby --dummy` kan ikke køre** ved b49aeb0 og eef950a (målt 2026-10-26; dummy-data hæfter ikke solprofilen på); røgtesten bruger `billund_sporA --dummy`.
 - **Pins efter en motoropgradering** (målt 2026-10-27): bestillinger fryser pins fra `dbo.Motors`, men arbejderen skrev

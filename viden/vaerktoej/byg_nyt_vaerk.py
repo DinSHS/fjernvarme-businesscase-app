@@ -5,7 +5,7 @@ Runde 8 (fv-trofast): skabelonen tager sine tal fra modelrepoet ved den pinnede 
 
 * Varmelasten skaleres med **modelrepoets egen regel** for et årsbehov G (GWh), den samme som værksarket
   bruger: ``f = round(G / 100, 4)`` × Andebys grundtal, gaf/nettab afrundet til 4 og døgnprofilen til
-  3 decimaler (``scripts/vaerksark_til_yaml.py:1581-1592``). Før runde 8 brugte guiden G/105,52 (en egen
+  3 decimaler (``scripts/vaerksark_til_yaml.py:1600-1611``). Før runde 8 brugte guiden G/105,52 (en egen
   måling), som gav 5,2 % anden last end arket for samme G.
 * Priser, tarif, klima, tidsblok, solver og gaskedlens egenskaber er **Andebys** (``cases/andeby.yaml``).
 * Kun to ting er appens egne antagelser og mærket sådan: standardårsbehovet (50 GWh) og gaskedlens
@@ -203,7 +203,7 @@ def main() -> None:
             "pr_lager": ["volume_m3", "delta_t_k", "e_initial_mwh", "p_max_charge_mw", "p_max_discharge_mw", "self_discharge_per_hour"],
             "pr_braendsel_i_brug": ["prices.<brændsel>.value"],
             "hvis_tarifprofil": ["electricity.tariff_consumption.unit", "…net_tariff.bands.*", "…net_tariff.seasons.*.months/weekday/weekend (alle 12 måneder, alle 24 timer)", "…fixed_components.elafgift_net = electricity_tax"],
-            "kilde": "src/config.py:906-1165; src/tariff.py:110-161; src/data_loader.py:834-838"
+            "kilde": "src/config.py:908-1168; src/tariff.py:110-161; src/data_loader.py:834-838"
         },
         "blade": bl,
     }

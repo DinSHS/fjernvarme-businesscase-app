@@ -41,7 +41,7 @@ export const FORBEHOLD_REGLER: Readonly<Record<string, { virkning: string; tekst
  "kort_periode_beslutning": {
   "virkning": "nedgrader",
   "tekst": "Perioden er {doegn} døgn. En investering skal regnes på et helt år; et kort vindue kan ikke ganges op.",
-  "kilde": "doc/BUDSTRATEGI.md:346; doc/EGET_VAERK.md:142"
+  "kilde": "doc/BUDSTRATEGI.md:346; doc/EGET_VAERK.md:149"
  },
  "en_saeson": {
   "virkning": "note",

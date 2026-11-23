@@ -203,7 +203,7 @@ def raekker(celler: dict) -> list[int]:
 
 
 def find_raekke(celler: dict, start: str, *, praefiks: bool = False, efter: int = 0) -> int | None:
-    """Som ``find_raekke`` i scripts/vaerksark_til_yaml.py:111-127: første række, hvis celle i kolonne A er
+    """Som ``find_raekke`` i scripts/vaerksark_til_yaml.py:121-137: første række, hvis celle i kolonne A er
     ``start`` (eller begynder med den), efter række ``efter``."""
     for r in sorted({rk for (rk, k) in celler if k == 1}):
         if r <= efter:

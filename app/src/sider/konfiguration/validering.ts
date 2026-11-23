@@ -242,7 +242,7 @@ export function validerVaerk(v: V): Fund[] {
         if (ref && !kendtEnhed(ref)) fejl(`${g}.opportunity_cost.reference_unit`, `opportunity_cost.reference_unit=${ref} findes ikke i casen.`);
     }
     const fs = str(v, "balancing.activation.foresight");
-    // FEJL i værket: værkets egen metode tjekkes ved indlæsning (src/config.py:1067-1071). Undtagelsen i
+    // FEJL i værket: værkets egen metode tjekkes ved indlæsning (src/config.py:1070-1074). Undtagelsen i
     // validering.md gælder kun, når et SCENARIE sætter metoden (run_case.py:661-668) — det hører til Scenarier.
     if (fs && fs !== "realized" && metode !== "activation_value") {
         fejl("balancing.activation.foresight", `balancing.activation.foresight='${fs}' kræver balancing.method='activation_value' (værkets metode er '${metode}').`);

@@ -731,7 +731,7 @@ const DATO_START = /^\d{4}-\d{2}-\d{2}/;
 /**
  * Modellens minimumskrav til et værk (K4-F1), så et nyt værk ikke kan gemmes som "færdigt" og først fejle ved
  * kørsel. Kilden er fv-eksperts `viden/nyt_vaerk_skabelon.json` › `obligatoriske_felter` (modelrepo
- * src/config.py:906-1165, src/tariff.py:110-161). Kontrollen er bevidst et MINIMUM: den afviser hvad modellen med
+ * src/config.py:908-1168, src/tariff.py:110-161). Kontrollen er bevidst et MINIMUM: den afviser hvad modellen med
  * sikkerhed ikke kan indlæse eller regne på (manglende/forkert-typede felter, ikke-endelige tal, en tarifprofil
  * der ikke dækker året); om tallene er fornuftige, afgør prøvekørslen. Alle 16 af guidens varianter, som Codex
  * K4 fik igennem modellens `load_case`, passerer (test/vektorer/k4_guide_vaerker.json).

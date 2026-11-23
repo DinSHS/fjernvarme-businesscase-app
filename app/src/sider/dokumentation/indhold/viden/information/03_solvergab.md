@@ -17,7 +17,7 @@ målt på Spor A gjorde en ekstra 30 MW elkedel driften 1.262 kr. dyrere — umu
 **Både det relative og det absolutte gab tæller.** Solveren stopper ved det første, der nås.
 Uden egen solver-blok i værket er det absolutte gab 5.000 kr.; så binder det før 0,02 % på
 ethvert objektiv under 25 mio. kr. Sæt derfor også det absolutte gab ned — rapport v4 brugte
-højst 0,1 % eller 1.000 kr. (Kilde: src/config.py:713-714; src/config.py:742-751; rapport v4 §2.3)
+højst 0,1 % eller 1.000 kr. (Kilde: src/config.py:715-716; src/config.py:744-753; rapport v4 §2.3)
 
 Målt 16. oktober 2026 på Spor A, marts 2026 med balancering, ønsket gab 0,0002: med standardens absolutte gab på 5.000 kr. stoppede solveren ved 0,068 % (HiGHS angav selv 'tolerance: 0.22%') efter 52 s; med absolut gab 1 kr. ved 0,019 % efter 124 s. Objektivet blev det samme (2.273.504 kr.), men usikkerheden faldt fra ca. 1.550 til ca. 430 kr. (Kilde: egen måling (appens udvikling, 16.10.2026 ved b49aeb0; står ikke i modelrepoet))
 

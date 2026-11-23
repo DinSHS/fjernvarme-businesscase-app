@@ -3,7 +3,7 @@
 Markeds- og vejrdata kommer fra datarepoet **df-data**, som opdateres hver mandag: spot (kvarterpriser
 fra 1. oktober 2025), aFRR, mFRR-kapacitet, mFRR-aktivering, ubalancepris og DMI-observationer.
 Kilden er api.sysapp.dk, kontrolleret mod Energi Data Service. Hver kørsel gemmer, hvilken version
-af data den brugte. (Kilde: README.md:231-237; KONTRAKT §3.6)
+af data den brugte. (Kilde: README.md:233-239; KONTRAKT §3.6)
 
 ## Kendte huller og grænser
 

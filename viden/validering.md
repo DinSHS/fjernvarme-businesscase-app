@@ -1,6 +1,6 @@
 # Validering — alle fejl, modellen rejser, og hvem der kan fange dem
 
-Kilde: modelrepoet @ `90fb16e`. Linjehenvisninger er `fil:linje` ved den commit.
+Kilde: modelrepoet @ `939228a`. Linjehenvisninger er `fil:linje` ved den commit.
 Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 
 - **Klient** — kan afgøres alene ud fra værkets parametre og scenariet. Appen bør
@@ -13,9 +13,9 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 
 1. **run_case.py fanger kun `ValueError` fra indlæsningen** og viser den uden traceback
    (run_case.py:626-632). Ukendte felter på en enhed eller et lager giver `TypeError`
-   (dataclassen bygges med `Unit(**felter)`, src/config.py:962, `Storage(**felter)`, src/config.py:967),
-   og manglende påkrævede nøgler giver `KeyError` (fx `raw["time"]`, src/config.py:921, eller
-   `mk["block_mw"]`, src/config.py:1041). De ender som traceback. **Klienten skal fange dem**,
+   (dataclassen bygges med `Unit(**felter)`, src/config.py:965, `Storage(**felter)`, src/config.py:970),
+   og manglende påkrævede nøgler giver `KeyError` (fx `raw["time"]`, src/config.py:923, eller
+   `mk["block_mw"]`, src/config.py:1044). De ender som traceback. **Klienten skal fange dem**,
    ellers ser brugeren en Python-stak.
 2. **Dækningsfejl (`CoverageError`) kommer efter indlæsningen** (src/data_loader.py:179, :213) og
    fanges ikke af run_case.py; de bliver også traceback. Notebooken skal genkende klassenavnet og
@@ -27,20 +27,20 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 
 | Fejl | Besked (forkortet) | Kilde | Fanges |
 |---|---|---|---|
-| `data`-blok mangler | casen mangler en 'data'-blok | src/config.py:1099-1110 | Klient |
-| Ukendt nøgle i `data` | ukendte noegler i data-blokken | src/config.py:1112-1115 | Klient |
-| `dmi_area` eller `price_zone` mangler | … mangler i casen og har med vilje ingen default | src/config.py:1116-1121 | Klient |
-| `dmi_area` ukendt | er ikke en kendt DMI-station. Kendte: fyn, vestkyst, karup, ringsted | src/config.py:682-688 | Klient |
-| `price_zone` ukendt | er ikke en kendt priszone. Kendte: DK1, DK2 | src/config.py:689-693 | Klient |
-| `eur_dkk` ≤ 0 | data.eur_dkk skal vaere > 0 | src/config.py:694-696 | Klient |
+| `data`-blok mangler | casen mangler en 'data'-blok | src/config.py:1102-1113 | Klient |
+| Ukendt nøgle i `data` | ukendte noegler i data-blokken | src/config.py:1115-1118 | Klient |
+| `dmi_area` eller `price_zone` mangler | … mangler i casen og har med vilje ingen default | src/config.py:1119-1124 | Klient |
+| `dmi_area` ukendt | er ikke en kendt DMI-station. Kendte: fyn, vestkyst, karup, ringsted | src/config.py:684-690 | Klient |
+| `price_zone` ukendt | er ikke en kendt priszone. Kendte: DK1, DK2 | src/config.py:691-695 | Klient |
+| `eur_dkk` ≤ 0 | data.eur_dkk skal vaere > 0 | src/config.py:696-698 | Klient |
 | `price_zone` ≠ `electricity.spot_area` | *ingen fejl* — balancepriserne hentes for `spot_area`, spot for `price_zone` (src/data_loader_github.py:704) | — | Klient (advarsel) |
 
 ## 2. Værk › Tid og scenariets periode
 
 | Fejl | Besked | Kilde | Fanges |
 |---|---|---|---|
-| `time.start`/`end`/`resolution` mangler | `KeyError` (traceback) | src/config.py:921-926 | Klient |
-| Ugyldig ISO-tid | `ValueError` fra `datetime.fromisoformat` | src/config.py:923-924 | Klient |
+| `time.start`/`end`/`resolution` mangler | `KeyError` (traceback) | src/config.py:923-928 | Klient |
+| Ugyldig ISO-tid | `ValueError` fra `datetime.fromisoformat` | src/config.py:925-926 | Klient |
 | `resolution` ikke `1h`/`15min` | Ukendt cfg.time.resolution | run_case.py:465-474; src/data_loader.py:61 | Klient |
 | Effektiv opløsning ≠ `1h` | afvises af `startBestilling` og arbejderen: kroneleddene summeres uden intervallets længde ved 15min | KONTRAKT §6c; src/model.py:432-434 | Klient + Function + Notebook |
 | Slut før start (scenariets periode) | --end (…) skal være efter --start (…) | run_case.py:545-546 | Klient |
@@ -56,16 +56,16 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 
 | Fejl | Besked | Kilde | Fanges |
 |---|---|---|---|
-| `prices.co2_eua` mangler | prices.co2_eua mangler i casen. Skriv 0, hvis gasprisen allerede indeholder CO2-afgiften | src/config.py:930-933 | Klient |
-| En pris mangler `value` | `KeyError` (traceback) | src/config.py:936-942 | Klient |
-| En aktiv enhed bruger et brændsel uden pris | En enhed bruger halm, men prisen for halm er ikke sat under prices i casen | src/config.py:621-627 | Klient (rejses først ved modelbygning) |
-| Ukendt brændsel på en enhed | `KeyError`: Ukendt brændsel | src/config.py:619-620 | Klient |
+| `prices.co2_eua` mangler | prices.co2_eua mangler i casen. Skriv 0, hvis gasprisen allerede indeholder CO2-afgiften | src/config.py:932-935 | Klient |
+| En pris mangler `value` | `KeyError` (traceback) | src/config.py:938-944 | Klient |
+| En aktiv enhed bruger et brændsel uden pris | En enhed bruger halm, men prisen for halm er ikke sat under prices i casen | src/config.py:623-629 | Klient (rejses først ved modelbygning) |
+| Ukendt brændsel på en enhed | `KeyError`: Ukendt brændsel | src/config.py:621-622 | Klient |
 
 ## 4. Værk › El og tariffer
 
 | Fejl | Besked | Kilde | Fanges |
 |---|---|---|---|
-| `spot_area`, `tariff_consumption_flat`, `tariff_production_flat` eller `electricity_tax` mangler | `KeyError` (traceback) | src/config.py:947-951 | Klient |
+| `spot_area`, `tariff_consumption_flat`, `tariff_production_flat` eller `electricity_tax` mangler | `KeyError` (traceback) | src/config.py:950-954 | Klient |
 | Tarifprofilens `unit` ≠ `kr_per_mwh` | … skal være 'kr_per_mwh' | src/tariff.py:111-115 | Klient |
 | `net_tariff.seasons` mangler/tom | net_tariff.seasons mangler eller er tom | src/tariff.py:231-234 | Klient |
 | En måned i to sæsoner | måned N står i både … og … | src/tariff.py:124-130 | Klient |
@@ -81,7 +81,7 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 
 | Fejl | Besked | Kilde | Fanges |
 |---|---|---|---|
-| Ukendt felt på en enhed, eller påkrævet felt mangler (`type`, `p_max_heat`, `p_min_heat`, `alpha`, `fuel`) | `TypeError` (traceback) | src/config.py:957-962 | **Klient** (skal) |
+| Ukendt felt på en enhed, eller påkrævet felt mangler (`type`, `p_max_heat`, `p_min_heat`, `alpha`, `fuel`) | `TypeError` (traceback) | src/config.py:960-965 | **Klient** (skal) |
 | `p_min_heat` > `p_max_heat` | <enhed>: p_min > p_max | src/config.py:523-524 | Klient |
 | Brændselsenhed uden virkningsgrad | <enhed>: brændselsenhed mangler eta_fuel_to_heat | src/config.py:525-526 | Klient |
 | `cop_curve` på andet end `heat_pump` | cop_curve kun gyldig for type='heat_pump' | src/config.py:529-533 | Klient |
@@ -104,7 +104,7 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 
 | Fejl | Besked | Kilde | Fanges |
 |---|---|---|---|
-| Ukendt felt eller påkrævet felt mangler | `TypeError` (traceback) | src/config.py:966-967 | **Klient** (skal) |
+| Ukendt felt eller påkrævet felt mangler | `TypeError` (traceback) | src/config.py:969-970 | **Klient** (skal) |
 | `e_initial_mwh` < 0 | … må ikke være negativt | src/config.py:576-579 | Klient |
 | `e_initial_mwh` > kapacitet | *ingen fejl*: sættes til halvfuld med en besked i loggen | src/config.py:580-594 | Klient (advarsel; typisk efter en volumenændring) |
 
@@ -112,45 +112,45 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 
 | Fejl | Besked | Kilde | Fanges |
 |---|---|---|---|
-| Ukendt nøgle i `balancing` | ukendte noegler i balancing. Gyldige: … | src/config.py:984-991 | Klient |
-| `method` ugyldig | balancing.method skal være 'legacy' eller 'activation_value' | src/config.py:993-998 | Klient |
-| `activation_value` uden `bid_strategy` | … kræver balancing.bid_strategy | src/config.py:1001-1004 | Klient |
+| Ukendt nøgle i `balancing` | ukendte noegler i balancing. Gyldige: … | src/config.py:987-994 | Klient |
+| `method` ugyldig | balancing.method skal være 'legacy' eller 'activation_value' | src/config.py:996-1001 | Klient |
+| `activation_value` uden `bid_strategy` | … kræver balancing.bid_strategy | src/config.py:1004-1007 | Klient |
 | Scenariets metode `activation_value` uden `bid_strategy` | `SystemExit`: --balancing-method activation_value kræver balancing.bid_strategy | run_case.py:664-668 | Klient |
-| `bid_strategy` uden `up_markup_dkk_mwh` | `TypeError` (traceback) | src/config.py:1000 | Klient |
+| `bid_strategy` uden `up_markup_dkk_mwh` | `TypeError` (traceback) | src/config.py:1003 | Klient |
 | `per_unit_market_mw.<enhed>` er ikke et map | skal være et map med nøglerne 'afrr' og/eller 'mfrr' | src/config.py:134-139 | Klient |
 | Ukendt marked i `per_unit_market_mw` | ukendt marked […]. Gyldige nøgler: ['afrr', 'mfrr'] | src/config.py:140-145 | Klient |
-| Loft på en enhed, der ikke findes | balancing.ancillary_caps.<felt>: enhed(er) […] findes ikke i casen | src/config.py:1018-1024 | Klient |
+| Loft på en enhed, der ikke findes | balancing.ancillary_caps.<felt>: enhed(er) […] findes ikke i casen | src/config.py:1021-1027 | Klient |
 | Gate-marked uden tærskel og uden beregnet budpris | sæt enten cm_threshold_dkk_mw_h … eller opportunity_cost | src/config.py:164-170 | Klient |
-| Gate-marked uden `block_mw` | `KeyError` (traceback) | src/config.py:1041 | Klient |
+| Gate-marked uden `block_mw` | `KeyError` (traceback) | src/config.py:1044 | Klient |
 | Gate `mode` ugyldig | reservation_gate.mode skal være 'driven' eller 'bound' | src/config.py:331-336 | Klient |
 | Beregnet budpris: referenceenhed findes ikke | opportunity_cost.reference_unit=… findes ikke i casen | src/balancing.py:709-713 | Klient |
 | Beregnet budpris uden ikke-elektriske enheder | casen har ingen ikke-elektriske enheder at regne alternativomkostningen mod | src/balancing.py:676-680 | Klient |
-| Ukendt nøgle i `activation` eller dens markeder | ukendte noegler i balancing.activation… | src/config.py:1052-1062 | Klient |
+| Ukendt nøgle i `activation` eller dens markeder | ukendte noegler i balancing.activation… | src/config.py:1055-1065 | Klient |
 | Aktiveringsmodel ugyldig | balancing.activation.*.model skal være en af ('clear', 'system_share', 'ramp') | src/config.py:200-204 | Klient |
 | `k` ≤ 0 | balancing.activation.*.k skal være > 0 | src/config.py:205-207 | Klient |
 | `ramp` uden `ramp_dkk_mwh` > 0 | model='ramp' kræver ramp_dkk_mwh > 0 | src/config.py:208-213 | Klient |
 | `foresight` ugyldig | skal være en af ('realized', 'profile', 'trailing30', 'lag24', 'lag168') | src/config.py:240-244 | Klient |
 | `settle` ugyldig | skal være 'forecast' eller 'realized' | src/config.py:245-248 | Klient |
-| Ikke-standard aktivering uden `activation_value` | balancing.activation kræver balancing.method='activation_value' | src/config.py:1067-1071 | Klient (kontrollen springes over, når metoden sættes som scenariefelt — run_case.py:661-668) |
-| Ukendt nøgle i `availability` | ukendte noegler i balancing.availability | src/config.py:1077-1089 | Klient |
+| Ikke-standard aktivering uden `activation_value` | balancing.activation kræver balancing.method='activation_value' | src/config.py:1070-1074 | Klient (kontrollen springes over, når metoden sættes som scenariefelt — run_case.py:661-668) |
+| Ukendt nøgle i `availability` | ukendte noegler i balancing.availability | src/config.py:1080-1092 | Klient |
 | Månedsnøgle ikke `ÅÅÅÅ-MM` | månedsnøgle skal være 'ÅÅÅÅ-MM' | src/config.py:264-266 | Klient |
 | Månedsloft < 0 | skal være ≥ 0 | src/config.py:268-269 | Klient |
 | `availability.mode` ugyldig | skal være 'hourly' eller 'energy' | src/config.py:294-298 | Klient |
 | Måned i perioden uden månedsloft | balancing.availability.<marked>: intet loft for […] | src/balancing.py:1046-1052 | Klient (periode) — månederne er UTC-måneder (`strftime` på modellens UTC-akse) |
-| Enheder i en budgruppe findes ikke | ancillary_groups.<gruppe>: ukendte enheder | src/config.py:974-979 | Klient |
+| Enheder i en budgruppe findes ikke | ancillary_groups.<gruppe>: ukendte enheder | src/config.py:977-982 | Klient |
 
 ## 8. Værk › Solver og nettilslutning
 
 | Fejl | Besked | Kilde | Fanges |
 |---|---|---|---|
-| Ukendt nøgle i `solver` | ukendte noegler i solver-blokken | src/config.py:1126-1130 | Klient |
-| `mip_rel_gap` uden for [0, 1) | solver.mip_rel_gap skal ligge i [0, 1) | src/config.py:725-728 | Klient (gælder også scenariets gab, run_case.py:640) |
-| `mip_abs_gap` < 0 | solver.mip_abs_gap skal vaere >= 0 | src/config.py:733-736 | Klient |
-| `time_limit` ≤ 0 | solver.time_limit skal vaere > 0 | src/config.py:737-740 | Klient |
+| Ukendt nøgle i `solver` | ukendte noegler i solver-blokken | src/config.py:1129-1133 | Klient |
+| `mip_rel_gap` uden for [0, 1) | solver.mip_rel_gap skal ligge i [0, 1) | src/config.py:727-730 | Klient (gælder også scenariets gab, run_case.py:640) |
+| `mip_abs_gap` < 0 | solver.mip_abs_gap skal vaere >= 0 | src/config.py:735-738 | Klient |
+| `time_limit` ≤ 0 | solver.time_limit skal vaere > 0 | src/config.py:739-742 | Klient |
 | Tidsgrænse > 3.600 s | afvises af `startBestilling` | KONTRAKT §3.0 | Klient + Function |
-| `presolve_rule_off` < 0 | solver.presolve_rule_off skal vaere >= 0 | src/config.py:729-732 | Klient |
-| Ukendt nøgle i `grid` | ukendte noegler i grid-blokken | src/config.py:1135-1138 | Klient |
-| `grid.max_consumption_mw` ≤ 0 | grid.max_consumption_mw skal vaere > 0 | src/config.py:1142-1143 | Klient |
+| `presolve_rule_off` < 0 | solver.presolve_rule_off skal vaere >= 0 | src/config.py:731-734 | Klient |
+| Ukendt nøgle i `grid` | ukendte noegler i grid-blokken | src/config.py:1138-1141 | Klient |
+| `grid.max_consumption_mw` ≤ 0 | grid.max_consumption_mw skal vaere > 0 | src/config.py:1145-1146 | Klient |
 | Nettilslutning uden aktive el-enheder | grid.max_consumption_mw er sat, men casen har ingen … | src/model.py:408-411 | Klient |
 
 ## 9. Værk › Varmelast (`heat_load_params`)
@@ -173,15 +173,15 @@ Sorteret efter **hvor brugeren laver fejlen** i appen. Kolonnen *Fanges* siger:
 ## 10. Scenarie › Ændringer (`set`, `enable`, `disable`)
 
 Appen anvender ændringerne i case-dict'et (KONTRAKT §5.2), ikke via `--set`. Reglerne nedenfor er
-modellens egne for `--set` (src/config.py:809-885) og bør håndhæves ens, så et scenarie betyder det
+modellens egne for `--set` (src/config.py:811-887) og bør håndhæves ens, så et scenarie betyder det
 samme i appen og på kommandolinjen.
 
 | Fejl | Besked | Kilde | Fanges |
 |---|---|---|---|
-| Stien findes ikke i værket | nøgle '…' findes ikke … --set kan kun ændre nøgler, der allerede står i casen | src/config.py:843-851; src/config.py:861-866 | Klient |
-| En forælder i stien er ikke en blok | '…' er ikke en dict, kan ikke navigere videre | src/config.py:837-842; src/config.py:856-860 | Klient |
-| Stien peger på en blok eller liste | peger på en dict/list, ikke en leaf-værdi | src/config.py:868-874 | Klient (KONTRAKT §3.5 tillader at erstatte en liste som helt blad — det kan CLI'en ikke) |
-| Værdien kan ikke læses | kunne ikke parse '…' som YAML-værdi | src/config.py:876-882 | Klient (`vaerdi_json` skal være gyldig JSON) |
+| Stien findes ikke i værket | nøgle '…' findes ikke … --set kan kun ændre nøgler, der allerede står i casen | src/config.py:845-853; src/config.py:863-868 | Klient |
+| En forælder i stien er ikke en blok | '…' er ikke en dict, kan ikke navigere videre | src/config.py:839-844; src/config.py:858-862 | Klient |
+| Stien peger på en blok eller liste | peger på en dict/list, ikke en leaf-værdi | src/config.py:870-876 | Klient (KONTRAKT §3.5 tillader at erstatte en liste som helt blad — det kan CLI'en ikke) |
+| Værdien kan ikke læses | kunne ikke parse '…' som YAML-værdi | src/config.py:878-884 | Klient (`vaerdi_json` skal være gyldig JSON) |
 | To ændringer på samme sti | afvises | KONTRAKT §3.5 | Klient |
 | `enable`/`disable` på et navn, der hverken er enhed eller lager | `KeyError`: --enable/--disable …: hverken enhed eller lager | run_case.py:562-572 | Klient |
 | `set` på `time.*` eller `solver.*` | afvises — periode, gab og tidsgrænse har egne scenariefelter | KONTRAKT §6c | Klient + Function + Notebook |

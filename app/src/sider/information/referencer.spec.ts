@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FjvSchema } from "../../../rayfin/data/schema";
-import { byggRaekker, kandidatScenarier, kandidater, kørslensGab, laesReferencer, sporBBudskab, toleranceFor, vurder, type SporB } from "./referencer";
+import { byggRaekker, kandidatScenarier, kandidater, kørslensGab, laesReferencer, sporBBudskab, toleranceFor, versionsTekst, vurder, type SporB } from "./referencer";
 import { gabTekst, signedKr, signedProcent } from "./tal";
 
 type Koersel = FjvSchema["Koersel"];
@@ -14,16 +14,32 @@ const ref = (id: string) => refs.find((r) => r.id === id)!;
 const vaerk = (id: string, kode: string) => ({ id, kode }) as Vaerk;
 const scenarie = (id: string, vaerk_id: string, over: Partial<Scenarie> = {}) =>
     ({ id, vaerk_id, med_balancering: true, ...over }) as Scenarie;
-// Kørslerne er regnet ved den pinnede modelversion (referencetallenes), medmindre testen siger andet.
+// Kørslerne er regnet ved eef950a (de fire README-tal fra før spotrettelsen), medmindre testen siger andet.
 const EEF950A = "eef950a2ac7b3808a9456dcf48742ce08e52366a";
+// Runde 15: ved modelrepoets 939228a er README's Spor A-anker regnet igen efter spotrettelsen (5.204.555, README.md:185 og
+// fodnote ³); de fire øvrige tal er stadig fra før. Referencen bærer derfor sin egen liste af versioner (regnet_ved), og
+// en kørsel ved appens pins efter rettelsen (90fb16e, 939228a) er en måling af tallet — en ved eef950a er det ikke.
+const N90 = "90fb16eb1e2d5aa8e619b5a951b93760fa803985";
+const PIN = "939228aa048563c8498382a79d207c8b03fbda57";
 const koersel = (id: string, vaerk_id: string, scenarie_id: string, objektiv_dkk: number | undefined, over: Partial<Koersel> = {}) =>
     ({ id, vaerk_id, scenarie_id, status: "faerdig", objektiv_dkk, model_commit: EEF950A, afsluttet: new Date("2026-10-26T07:32:12Z"), bestilt: new Date("2026-10-26T07:29:42Z"), ...over }) as Koersel;
 
 describe("README-referencerne", () => {
     it("indlæser de fem tal fra README, med de rigtige beløb og værker", () => {
         expect(refs.map((r) => r.id)).toEqual(["spora_anker", "sporb", "billund_rullende", "andeby_helaar_bal", "andeby_helaar_spot"]);
-        expect(ref("spora_anker")).toMatchObject({ kode: "billund_spora", objektiv: 5069729, toleranceKr: 25349, modelCommit: EEF950A });
-        expect(ref("sporb")).toMatchObject({ kode: "billund_sporb", objektiv: 4204128 });
+        expect(ref("spora_anker")).toMatchObject({ kode: "billund_spora", objektiv: 5204555, toleranceKr: 26023, modelCommit: N90, modelCommits: [N90, PIN] });
+        expect(ref("sporb")).toMatchObject({ kode: "billund_sporb", objektiv: 4204128, modelCommit: EEF950A, modelCommits: [EEF950A] });
+        expect(refs.filter((r) => r.id !== "spora_anker").every((r) => r.modelCommits?.join() === EEF950A)).toBe(true);
+    });
+    it("fodnoten siger, hvilken version hvert tal er regnet ved — den fælles først, undtagelsen ved navn", () => {
+        expect(versionsTekst(refs)).toBe("eef950a; Spor A-anker: 90fb16e eller 939228a");
+        expect(versionsTekst(refs.filter((r) => r.id !== "spora_anker"))).toBe("eef950a");
+        expect(versionsTekst(refs.map((r) => ({ ...r, modelCommit: null, modelCommits: null })))).toBeUndefined();
+    });
+    it("en fil uden regnet_ved pr. reference læses som før: alle ved filens model_commit", () => {
+        const uden = JSON.parse(rå) as { grupper: { id: string; referencer: Record<string, unknown>[] }[] };
+        for (const r of uden.grupper.find((g) => g.id === "readme")!.referencer) delete r.regnet_ved;
+        expect(laesReferencer(JSON.stringify(uden)).every((r) => r.modelCommits?.join() === EEF950A)).toBe(true);
         expect(ref("billund_rullende").scenarie.heat_csv).toBe("billund_abvaerk_hourly_splejset_jun2026.csv");
     });
     it("Andeby med balancering er optimal inden for casens gab (eef950a) — tolerancen er casens 0,1 % af tallet", () => {
@@ -40,17 +56,22 @@ describe("README-referencerne", () => {
 });
 
 describe("vurdering mod README", () => {
-    it("Spor A-ankeret: en kørsel 28,67 kr. under README 5.069.729 er −0,0006 % og inden for tolerancen", () => {
-        const v = vurder(ref("spora_anker"), 5069729 - 28.6676);
+    it("Spor A-ankeret: en kørsel 28,67 kr. under README 5.204.555 er −0,0006 % og inden for tolerancen", () => {
+        const v = vurder(ref("spora_anker"), 5204555 - 28.6676);
         expect(Math.round(v.diff)).toBe(-29);
         expect(signedKr(v.diff)).toBe("−29");
         expect(signedProcent(v.brøk)).toBe("−0,0006 %");
         expect(v.indenfor).toBe(true);
-        expect(v.tolerance).toBe(25349);
+        expect(v.tolerance).toBe(26023);                 // casens gab 0,5 % af 5.204.555
     });
     it("uden for tolerancen, når afvigelsen er større end det README tillader", () => {
-        expect(vurder(ref("spora_anker"), 5069729 + 25350).indenfor).toBe(false);
-        expect(vurder(ref("spora_anker"), 5069729 - 25349).indenfor).toBe(true);
+        expect(vurder(ref("spora_anker"), 5204555 + 26024).indenfor).toBe(false);
+        expect(vurder(ref("spora_anker"), 5204555 - 26023).indenfor).toBe(true);
+    });
+    it("målingen ved 939228a (5.204.555,28) ligger 0,28 kr. over README's tal", () => {
+        const v = vurder(ref("spora_anker"), 5204555.28);
+        expect(v.indenfor).toBe(true);
+        expect(signedKr(v.diff)).toBe("0");
     });
     it("lille afvigelse vises med nok decimaler til at kunne ses", () => {
         expect(signedProcent(0)).toBe("0,0 %");
@@ -68,12 +89,15 @@ describe("hvilken kørsel er referencen", () => {
         scenarie("s-tank", "v-bil"),
         scenarie("s-vindue", "v-bil", { periode_start: "2026-03-01" }),
     ];
+    /** En kørsel af Spor A ved appens pin (939228a) — den version, README's Spor A-tal kan måles ved. */
+    const kA = (id: string, scenarie_id: string, objektiv_dkk: number | undefined, over: Partial<Koersel> = {}) =>
+        koersel(id, "v-bil", scenarie_id, objektiv_dkk, { model_commit: PIN, ...over });
     const k = [
-        koersel("k-ren", "v-bil", "s-ren", 5069700.33),
-        koersel("k-uden", "v-bil", "s-uden-bal", 5100000),
-        koersel("k-vindue", "v-bil", "s-vindue", 1000000),
-        koersel("k-fejl", "v-bil", "s-ren", undefined, { status: "fejl" }),
-        koersel("k-andet-vaerk", "v-and", "s-ren", 1),
+        kA("k-ren", "s-ren", 5204555.28),
+        kA("k-uden", "s-uden-bal", 5300000),
+        kA("k-vindue", "s-vindue", 1000000),
+        kA("k-fejl", "s-ren", undefined, { status: "fejl" }),
+        koersel("k-andet-vaerk", "v-and", "s-ren", 1, { model_commit: PIN }),
     ];
 
     it("samme værk og samme opsætning — ikke en kørsel uden balancering, med andet vindue, fejlet eller af et andet værk", () => {
@@ -86,32 +110,45 @@ describe("hvilken kørsel er referencen", () => {
         expect(r.tilstand).toBe("anden-version");
         expect(r.vurdering).toBeUndefined();
     });
-    // Codex-review ved 90fb16e: en gennemført kørsel ved pinnen (efter spotrettelsen) stod som "ikke kørt endnu". Den er kørt —
-    // bare ved en anden modelversion end README-tallet (eef950a), så den kan ikke sammenlignes. Status skal sige præcis det.
-    it("en gennemført kørsel ved pinnen 90fb16e: 'anden-version' med kørslen, uden afvigelse eller tolerance", () => {
-        const ny = koersel("k-90", "v-bil", "s-ren", 5204555.28, { model_commit: "90fb16eb1e2d5aa8e619b5a951b93760fa803985", afsluttet: new Date("2026-11-14T10:42:18Z") });
-        const r = byggRaekker(refs, vaerker, scen, [ny], new Map()).find((x) => x.ref.id === "spora_anker")!;
+    // Codex-review ved 90fb16e: en gennemført kørsel ved en anden modelversion end README-tallets stod som "ikke kørt endnu".
+    // Den er kørt — bare ved en version, tallet ikke kan måles ved. Status skal sige præcis det. Ved 939228a er det for Spor A
+    // en kørsel ved eef950a (README's gamle tal 5.069.729), og for de fire tal fra før spotrettelsen en kørsel ved pinnen.
+    it("Spor A: en kørsel ved eef950a er 'anden-version' — med kørslen, uden afvigelse eller tolerance", () => {
+        const gammel = koersel("k-eef", "v-bil", "s-ren", 5069729.03, { afsluttet: new Date("2026-11-20T10:42:18Z") });
+        const r = byggRaekker(refs, vaerker, scen, [gammel], new Map()).find((x) => x.ref.id === "spora_anker")!;
         expect(r.tilstand).toBe("anden-version");
-        expect(r.kandidat?.koersel.id).toBe("k-90");
+        expect(r.kandidat?.koersel.id).toBe("k-eef");
         expect(r.vurdering).toBeUndefined();
-        expect(kandidatScenarier(refs, vaerker, scen, [ny])).toEqual(["s-ren"]); // ændringerne skal også slås op for den
+        expect(kandidatScenarier(refs, vaerker, scen, [gammel])).toEqual(["s-ren"]); // ændringerne skal også slås op for den
         // en kørsel ved README-tallets version vinder, også når den anden er nyere
-        const begge = byggRaekker(refs, vaerker, scen, [ny, koersel("k-ren", "v-bil", "s-ren", 5069700.33)], new Map()).find((x) => x.ref.id === "spora_anker")!;
+        const begge = byggRaekker(refs, vaerker, scen, [gammel, kA("k-ren", "s-ren", 5204555.28)], new Map()).find((x) => x.ref.id === "spora_anker")!;
         expect([begge.tilstand, begge.kandidat?.koersel.id]).toEqual(["indenfor", "k-ren"]);
         // Codex-efterreview: en ÆNDRET kørsel ved README-tallets version må ikke skjule en REN ved en anden version
-        const gammelÆndret = koersel("k-tank-eef", "v-bil", "s-tank", 9999999);
-        const blandet = byggRaekker(refs, vaerker, scen, [gammelÆndret, ny], new Map([["s-tank", 1]])).find((x) => x.ref.id === "spora_anker")!;
-        expect([blandet.tilstand, blandet.kandidat?.koersel.id]).toEqual(["anden-version", "k-90"]);
+        const ændretVedPin = kA("k-tank-pin", "s-tank", 9999999);
+        const blandet = byggRaekker(refs, vaerker, scen, [ændretVedPin, gammel], new Map([["s-tank", 1]])).find((x) => x.ref.id === "spora_anker")!;
+        expect([blandet.tilstand, blandet.kandidat?.koersel.id]).toEqual(["anden-version", "k-eef"]);
         // ved en anden version med ændringer i scenariet: ikke referencen
-        const ændret = byggRaekker(refs, vaerker, scen, [{ ...ny, scenarie_id: "s-tank" }], new Map([["s-tank", 1]])).find((x) => x.ref.id === "spora_anker")!;
+        const ændret = byggRaekker(refs, vaerker, scen, [{ ...gammel, scenarie_id: "s-tank" }], new Map([["s-tank", 1]])).find((x) => x.ref.id === "spora_anker")!;
         expect(ændret.tilstand).toBe("aendret");
     });
+    it("Spor A: en kørsel ved 90fb16e eller 939228a er en måling af README's tal efter spotrettelsen", () => {
+        for (const version of [N90, PIN]) {
+            const r = byggRaekker(refs, vaerker, scen, [kA("k-ny", "s-ren", 5204555.28, { model_commit: version })], new Map()).find((x) => x.ref.id === "spora_anker")!;
+            expect([r.tilstand, r.kandidat?.koersel.id, Math.round(r.vurdering!.diff)], version).toEqual(["indenfor", "k-ny", 0]);
+        }
+    });
+    it("de fire tal fra før spotrettelsen: en kørsel ved pinnen er stadig 'anden-version' (Andeby helår uden balancering)", () => {
+        const s = scenarie("s-and", "v-and", { med_balancering: false });
+        const vedPin = koersel("k-d11", "v-and", "s-and", 30495430.9, { model_commit: PIN, oensket_rel_gap: 0.001, oensket_abs_gap: 1000 });
+        const r = byggRaekker(refs, vaerker, [s], [vedPin], new Map()).find((x) => x.ref.id === "andeby_helaar_spot")!;
+        expect([r.tilstand, r.kandidat?.koersel.id, r.vurdering]).toEqual(["anden-version", "k-d11", undefined]);
+    });
     it("nyeste kørsel først", () => {
-        const nyere = koersel("k-ny", "v-bil", "s-ren", 5069760, { afsluttet: new Date("2026-10-27T00:00:00Z") });
+        const nyere = kA("k-ny", "s-ren", 5204600, { afsluttet: new Date("2026-10-27T00:00:00Z") });
         expect(kandidater(ref("spora_anker"), vaerker, scen, [...k, nyere]).map((x) => x.koersel.id)).toEqual(["k-ny", "k-ren"]);
     });
     it("et scenarie med ændringer er ikke referencen — selv om dets felter er ens", () => {
-        const tank = koersel("k-tank", "v-bil", "s-tank", 9999999, { afsluttet: new Date("2026-10-28T00:00:00Z") });
+        const tank = kA("k-tank", "s-tank", 9999999, { afsluttet: new Date("2026-10-28T00:00:00Z") });
         const alle = [...k, tank];
         const ids = kandidatScenarier(refs, vaerker, scen, alle);
         expect(ids.sort()).toEqual(["s-ren", "s-tank"]);
@@ -121,14 +158,14 @@ describe("hvilken kørsel er referencen", () => {
         expect(anker.tilstand).toBe("indenfor");
     });
     it("kun ændrede scenarier: tilstanden siger det, og der regnes ingen afvigelse", () => {
-        const rækker = byggRaekker(refs, vaerker, scen, [koersel("k-tank", "v-bil", "s-tank", 9999999)], new Map([["s-tank", 2]]));
+        const rækker = byggRaekker(refs, vaerker, scen, [kA("k-tank", "s-tank", 9999999)], new Map([["s-tank", 2]]));
         const anker = rækker.find((r) => r.ref.id === "spora_anker")!;
         expect(anker.tilstand).toBe("aendret");
         expect(anker.vurdering).toBeUndefined();
     });
     it("ingen kørsel: ikke kørt; uden for tolerancen: udenfor", () => {
         expect(byggRaekker(refs, vaerker, scen, [], new Map()).every((r) => r.tilstand === "ikke-koert")).toBe(true);
-        const r = byggRaekker(refs, vaerker, scen, [koersel("k-skæv", "v-bil", "s-ren", 5200000)], new Map());
+        const r = byggRaekker(refs, vaerker, scen, [kA("k-skæv", "s-ren", 5150000)], new Map());
         expect(r.find((x) => x.ref.id === "spora_anker")!.tilstand).toBe("udenfor");
     });
 });

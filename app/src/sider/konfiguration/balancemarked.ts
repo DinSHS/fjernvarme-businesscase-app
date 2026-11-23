@@ -33,7 +33,7 @@ export type UdgangspunktId = "andeby" | "profil1" | "profil2" | "profil3" | "pro
 export interface Udgangspunkt {
     id: UdgangspunktId;
     navn: string;
-    /** Linjerne i modelrepoet, blokken er bygget af: "doc/BUDSTRATEGI.md:224-239, 256-262 @ 90fb16e". */
+    /** Linjerne i modelrepoet, blokken er bygget af: "doc/BUDSTRATEGI.md:224-239, 256-262 @ 939228a". */
     kilde: string;
     /** Blokkens kendetegn, læst af dens egne blade (foresight, settle, budtærskel …). */
     resume: string;
@@ -175,7 +175,7 @@ export interface Blokfelt {
     sti: string;
     /** Den værdi, der gemmes (null: brugerens værdi mangler eller kan ikke læses). */
     vaerdi_json: string | null;
-    /** Feltets linje i modelrepoet: "doc/BUDSTRATEGI.md:231 @ 90fb16e". */
+    /** Feltets linje i modelrepoet: "doc/BUDSTRATEGI.md:231 @ 939228a". */
     kilde: string;
     /** YAML-kommentaren ved linjen i kilden. */
     kommentar: string | null;

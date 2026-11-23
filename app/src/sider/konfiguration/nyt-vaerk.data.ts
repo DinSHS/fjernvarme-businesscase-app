@@ -601,6 +601,6 @@ export const NYT_VAERK_SKABELON: NytVaerkSkabelon | null = {
    "…net_tariff.seasons.*.months/weekday/weekend (alle 12 måneder, alle 24 timer)",
    "…fixed_components.elafgift_net = electricity_tax"
   ],
-  "kilde": "src/config.py:906-1165; src/tariff.py:110-161; src/data_loader.py:834-838"
+  "kilde": "src/config.py:908-1168; src/tariff.py:110-161; src/data_loader.py:834-838"
  }
 };

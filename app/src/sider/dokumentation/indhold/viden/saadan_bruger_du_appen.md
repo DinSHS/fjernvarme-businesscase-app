@@ -83,7 +83,7 @@ før; feltet kan bagefter rettes og bruges i scenarier. Felter i en blok, hvis b
 (COP-kurven, tarifprofilen, nettab), tilbydes ikke enkeltvis.
 
 **Starttilstand:** står alle enheder med start/stop-logik til slukket ved start, som værksarkets script sætter dem
-(scripts/vaerksark_til_yaml.py:856), viser værkets side en advarsel: uden tank, eller med tanken slået fra, kan en kørsel så blive uløselig (målt i januar
+(scripts/vaerksark_til_yaml.py:873), viser værkets side en advarsel: uden tank, eller med tanken slået fra, kan en kørsel så blive uløselig (målt i januar
 2026 på værker fra værksarket). Sæt **Tændt ved periodens start** til tændt på den enhed, der kører, når perioden
 begynder: 1 under Konfiguration › Enheder, *ja* i værksarkets fane *Start og drift*.
 
@@ -113,7 +113,7 @@ egne felter på scenariet. Skal der en ny enhed, et nyt felt eller en blok til, 
 (Kilde: KONTRAKT §3.5; KONTRAKT §6c)
 
 Til differenser: brug gabet 0,0002 og det absolutte gab 100 kr. i både reference og scenarie; det
-absolutte gab må ikke binde før det relative. (Kilde: doc/KOERSEL.md:57-60; src/config.py:742-751; knapper.json)
+absolutte gab må ikke binde før det relative. (Kilde: doc/KOERSEL.md:57-60; src/config.py:744-753; knapper.json)
 
 ## 3. Kørslen — kø og status
 
@@ -148,7 +148,7 @@ skelnes fra nul. (Kilde: KONTRAKT §6b)
 
 Tjek altid, om resultatet giver mening: kører enhederne i den rækkefølge, I kender? Er tanken tom
 eller fuld hele tiden? "Det kan ikke passe" er det rigtige svar at give — find så ud af, om det
-skyldes data, en antagelse eller modellen. (Kilde: doc/EGET_VAERK.md:113-116)
+skyldes data, en antagelse eller modellen. (Kilde: doc/EGET_VAERK.md:120-123)
 
 ## 5. Information og Dokumentation
 

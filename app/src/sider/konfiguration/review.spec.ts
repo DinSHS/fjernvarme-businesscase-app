@@ -49,7 +49,7 @@ describe("K2 (Høj) — kun el-enheder byder i balancemarkedet (doc/BALANCEMARKE
     });
 });
 
-describe("K3 (Middel) — aktiveringsmodel uden activation_value er en FEJL i værket (src/config.py:1067-1071)", () => {
+describe("K3 (Middel) — aktiveringsmodel uden activation_value er en FEJL i værket (src/config.py:1070-1074)", () => {
     const legacy = () => { const m = new Map(andeby); m.set("balancing.method", '"legacy"'); m.delete("balancing.bid_strategy.up_markup_dkk_mwh"); return m; };
     it("foresight ≠ realized og model ≠ clear med metode legacy giver fejl, ikke advarsel", () => {
         const f = validerVaerk(legacy()).filter((x) => /kræver balancing\.method='activation_value'/.test(x.besked));

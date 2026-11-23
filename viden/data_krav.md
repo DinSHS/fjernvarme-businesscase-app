@@ -2,7 +2,7 @@
 
 Kilde for maskinerne: `data_krav.json` (genereret af `vaerktoej/byg_data_krav.py`). Orakel:
 `vaerktoej/valider_tidsserie.py` (kun standardbibliotek). Port: `vaerktoej/tjek_data_krav.py`. Modelrepoet er
-pinnet på `90fb16e`; df-data er målt ved `392992c` (2026-10-12; januar–juni 2026 og 2025 har samme værdier ved den pinnede `106b9fc`). Denne fil er *hvorfor*; JSON'en er *hvad*.
+pinnet på `939228a`; df-data er målt ved `392992c` (2026-10-12; januar–juni 2026 og 2025 har samme værdier ved den pinnede `106b9fc`). Denne fil er *hvorfor*; JSON'en er *hvad*.
 
 ## 1. Hvilke data modellen bruger — og hvornår
 
@@ -62,7 +62,7 @@ Formen er motorens (fv-fabric2, `fabric/fjv/tidsserie.py`) og verificeret byte-i
 repofiler (port [4]): `time,mw`, intervallets **start** i UTC som `YYYY-MM-DDTHH:MM:SSZ`, 1h, **huller udeladt**,
 ren decimaltekst bevaret tegn for tegn. Én tilføjelse fra data-siden: en **solprofil gemmes uden huller** — huller op
 til 5 % udfyldes ved upload (0, når solen er nede; ellers en ret linje), som værksarket gør
-(scripts/vaerksark_til_yaml.py:1043-1049). Ellers ville en kørsel stoppe på den første manglende time.
+(scripts/vaerksark_til_yaml.py:1060-1066). Ellers ville en kørsel stoppe på den første manglende time.
 
 **Bevist i port [7]:** modellens egen `apply_heat_csv_override` læser den normaliserede Billund-fil med `--heat-csv-column mw`
 **bit-identisk** med originalfilen (`timestamp,heat_mw_abvaerk`, naive stempler), og profil-læserens linjer
@@ -104,12 +104,12 @@ være rigtige, men er usædvanlige. Tre valg, der kan diskuteres, er truffet bev
 | Nattesol (solen > 6° under horisonten) | > 0,2 % af energien eller > 5 % af spidsen | Andeby DMI-profil 0 |
 | Målt/syntetisk energi · døgnkorrelation | 0,85–1,15 · ≥ 0,85 | Billund mod Billund-syntesen: 0,99–1,03 · 0,97–0,98 |
 
-Nattesol-reglen og solens højde er portet 1:1 fra værksarket (scripts/vaerksark_til_yaml.py:922-932,
-scripts/vaerksark_til_yaml.py:1063-1071).
+Nattesol-reglen og solens højde er portet 1:1 fra værksarket (scripts/vaerksark_til_yaml.py:939-949,
+scripts/vaerksark_til_yaml.py:1080-1088).
 
 **Fund:** modelrepoets *syntetiske* solprofil er forskudt ca. én time: tyngdepunkt 11,99 mod den DMI-baserede
 10,95, og 43,6 MWh nattesol. Begge generatorer behandler UTC-timen som soltid med middag kl. 12
-(scripts/generate_solar_andeby.py:83-86, scripts/vaerksark_til_yaml.py:1103-1119); solens middag i Danmark er
+(scripts/generate_solar_andeby.py:83-86, scripts/vaerksark_til_yaml.py:1120-1136); solens middag i Danmark er
 11,0–11,5 UTC. Andeby bruger ikke længere den syntetiske fil (cases/andeby.yaml:52-60), men **et værk fra
 værksarket uden arket Solvarme får en sådan profil** — derfor udløser den `sol_tidsforskudt` og `sol_nat` i appen.
 Det er rigtigt, at den gør det.
@@ -132,21 +132,21 @@ Kørt lokalt 2026-10-16 (`scripts/vaerksark_til_yaml.py` uændret, output i egen
 `data_krav.json → vaerksark`. Det vigtigste for fv-fabric2 og fv-app:
 
 - **Skabelonen kan ikke importeres uændret:** exit 1, "Timedata har kun 8 timer" — de otte eksempelrækker er under
-  grænsen på 672 timer (scripts/vaerksark_til_yaml.py:309). Live-beviset skal bruge en udfyldt kopi: enten Timedata tømt
+  grænsen på 672 timer (scripts/vaerksark_til_yaml.py:319). Live-beviset skal bruge en udfyldt kopi: enten Timedata tømt
   med B3 udfyldt (syntetisk last), eller en rigtig serie for 1. juli 2025 – 30. juni 2026.
 - **Begge veje kører 2 døgn (målt):** 5.–6. januar 2026, uden balance, gab 0,0002/100 kr., df-data `392992c`:
   B3 = 50 GWh → optimal, 740 MWh, 160.190 kr.; Billunds målte last (UTC) → optimal, 1.521 MWh, 650.779 kr.
 - **Perioden er fast og gælder i arkets tidszone:** 1. juli 2025 00:00 – 30. juni 2026 23:00. En dansk-tids-serie,
   der er omregnet fra et UTC-år, rammer 1. juli kl. 00 og 01 og afvises — med et misvisende råd om "1900"
-  (scripts/vaerksark_til_yaml.py:406-408). Spørgsmål til forfatteren.
+  (scripts/vaerksark_til_yaml.py:416-418). Spørgsmål til forfatteren.
 - **Læk-vagten** nægter at læse eller skrive i et git-repo, der ikke git-ignorerer stien
-  (scripts/vaerksark_til_yaml.py:1467-1508). I Fabric ligger arket og output uden for ethvert repo, og en kodekopi
+  (scripts/vaerksark_til_yaml.py:1486-1527). I Fabric ligger arket og output uden for ethvert repo, og en kodekopi
   fra zip er ikke et repo → vagten gælder ikke. `--tillad-offentlig` må aldrig bruges.
 - **Output → app:** casen (alle blokke inkl. `solver` 0,001/1.000/3.600 og `heat_load_params` skaleret med
   årsvolumen/100), varmelast-CSV (kun med timedata) og solprofil (syntetisk for **hele kalenderår** fra start- til
   slutår, eller målt fra arket Solvarme). `production_profile_path` er scriptets egen sti → skal byttes til markøren
   `tidsserie:solprofil`. Den syntetiske solprofil dækker 2025–2026; varmelasten kun det faste år.
-- `--timeslut` gælder både Timedata og Solvarme og flyttes **efter** UTC-omregning (scripts/vaerksark_til_yaml.py:361-367).
+- `--timeslut` gælder både Timedata og Solvarme og flyttes **efter** UTC-omregning (scripts/vaerksark_til_yaml.py:371-377).
 
 ### Appens egne faner i det eksporterede ark (runde 14)
 
@@ -182,10 +182,10 @@ lægger deres værdier oven på scriptets læsning (`fabric/fjv/arklag.py`). Det
   værdi af forkert type eller uden for feltets grænser; et færdigt værk, der ikke opfylder modellens minimumskrav
   (`fabric/fjv/modelkrav.py`, samme vektorer som appens `tjekModelkrav`).
 - **Rækker, scriptet springer over uden besked**, afviser importen med rækkenummer, før scriptet kører: en enhed med
-  navn, men uden type (scripts/vaerksark_til_yaml.py:606), en tank uden volumen (:878) eller under de seks tankrækker
+  navn, men uden type (scripts/vaerksark_til_yaml.py:616), en tank uden volumen (:878) eller under de seks tankrækker
   (:876), et målepunkt under varmepumpens tabel (:513-515).
 - **Advarsel i loggen**, når hver styrbar enhed har unit commitment og står til slukket ved start (scriptet skriver
-  `initial_status: 0`, scripts/vaerksark_til_yaml.py:855-856): værket kan ikke dække første time uden tank.
+  `initial_status: 0`, scripts/vaerksark_til_yaml.py:872-873): værket kan ikke dække første time uden tank.
 - **Markeringen `_app` er format 3.** Et ark i format 2 (uden fanerne) afvises som revision ("eksportér igen") og
   importeres som nyt værk som før. Et ark helt uden fanerne — modelrepoets rene skabelon — importeres uændret.
 - **Bevist i gaten** (`viden/vaerktoej/tjek_eksport_rundtur.py`): eksport → upload som nyt værk giver det oprindelige
@@ -200,8 +200,9 @@ frosne input; vis det frosne sha256, også hvis tidsserien siden er ændret.
 
 ## 6. Mindre fund
 
-- `load_heat_load_params` læser casen med `read_text()` uden encoding (src/data_loader.py:854): på Windows
-  (cp1252) fejler den på `cases/andeby.yaml`. I Fabric (UTF-8) ikke. Lokalt: `PYTHONUTF8=1`.
+- Til og med modelversion 90fb16e læste `load_heat_load_params` casen med `read_text()` uden encoding, og på Windows
+  (cp1252) fejlede den på `cases/andeby.yaml`. Fra modelrepoets 0.10.0 (appens pin 939228a) læser modellen selv UTF-8
+  (src/data_loader.py:854). `PYTHONUTF8=1` sættes stadig lokalt: den skader ikke, og en kørsel ved en ældre pin kræver den.
 - Modellens varmelast-læser genkender `hour_dk` som tidskolonne, men læser den som UTC uden `--heat-csv-tz`
   (src/data_loader.py:907-938) → reglen `hour_dk_som_utc`.
 

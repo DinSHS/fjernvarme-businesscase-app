@@ -47,7 +47,7 @@ lager, den ikke har betalt for (src/model.py:278-284; rapport v4 §2.1).
 **Start/stop (unit commitment).** Kedler med minimumslast, minimum driftstid og
 startomkostning gør problemet til et heltalsproblem. Logikken er kun aktiv, når enheden har
 `uc_enabled: true`; ellers ignoreres de felter (src/config.py:514-520). Det er det, der gør et
-helår tungt: fra et halvt minut til over et kvarter (doc/EGET_VAERK.md:124-129).
+helår tungt: fra et halvt minut til over et kvarter (doc/EGET_VAERK.md:131-136).
 
 **Hvad koster en MWh varme pr. enhed** (src/model.py:31-110):
 
@@ -68,8 +68,8 @@ Skiftet til målt tabel flyttede alene Billunds Spor A fra 5,19 til 4,70 mio. kr
 
 ## 3. El: spot, tarif og afgift
 
-Spotprisen kommer fra df-data; fra 1. oktober 2025 findes kvarterpriser (README.md:233-236). På timeaksen
-bruger modellen fra version 5021a5e (appens 90fb16e) middel af timens fire kvarterer; en time med kun to eller tre
+Spotprisen kommer fra df-data; fra 1. oktober 2025 findes kvarterpriser (README.md:235-238). På timeaksen
+bruger modellen fra version 5021a5e (appens 90fb16e og 939228a) middel af timens fire kvarterer; en time med kun to eller tre
 kvarterer stopper kørslen med en dækningsfejl. Ældre versioner (appens eef950a og b49aeb0) tog timens første kvarter
 (src/data_loader.py:70-92; README.md:20-23). Til elprisen for varmepumpe og elkedel lægges nettarif og elafgift. Tariffen
 kan være en fast sats eller en **båndprofil** fra netselskabets prisblad: bånd (fx lav, høj,
@@ -153,7 +153,7 @@ millioner til mere end hele værkets varmeomkostning. Et balancetal skal derfor 
 med den budstrategi, det er regnet med (doc/BUDSTRATEGI.md:9-19). På Andebys vintervindue gav
 fire strategier en balanceværdi på 421.000 kr. (kender aktiveringerne), 216.000 kr. (prognose)
 og 128.000 kr. (beregnet budpris, prognose) ved modelversion eef950a, før spotrettelsen (doc/BUDSTRATEGI.md:328-337;
-genskabt til kronen 26. oktober 2026). Regnet igen ved 90fb16e, afregnet på det realiserede: 429.089, 220.618 og
+genskabt til kronen 26. oktober 2026). Regnet igen ved 90fb16e og 939228a (samme tal), afregnet på det realiserede: 429.089, 220.618 og
 94.047 kr. Rækkefølgen holder; at den beregnede budpris taber mest ved rettelsen, er ikke forklaret.
 (Kilde: referencetal.json › budstrategi_andeby_vinter › regnet_igen)
 
@@ -181,7 +181,7 @@ sommer/vinter-temperaturer (doc/VARMELAST_OG_NETTAB.md:89-133). Med målt varmel
 allerede i målingen (doc/VARMELAST_OG_NETTAB.md:136-139).
 
 **Klimaområdet** vælges blandt fire DMI-områder (fyn, vestkyst, karup, ringsted). Valget alene
-kan flytte objektivet med op til ca. 4 % (README.md:244-246).
+kan flytte objektivet med op til ca. 4 % (README.md:246-248).
 
 ## 6. Differensmetoden og solvergab
 
@@ -199,10 +199,10 @@ differensen drukne i solverens tolerance, og fortegnet kan vende. Til differense
 1.262 kr. *dyrere* — umuligt, og forklaret af gabet (cases/andeby.yaml:122-126).
 
 **Begge gab tæller.** Solveren får både et relativt og et absolut gab og stopper, når det første
-er nået (src/config.py:742-751). Uden en solver-blok i casen er det absolutte gab 5.000 kr., og
+er nået (src/config.py:744-753). Uden en solver-blok i casen er det absolutte gab 5.000 kr., og
 så binder det før 0,02 % på ethvert objektiv under 25 mio. kr. Sæt derfor også det absolutte gab
 ned ved differenser; rapport v4 regnede alle differenser med højst 0,1 % eller 1.000 kr.
-(src/config.py:713-714; rapport v4 §2.3).
+(src/config.py:715-716; rapport v4 §2.3).
 
 Målt 16. oktober 2026 på Spor A, marts 2026 med balancering, ønsket gab 0,0002: med standardens absolutte gab på 5.000 kr. stoppede solveren ved 0,068 % (HiGHS angav selv 'tolerance: 0.22%') efter 52 s; med absolut gab 1 kr. ved 0,019 % efter 124 s. Objektivet blev det samme (2.273.504 kr.), men usikkerheden faldt fra ca. 1.550 til ca. 430 kr. (Kilde: egen måling (appens udvikling, 16.10.2026 ved b49aeb0; står ikke i modelrepoet))
 
@@ -220,8 +220,8 @@ stor del af differensen: i Andeby 5.–16. januar 2026 leverede tankene 33 MWh g
 omkring halvdelen af tankværdien på 44.220 kr. (egen måling (appens udvikling, Andeby D01/D02 ved b49aeb0, 16.10.2026; står ikke i modelrepoet)). Fra `eef950a` gælder
 lagerbalancen også i første time (src/model.py:267-271; tests/test_lager_foerste_time.py), og
 tankværdien i samme vindue blev ca. halvt så stor: 21.915,92 kr., målt 26. oktober 2026 ved `eef950a` som D02 − D01 i
-demo_scenarier.json (samme tal som tests/test_lager_foerste_time.py:5-6). Ved `90fb16e`, efter spotrettelsen, er samme
-differens 23.515,96 kr. (demo_scenarier.json › par P1 › maalt_2026_11_14).
+demo_scenarier.json (samme tal som tests/test_lager_foerste_time.py:5-6). Ved `90fb16e` og `939228a`, efter spotrettelsen, er samme
+differens 23.515,96 kr. (demo_scenarier.json › par P1 › maalt_2026_11_14 og maalt_2026_11_23).
 Kørsler regnet før `eef950a` har stadig fejlen; appen sammenligner kun kørsler ved samme
 modelversion. Timefilen har fortsat én række færre end perioden — modellens rapport udelader
 første interval (src/reporting.py:314-338) — mens objektivet medregner den.
@@ -287,40 +287,44 @@ tanke fra. Det flytter ca. 87 MWh til gaskedlen, øger CO₂-udledningen med 17 
 Modelrepoets tabel er kørt 19. oktober 2026 på `d813e6b` (samme kode som `eef950a`) med df-data fra 5. oktober 2026
 eller senere, efter rettelserne samme dag. Beløbet er modellens samlede driftsomkostning for vinduet (README.md:173-189).
 
-**Tabellens tal er fra før spotrettelsen** (5021a5e, 3. november 2026: spot midles over timens kvarterer, afsnit 3).
+**Fire af tabellens fem tal er fra før spotrettelsen** (5021a5e, 3. november 2026: spot midles over timens kvarterer, afsnit 3).
 Modelrepoet skriver selv, at README-tabellen, tallene i `doc/` og rapport v4 er regnet før ændringen og opdateres senere
-(README.md:20-27). Alle vinduerne nedenfor ligger efter 1. oktober 2025 og flytter sig derfor. Kolonnen *Regnet ved
-90fb16e* er vores egen måling:
+(README.md:20-27). Spor A-ankeret er regnet igen 18. november 2026 efter rettelsen: 5.204.555 kr., før 5.069.729 kr.
+(README's fodnote ³ til tabellen). Alle vinduerne nedenfor ligger efter 1. oktober 2025 og flytter sig derfor. Kolonnen
+*Regnet ved 939228a* er vores egen måling:
 
-| Case | Vindue | README, kr. (før spotrettelsen) | Regnet ved 90fb16e, kr. | Gab | Løsetid (README) |
+| Case | Vindue | README, kr. | Regnet ved 939228a, kr. | Gab | Løsetid (README) |
 |---|---|---:|---:|---:|---|
-| Spor A-anker (Billund) | 2. marts–23. juni 2026 | 5.069.729 | 5.204.555 | 0,109 % | 2–3 min (2 kerner) |
-| Spor B (Billund) | 2. marts–30. juni 2026 | 4.204.128 | 4.428.864 | 0,152 % | 2–3 min (2 kerner) |
-| Billund rullende år | jul 2025–jun 2026 | 21.773.827 | intet optimum ¹ | 2,59 % | ca. 8 min (2 kerner) |
-| Andeby helår, med balancering | jul 2025–jun 2026 | 24.188.471 | intet optimum ² | 0,13 % | 17 min (24 kerner), ca. 3,5 GB |
-| Andeby helår, uden balancering | jul 2025–jun 2026 | 30.431.535 | 30.495.431 | 0,0209 % | 1 min (24 kerner) |
+| Spor A-anker (Billund) | 2. marts–23. juni 2026 | 5.204.555 (efter spotrettelsen) | 5.204.555 | 0,109 % | 2–3 min (2 kerner) |
+| Spor B (Billund) | 2. marts–30. juni 2026 | 4.204.128 (før) | 4.428.864 | 0,152 % | 2–3 min (2 kerner) |
+| Billund rullende år | jul 2025–jun 2026 | 21.773.827 (før) | intet optimum ¹ | 2,59 % | ca. 8 min (2 kerner) |
+| Andeby helår, med balancering | jul 2025–jun 2026 | 24.188.471 (før) | intet optimum ² | 0,13 % | 17 min (24 kerner), ca. 3,5 GB |
+| Andeby helår, uden balancering | jul 2025–jun 2026 | 30.431.535 (før) | 30.495.431 | 0,0209 % | 1 min (24 kerner) |
 
-¹ Kodens tidsgrænse på 600 s ramt med gab 2,59 %: optimum ved 90fb16e ligger mellem ca. 21.910.000 kr. (nedre
+¹ Kodens tidsgrænse på 600 s ramt med gab 2,59 %: optimum ligger mellem ca. 21.910.000 kr. (nedre
 grænse) og 22.492.900 kr. (løsningen), altså mindst ca. 135.000 kr. over README-tallet. Tallet er ikke et optimum og
-ikke et referencetal. Ved eef950a ramte samme kørsel
+ikke et referencetal. Samme tal ved 90fb16e; ved eef950a ramte samme kørsel
 også tidsgrænsen (gab 2,03 %). (Kilde: referencetal.json › readme › billund_rullende)
 
-² Tidsgrænsen 3.600 s ramt med gab 0,13 %, over casens 0,1 %: løsningen 24.235.822 kr. er en øvre grænse, ikke
+² Regnet ved 90fb16e (14. november 2026) og ikke regnet igen ved 939228a: tidsgrænsen 3.600 s ramt med gab 0,13 %,
+over casens 0,1 %, så løsningen 24.235.822 kr. er en øvre grænse, ikke
 optimal inden for casens gab. (Kilde: referencetal.json › readme › andeby_helaar_bal › regnet_igen)
 
-I README's kørsler er alle optimale inden for casens gab (README.md:191-195). *Regnet ved 90fb16e* er kørt
-14. november 2026 med df-data 106b9fc på 8 kerner gennem appens kæde (som `fabric/koer_minne.py`): README's egen
-kommando med casens gab, og for Andeby demo-kørslerne D11 og D12. Ved eef950a genskabte samme vej README-tallene for
-Spor A, Spor B og Andeby uden balancering til kronen (26. oktober 2026). Modelrepoets egne kontroltal efter rettelsen —
-Andeby kun spot 30.495.431, Billund i dag kun spot 26.777.743 og faktisk marked 11.378.359 kr. — ramte appens kæde alle
-til kronen (CLAUDE.md:30-38 i modelrepoet ved 90fb16e; Billund i dag med `billund_abvaerk_hourly_splejset_jun2026.csv`,
-egen antagelse). Løsetider i README: på en sandkasse med to kerner Spor A og B 2–3 minutter og Billunds rullende år
+I README's kørsler er alle optimale inden for casens gab (README.md:191-195). *Regnet ved 939228a* er kørt
+23. november 2026 med df-data 106b9fc på 8 kerner gennem appens kæde (som `fabric/koer_minne.py`): README's egen
+kommando med casens gab, og for Andeby uden balancering demo-kørslen D11. Hvert tal er det samme som ved 90fb16e
+(14. november 2026) til øren: modelrepoets versioner 0.10.0 og 0.11.0 flytter ingen tal. Ved eef950a genskabte samme vej
+README's daværende tal for Spor A, Spor B og Andeby uden balancering til kronen (26. oktober 2026). Af modelrepoets egne
+kontroltal efter rettelsen ramte appens kæde Spor A-ankeret 5.204.555 og Andeby kun spot 30.495.431 kr. til kronen ved
+939228a; Billund i dag kun spot 26.777.743 og faktisk marked 11.378.359 kr. ramte den til kronen ved 90fb16e, og de er
+ikke regnet igen ved 939228a (kontroltallene i modelrepoets CLAUDE.md ved 939228a; Billund i dag med
+`billund_abvaerk_hourly_splejset_jun2026.csv`, egen antagelse). Løsetider i README: på en sandkasse med to kerner Spor A og B 2–3 minutter og Billunds rullende år
 ca. 8 minutter; på en pc med 24 kerner Andeby uden balancering 1 minut og med balancering 17 minutter og 3,5 GB
-hukommelse. Regn helår på forhånd (README.md:195-199). Tal fra før 19. oktober 2026 — herunder rapport v4's
-balancetal og firkanten nedenfor — er regnet før rettelserne og kan ikke sammenlignes (README.md:201-204).
+hukommelse. Regn helår på forhånd (README.md:197-201). Tal fra før 19. oktober 2026 — herunder rapport v4's
+balancetal og firkanten nedenfor — er regnet før rettelserne og kan ikke sammenlignes (README.md:203-206).
 
 Firkanten, tankstørrelsen og Andeby nedenfor er rapport v4's tal: regnet før rettelserne 19. oktober og før
-spotrettelsen, og ikke regnet igen (README.md:20-27; README.md:201-204).
+spotrettelsen, og ikke regnet igen (README.md:20-27; README.md:203-206).
 
 **Billund-firkanten** (rullende år, rapport v4 §4.1, tabel 4.1): tanken er 5.002.707 kr. værd på
 spotmarkedet og 4.978.833 kr. med balancemarkedet åbent; balancemarkedet er 6.688.632 kr. værd med
@@ -332,7 +336,7 @@ begrænses reservationen af prækvalifikationen og kapacitetsprisgaten, ikke af 
 
 **Andeby** (rapport v4 §9, tabel 9.1): tankene er 4.175.596 kr. værd på spotmarkedet og
 4.356.786 kr. med balancemarkedet. Andebys balancetal er et potentiale ved fuld tilgængelighed,
-ikke hvad et værk vil tjene (README.md:208-210).
+ikke hvad et værk vil tjene (README.md:210-212).
 
 I appen er hver reference udtrykt som værk + scenarie i `viden/referencetal.json`, så de kan
 regnes igen i Fabric og sammenlignes med tolerancen fra casens eget gab.
@@ -341,8 +345,8 @@ regnes igen i Fabric og sammenlignes med tolerancen fra casens eget gab.
 
 Spor B for marts–juni 2026 blev sat op mod Billunds egen afregning for forbrugssidens
 op-regulering: efter rettelserne 19. oktober 2026 ligger modellen på 120 % (aFRR 109 %, mFRR 129 %;
-model 3,80 mio. kr. mod afregnet 3,18 mio. kr.) (README.md:206-207; cases/billund_sporB.yaml:373-376). Forholdet er
-regnet før spotrettelsen og ikke regnet igen ved 90fb16e.
+model 3,80 mio. kr. mod afregnet 3,18 mio. kr.) (README.md:208-209; cases/billund_sporB.yaml:373-376). Forholdet er
+regnet før spotrettelsen og ikke regnet igen ved 90fb16e eller 939228a.
 Rapport v4 regnede før rettelserne og fik 121 % (aFRR 108 %, mFRR 132 %); dens opdeling pr. produkt
 viser, at mFRR-kapaciteten ligger ca. 39 % for højt, fordi modellen kender kapacitetsprisen på
 forhånd og samler reservationen i få, dyre timer (rapport v4 §5.2). Opdelingen er ikke regnet
@@ -370,13 +374,13 @@ med vinterdata 2026/27 (rapport v4 §5.3).
 - **Tidsvarierende afgift** over et afgiftsår: satserne er faste i hele perioden
   (cases/andeby.yaml:75-80).
 - **Regne økonomi i kvarterer.** Modellen kan løse med 15-minutters opløsning, men objektivets led er effekt × pris pr. MWh uden at gange med intervallets længde, og kapacitetsindtægten er pris × MW pr. interval. Ved 1h er det kroner; ved 15 min tæller hvert kvarter som en hel time, mens startomkostninger tælles pr. start. Appens version 1 kører derfor kun 1h (src/model.py:432-434; src/balancing.py:342; KONTRAKT §6c). Alle repoets værker er 1h (src/data_loader.py:59-63).
-- **Løse et helt år på sekunder**: fra et halvt minut til over et kvarter (README.md:71); Andeby med balancering tog 17 minutter på 24 kerner (README.md:195-198).
+- **Løse et helt år på sekunder**: fra et halvt minut til over et kvarter (README.md:71); Andeby med balancering tog 17 minutter på 24 kerner (README.md:197-200).
 
 ## 10. Data og dækning
 
 Markeds- og vejrdata kommer fra datarepoet df-data, som opdateres hver mandag: spot, aFRR,
 mFRR-kapacitet, mFRR-aktivering, ubalancepris og DMI-observationer for fire områder. Kilden er
-api.sysapp.dk, med Energi Data Service til kontrol (README.md:231-237). Kendte grænser:
+api.sysapp.dk, med Energi Data Service til kontrol (README.md:233-239). Kendte grænser:
 
 - Ubalance- og mFRR-aktiveringsdata begynder 4. marts 2025; perioder før kan ikke køres med
   balancemarked (cases/andeby.yaml:97-101).

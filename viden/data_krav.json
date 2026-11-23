@@ -49,7 +49,7 @@
     "src/data_loader_github.py:326-348",
     "src/data_loader_github.py:647-650",
     "src/model.py:177-193",
-    "src/config.py:655-696"
+    "src/config.py:657-698"
    ]
   },
   {
@@ -164,7 +164,7 @@
    "bruges": "altid",
    "bemaerkning": "Brændsels- og CO2-priser, elafgift og tarif er faste tal pr. værk - ingen tidsserier.",
    "kode": [
-    "src/config.py:655-696"
+    "src/config.py:657-698"
    ]
   }
  ],
@@ -400,7 +400,7 @@
    },
    "tidsstempel": {
     "start": "Stemplet er intervallets start (01:00 = kl. 01-02). Modellens form.",
-    "slut": "Stemplet er intervallets slut (01:00 = kl. 00-01). Flyttes ét interval tilbage EFTER omregning til UTC, så efterårets dobbelttime ikke bliver to ens timer (scripts/vaerksark_til_yaml.py:361-367)."
+    "slut": "Stemplet er intervallets slut (01:00 = kl. 00-01). Flyttes ét interval tilbage EFTER omregning til UTC, så efterårets dobbelttime ikke bliver to ens timer (scripts/vaerksark_til_yaml.py:371-377)."
    },
    "oploesning": {
     "tilladte": [
@@ -761,9 +761,9 @@
     ],
     "hvad": "en værdi er tekst og ikke et tal",
     "besked": "{antal} rækker har en værdi, der ikke er et tal (linje {linjer}). Lad cellen stå tom for en manglende time, eller skriv tallet.",
-    "hvorfor": "Tekst i talkolonnen må ikke blive til et tavst hul (scripts/vaerksark_til_yaml.py:294-306).",
+    "hvorfor": "Tekst i talkolonnen må ikke blive til et tavst hul (scripts/vaerksark_til_yaml.py:304-316).",
     "kilde": [
-     "scripts/vaerksark_til_yaml.py:294-306"
+     "scripts/vaerksark_til_yaml.py:304-316"
     ],
     "kraever_vaerk": false
    },
@@ -865,9 +865,9 @@
     ],
     "hvad": "valgt 'timens start', men serien begynder kl. 01 den 1. og slutter kl. 00 den 1.",
     "besked": "Serien begynder kl. 01:00 og slutter kl. 00:00 den første i en måned - stemplerne ligner timens SLUT. Vælg 'timens slut', hvis det er tilfældet.",
-    "hvorfor": "Samme mønster, som værksark-konverteringen bruger (scripts/vaerksark_til_yaml.py:394-401).",
+    "hvorfor": "Samme mønster, som værksark-konverteringen bruger (scripts/vaerksark_til_yaml.py:404-411).",
     "kilde": [
-     "scripts/vaerksark_til_yaml.py:394-401"
+     "scripts/vaerksark_til_yaml.py:404-411"
     ],
     "kraever_vaerk": false
    },
@@ -881,9 +881,9 @@
     ],
     "hvad": "valgt 'timens slut', men serien begynder kl. 00 den 1. og slutter kl. 23 den sidste",
     "besked": "Serien begynder kl. 00:00 den første og slutter kl. 23 den sidste i en måned - stemplerne ligner timens START.",
-    "hvorfor": "Spejlet af timeslut_mistanke (scripts/vaerksark_til_yaml.py:402-405).",
+    "hvorfor": "Spejlet af timeslut_mistanke (scripts/vaerksark_til_yaml.py:412-415).",
     "kilde": [
-     "scripts/vaerksark_til_yaml.py:402-405"
+     "scripts/vaerksark_til_yaml.py:412-415"
     ],
     "kraever_vaerk": false
    },
@@ -897,9 +897,9 @@
     ],
     "hvad": "valgt UTC, men efterårets kl. 02 står to gange eller forårets kl. 02 mangler",
     "besked": "Stemplerne ligner dansk lokaltid: {hvor}. Vælg dansk lokaltid, hvis filen er et SRO-udtræk i dansk tid.",
-    "hvorfor": "I UTC findes ingen dobbelttimer (scripts/vaerksark_til_yaml.py:314-322).",
+    "hvorfor": "I UTC findes ingen dobbelttimer (scripts/vaerksark_til_yaml.py:324-332).",
     "kilde": [
-     "scripts/vaerksark_til_yaml.py:314-322"
+     "scripts/vaerksark_til_yaml.py:324-332"
     ],
     "kraever_vaerk": false
    },
@@ -913,9 +913,9 @@
     ],
     "hvad": "dansk tid: efterårets kl. 02 står kun én gang",
     "besked": "Efterårets dobbelttime ({dato} kl. 02) står kun én gang. Den er læst som sommertid; én time i året kan ligge forkert.",
-    "hvorfor": "Et år skåret til 8.760 timer mangler dobbelttimen (scripts/vaerksark_til_yaml.py:350-357).",
+    "hvorfor": "Et år skåret til 8.760 timer mangler dobbelttimen (scripts/vaerksark_til_yaml.py:360-367).",
     "kilde": [
-     "scripts/vaerksark_til_yaml.py:350-357"
+     "scripts/vaerksark_til_yaml.py:360-367"
     ],
     "kraever_vaerk": false
    },
@@ -1063,9 +1063,9 @@
     ],
     "hvad": "serien spænder under 28 døgn",
     "besked": "Serien dækker kun {doegn} døgn. Den kan bruges til kørsler inden for de døgn, men ikke til et årstal.",
-    "hvorfor": "Værksarket kræver fire uger (scripts/vaerksark_til_yaml.py:309).",
+    "hvorfor": "Værksarket kræver fire uger (scripts/vaerksark_til_yaml.py:319).",
     "kilde": [
-     "scripts/vaerksark_til_yaml.py:309"
+     "scripts/vaerksark_til_yaml.py:319"
     ],
     "kraever_vaerk": false
    },
@@ -1093,9 +1093,9 @@
     ],
     "hvad": "længste hul over 48 timer",
     "besked": "Et hul på {laengste} timer bliver en ret linje hen over vejrskift, hvis en kørsel rammer det. Vælg en periode uden om hullet, eller brug syntetisk varmelast for den.",
-    "hvorfor": "scripts/vaerksark_til_yaml.py:479-481",
+    "hvorfor": "scripts/vaerksark_til_yaml.py:489-491",
     "kilde": [
-     "scripts/vaerksark_til_yaml.py:479-481"
+     "scripts/vaerksark_til_yaml.py:489-491"
     ],
     "kraever_vaerk": false
    },
@@ -1108,10 +1108,10 @@
     ],
     "hvad": "solprofil: over 5 % af timerne mangler",
     "besked": "Solprofilen mangler {antal} timer ({andel}). Over 5 % udfyldes ikke, og en kørsel kan ikke bruge en profil med huller.",
-    "hvorfor": "Profil-læseren stopper på en eneste manglende time (src/data_loader.py:1026-1039); værksarket udfylder højst 5 % (scripts/vaerksark_til_yaml.py:1043-1049).",
+    "hvorfor": "Profil-læseren stopper på en eneste manglende time (src/data_loader.py:1026-1039); værksarket udfylder højst 5 % (scripts/vaerksark_til_yaml.py:1060-1066).",
     "kilde": [
      "src/data_loader.py:1026-1039",
-     "scripts/vaerksark_til_yaml.py:1043-1049"
+     "scripts/vaerksark_til_yaml.py:1060-1066"
     ],
     "kraever_vaerk": false
    },
@@ -1124,9 +1124,9 @@
     ],
     "hvad": "solprofil: huller på højst 5 % er udfyldt",
     "besked": "{antal} manglende timer i solprofilen er udfyldt (længste hul {laengste} timer): 0, når solen er nede, ellers en ret linje.",
-    "hvorfor": "Samme som værksarket (scripts/vaerksark_til_yaml.py:1043-1049); den normaliserede solprofil har derfor ingen huller.",
+    "hvorfor": "Samme som værksarket (scripts/vaerksark_til_yaml.py:1060-1066); den normaliserede solprofil har derfor ingen huller.",
     "kilde": [
-     "scripts/vaerksark_til_yaml.py:1043-1049"
+     "scripts/vaerksark_til_yaml.py:1060-1066"
     ],
     "kraever_vaerk": false
    },
@@ -1193,10 +1193,10 @@
     ],
     "hvad": "solprofil: produktion, mens solen er mere end 6 grader under horisonten",
     "besked": "Solprofilen har produktion om natten: {timer} timer, i alt {mwh} MWh. Er det frostsikring eller en måler, der tæller begge veje, er det ikke produktion - eller er tidszonen forkert?",
-    "hvorfor": "Samme regel som værksarket: nat over 0,2 % af årets sol eller over 5 % af spidsen (scripts/vaerksark_til_yaml.py:1063-1071; solen: 922-932).",
+    "hvorfor": "Samme regel som værksarket: nat over 0,2 % af årets sol eller over 5 % af spidsen (scripts/vaerksark_til_yaml.py:1080-1088; solen: 922-932).",
     "kilde": [
-     "scripts/vaerksark_til_yaml.py:1063-1071",
-     "scripts/vaerksark_til_yaml.py:922-932"
+     "scripts/vaerksark_til_yaml.py:1080-1088",
+     "scripts/vaerksark_til_yaml.py:939-949"
     ],
     "kraever_vaerk": false
    },
@@ -1250,9 +1250,9 @@
     ],
     "hvad": "værket har flere aktive solvarmeenheder",
     "besked": "Værket har flere aktive solvarmeenheder ({navne}). En solprofil kan kun bruges, når der er præcis én.",
-    "hvorfor": "Samme krav som værksarket (scripts/vaerksark_til_yaml.py:1556-1562).",
+    "hvorfor": "Samme krav som værksarket (scripts/vaerksark_til_yaml.py:1575-1581).",
     "kilde": [
-     "scripts/vaerksark_til_yaml.py:1556-1562"
+     "scripts/vaerksark_til_yaml.py:1575-1581"
     ],
     "kraever_vaerk": true
    },
@@ -1516,7 +1516,7 @@
    "<data-dir>/<slug>_<enhed>_maalt.csv": "målt solprofil fra arket Solvarme, rundet ud til hele døgn, huller udfyldt",
    "slug": "værkets navn (arket Priser, rækken 'værkets navn') i små bogstaver, æ/ø/å -> ae/oe/aa, andet -> _ (fx 'Andeby Fjernvarme' -> andeby_fjernvarme)"
   },
-  "laek_vagt": "Scriptet nægter at læse arket eller skrive, hvis stien ligger i et git-repo og ikke er git-ignoreret (scripts/vaerksark_til_yaml.py:1467-1508). I Fabric: læg arket og output uden for ethvert git-repo (fx Files/fjv/uploads/ og en tmp-mappe) - så gælder vagten ikke, og --tillad-offentlig skal aldrig bruges. Uden git installeret behandles stien som 'uden for repo'.",
+  "laek_vagt": "Scriptet nægter at læse arket eller skrive, hvis stien ligger i et git-repo og ikke er git-ignoreret (scripts/vaerksark_til_yaml.py:1486-1527). I Fabric: læg arket og output uden for ethvert git-repo (fx Files/fjv/uploads/ og en tmp-mappe) - så gælder vagten ikke, og --tillad-offentlig skal aldrig bruges. Uden git installeret behandles stien som 'uden for repo'.",
   "til_appen": [
    "production_profile_path i casen er den sti, scriptet skrev (absolut, hvis --data-dir er absolut). Importen skal gemme profilen som Tidsserie (rolle solprofil, kilde vaerksark) og sætte stien til markøren 'tidsserie:solprofil' (fv-fabric2).",
    "Timedata-CSV'en bliver Tidsserie (rolle varmelast, kilde vaerksark); casen nævner den kun i kommentaren øverst - --heat-csv er et kørselsflag.",

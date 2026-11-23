@@ -215,7 +215,7 @@ def anvend(nuvaerende: dict, plan: dict) -> dict:
 # ------------------------------------------------------------------ binding og navne (K11 F1, F4)
 
 def slug(navn: str) -> str:
-    """``slug()`` i scripts/vaerksark_til_yaml.py:101-108 tegn for tegn (NFKD FØR æøå erstattes, så ``å`` -> ``a``
+    """``slug()`` i scripts/vaerksark_til_yaml.py:111-118 tegn for tegn (NFKD FØR æøå erstattes, så ``å`` -> ``a``
     og et stort Æ/Ø falder bort). Rundturs-beviset holder den op mod scriptets egen funktion."""
     s = unicodedata.normalize("NFKD", str(navn))
     s = s.replace("æ", "ae").replace("ø", "oe").replace("å", "aa")

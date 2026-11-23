@@ -71,10 +71,10 @@ Værksarket (`vaerksdata_skabelon.xlsx`) er den lette vej til et nyt værk: anl�
 varmeproduktion ab værk for 1. juli 2025 – 30. juni 2026 i ét regneark. Appen omsætter det med modelrepoets eget
 script og opretter værket og dets tidsserier. Skabelonens otte eksempelrækker skal slettes eller erstattes — ellers
 afviser scriptet arket. Er timedata tomme, men årsproduktionen udfyldt, bliver varmelasten syntetisk.
-(Kilde: scripts/vaerksark_til_yaml.py:256-316; doc/EGET_VAERK.md:16-31)
+(Kilde: scripts/vaerksark_til_yaml.py:266-326; doc/EGET_VAERK.md:16-31)
 
 Et værk fra værksarket kan kun køres i den periode, dets data dækker: den målte varmelast 1. juli 2025 – 30. juni
-2026, og en syntetisk solprofil de kalenderår, perioden rører. (Kilde: scripts/vaerksark_til_yaml.py:1084-1135)
+2026, og en syntetisk solprofil de kalenderår, perioden rører. (Kilde: scripts/vaerksark_til_yaml.py:1101-1152)
 
 Et værk i appen kan også eksporteres til værksarket og uploades igen — som en ny revision af samme værk eller som et
 nyt værk. Modellens skabelon kan ikke bære alt: balancemarkedet, nettilslutningen og en kalibreret varmelastmodel står
@@ -82,7 +82,7 @@ ikke i den, og modellens script sætter selv bl.a. slukket ved start, tankenes s
 CO2-faktor. De felter står derfor i faner, som er appens egne (*Læs først*, *Start og drift*, *Balancemarked* og *Øvrige
 felter*): modellens script læser dem ikke, appen lægger dem oven på scriptets læsning ved upload. Timer uden for
 perioden er ikke med. Eksporten viser før download, hvad der stadig ikke er med. (Kilde: KONTRAKT §6d;
-scripts/vaerksark_til_yaml.py:586-918; doc/EGNE_DATA.md)
+scripts/vaerksark_til_yaml.py:596-935; doc/EGNE_DATA.md)
 
 ## Hvad står der om data på en kørsel
 

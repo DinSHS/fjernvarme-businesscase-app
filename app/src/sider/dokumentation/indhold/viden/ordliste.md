@@ -48,7 +48,7 @@ meget el, som den har budt.
 **FCR** — *Frequency Containment Reserve*: den hurtigste reserve. Ikke med i modellen.
 
 **Gab (solvergab, MIP-gab)** — hvor langt den fundne løsning højst ligger fra den bedst mulige,
-relativt (fx 0,5 %) eller absolut (fx 5.000 kr.). (Kilde: src/config.py:713-714)
+relativt (fx 0,5 %) eller absolut (fx 5.000 kr.). (Kilde: src/config.py:715-716)
 
 **Kapacitet** — betaling for at holde effekt klar i en time, uanset om den aktiveres.
 

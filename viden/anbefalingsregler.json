@@ -55,7 +55,7 @@
     {"id": "faa_doegn", "virkning": "nedgrader", "betingelse": "Perioden er under 14 døgn.",
      "tekst": "Perioden er kun {doegn} døgn. Et kort vindue viser retningen, ikke størrelsen.", "kilde": "doc/BUDSTRATEGI.md:346"},
     {"id": "kort_periode_beslutning", "virkning": "nedgrader", "betingelse": "Knappen er en investering eller en varig beslutning (anbefaling.kraever_helaar = true), og perioden er under 365 døgn.",
-     "tekst": "Perioden er {doegn} døgn. En investering skal regnes på et helt år; et kort vindue kan ikke ganges op.", "kilde": "doc/BUDSTRATEGI.md:346; doc/EGET_VAERK.md:142"},
+     "tekst": "Perioden er {doegn} døgn. En investering skal regnes på et helt år; et kort vindue kan ikke ganges op.", "kilde": "doc/BUDSTRATEGI.md:346; doc/EGET_VAERK.md:149"},
     {"id": "en_saeson", "virkning": "note", "betingelse": "Alle periodens måneder ligger i oktober–marts (vinter) eller i april–september (sommer).",
      "tekst": "Perioden dækker kun {saeson}. Tankens værdi er størst i forår og sommer, hvor døgnets prisspænd er størst; en vinterperiode alene undervurderer eller overvurderer året.", "kilde": "rapport v4, bilag A"},
     {"id": "spor_a", "virkning": "nedgrader", "betingelse": "Mindst én af kørslerne har balancemarked og er Spor A (intet månedsloft; ikke driven-gate).",
@@ -87,7 +87,7 @@
 
   "investering": {
     "tekst": "Modellen regner kun driften. Investeringsbeløbet findes ikke i modellen, og det årlige beløb er driftsbesparelsen før kapitalomkostning, skat og faste D&V.",
-    "kilde": "README.md:68; src/config.py:763 (investment.enabled læses, men bruges ikke)",
+    "kilde": "README.md:68; src/config.py:765 (investment.enabled læses, men bruges ikke)",
     "annuitet": {
       "formel": "A = I × r / (1 − (1 + r)^(−n))",
       "forklaring": "I = investering (kr.), r = real kalkulationsrente, n = levetid (år). Investeringen betaler sig, når den årlige driftsbesparelse fra et helår er større end A plus enhedens faste årlige omkostninger.",

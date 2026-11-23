@@ -19,7 +19,7 @@ Månedsloftet beskriver ét værk i én periode og kan ikke overføres til andre
 (Kilde: rapport v4 §2.2; doc/BALANCEMARKED.md:156-157)
 
 **Valideringen:** Spor B mod Billunds afregning for marts–juni 2026 ramte 120 % (aFRR 109 %, mFRR
-129 %) efter modelrettelserne 19. oktober 2026 (README.md:206-207); rapport v4 fik 121 % før dem.
+129 %) efter modelrettelserne 19. oktober 2026 (README.md:208-209); rapport v4 fik 121 % før dem.
 Rapportens opdeling pr. produkt (før rettelserne) viser mFRR-kapaciteten ca. 39 % for højt, fordi modellen
 kender kapacitetsprisen på forhånd og samler reservationen i få, dyre timer. (Kilde: rapport v4 §5.2)
 

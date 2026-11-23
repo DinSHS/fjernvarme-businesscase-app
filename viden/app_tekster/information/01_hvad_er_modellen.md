@@ -23,5 +23,7 @@ driftstid og startomkostning, som kræver tænd/sluk-variable. Det løses med de
 
 ## Enhedstyper
 
-Syv typer: varmepumpe, elkedel, biomassekedel (halm, flis eller træpiller), gaskedel, gasmotor
-(kraftvarme), solvarme og overskudsvarme. (Kilde: rapport v4 §2.1; doc/EGET_VAERK.md:31-34)
+Otte typer: varmepumpe, elkedel, biomassekedel (halm, flis eller træpiller), gaskedel, oliekedel
+(fyringsolie eller gasolie), gasmotor (kraftvarme), solvarme og overskudsvarme. Oliekedlen kom til i
+modellens version 0.11.0 (november 2026) og regnes med 0,266 t CO₂ pr. MWh olie.
+(Kilde: rapport v4 §2.1; oliekedlen: doc/EGET_VAERK.md:31-36)

@@ -1,8 +1,8 @@
 {
   "_om": "Referencetal fra modelrepoet, udtrykt som værk + scenarie i appens datamodel (KONTRAKT v2 §3.1, §3.4, §3.5), så de kan genskabes i Fabric. 'vaerk.kode' er lowercase-normaliseret fra filnavnet (KONTRAKT §3.1). Tom periode = værkets time-blok. 'tolerance_dkk' = max(mip_abs_gap, mip_rel_gap × objektiv) med casens egne gab: HiGHS stopper, når ét af de to gab er nået, så en ny kørsel kan ligge så langt fra tallet uden at være forkert. Tallene afhænger af df-data; README kræver df-data fra 5. oktober 2026 eller senere.",
   "model_commit": "eef950a2ac7b3808a9456dcf48742ce08e52366a",
-  "model_commit_betyder": "regnet_ved: den modelversion, tallene er regnet ved (README-tabellen og vores målinger), ikke pinnen. Appen genkender kun kørsler ved den version som målinger af tallene (referencer.ts, README_PINS). Sættes til pinnen, når tallene er regnet igen; tjek_trofasthed.py kræver, at den er pinnen eller en forfader til den.",
-  "regnet_igen_betyder": "Egne målinger ved en senere modelversion end model_commit, hver med sin egen model_commit. De er ikke forventet-tallene og bruges ikke af appens sammenligning (referencer.ts læser kun forventet og model_commit). Modelrepoets README-tabel, doc/ og rapport v4 er ved 90fb16e stadig regnet før spotrettelsen (README.md:20-27).",
+  "model_commit_betyder": "regnet_ved: den modelversion, tallene er regnet ved (README-tabellen og vores målinger), ikke pinnen. Appen genkender kun kørsler ved den version som målinger af tallene (referencer.ts, README_PINS). Sættes til pinnen, når tallene er regnet igen; tjek_trofasthed.py kræver, at den er pinnen eller en forfader til den. En reference kan selv bære 'regnet_ved' med 'model_commits', når README's tal for netop den er regnet ved en anden version end resten (fra 939228a: Spor A-ankeret); så gælder referencens egen liste i stedet.",
+  "regnet_igen_betyder": "Egne målinger ved en senere modelversion end model_commit, hver med sin egen model_commit. De er ikke forventet-tallene og bruges ikke af appens sammenligning (referencer.ts læser kun forventet, model_commit og en references regnet_ved). Ved 939228a er README's Spor A-anker regnet igen efter spotrettelsen (README.md:185, fodnote ³ README.md:195); de fire øvrige tal i README-tabellen, doc/ og rapport v4 er stadig regnet før (README.md:20-27).",
   "kontrakt_version": 2,
   "datakrav": {
     "df_data": "fra 5. oktober 2026 eller senere; nye dataopdateringer ændrer ikke januar–juni 2026 (målt 26/10: 10be997→106b9fc har samme værdier for 2025 og januar–juni 2026)",
@@ -13,8 +13,8 @@
   "grupper": [
     {
       "id": "readme",
-      "navn": "README-referencetal (regnet før spotrettelsen; README's tabel ved 90fb16e)",
-      "kilde": "README.md:173-204",
+      "navn": "README-referencetal (README's tabel ved 939228a: Spor A-ankeret er regnet igen efter spotrettelsen, de fire øvrige er fra før)",
+      "kilde": "README.md:173-206",
       "koert": "2026-10-19 ved d813e6b (samme kode som eef950a), efter rettelserne samme dag: tankens første time følger lagerbalancen, og en aktiveret MWh værdisættes uden spotprisen; robust reservation som standard; rullende Billund-cases med flis- og halmkedel slukket 1. juli",
       "referencer": [
         {
@@ -45,16 +45,30 @@
             "kilde": "kodens standard, casen har ingen solver-blok (doc/KOERSEL.md:64-66)"
           },
           "forventet": {
+            "objektiv_dkk": 5204555,
+            "tolerance_dkk": 26023
+          },
+          "forventet_foer": {
             "objektiv_dkk": 5069729,
-            "tolerance_dkk": 25349
+            "tolerance_dkk": 25349,
+            "note": "README's tal til og med modelversion 90fb16e (regnet 19. oktober 2026 ved d813e6b, før spotrettelsen). Genskabt ved eef950a (genskabt)."
+          },
+          "regnet_ved": {
+            "model_commits": [
+              "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
+              "939228aa048563c8498382a79d207c8b03fbda57"
+            ],
+            "kilde": "README.md:195",
+            "begrundelse": "README's tal er regnet igen 18. november 2026 på 3cf753a efter spotrettelsen (5021a5e). Appens pins efter rettelsen er 90fb16e og 939228a; modelrepoets CHANGELOG siger, at intet mellem 5021a5e og 939228a flytter tal, og begge pins er målt til 5.204.555,28 kr. gennem appens kæde (regnet_igen). En kørsel ved en af dem er derfor en måling af README's tal; en kørsel ved eef950a eller ældre er det ikke. Egen antagelse: at 'samme tal' gælder for netop disse to pins, hviler på CHANGELOG'en og de to målinger, ikke på en erklæring fra modelrepoet om hver commit."
           },
           "loesetid": "2–3 minutter (sandkasse, 2 kerner); 4,5 min lokalt (8 kerner)",
           "kommando": "python run_case.py cases/billund_sporA.yaml --data-source github --with-balancing",
           "noter": [
             "Syntetisk varmelast (intet heat_csv), DMI-område fyn.",
-            "Slutter 23. juni, fordi ankeret er regnet før den sidste uge af juni blev splejset ind."
+            "Slutter 23. juni, fordi ankeret er regnet før den sidste uge af juni blev splejset ind.",
+            "README's tal er regnet igen 18. november 2026 på 3cf753a efter spotrettelsen (før rettelsen: 5.069.729)."
           ],
-          "kilde": "README.md:185; README.md:191; README.md:195-196",
+          "kilde": "README.md:185; README.md:191; README.md:195; README.md:197-198",
           "genskabt": [
             {
               "af": "fv-model, lokalt: run_case.py uændret ved eef950a med README's kommando, df-data 106b9fc, app-venv (linopy 0.10.0, highspy 1.15.1), 8 kerner",
@@ -73,6 +87,15 @@
               "opnaaet_gab": 0.00109,
               "status": "optimal inden for casens gab (0,109 %), 178 s; efter spotrettelsen (5021a5e): kan ikke sammenlignes med forventet, som er regnet før",
               "kilde": "noter/maaling_model_90fb16e.md"
+            },
+            {
+              "af": "r15m, lokalt: appens kæde (frosset input → fjv.arbejder → hukommelseslager, som fabric/koer_minne.py) ved 939228a (modelkoden hentet som zip ved pinnen), df-data 106b9fc, linopy 0.10.0 / highspy 1.15.1, 8 kerner, én kørsel ad gangen på en delt maskine",
+              "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
+              "dato": "2026-11-23",
+              "objektiv_dkk": 5204555.28,
+              "opnaaet_gab": 0.00109,
+              "status": "samme objektiv som ved 90fb16e til øren (gab 0,109 %, 179 s): modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. Øvrige forbehold som ved 90fb16e.",
+              "kilde": "noter/maaling_model_939228a.md"
             }
           ]
         },
@@ -112,7 +135,7 @@
           "noter": [
             "Mod Billunds afregning marts–juni 2026 (ex post): 120 % (aFRR 109 %, mFRR 129 %) efter rettelserne 19/10; rapport v4 fik 121 % før dem."
           ],
-          "kilde": "README.md:186; README.md:206-207",
+          "kilde": "README.md:186; README.md:208-209",
           "genskabt": [
             {
               "af": "fv-model, lokalt: run_case.py uændret ved eef950a med README's kommando, df-data 106b9fc, app-venv (linopy 0.10.0, highspy 1.15.1), 8 kerner",
@@ -131,6 +154,15 @@
               "opnaaet_gab": 0.0015199999999999999,
               "status": "optimal inden for casens gab (0,152 %), 261 s; samme objektiv som demo D09 med gab 0,0015 %; efter spotrettelsen (5021a5e): kan ikke sammenlignes med forventet, som er regnet før",
               "kilde": "noter/maaling_model_90fb16e.md"
+            },
+            {
+              "af": "r15m, lokalt: appens kæde (frosset input → fjv.arbejder → hukommelseslager, som fabric/koer_minne.py) ved 939228a (modelkoden hentet som zip ved pinnen), df-data 106b9fc, linopy 0.10.0 / highspy 1.15.1, 8 kerner, én kørsel ad gangen på en delt maskine",
+              "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
+              "dato": "2026-11-23",
+              "objektiv_dkk": 4428863.74,
+              "opnaaet_gab": 0.0015199999999999999,
+              "status": "samme objektiv som ved 90fb16e til øren (gab 0,152 %, 236 s): modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. Øvrige forbehold som ved 90fb16e.",
+              "kilde": "noter/maaling_model_939228a.md"
             }
           ]
         },
@@ -170,7 +202,7 @@
           "noter": [
             "Rapport v4 tabel 4.1 (20.341.652, med tank og balancemarked) er regnet før rettelserne 19/10 og kan ikke sammenlignes."
           ],
-          "kilde": "README.md:187; README.md:195-196",
+          "kilde": "README.md:187; README.md:197-198",
           "genskabt": [
             {
               "af": "fv-model, lokalt: run_case.py uændret ved eef950a med README's kommando, df-data 106b9fc, app-venv, 8 kerner (delt maskine)",
@@ -189,6 +221,15 @@
               "opnaaet_gab": 0.0259,
               "status": "IKKE optimum: kodens tidsgrænse 600 s ramt med gab 2,59 % (1.261 s i alt); objektivet er en øvre grænse; optimum ved 90fb16e ligger mellem ca. 21.910.000 kr. (nedre grænse) og 22.492.900 kr. (løsningen), altså mindst ca. 135.000 kr. over README's 21.773.827, som er fra før spotrettelsen. Tallet er ikke et optimum og ikke et referencetal.",
               "kilde": "noter/maaling_model_90fb16e.md"
+            },
+            {
+              "af": "r15m, lokalt: appens kæde (frosset input → fjv.arbejder → hukommelseslager, som fabric/koer_minne.py) ved 939228a (modelkoden hentet som zip ved pinnen), df-data 106b9fc, linopy 0.10.0 / highspy 1.15.1, 8 kerner, én kørsel ad gangen på en delt maskine",
+              "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
+              "dato": "2026-11-23",
+              "objektiv_dkk": 22492900.32,
+              "opnaaet_gab": 0.0259,
+              "status": "samme objektiv som ved 90fb16e til øren (gab 2,59 %, 1363 s): modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. Øvrige forbehold som ved 90fb16e.",
+              "kilde": "noter/maaling_model_939228a.md"
             }
           ]
         },
@@ -230,7 +271,7 @@
             "Regn den på forhånd; kør ikke helår live.",
             "Andebys balancetal er et potentiale ved fuld tilgængelighed, ikke hvad et værk vil tjene."
           ],
-          "kilde": "README.md:188; README.md:193; README.md:197-199; README.md:208-210",
+          "kilde": "README.md:188; README.md:193; README.md:199-201; README.md:210-212",
           "regnet_igen": [
             {
               "af": "fjv-tal, lokalt: appens kæde (frosset input → fjv.arbejder → hukommelseslager, som fabric/koer_minne.py) ved 90fb16e, df-data 106b9fc, linopy 0.10.0 / highspy 1.15.1, 8 kerner, højst to kørsler ad gangen",
@@ -279,7 +320,7 @@
           "noter": [
             "Andeby fik 8. oktober 2026 en solprofil fra målt DMI-globalstråling; Andeby-tal fra før den dato kan ikke sammenlignes."
           ],
-          "kilde": "README.md:189; README.md:197; README.md:203-204",
+          "kilde": "README.md:189; README.md:199; README.md:205-206",
           "genskabt": [
             {
               "af": "fv-model, lokalt: demo-kørslen D11 gennem den ægte arbejder (som fabric/koer_minne.py) ved eef950a, df-data 106b9fc, 8 kerner",
@@ -298,6 +339,15 @@
               "opnaaet_gab": 0.00020899999999999998,
               "status": "optimal inden for casens gab (0,0209 %), 585 s; demo-kørslen D11. = modelrepoets kontroltal efter rettelsen 'Andeby, kun spot' 30.495.431 (CLAUDE.md:34 i modelrepoet ved 90fb16e); efter spotrettelsen (5021a5e): kan ikke sammenlignes med forventet, som er regnet før",
               "kilde": "noter/maaling_model_90fb16e.md"
+            },
+            {
+              "af": "r15m, lokalt: appens kæde (frosset input → fjv.arbejder → hukommelseslager, som fabric/koer_minne.py) ved 939228a (modelkoden hentet som zip ved pinnen), df-data 106b9fc, linopy 0.10.0 / highspy 1.15.1, 8 kerner, én kørsel ad gangen på en delt maskine (demo-kørslen D11)",
+              "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
+              "dato": "2026-11-23",
+              "objektiv_dkk": 30495430.9,
+              "opnaaet_gab": 0.00020899999999999998,
+              "status": "samme objektiv som ved 90fb16e til øren (gab 0,0209 %, 478 s): modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. Øvrige forbehold som ved 90fb16e.",
+              "kilde": "noter/maaling_model_939228a.md"
             }
           ]
         }
@@ -358,6 +408,15 @@
               "opnaaet_gab": 0.0,
               "status": "optimal, gab 0; demo-kørslen D01 (demoens gab 0,02 %/100 kr.); efter spotrettelsen (5021a5e): kan ikke sammenlignes med forventet, som er regnet før",
               "kilde": "noter/maaling_model_90fb16e.md"
+            },
+            {
+              "af": "r15m, lokalt: appens kæde (frosset input → fjv.arbejder → hukommelseslager, som fabric/koer_minne.py) ved 939228a (modelkoden hentet som zip ved pinnen), df-data 106b9fc, linopy 0.10.0 / highspy 1.15.1, 8 kerner, én kørsel ad gangen på en delt maskine (demo-kørslen D01)",
+              "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
+              "dato": "2026-11-23",
+              "objektiv_dkk": 3441004.22,
+              "opnaaet_gab": 0.0,
+              "status": "samme objektiv som ved 90fb16e til øren (gab 0 %, 19 s): modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. Øvrige forbehold som ved 90fb16e.",
+              "kilde": "noter/maaling_model_939228a.md"
             }
           ]
         },
@@ -419,6 +478,15 @@
               "opnaaet_gab": 0.0,
               "status": "optimal, gab 0; demo-kørslen D08 (demoens gab 0,02 %/100 kr.); efter spotrettelsen (5021a5e): kan ikke sammenlignes med forventet, som er regnet før",
               "kilde": "noter/maaling_model_90fb16e.md"
+            },
+            {
+              "af": "r15m, lokalt: appens kæde (frosset input → fjv.arbejder → hukommelseslager, som fabric/koer_minne.py) ved 939228a (modelkoden hentet som zip ved pinnen), df-data 106b9fc, linopy 0.10.0 / highspy 1.15.1, 8 kerner, én kørsel ad gangen på en delt maskine (demo-kørslen D08)",
+              "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
+              "dato": "2026-11-23",
+              "objektiv_dkk": 3011915.11,
+              "opnaaet_gab": 0.0,
+              "status": "samme objektiv som ved 90fb16e til øren (gab 0 %, 9 s): modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. Øvrige forbehold som ved 90fb16e.",
+              "kilde": "noter/maaling_model_939228a.md"
             }
           ]
         },
@@ -489,6 +557,15 @@
               "opnaaet_gab": 0.0,
               "status": "optimal, gab 0; afregnet på det realiserede, trin 1-prognosen ikke regnet igen; efter spotrettelsen (5021a5e): kan ikke sammenlignes med forventet, som er regnet før",
               "kilde": "noter/maaling_model_90fb16e.md"
+            },
+            {
+              "af": "r15m, lokalt: appens kæde (frosset input → fjv.arbejder → hukommelseslager, som fabric/koer_minne.py) ved 939228a (modelkoden hentet som zip ved pinnen), df-data 106b9fc, linopy 0.10.0 / highspy 1.15.1, 8 kerner, én kørsel ad gangen på en delt maskine",
+              "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
+              "dato": "2026-11-23",
+              "objektiv_dkk": 3220386.23,
+              "opnaaet_gab": 0.0,
+              "status": "samme objektiv som ved 90fb16e til øren (gab 0 %, 17 s): modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. Øvrige forbehold som ved 90fb16e.",
+              "kilde": "noter/maaling_model_939228a.md"
             }
           ]
         },
@@ -564,6 +641,15 @@
               "opnaaet_gab": 0.0,
               "status": "optimal, gab 0; afregnet på det realiserede, trin 1-prognosen ikke regnet igen. Den eneste af (1)-(4), der stiger (+27.772 kr.); årsagen er ikke målt; efter spotrettelsen (5021a5e): kan ikke sammenlignes med forventet, som er regnet før",
               "kilde": "noter/maaling_model_90fb16e.md"
+            },
+            {
+              "af": "r15m, lokalt: appens kæde (frosset input → fjv.arbejder → hukommelseslager, som fabric/koer_minne.py) ved 939228a (modelkoden hentet som zip ved pinnen), df-data 106b9fc, linopy 0.10.0 / highspy 1.15.1, 8 kerner, én kørsel ad gangen på en delt maskine",
+              "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
+              "dato": "2026-11-23",
+              "objektiv_dkk": 3346956.95,
+              "opnaaet_gab": 0.0,
+              "status": "samme objektiv som ved 90fb16e til øren (gab 0 %, 19 s): modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. Øvrige forbehold som ved 90fb16e.",
+              "kilde": "noter/maaling_model_939228a.md"
             }
           ]
         }
@@ -576,7 +662,7 @@
       "id": "rapport_v4",
       "navn": "Rapport v4 (historisk; regnet ved commit 405b428, før rettelserne 19. oktober 2026)",
       "kilde": "doc/rapport_billund_v4.pdf",
-      "advarsel": "Rapportens tal er regnet ved en ældre commit og før rettelserne 19. oktober 2026 (tankens første time, aktiveringsværdien uden spotpris); balancetallene er for høje (README.md:201-204). Hvor README har et tal for samme kørsel, har README forrang.",
+      "advarsel": "Rapportens tal er regnet ved en ældre commit og før rettelserne 19. oktober 2026 (tankens første time, aktiveringsværdien uden spotpris); balancetallene er for høje (README.md:203-206). Hvor README har et tal for samme kørsel, har README forrang.",
       "referencer": [
         {
           "id": "firkant_spot_med_tank",

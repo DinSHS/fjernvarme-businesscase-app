@@ -45,8 +45,15 @@ export interface Reference {
     loesetid: string | null;
     noter: string[];
     kilde: string;
-    /** Modelversionen, tallene er regnet ved (referencetal.json → model_commit); kun kørsler ved den er en måling af dem. */
+    /** Den første af `modelCommits` (til visning); null = ikke oplyst. */
     modelCommit: string | null;
+    /**
+     * Modelversionerne, en kørsel skal være regnet ved for at være en måling af tallet: referencens egen liste
+     * (referencetal.json → referencer[].regnet_ved.model_commits), ellers filens model_commit. null = ikke oplyst (alle tæller).
+     * Runde 15: ved modelrepoets 939228a er README's Spor A-anker regnet igen efter spotrettelsen, mens de fire øvrige tal
+     * er fra før. Med én fælles version ville en gammel kørsel ved eef950a blive dømt "uden for tolerancen" mod det nye tal.
+     */
+    modelCommits: readonly string[] | null;
 }
 
 interface RåReference {
@@ -55,6 +62,7 @@ interface RåReference {
     scenarie: Partial<ReferenceScenarie>;
     case_gab?: { mip_rel_gap?: number | null; mip_abs_gap?: number | null } | null;
     forventet: { objektiv_dkk: number; tolerance_dkk?: number | null; opnaaet_gab_pct?: number | null };
+    regnet_ved?: { model_commits?: unknown } | null;
     loesetid?: string; noter?: string[]; kilde?: string;
 }
 
@@ -66,6 +74,11 @@ export function laesReferencer(json: string): Reference[] {
     return gruppe.referencer.map((r) => {
         if (typeof r.forventet?.objektiv_dkk !== "number") throw new Error(`Referencen ${r.id} mangler et forventet objektiv.`);
         const s = r.scenarie ?? {};
+        const egne = r.regnet_ved?.model_commits;
+        if (egne !== undefined && (!Array.isArray(egne) || egne.length === 0 || !egne.every((c) => typeof c === "string" && /^[0-9a-f]{40}$/.test(c)))) {
+            throw new Error(`Referencen ${r.id}: regnet_ved.model_commits skal være en liste af fulde commits.`);
+        }
+        const modelCommits = (egne as string[] | undefined) ?? (typeof rå.model_commit === "string" ? [rå.model_commit] : null);
         return {
             id: r.id, navn: r.navn, vindue: r.vindue, kode: r.vaerk.kode,
             scenarie: {
@@ -79,7 +92,7 @@ export function laesReferencer(json: string): Reference[] {
             toleranceKr: r.forventet.tolerance_dkk ?? null,
             gabPct: r.forventet.opnaaet_gab_pct ?? null,
             loesetid: r.loesetid ?? null, noter: r.noter ?? [], kilde: r.kilde ?? "",
-            modelCommit: typeof rå.model_commit === "string" ? rå.model_commit : null,
+            modelCommit: modelCommits?.[0] ?? null, modelCommits,
         };
     });
 }
@@ -137,7 +150,22 @@ const tidspunkt = (k: Koersel) => new Date(k.afsluttet ?? k.bestilt ?? 0).getTim
  * 19/10-2026 (eef950a) ligger fx Spor A-ankeret 371.000 kr. højere end ved b49aeb0, uden at nogen af dem er forkert.
  */
 export function kandidater(r: Reference, vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[]): Kandidat[] {
-    return udvalg(r, vaerker, scenarier, koersler, (k) => r.modelCommit === null || k.model_commit === r.modelCommit);
+    return udvalg(r, vaerker, scenarier, koersler, (k) => r.modelCommits === null || vedReferencensVersion(r, k));
+}
+
+const vedReferencensVersion = (r: Reference, k: Koersel) => !!k.model_commit && !!r.modelCommits?.includes(k.model_commit);
+
+/**
+ * Hvilken modelversion tallene kan måles ved, til fodnoten: den fælles først, undtagelser ved referencens navn —
+ * "eef950a; Spor A-anker: 90fb16e eller 939228a". undefined, når ingen version er oplyst.
+ */
+export function versionsTekst(refs: readonly Reference[]): string | undefined {
+    const kort = (r: Reference) => (r.modelCommits ?? []).map((c) => c.slice(0, 7)).join(" eller ");
+    const antal = new Map<string, number>();
+    for (const r of refs) if (r.modelCommits) antal.set(kort(r), (antal.get(kort(r)) ?? 0) + 1);
+    if (antal.size === 0) return undefined;
+    const faelles = [...antal.entries()].sort((a, b) => b[1] - a[1])[0][0];
+    return [faelles, ...refs.filter((r) => r.modelCommits && kort(r) !== faelles).map((r) => `${r.navn}: ${kort(r)}`)].join("; ");
 }
 
 /**
@@ -145,7 +173,7 @@ export function kandidater(r: Reference, vaerker: readonly Vaerk[], scenarier: r
  * stod en gennemført kørsel ved pinnen (90fb16e, efter spotrettelsen) som "ikke kørt endnu" (Codex-review 14/11-2026).
  */
 export function kandidaterVedAndenVersion(r: Reference, vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[]): Kandidat[] {
-    return r.modelCommit === null ? [] : udvalg(r, vaerker, scenarier, koersler, (k) => k.model_commit !== r.modelCommit);
+    return r.modelCommits === null ? [] : udvalg(r, vaerker, scenarier, koersler, (k) => !vedReferencensVersion(r, k));
 }
 
 function udvalg(r: Reference, vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[],

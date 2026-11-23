@@ -14,7 +14,7 @@ import { EmneRamme } from "./EmneRamme";
 import { EmneTekstKort } from "./EmneSide";
 import { useEmneTekst } from "./emneTekst";
 import type { Emne } from "./emner";
-import { sporBBudskab, type RefRække, type RefTilstand, type SporB } from "./referencer";
+import { sporBBudskab, versionsTekst, type RefRække, type RefTilstand, type SporB } from "./referencer";
 import { gabProcent, gabTekst, signedKr, signedProcent } from "./tal";
 import { useReferencetal } from "./useReferencer";
 
@@ -89,7 +89,8 @@ export function ReferencetalSide({ emne, emner, anker }: { emne: Emne; emner: re
     const tekst = useEmneTekst(emne, anker);
     const ref = useReferencetal();
     const sporB = useSporB();
-    const version = ref.data?.raekker[0]?.ref.modelCommit?.slice(0, 7);
+    // Hvert tal har sin version: fra modelrepoets 939228a er Spor A-ankeret regnet efter spotrettelsen, de øvrige før.
+    const version = ref.data ? versionsTekst(ref.data.raekker.map((r) => r.ref)) : undefined;
     const budskab = ref.data ? `${sammenfatning(ref.data.raekker)} ${eksempel(ref.data.raekker) ?? ""}`.trim() : tekst.budskab;
 
     return (
