@@ -122,6 +122,43 @@ class Modproever(unittest.TestCase):
         finally:
             self._gendan(g)
 
+    def test_R15_ny_enhedstype_i_modelscriptet_er_roed_foer_og_efter_genbygning(self):
+        """Runde 15: ved 939228a fik modellen oil_boiler, og gaten var grøn med en app, der ikke kendte typen. En ny
+        type i scriptets tabel skal gøre spejlet rødt — og, når spejlet er bygget igen, typelisten ([5])."""
+        p = self.model / "scripts" / "vaerksark_til_yaml.py"
+        g = self._gem(p, *self._spejlfiler())
+        try:
+            self._ret(p, '"oil_boiler": "fuel_oil",', '"oil_boiler": "fuel_oil",\n    "wood_gasifier": "wood_gas",')
+            self.assertRoed(self.gate(), r"FEJL \[spejl\].*vaerksark_typer")
+            r = self.genbyg()
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertRoed(self.gate(), r"FEJL \[typer\] enhedstypen wood_gasifier står i modelscriptet")
+        finally:
+            self._gendan(g)
+
+    def test_R15_aendret_co2_faktor_i_modelscriptet_er_roed_efter_genbygning(self):
+        """Enhedstypens skabelon bærer scriptets CO2-faktor (0,266 t/MWh fyringsolie); et andet tal i scriptet skal ses."""
+        p = self.model / "scripts" / "vaerksark_til_yaml.py"
+        g = self._gem(p, *self._spejlfiler())
+        try:
+            self._ret(p, '"oil_boiler": 0.266', '"oil_boiler": 0.28')
+            r = self.genbyg()
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertRoed(self.gate(), r"FEJL \[typer\].*oil_boiler.*co2_emissions_per_mwh_fuel.*0\.28")
+        finally:
+            self._gendan(g)
+
+    def test_R15_typetabel_med_anden_form_stopper_genbygningen(self):
+        p = self.model / "scripts" / "vaerksark_til_yaml.py"
+        g = self._gem(p, *self._spejlfiler())
+        try:
+            self._ret(p, "GYLDIGE_TYPER = set(BRAENDSEL_PR_TYPE)", "BRAENDSEL_PR_TYPE = dict(BRAENDSEL_PR_TYPE)\nGYLDIGE_TYPER = set(BRAENDSEL_PR_TYPE)")
+            r = self.genbyg()
+            self.assertNotEqual(r.returncode, 0, r.stdout)
+            self.assertRegex(r.stdout + r.stderr, r"BRAENDSEL_PR_TYPE")
+        finally:
+            self._gendan(g)
+
     def test_F4_skaleringsgraense_uden_genbygning(self):
         p = self.model / "scripts" / "vaerksark_til_yaml.py"
         g = self._gem(p)

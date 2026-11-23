@@ -6,7 +6,7 @@
 import type { Modelspejl } from "./modelspejl";
 
 export const MODELSPEJL: Modelspejl = {
- "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
+ "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
  "cases": {
   "andeby": {
    "fil": "cases/andeby.yaml",

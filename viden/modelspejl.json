@@ -1,6 +1,6 @@
 {
  "_om": "Modelrepoets antagelser, som appen bruger, LÆST ved model_commit (genereres af viden/vaerktoej/byg_modelspejl.py; ret ikke i hånden). tjek_trofasthed.py holder appens værdier op mod dette spejl og spejlet op mod modelrepoet, så en modelopdatering, der ændrer en antagelse, får gaten til at fejle.",
- "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
+ "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
  "data_commit": "106b9fce9a2e3610090b1a542559024056449b88",
  "cases": {
   "andeby": {
@@ -1926,7 +1926,7 @@
       ]
      ],
      "navn": "Spor A-anker",
-     "objektiv_dkk": 5069729
+     "objektiv_dkk": 5204555
     }
    ],
    "standard": {
@@ -1950,7 +1950,7 @@
      ]
     ],
     "navn": "Spor A-anker",
-    "objektiv_dkk": 5069729
+    "objektiv_dkk": 5204555
    },
    "blade": {
     "meta.case_name": [
@@ -6002,27 +6002,27 @@
  "solver": {
   "mip_rel_gap": {
    "vaerdi": 0.005,
-   "kilde": "src/config.py:713"
+   "kilde": "src/config.py:715"
   },
   "mip_abs_gap": {
    "vaerdi": 5000.0,
-   "kilde": "src/config.py:714"
+   "kilde": "src/config.py:716"
   },
   "time_limit": {
    "vaerdi": 600.0,
-   "kilde": "src/config.py:715"
+   "kilde": "src/config.py:717"
   },
   "presolve": {
    "vaerdi": "on",
-   "kilde": "src/config.py:716"
+   "kilde": "src/config.py:718"
   },
   "parallel": {
    "vaerdi": "on",
-   "kilde": "src/config.py:717"
+   "kilde": "src/config.py:719"
   },
   "presolve_rule_off": {
    "vaerdi": null,
-   "kilde": "src/config.py:722"
+   "kilde": "src/config.py:724"
   }
  },
  "standarder": [
@@ -6312,189 +6312,194 @@
    "kilde": "src/config.py:607"
   },
   {
+   "navn": "fuel_oil",
+   "vaerdi": null,
+   "kilde": "src/config.py:608"
+  },
+  {
    "navn": "tariff_consumption",
    "vaerdi": null,
-   "kilde": "src/config.py:639"
+   "kilde": "src/config.py:641"
   },
   {
    "navn": "dmi_temp_shortname",
    "vaerdi": "temp_mean_past1h",
-   "kilde": "src/config.py:678"
+   "kilde": "src/config.py:680"
   },
   {
    "navn": "eur_dkk",
    "vaerdi": 7.45,
-   "kilde": "src/config.py:679"
+   "kilde": "src/config.py:681"
   },
   {
    "navn": "mip_rel_gap",
    "vaerdi": 0.005,
-   "kilde": "src/config.py:713"
+   "kilde": "src/config.py:715"
   },
   {
    "navn": "mip_abs_gap",
    "vaerdi": 5000.0,
-   "kilde": "src/config.py:714"
+   "kilde": "src/config.py:716"
   },
   {
    "navn": "time_limit",
    "vaerdi": 600.0,
-   "kilde": "src/config.py:715"
+   "kilde": "src/config.py:717"
   },
   {
    "navn": "presolve",
    "vaerdi": "on",
-   "kilde": "src/config.py:716"
+   "kilde": "src/config.py:718"
   },
   {
    "navn": "parallel",
    "vaerdi": "on",
-   "kilde": "src/config.py:717"
+   "kilde": "src/config.py:719"
   },
   {
    "navn": "presolve_rule_off",
    "vaerdi": null,
-   "kilde": "src/config.py:722"
+   "kilde": "src/config.py:724"
   },
   {
    "navn": "investment_enabled",
    "vaerdi": false,
-   "kilde": "src/config.py:763"
+   "kilde": "src/config.py:765"
   },
   {
    "navn": "shared_reserve_cap_mw",
    "vaerdi": null,
-   "kilde": "src/config.py:772"
+   "kilde": "src/config.py:774"
   },
   {
    "navn": "balancing_method",
    "vaerdi": "legacy",
-   "kilde": "src/config.py:776"
+   "kilde": "src/config.py:778"
   },
   {
    "navn": "bid_strategy",
    "vaerdi": null,
-   "kilde": "src/config.py:777"
+   "kilde": "src/config.py:779"
   },
   {
    "navn": "ancillary_caps",
    "vaerdi": null,
-   "kilde": "src/config.py:781"
+   "kilde": "src/config.py:783"
   },
   {
    "navn": "reservation_gate",
    "vaerdi": null,
-   "kilde": "src/config.py:785"
+   "kilde": "src/config.py:787"
   },
   {
    "navn": "availability",
    "vaerdi": null,
-   "kilde": "src/config.py:789"
+   "kilde": "src/config.py:791"
   },
   {
    "navn": "robust_reservation",
    "vaerdi": true,
-   "kilde": "src/config.py:792"
+   "kilde": "src/config.py:794"
   },
   {
    "navn": "grid_max_consumption_mw",
    "vaerdi": null,
-   "kilde": "src/config.py:799"
+   "kilde": "src/config.py:801"
   },
   {
    "navn": "data",
    "vaerdi": null,
-   "kilde": "src/config.py:802"
+   "kilde": "src/config.py:804"
   },
   {
    "navn": "balancing",
    "vaerdi": {},
-   "kilde": "src/config.py:983"
+   "kilde": "src/config.py:986"
   },
   {
    "navn": "method",
    "vaerdi": "legacy",
-   "kilde": "src/config.py:993"
+   "kilde": "src/config.py:996"
   },
   {
    "navn": "robust_reservation",
    "vaerdi": true,
-   "kilde": "src/config.py:992"
+   "kilde": "src/config.py:995"
   },
   {
    "navn": "solver",
    "vaerdi": {},
-   "kilde": "src/config.py:1125"
+   "kilde": "src/config.py:1128"
   },
   {
    "navn": "grid",
    "vaerdi": {},
-   "kilde": "src/config.py:1134"
+   "kilde": "src/config.py:1137"
   },
   {
    "navn": "ancillary_groups",
    "vaerdi": {},
-   "kilde": "src/config.py:972"
+   "kilde": "src/config.py:975"
   },
   {
    "navn": "foresight",
    "vaerdi": "realized",
-   "kilde": "src/config.py:1065"
+   "kilde": "src/config.py:1068"
   },
   {
    "navn": "settle",
    "vaerdi": "forecast",
-   "kilde": "src/config.py:1066"
+   "kilde": "src/config.py:1069"
   },
   {
    "navn": "enabled",
    "vaerdi": false,
-   "kilde": "src/config.py:1153"
+   "kilde": "src/config.py:1156"
   },
   {
    "navn": "ancillary",
    "vaerdi": {},
-   "kilde": "src/config.py:958"
+   "kilde": "src/config.py:961"
   },
   {
    "navn": "per_unit_mw",
    "vaerdi": {},
-   "kilde": "src/config.py:1008"
+   "kilde": "src/config.py:1011"
   },
   {
    "navn": "per_unit_market_mw",
    "vaerdi": {},
-   "kilde": "src/config.py:1009"
+   "kilde": "src/config.py:1012"
   },
   {
    "navn": "mode",
    "vaerdi": "driven",
-   "kilde": "src/config.py:1045"
+   "kilde": "src/config.py:1048"
   },
   {
    "navn": "mode",
    "vaerdi": "hourly",
-   "kilde": "src/config.py:1093"
+   "kilde": "src/config.py:1096"
   },
   {
    "navn": "enabled",
    "vaerdi": false,
-   "kilde": "src/config.py:1044"
+   "kilde": "src/config.py:1047"
   },
   {
    "navn": "enabled",
    "vaerdi": false,
-   "kilde": "src/config.py:1092"
+   "kilde": "src/config.py:1095"
   },
   {
    "navn": "investment",
    "vaerdi": {},
-   "kilde": "src/config.py:1153"
+   "kilde": "src/config.py:1156"
   },
   {
    "navn": "balancing",
    "vaerdi": {},
-   "kilde": "src/config.py:1154"
+   "kilde": "src/config.py:1157"
   },
   {
    "navn": "rows",
@@ -6802,7 +6807,7 @@
   "ellers": 1.0,
   "divisor_gwh": 100.0,
   "afrunding": 4,
-  "kilde": "scripts/vaerksark_til_yaml.py:1581",
+  "kilde": "scripts/vaerksark_til_yaml.py:1600",
   "gaf_mw_per_k": 0.7653,
   "nettab_slope_mw_per_k": 0.4768,
   "baseline_profile_mw": [
@@ -6843,8 +6848,75 @@
    "t_net": 12.0,
    "weekly_dip": 0.02
   },
-  "kilde_grundtal": "scripts/vaerksark_til_yaml.py:1582-1598",
+  "kilde_grundtal": "scripts/vaerksark_til_yaml.py:1601-1617",
   "kilde_tekst": "f = round(aarsvolumen / 100.0, 4) if aarsvolumen > 1 else 1.0\nandeby_profil = [4.437, 4.500, 4.602, 4.767, 4.822, 5.112,\n                     5.590, 5.606, 5.355, 4.955, 4.775, 4.696,\n                     4.563, 4.469, 4.414, 4.359, 4.430, 4.602,\n                     4.728, 4.767, 4.735, 4.728, 4.610, 4.390]\nheat_params = {\n        \"gaf_mw_per_k\": round(0.7653 * f, 4),\n        \"t_ref\": 15.0,\n        \"thermal_inertia_hours\": 24,\n        \"nettab_slope_mw_per_k\": round(0.4768 * f, 4),\n        \"t_net\": 12.0,\n        \"baseline_profile_mw\": [round(v * f, 3) for v in andeby_profil],\n        \"weekly_dip\": 0.02,\n        \"_source\": (f\"Andeby-kalibrering skaleret med {f} til {aarsvolumen:.1f} GWh/år. \"\n                    \"BEMÆRK: en skaleret døgnprofil, ikke en kalibrering på jeres \"\n                    \"egne data. Bruges kun ved kørsel uden --heat-csv. Vil I have \"\n                    \"rigtige parametre, så kør scripts/calibrate_heat_load.py.\"),\n    }"
+ },
+ "vaerksark_typer": {
+  "braendsel_pr_type": {
+   "heat_pump": "electricity",
+   "electric_boiler": "electricity",
+   "biomass_boiler": null,
+   "gas_boiler": "natural_gas",
+   "gas_engine_chp": "natural_gas",
+   "oil_boiler": "fuel_oil",
+   "solar_thermal": "solar",
+   "waste_heat": "waste_heat"
+  },
+  "co2_pr_mwh_braendsel": {
+   "gas_boiler": 0.2,
+   "gas_engine_chp": 0.2,
+   "oil_boiler": 0.266
+  },
+  "braendsel_ord": {
+   "gas_boiler": [
+    "gas",
+    "naturgas"
+   ],
+   "gas_engine_chp": [
+    "gas",
+    "naturgas"
+   ],
+   "oil_boiler": [
+    "fyringsolie",
+    "gasolie",
+    "olie"
+   ],
+   "heat_pump": [
+    "el"
+   ],
+   "electric_boiler": [
+    "el"
+   ],
+   "solar_thermal": [
+    "sol",
+    "solvarme"
+   ],
+   "waste_heat": [
+    "overskudsvarme"
+   ]
+  },
+  "biomasse": {
+   "halm": "straw",
+   "træpiller": "wood_pellets",
+   "flis": "flis"
+  },
+  "prisetiketter": {
+   "naturgas": "natural_gas",
+   "halm": "straw",
+   "træpiller": "wood_pellets",
+   "flis": "flis",
+   "overskudsvarme": "waste_heat",
+   "fyringsolie": "fuel_oil",
+   "gasolie": "fuel_oil",
+   "olie": "fuel_oil"
+  },
+  "kilde": {
+   "braendsel_pr_type": "scripts/vaerksark_til_yaml.py:74",
+   "co2_pr_mwh_braendsel": "scripts/vaerksark_til_yaml.py:90",
+   "braendsel_ord": "scripts/vaerksark_til_yaml.py:99",
+   "biomasse": "scripts/vaerksark_til_yaml.py:95",
+   "prisetiketter": "scripts/vaerksark_til_yaml.py:1212"
+  }
  },
  "budstrategi": {
   "fil": "doc/BUDSTRATEGI.md",
