@@ -131,6 +131,13 @@ præsentationen og i datahåndteringen omkring kørslerne.
   den kørsel, der alene bærer ændringen, ellers af valgets rækkefølge; en skabelon genkendes kun i den retning.
   Kan den ikke genkendes, gives ingen anbefaling, men tal og fortegn følger det valgte par. På scenariets side
   fortælles historien i sidens roller, også når det er referencen, der bærer ændringen.
+- ***Information › Referencetal* kunne dømme et ændret grundlag mod README-tallet** (kodegennemgangen af runde 15).
+  Siden læste scenariet, som det så ud nu, og dets nuværende antal ændringer, og så hverken på værket eller på
+  df-data: en kørsel af en rettet Spor A-case (værk i revision 2) stod som "uden for tolerancen" mod 5.204.555 kr., og
+  en kørsel bestilt med en ændring fremstod som ren, når ændringen siden var fjernet fra scenariet. Nu er der én
+  kvalifikation pr. README-reference, på kørslens frosne felter, og både *Referencetal* og mærket *README-reference*
+  i Analysers kørselsliste bruger den. En uændret kørsel på et grundlag, der ikke er bekræftet som README's, står som
+  *kørt på et andet grundlag* uden afvigelse.
 - **En afvist bestilling efterlod `Scenarie` og `Bestilling`.** Solprofilens dækning tjekkes nu, før noget oprettes
   (med backendens regel). Bliver en bestilling alligevel afvist, afhænger resten af udgaven:
   - *Lokal udgave:* den betroede logik sletter bestillingen i den samme transaktion, som afviser den — under en lås

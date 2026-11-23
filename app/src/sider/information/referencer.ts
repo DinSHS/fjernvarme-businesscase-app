@@ -2,9 +2,11 @@
 // Referencetal: README's tabel (viden/referencetal.json, gruppen "readme") sammenholdt med de kørsler,
 // der findes i databasen. Ren logik — ingen React — så den kan testes mod de rigtige tal.
 //
-// En kørsel regnes som "samme reference", når den har samme VÆRK og et scenarie med samme periode,
-// balancering, balanceringsmetode, varmelast og flag — og scenariet har ingen ændringer — og kørslen er
-// regnet med SAMME ELLER STRAMMERE solvergab end casens eget. Ellers ville en kørsel af "Spor A uden tank"
+// En kørsel er en MÅLING af et referencetal, når dens FROSNE input har referencens opsætning (periode,
+// balancering, balanceringsmetode, varmelast og flag) og ingen scenarieændringer, værket er repo-casen uændret,
+// modelversionen er en af referencens, df-data er kendt og ny nok — og kørslen er regnet med SAMME ELLER STRAMMERE
+// solvergab end casens eget. Det er ÉN regel (`kvalificer`), og både Information › Referencetal og Analysers
+// kørselsliste bruger den (kodegennemgangen af runde 15, fund 6). Ellers ville en kørsel af "Spor A uden tank"
 // stå som Spor A-ankeret, og en forskel i objektiv ville se ud som en fejl i modellen i stedet for den
 // forskel, den er. Gab og tidsgrænse er solverens indstillinger og indgår derfor ikke i "samme opsætning":
 // en strammere kørsel er en lige så god (og ofte bedre) måling af det samme tal. HiGHS minimerer, så objektivet kan kun være for
@@ -12,6 +14,8 @@
 //-----------------------------------------------------------------------
 
 import type { FjvSchema } from "../../../rayfin/data/schema";
+import { KOERSEL_PRAEFIKS, effektivtInput, type InputRække } from "@/lib/data/afflad";
+import { README_PINS } from "../analyser/sammensaetning.data";
 
 type Koersel = FjvSchema["Koersel"];
 type Scenarie = FjvSchema["Scenarie"];
@@ -100,8 +104,9 @@ export function laesReferencer(json: string): Reference[] {
 const ens = <T>(a: T | null | undefined, b: T | null | undefined) => (a ?? null) === (b ?? null);
 
 /**
- * Har scenariet referencens opsætning (periode, balancering, metode, varmelast, flag)? Solverens gab og tidsgrænse
- * sammenlignes ikke her, men i `kørslensGab`. Ændringer kontrolleres separat (`byggRaekker`).
+ * Har opsætningen referencens felter (periode, balancering, metode, varmelast, flag)? `s` er den FROSNE opsætning
+ * (`frossenOpsaetning`), ikke det levende scenarie. Solverens gab og tidsgrænse sammenlignes ikke her, men i
+ * `kørslensGab`; ændringer, værk, version og df-data i `kvalificer`.
  */
 export function harReferencensOpsaetning(s: Scenarie, r: Reference): boolean {
     const x = r.scenarie;
@@ -126,8 +131,9 @@ const EPS = 1e-12;
 const num = (v: number | null | undefined): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
 /**
- * Kørslens effektive gab: det frosne (`oensket_*_gap`), ellers scenariets eget, ellers casens (= README). Et
- * gab, der ikke kan afgøres, regnes som casens — det er det, kørslen faktisk bruger, når intet er sat.
+ * Kørslens effektive gab: det frosne på rækken (`oensket_*_gap`), ellers det frosne inputs eget (`s` =
+ * `frossenOpsaetning`), ellers casens (= README). Et gab, der ikke kan afgøres, regnes som casens — det er det,
+ * kørslen faktisk bruger, når intet er sat.
  */
 export function kørslensGab(k: Koersel, s: Scenarie, r: Reference): KoerselGab {
     const rel = num(k.oensket_rel_gap) ?? num(s.mip_rel_gap) ?? r.caseGab.rel;
@@ -140,20 +146,89 @@ export function kørslensGab(k: Koersel, s: Scenarie, r: Reference): KoerselGab 
     return { rel, abs, opnaaet: num(k.opnaaet_gap), erTilladt: relOk && absOk, erStrammere: relOk && absOk && (relStram || absStram) };
 }
 
-export interface Kandidat { koersel: Koersel; scenarie: Scenarie; gab: KoerselGab }
+// ================================================================= én kvalifikation pr. reference (frosne felter)
 
-const tidspunkt = (k: Koersel) => new Date(k.afsluttet ?? k.bestilt ?? 0).getTime();
+/** Det, README-genkendelsen behøver om værket (Vaerk-rækken). */
+export interface VaerkKilde { kilde: string; repo_commit?: string | null }
 
 /**
- * Færdige kørsler af referencens værk ved referencetallenes modelversion, med referencens opsætning og samme eller
- * strammere gab, nyeste først. En kørsel ved en anden modelversion er ikke en måling af tallet: efter rettelserne
- * 19/10-2026 (eef950a) ligger fx Spor A-ankeret 371.000 kr. højere end ved b49aeb0, uden at nogen af dem er forkert.
+ * Scenariefelterne, som kørslen FAKTISK fik dem (det frosne input, Codex K5-F9) — ikke det levende
+ * scenarie, som kan være rettet bagefter. Formen er `Scenarie`s, så `harReferencensOpsaetning` kan bruges uændret.
+ * Kun rækker med kilde `scenarie`/`aendring` læses, så de er nok (værkets blade behøver ikke at være hentet).
  */
-export function kandidater(r: Reference, vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[]): Kandidat[] {
-    return udvalg(r, vaerker, scenarier, koersler, (k) => r.modelCommits === null || vedReferencensVersion(r, k));
+export function frossenOpsaetning(input: readonly InputRække[]): Scenarie {
+    const e = effektivtInput(input);
+    const flag = (n: string): unknown => { const j = e.flag.get(n); if (j === undefined) return null; try { return JSON.parse(j); } catch { return j; } };
+    const str = (v: unknown) => (typeof v === "string" ? v : Array.isArray(v) ? v.join(" ") : null);
+    const num = (sti: string) => { const r = input.find((x) => x.kilde !== "vaerk" && x.sti === sti); const v = r ? Number(JSON.parse(r.vaerdi_json)) : NaN; return Number.isFinite(v) ? v : null; };
+    return {
+        periode_start: str(flag("start")), periode_slut: str(flag("slut")), med_balancering: flag("med_balancering") === true,
+        balancing_method: str(flag("balancing_method")), ekstra_flag: str(flag("ekstra_flag")), heat_csv: str(flag("heat_csv")),
+        mip_rel_gap: num("solver.mip_rel_gap"), mip_abs_gap: num("solver.mip_abs_gap"), tidsgraense_s: num("solver.time_limit"),
+    } as Scenarie;
 }
 
-const vedReferencensVersion = (r: Reference, k: Koersel) => !!k.model_commit && !!r.modelCommits?.includes(k.model_commit);
+/**
+ * Om en kørsel er en MÅLING af et README-referencetal — den ene kvalifikation, både Information › Referencetal og
+ * Analysers kørselsliste bruger (kodegennemgangen af runde 15, fund 6). Alt læses af det, der blev frosset for
+ * kørslen: rækkens egne felter og det frosne input — aldrig af scenariet, som det ser ud nu.
+ *
+ * Før havde Information sin egen regel på det LEVENDE scenarie og dets nuværende antal ændringer, og den så hverken
+ * på værket eller på df-data: en kørsel af en ændret Spor A-case i revision 2 blev dømt "uden for tolerancen" mod
+ * README's 5.204.555 kr., og en kørsel med en ændring fremstod som ren, når ændringen siden var fjernet fra scenariet.
+ */
+export interface Kvalifikation {
+    /** Det frosne input kendes, og opsætningen er referencens (periode, balancering, metode, varmelast, flag). */
+    opsaetning: boolean;
+    /** Kørslen har ingen frosne scenarieændringer (ingen rækker med kilde `aendring`). */
+    uaendret: boolean;
+    /** Samme eller strammere gab end casens eget (`gab.erTilladt`). */
+    gab: KoerselGab;
+    /** Regnet ved en af referencens modelversioner. */
+    version: boolean;
+    /** Værket er repo-casen uændret: kilde `repo`, revision 1, importeret ved en af referencens modelversioner. */
+    vaerk: boolean;
+    /** df-data-commit'en er kendt med målt dato, og datoen ligger efter README's datakrav. */
+    data: boolean;
+    /** Alt ovenfor: kørslen er en måling af README-tallet, og en afvigelse må regnes. */
+    maaling: boolean;
+}
+
+export function kvalificer(r: Reference, k: Koersel, input: readonly InputRække[], vaerk: VaerkKilde | undefined): Kvalifikation {
+    // Hver bestilling fryser `_koersel.med_balancering` (logik.ts › bygFrossetInput). Uden den kendes det frosne input
+    // ikke (ikke hentet, eller en kørsel uden input) — og så kan opsætningen ikke bekræftes.
+    const kendt = input.some((x) => x.kilde !== "vaerk" && x.sti === `${KOERSEL_PRAEFIKS}med_balancering`);
+    const frossen = frossenOpsaetning(input);
+    const gab = kørslensGab(k, frossen, r);
+    const pin = (navn: "model_commit" | "data_commit") => (k[navn] ?? (() => { try { const x = input.find((y) => y.sti === `${KOERSEL_PRAEFIKS}${navn}`); return x ? JSON.parse(x.vaerdi_json) as string : null; } catch { return null; } })())?.toLowerCase() ?? null;
+    const versioner = r.modelCommits ?? [README_PINS.model_commit];
+    const model = pin("model_commit"), data = pin("data_commit"), importeret = vaerk?.repo_commit?.toLowerCase();
+    const dato = data ? README_PINS.df_data_kendt[data] : undefined;
+    const q = {
+        opsaetning: kendt && harReferencensOpsaetning(frossen, r),
+        uaendret: !input.some((x) => x.kilde === "aendring"),
+        gab,
+        version: !!model && versioner.includes(model),
+        vaerk: !!vaerk && vaerk.kilde === "repo" && !!importeret && versioner.includes(importeret) && k.vaerk_revision === 1,
+        data: !!dato && dato >= README_PINS.df_data_fra,
+    };
+    return { ...q, maaling: q.opsaetning && q.uaendret && gab.erTilladt && q.version && q.vaerk && q.data };
+}
+
+/**
+ * De tre krav ud over opsætning, ændringer og gab (Codex K5-F9): værket er repo-casen uændret, kørslen er regnet ved
+ * en af REFERENCENS modelversioner (runde 15: Spor A-ankeret måles ved 90fb16e eller 939228a, de fire øvrige ved
+ * eef950a), og df-data er kendt og ny nok. Uden `r` (eller uden oplyste versioner) gælder filens fælles version.
+ */
+export function readmePins(k: Koersel, input: readonly InputRække[], vaerk: VaerkKilde | undefined, r?: Pick<Reference, "modelCommits">): boolean {
+    const q = kvalificer({ modelCommits: r?.modelCommits ?? null, scenarie: {}, caseGab: { rel: null, abs: null } } as unknown as Reference, k, input, vaerk);
+    return q.version && q.vaerk && q.data;
+}
+
+/** En kørsel af referencens værk med referencens frosne opsætning og et tilladt gab — og hvad den ellers opfylder. */
+export interface Kandidat { koersel: Koersel; gab: KoerselGab; kvalifikation: Kvalifikation }
+
+const tidspunkt = (k: Koersel) => new Date(k.afsluttet ?? k.bestilt ?? 0).getTime();
 
 /**
  * Hvilken modelversion tallene kan måles ved, til fodnoten: den fælles først, undtagelser ved referencens navn —
@@ -169,26 +244,24 @@ export function versionsTekst(refs: readonly Reference[]): string | undefined {
 }
 
 /**
- * Samme udvalg ved en ANDEN modelversion end referencetallenes. De er ikke en måling af tallet, men de er kørt: uden dem
- * stod en gennemført kørsel ved pinnen (90fb16e, efter spotrettelsen) som "ikke kørt endnu" (Codex-review 14/11-2026).
+ * Færdige kørsler af referencens værk med et objektiv — dem, hvis frosne input skal hentes, før de kan kvalificeres
+ * (`byggRaekker`). Kun rækkens egne felter bruges her.
  */
-export function kandidaterVedAndenVersion(r: Reference, vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[]): Kandidat[] {
-    return r.modelCommits === null ? [] : udvalg(r, vaerker, scenarier, koersler, (k) => !vedReferencensVersion(r, k));
+export function kandidatKoersler(refs: readonly Reference[], vaerker: readonly Vaerk[], koersler: readonly Koersel[]): Koersel[] {
+    const ider = new Set(vaerker.filter((v) => refs.some((r) => r.kode === v.kode)).map((v) => v.id));
+    return koersler.filter((k) => ider.has(k.vaerk_id) && k.status === "faerdig" && typeof k.objektiv_dkk === "number");
 }
 
-function udvalg(r: Reference, vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[],
-    version: (k: Koersel) => boolean): Kandidat[] {
+/**
+ * Kørslerne af referencens værk med referencens frosne opsætning og et tilladt gab, nyeste først, hver med sin
+ * kvalifikation. `input` er det frosne input pr. kørsels-id (rækkerne med kilde `scenarie`/`aendring` er nok).
+ */
+export function kandidater(r: Reference, vaerker: readonly Vaerk[], koersler: readonly Koersel[], input: ReadonlyMap<string, readonly InputRække[]>): Kandidat[] {
     const vaerk = vaerker.find((v) => v.kode === r.kode);
     if (!vaerk) return [];
-    const scen = new Map(scenarier.map((s) => [s.id, s]));
-    return koersler
-        .filter((k) => k.vaerk_id === vaerk.id && k.status === "faerdig" && typeof k.objektiv_dkk === "number" && version(k))
-        .flatMap((k): Kandidat[] => {
-            const s = scen.get(k.scenarie_id);
-            if (!s || !harReferencensOpsaetning(s, r)) return [];
-            const gab = kørslensGab(k, s, r);
-            return gab.erTilladt ? [{ koersel: k, scenarie: s, gab }] : [];
-        })
+    return kandidatKoersler([r], [vaerk], koersler)
+        .map((k): Kandidat => { const q = kvalificer(r, k, input.get(k.id) ?? [], vaerk); return { koersel: k, gab: q.gab, kvalifikation: q }; })
+        .filter((x) => x.kvalifikation.opsaetning && x.gab.erTilladt)
         .sort((a, b) => tidspunkt(b.koersel) - tidspunkt(a.koersel));
 }
 
@@ -217,15 +290,22 @@ export function vurder(r: Reference, fabric: number): Vurdering {
 }
 
 export type RefTilstand =
-    /** Ingen færdig kørsel med referencens opsætning. */
+    /** Ingen færdig kørsel med referencens frosne opsætning. */
     | "ikke-koert"
-    /** Der findes kørsler af værket med samme felter, men alle er scenarier med ændringer: ingen af dem er referencen. */
+    /** Der findes kørsler med referencens opsætning, men alle har frosne scenarieændringer: ingen af dem er referencen. */
     | "aendret"
-    /** Kun rene kørsler ved en anden modelversion end referencetallenes: kørt, men kan ikke sammenlignes (ingen vurdering). */
+    /**
+     * En uændret kørsel med referencens opsætning findes ved referencens modelversion, men GRUNDLAGET er ikke bekræftet
+     * som README's: værket er ikke repo-casen uændret (rettet, kopieret eller importeret ved en anden version), eller
+     * df-data er ukendt eller for gammel. Kørt, men ingen afvigelse — en forskel ville måle grundlaget, ikke modellen
+     * (gennemgangens fund 6).
+     */
+    | "andet-grundlag"
+    /** Kun uændrede kørsler ved en anden modelversion end referencetallenes: kørt, men kan ikke sammenlignes. */
     | "anden-version"
     | "indenfor"
     | "udenfor"
-    /** En ren kørsel findes, men README angiver ingen tolerance at måle den mod. */
+    /** En måling findes, men README angiver ingen tolerance at måle den mod. */
     | "uafgoerligt";
 
 export interface RefRække {
@@ -235,34 +315,39 @@ export interface RefRække {
     tilstand: RefTilstand;
 }
 
-/**
- * Pr. reference: den nyeste kandidat uden scenarie-ændringer. `aendringer` er antal ændringer pr. scenarie-id
- * (et scenarie uden række i kortet regnes som uden ændringer — kortet skal derfor være bygget af ALLE kandidaters id'er,
- * også dem ved en anden modelversion: `kandidatScenarier`). Findes ingen ren kørsel ved referencetallenes version, men en ved en
- * anden, er tilstanden "anden-version": kørt, men uden vurdering, fordi tallene ikke kan sammenlignes.
- */
-export function byggRaekker(refs: readonly Reference[], vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[],
-    aendringer: ReadonlyMap<string, number>): RefRække[] {
-    return refs.map((ref) => {
-        const alle = kandidater(ref, vaerker, scenarier, koersler);
-        const ren = alle.find((k) => (aendringer.get(k.scenarie.id) ?? 0) === 0);
-        if (!ren) {
-            const andre = kandidaterVedAndenVersion(ref, vaerker, scenarier, koersler);
-            const andenRen = andre.find((k) => (aendringer.get(k.scenarie.id) ?? 0) === 0);
-            // Rækkefølgen: ren ved referencens version > ren ved en anden > ændret > ikke kørt. En ÆNDRET kørsel ved
-            // referencens version må ikke skjule en REN ved en anden (Codex-efterreview 14/11-2026).
-            if (andenRen) return { ref, kandidat: andenRen, tilstand: "anden-version" } satisfies RefRække;
-            return { ref, kandidat: alle[0] ?? andre[0], tilstand: alle.length || andre.length ? "aendret" : "ikke-koert" } satisfies RefRække;
-        }
-        const vurdering = vurder(ref, ren.koersel.objektiv_dkk as number);
-        return { ref, kandidat: ren, vurdering, tilstand: vurdering.indenfor === null ? "uafgoerligt" : vurdering.indenfor ? "indenfor" : "udenfor" } satisfies RefRække;
-    });
+/** Hvad en kandidat mangler for at have README's grundlag, i klartekst (til "andet-grundlag"). */
+export function grundlagTekst(q: Kvalifikation): string {
+    const dele = [
+        ...(q.vaerk ? [] : ["værket er ikke modelrepoets case uændret (rettet, kopieret eller importeret ved en anden modelversion)"]),
+        ...(q.data ? [] : ["kørslens df-data er ikke en af de versioner, hvis dato er målt til at opfylde README's datakrav"]),
+    ];
+    return dele.join("; ");
 }
 
-/** Scenarie-id'er, der skal tjekkes for ændringer, før en kandidat må kaldes en ren reference. */
-export function kandidatScenarier(refs: readonly Reference[], vaerker: readonly Vaerk[], scenarier: readonly Scenarie[], koersler: readonly Koersel[]): string[] {
-    return [...new Set(refs.flatMap((r) => [...kandidater(r, vaerker, scenarier, koersler), ...kandidaterVedAndenVersion(r, vaerker, scenarier, koersler)]
-        .map((k) => k.scenarie.id)))];
+/**
+ * Pr. reference: den nyeste kørsel, der er en MÅLING af tallet (`kvalificer`), med afvigelsen. Findes ingen, siger
+ * tilstanden hvorfor, i denne orden: uændret ved referencens version, men grundlaget er ikke bekræftet > uændret ved
+ * en anden modelversion > kun ændrede > ikke kørt. En ÆNDRET kørsel ved referencens version må ikke skjule en UÆNDRET
+ * ved en anden (Codex-efterreview 14/11-2026). En afvigelse regnes kun for en måling.
+ */
+export function byggRaekker(refs: readonly Reference[], vaerker: readonly Vaerk[], koersler: readonly Koersel[],
+    input: ReadonlyMap<string, readonly InputRække[]>): RefRække[] {
+    return refs.map((ref) => {
+        const alle = kandidater(ref, vaerker, koersler, input);
+        const maaling = alle.find((x) => x.kvalifikation.maaling);
+        if (maaling) {
+            const vurdering = vurder(ref, maaling.koersel.objektiv_dkk as number);
+            return { ref, kandidat: maaling, vurdering, tilstand: vurdering.indenfor === null ? "uafgoerligt" : vurdering.indenfor ? "indenfor" : "udenfor" } satisfies RefRække;
+        }
+        const rene = alle.filter((x) => x.kvalifikation.uaendret);
+        // Ved referencens version, men ikke en måling: så er det værket eller df-data, der ikke er bekræftet.
+        const vedVersionen = rene.find((x) => x.kvalifikation.version);
+        if (vedVersionen) return { ref, kandidat: vedVersionen, tilstand: "andet-grundlag" } satisfies RefRække;
+        // Ved en anden version kan tallene slet ikke sammenlignes — uanset grundlaget (en installation ved pinnen har
+        // også værket importeret ved pinnen, og det er versionen, brugeren skal høre om).
+        if (rene[0]) return { ref, kandidat: rene[0], tilstand: "anden-version" } satisfies RefRække;
+        return { ref, kandidat: alle[0], tilstand: alle.length ? "aendret" : "ikke-koert" } satisfies RefRække;
+    });
 }
 
 //-- Spor B mod Billunds afregning (rapport v4 tabel 5.1) ----------------------

@@ -16,9 +16,9 @@
 // rækkefølge. Røgtests parres ikke og står for sig.
 //-----------------------------------------------------------------------
 
-import { effektivtInput, KOERSEL_PRAEFIKS, type InputRække } from "@/lib/data/afflad";
+import type { InputRække } from "@/lib/data/afflad";
 import { tal } from "@/lib/format";
-import { harReferencensOpsaetning, kørslensGab, laesReferencer, type Reference } from "../information/referencer";
+import { frossenOpsaetning, kvalificer, laesReferencer, type Reference, type VaerkKilde } from "../information/referencer";
 import { KOERSEL_STATUSSER } from "../../../rayfin/data/fjv.constants";
 import { aendringsfraser, doegn, findPar, vurder, type Kategori, type Par, type Side, type Vurdering } from "./anbefaling";
 import { KNAPPER } from "./anbefaling.data";
@@ -26,7 +26,7 @@ import { modtaget, spor, type Koersel, type Scenarie } from "./beregn";
 import { varmelastKilde, type Tidsserienavne } from "./datagrundlag";
 import { periodeTekst } from "./fmt";
 import { aendringsResume } from "./kandidater";
-import { DEMO_KOERSLER, DEMO_PAR, README_PINS, README_REFERENCER_JSON } from "./sammensaetning.data";
+import { DEMO_KOERSLER, DEMO_PAR, README_REFERENCER_JSON } from "./sammensaetning.data";
 
 // ================================================================= oprindelse
 
@@ -67,51 +67,16 @@ const TESTNAVN = /^(probe[-_ ]|test k\d+\b)/i;
 /** Kontrolkørsler fra opsætningen (fv-fabrics trin F1–F5), der ikke genskaber et README-tal. */
 const KONTROLNAVN = /^F\d+\s/;
 
-/** Det, README-genkendelsen behøver om værket (Vaerk-rækken). */
-export interface VaerkKilde { kilde: string; repo_commit?: string | null }
-
-/**
- * Scenariefelterne, som kørslen FAKTISK fik dem (det frosne input, Codex K5-F9) — ikke det levende
- * scenarie, som kan være rettet bagefter. Formen er `Scenarie`s, så fv-doku's regel kan bruges uændret.
- */
-export function frossenOpsaetning(input: readonly InputRække[]): Scenarie {
-    const e = effektivtInput(input);
-    const flag = (n: string): unknown => { const j = e.flag.get(n); if (j === undefined) return null; try { return JSON.parse(j); } catch { return j; } };
-    const str = (v: unknown) => (typeof v === "string" ? v : Array.isArray(v) ? v.join(" ") : null);
-    const num = (sti: string) => { const r = input.find((x) => x.kilde !== "vaerk" && x.sti === sti); const v = r ? Number(JSON.parse(r.vaerdi_json)) : NaN; return Number.isFinite(v) ? v : null; };
-    return {
-        periode_start: str(flag("start")), periode_slut: str(flag("slut")), med_balancering: flag("med_balancering") === true,
-        balancing_method: str(flag("balancing_method")), ekstra_flag: str(flag("ekstra_flag")), heat_csv: str(flag("heat_csv")),
-        mip_rel_gap: num("solver.mip_rel_gap"), mip_abs_gap: num("solver.mip_abs_gap"), tidsgraense_s: num("solver.time_limit"),
-    } as Scenarie;
-}
-
-/**
- * README-mærket kræver mere end ens scenariefelter (Codex K5-F9): værket skal være repo-casen uændret
- * (kilde `repo`, revision 1, importeret ved en af REFERENCENS modelversioner), kørslen skal være regnet ved en af
- * dem, og df-data-commit'ens dato skal være målt og ligge efter README's datakrav.
- *
- * Runde 15: versionerne er referencens egne (`Reference.modelCommits`: referencens `regnet_ved.model_commits`,
- * ellers filens `model_commit`). Ved modelrepoets 939228a er README's Spor A-anker regnet igen efter spotrettelsen
- * (måles ved 90fb16e eller 939228a), mens de fire øvrige tal er fra før (eef950a). Med én fælles version
- * (`README_PINS.model_commit`) fik en Spor A-kørsel ved pinnen ikke mærket — og en gammel ved eef950a fik det
- * fejlagtigt mod det nye tal. Uden `r` (eller uden oplyste versioner) gælder filens fælles version.
- */
-export function readmePins(k: Koersel, input: readonly InputRække[], vaerk: VaerkKilde | undefined, r?: Pick<Reference, "modelCommits">): boolean {
-    const pin = (navn: "model_commit" | "data_commit") => (k[navn] ?? (() => { try { const r = input.find((x) => x.sti === `${KOERSEL_PRAEFIKS}${navn}`); return r ? JSON.parse(r.vaerdi_json) as string : null; } catch { return null; } })())?.toLowerCase() ?? null;
-    const data = pin("data_commit");
-    const dato = data ? README_PINS.df_data_kendt[data] : undefined;
-    const versioner = r?.modelCommits ?? [README_PINS.model_commit];
-    const model = pin("model_commit"), importeret = vaerk?.repo_commit?.toLowerCase();
-    return !!vaerk && vaerk.kilde === "repo" && !!importeret && versioner.includes(importeret) && k.vaerk_revision === 1
-        && !!model && versioner.includes(model) && !!dato && dato >= README_PINS.df_data_fra;
-}
+// README-kvalifikationen står ét sted — information/referencer.ts › kvalificer — og bruges både her og af
+// Information › Referencetal (kodegennemgangen af runde 15, fund 6). Navnene gives videre til dem, der importerer herfra.
+export { frossenOpsaetning, readmePins, type VaerkKilde } from "../information/referencer";
 
 /**
  * Hvor kørslen kommer fra, i den rækkefølge reglerne vinder:
  * 1. En kendt teknisk testkørsel (probe-, Test K<n>) → Røgtest.
- * 2. Samme værk og FROSNE opsætning som et README-referencetal, ingen ændringer, samme eller strammere gab
- *    (information/referencer.ts' regel) og verificerede pins (`readmePins`) → README-reference med tallet.
+ * 2. En MÅLING af et README-referencetal (information/referencer.ts › kvalificer: frossen opsætning, ingen
+ *    ændringer, samme eller strammere gab, repo-casen uændret, referencens modelversion, kendt df-data)
+ *    → README-reference med tallet.
  * 3. En af demo-kørslerne (demo_scenarier.json) → Demo.
  * 4. En kontrolkørsel fra opsætningen (F1–F5) → Røgtest.
  * 5. Ellers kørselsvejen: app eller notebook.
@@ -125,14 +90,9 @@ export function oprindelse(k: Koersel, scenarie: Scenarie | null, vaerkKode: str
     if (TESTNAVN.test(navn)) return svar("roegtest", "test af kørselsvejen — ikke en analyse");
     // En kontrolkørsel, der ikke blev færdig (fx F3's annulleringstest af Spor A-opsætningen), genskaber intet tal.
     if (KONTROLNAVN.test(navn) && k.status !== "faerdig") return svar("roegtest", "kontrolkørsel fra opsætningen — ikke en analyse");
-    const ændret = input.some((r) => r.kilde === "aendring");
-    if (!ændret) {
-        const frossen = frossenOpsaetning(input);
-        // Pins afgøres pr. reference (runde 15): hver reference har sine egne modelversioner.
-        const r = readmeReferencer().find((x) => x.kode === vaerkKode && harReferencensOpsaetning(frossen, x) && kørslensGab(k, frossen, x).erTilladt
-            && readmePins(k, input, vaerk, x));
-        if (r) return svar("readme", `README ${tal(r.objektiv)} kr.${demo ? ` · ${demo}` : ""}`, r);
-    }
+    // Én kvalifikation pr. reference, på de frosne felter — den samme, Information › Referencetal bruger.
+    const r = readmeReferencer().find((x) => x.kode === vaerkKode && kvalificer(x, k, input, vaerk).maaling);
+    if (r) return svar("readme", `README ${tal(r.objektiv)} kr.${demo ? ` · ${demo}` : ""}`, r);
     if (demo) return svar("demo", demo);
     if (KONTROLNAVN.test(navn)) return svar("roegtest", "kontrolkørsel fra opsætningen — ikke en analyse");
     return k.kilde === "app" ? svar("app", null) : svar("notebook", null);

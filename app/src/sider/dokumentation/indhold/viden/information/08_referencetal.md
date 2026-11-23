@@ -59,6 +59,16 @@ sammenligningen nedenfor med status kørt ved en anden modelversion, med link ti
 afvigelse og tolerance: tallene kan ikke sammenlignes. (Kilde: referencetal.json › readme ›
 spora_anker › regnet_ved)
 
+**Hvilken kørsel måles mod et README-tal?** Kun en kørsel af README's eget grundlag: den er
+bestilt med referencens periode, balancering, varmelast og metode og uden ændringer i scenariet,
+værket er modelrepoets case uændret, og kørslens df-data er en version, hvis dato er målt til at
+opfylde README's datakrav. Appen læser det af det, der blev frosset for kørslen ved bestillingen —
+ikke af scenariet, som det ser ud nu. Er værket rettet eller kopieret, eller kendes df-data ikke,
+står kørslen som *kørt på et andet grundlag* uden afvigelse: en forskel ville måle grundlaget, ikke
+modellen. Reglen er den samme som for mærket *README-reference* i Analysers kørselsliste — *egen
+antagelse* (appens regel for, hvornår to tal må holdes op mod hinanden; README stiller ingen).
+(Kilde: referencetal.json › datakrav; doc/TROFASTHED.md §5)
+
 **Hvor tæt skal en ny kørsel ramme?** Inden for casens eget gab: for Billund-casene 0,5 % (ca.
 26.000 kr. på Spor A's README-tal), for Andeby 0,1 %. Kørsler, der rammer tidsgrænsen, kan lande længere væk.
 (Kilde: doc/KOERSEL.md:64-66; cases/andeby.yaml:142-145)

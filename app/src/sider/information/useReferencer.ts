@@ -1,34 +1,44 @@
 //-----------------------------------------------------------------------
 // README's referencetal mod kørslerne i databasen, som React-hook. Den rene logik står i referencer.ts.
+//
+// Kodegennemgangen af runde 15, fund 6: kvalifikationen læser kørslens FROSNE input (KoerselInput), ikke det levende
+// scenarie og dets nuværende ændringer. Kun rækkerne med kilde `scenarie`/`aendring` hentes — det er dem, reglen
+// læser (opsætningen, solverens indstillinger og om noget blev ændret) — for de færdige kørsler af referencernes værker.
 //-----------------------------------------------------------------------
 
 import { useMemo } from "react";
-import { useKoersler, useScenarieAendringerFor, useScenarier, useVaerker, type Hentet } from "@/lib/data/hooks";
+import type { InputRække } from "@/lib/data/afflad";
+import { useHent, useKoersler, useVaerker, type Hentet } from "@/lib/data/hooks";
+import { læs } from "@/lib/data/laes";
 import { useTekst } from "../dokumentation/tekster";
-import { byggRaekker, kandidatScenarier, laesReferencer, type RefRække, type Reference } from "./referencer";
+import { byggRaekker, kandidatKoersler, laesReferencer, type RefRække, type Reference } from "./referencer";
 
 export interface Referencetal { raekker: RefRække[]; refs: Reference[] }
 
-/** Antal ændringer pr. scenarie-id (hooken i datalaget henter dem for flere scenarier i ét kald). */
-function useAendringerPrScenarie(ids: readonly string[] | undefined): Hentet<Map<string, number>> {
-    const h = useScenarieAendringerFor(ids && ids.length ? ids : undefined);
-    const data = useMemo(() => {
-        if (!h.data) return undefined;
-        const antal = new Map<string, number>();
-        for (const r of h.data) antal.set(r.scenarie_id, (antal.get(r.scenarie_id) ?? 0) + 1);
-        return antal;
-    }, [h.data]);
-    return { ...h, data };
+const BID = 50;
+
+/** Det frosne input (uden værkets blade) pr. kørsels-id, hentet i bidder, så OR-filteret ikke bliver uendeligt langt. */
+function useFrossetInput(ids: readonly string[] | undefined): Hentet<Map<string, InputRække[]>> {
+    return useHent(ids && ids.length ? `referencetal-input:${ids.join(",")}` : null, async () => {
+        const ud = new Map<string, InputRække[]>(ids!.map((id) => [id, []]));
+        for (let i = 0; i < ids!.length; i += BID) {
+            const bid = ids!.slice(i, i + BID);
+            const rækker = await læs("KoerselInput", {
+                filter: { and: [{ or: bid.map((id) => ({ koersel_id: { eq: id } })) }, { or: [{ kilde: { eq: "aendring" } }, { kilde: { eq: "scenarie" } }] }] },
+            });
+            for (const r of rækker) ud.get(r.koersel_id)?.push({ kilde: r.kilde, sti: r.sti, vaerdi_json: r.vaerdi_json });
+        }
+        return ud;
+    });
 }
 
 /**
- * `data` er først sat, når ALT er hentet (værker, scenarier, kørsler og ændringer): en halv sandhed her ville
- * vise en kørsel med ændringer som en ren reference i et øjeblik.
+ * `data` er først sat, når ALT er hentet (værker, kørsler og deres frosne input): en halv sandhed her ville vise en
+ * kørsel med ændringer som en ren reference i et øjeblik.
  */
 export function useReferencetal(): Hentet<Referencetal> {
     const json = useTekst("viden/referencetal.json");
     const vaerker = useVaerker(true);
-    const scenarier = useScenarier(undefined, true);
     const koersler = useKoersler({ status: ["faerdig"] });
 
     const refs = useMemo(() => {
@@ -36,24 +46,23 @@ export function useReferencetal(): Hentet<Referencetal> {
         try { return { refs: laesReferencer(json.tekst) }; } catch (e) { return { fejl: e instanceof Error ? e : new Error(String(e)) }; }
     }, [json.tekst]);
 
-    const klar = vaerker.data && scenarier.data && koersler.data && refs?.refs;
+    const klar = vaerker.data && koersler.data && refs?.refs;
     const ids = useMemo(
-        () => (klar ? kandidatScenarier(refs.refs, vaerker.data!, scenarier.data!, koersler.data!) : undefined),
-        [klar, refs, vaerker.data, scenarier.data, koersler.data],
+        () => (klar ? kandidatKoersler(refs.refs, vaerker.data!, koersler.data!).map((k) => k.id).sort() : undefined),
+        [klar, refs, vaerker.data, koersler.data],
     );
     // Ingen kandidater = intet at slå op (hooken henter ikke uden id'er); et tomt kort stilles til rådighed nedenfor.
-    const aendringer = useAendringerPrScenarie(ids);
+    const input = useFrossetInput(ids);
 
-    const fejl = json.fejl ?? refs?.fejl ?? vaerker.fejl ?? scenarier.fejl ?? koersler.fejl ?? aendringer.fejl;
-    const aendringerKlar = ids !== undefined && (ids.length === 0 || aendringer.data !== undefined);
+    const fejl = json.fejl ?? refs?.fejl ?? vaerker.fejl ?? koersler.fejl ?? input.fejl;
+    const inputKlar = ids !== undefined && (ids.length === 0 || input.data !== undefined);
     const data = useMemo<Referencetal | undefined>(() => {
-        if (!klar || !aendringerKlar) return undefined;
-        const raekker = byggRaekker(refs.refs, vaerker.data!, scenarier.data!, koersler.data!, aendringer.data ?? new Map());
-        return { raekker, refs: refs.refs };
-    }, [klar, aendringerKlar, refs, vaerker.data, scenarier.data, koersler.data, aendringer.data]);
+        if (!klar || !inputKlar) return undefined;
+        return { raekker: byggRaekker(refs.refs, vaerker.data!, koersler.data!, input.data ?? new Map()), refs: refs.refs };
+    }, [klar, inputKlar, refs, vaerker.data, koersler.data, input.data]);
 
     return {
         data, fejl, indlæser: !data && !fejl,
-        genindlæs: () => { vaerker.genindlæs(); scenarier.genindlæs(); koersler.genindlæs(); aendringer.genindlæs(); },
+        genindlæs: () => { vaerker.genindlæs(); koersler.genindlæs(); input.genindlæs(); },
     };
 }

@@ -6,7 +6,8 @@ type Koersel = FjvSchema["Koersel"];
 const state = {
     koersler: [] as Koersel[],
     vaerker: [{ id: "v1", kode: "billund_spora" }] as unknown[],
-    scenarier: [{ id: "s1", vaerk_id: "v1", med_balancering: true }] as unknown[],
+    /** Kørslens FROSNE input (kilde scenarie/aendring) — det, referencetallene kvalificeres på (gennemgangens fund 6). */
+    frosset: (): { kilde: string; sti: string; vaerdi_json: string }[] => [],
 };
 
 // Datalaget erstattes: siderne læser kun via disse hooks.
@@ -14,9 +15,9 @@ vi.mock("@/lib/data/hooks", () => {
     const ok = <T,>(data: T) => ({ data, fejl: undefined, indlæser: false, genindlæs: () => {} });
     return {
         useVaerker: () => ok(state.vaerker),
-        useScenarier: () => ok(state.scenarier),
         useKoersler: () => ok(state.koersler),
-        useScenarieAendringerFor: () => ok([]),
+        // useReferencetal henter det frosne input for kandidaterne med useHent (nøglen er null, når der ingen er).
+        useHent: (nøgle: string | null) => ok(nøgle ? new Map((state.koersler as { id: string }[]).map((x) => [x.id, state.frosset()])) : undefined),
     };
 });
 
@@ -34,16 +35,19 @@ const k = (o: Partial<Koersel>) => ({
     // ved 90fb16e eller 939228a er en måling af det (referencetal.json › spora_anker › regnet_ved).
     id: "2e345787-3a37-4c5f-a1b4-ecfd321355c1", vaerk_id: "v1", scenarie_id: "s1", status: "faerdig", objektiv_dkk: 5204526.33,
     afsluttet: new Date("2026-11-23T07:32:12Z"), oensket_rel_gap: 0.005, oensket_abs_gap: 5000, opnaaet_gap: 0.000501, model_commit: "939228aa048563c8498382a79d207c8b03fbda57",
-    data_commit: "106b9fce9a2e3610090b1a542559024056449b88", ...o,
+    data_commit: "106b9fce9a2e3610090b1a542559024056449b88", vaerk_revision: 1, ...o,
 }) as Koersel;
+/** Det, en bestilling af repo-casen uden ændringer fryser: balancemarkedet til (Spor A og B). */
+const REN = [{ kilde: "scenarie", sti: "_koersel.med_balancering", vaerdi_json: "true" }];
 
 // Siderne indlæser teksterne som lazy chunks; i en fuld testkørsel med mange parallelle arbejdere tager det mere end ét sekund.
 configure({ asyncUtilTimeout: 8000 });
 vi.setConfig({ testTimeout: 20000 });
 
 beforeEach(() => {
-    state.vaerker = [{ id: "v1", kode: "billund_spora" }];
-    state.scenarier = [{ id: "s1", vaerk_id: "v1", med_balancering: true }];
+    // Værket er modelrepoets case uændret, importeret ved pinnen.
+    state.vaerker = [{ id: "v1", kode: "billund_spora", kilde: "repo", repo_commit: "939228aa048563c8498382a79d207c8b03fbda57" }];
+    state.frosset = () => REN;
     state.koersler = [];
     window.scrollTo = vi.fn(); Element.prototype.scrollIntoView = vi.fn();
 });
@@ -124,13 +128,34 @@ describe("Information", () => {
         // Spor B's README-tal er stadig fra før spotrettelsen: kun en kørsel ved eef950a er en måling af det.
         const tæt = { ...k({ id: "d09aaaaa-0000-0000-0000-000000000000", objektiv_dkk: 4204128.43, oensket_rel_gap: 0.0002, oensket_abs_gap: 1000, opnaaet_gap: 0.000185, model_commit: "eef950a2ac7b3808a9456dcf48742ce08e52366a" }), vaerk_id: "v2", scenarie_id: "s2" } as Koersel;
         state.koersler = [tæt];
-        state.vaerker = [{ id: "v2", kode: "billund_sporb" }];
-        state.scenarier = [{ id: "s2", vaerk_id: "v2", med_balancering: true, heat_csv: "billund_abvaerk_hourly_splejset_jun2026.csv", mip_rel_gap: 0.0002, mip_abs_gap: 1000 }];
+        state.vaerker = [{ id: "v2", kode: "billund_sporb", kilde: "repo", repo_commit: "eef950a2ac7b3808a9456dcf48742ce08e52366a" }];
+        state.frosset = () => [...REN, { kilde: "scenarie", sti: "_koersel.heat_csv", vaerdi_json: "\"billund_abvaerk_hourly_splejset_jun2026.csv\"" },
+            { kilde: "scenarie", sti: "solver.mip_rel_gap", vaerdi_json: "0.0002" }, { kilde: "scenarie", sti: "solver.mip_abs_gap", vaerdi_json: "1000" }];
         vis(["referencetal"]);
         expect(await screen.findByText("inden for tolerancen")).toBeInTheDocument();
         expect(screen.getByText(/0,02 % og 1\.000 kr\./)).toBeInTheDocument();
         expect(screen.getByText(/strammere end casen/)).toBeInTheDocument();
         expect(screen.getAllByText("ikke kørt endnu")).toHaveLength(4);
+    });
+
+    // Kodegennemgangen af runde 15, fund 6: Information dømte en kørsel mod README-tallet på det levende scenarie alene.
+    it("fund 6: værket er rettet (revision 2) — 'kørt på et andet grundlag', uden Fabric-tal og afvigelse (før: 'uden for tolerancen')", async () => {
+        state.koersler = [k({ objektiv_dkk: 5_400_000, vaerk_revision: 2 })];
+        const { container } = vis(["referencetal"]);
+        // Ordlyden står også i sidens hjælpetekst: rækken er den forekomst, der står i tabellen.
+        const række = (await screen.findAllByText("kørt på et andet grundlag")).map((e) => e.closest("tr")).find(Boolean)!;
+        expect([...række.querySelectorAll("td.fjv-h")].map((c) => c.textContent)).toEqual(["5.204.555", "–", "–", "–"]);
+        expect(række.textContent).toMatch(/værket er ikke modelrepoets case uændret/);
+        expect(screen.queryByText("uden for tolerancen")).toBeNull();
+        expect(række.querySelector("a")?.textContent).toMatch(/^2e345787/);       // kørslen linkes stadig
+        expect(container.textContent ?? "").toMatch(/1 er kun kørt på et grundlag, der ikke er bekræftet som README's/);
+    });
+    it("fund 6: kørslen blev bestilt med en ændring — 'kun ændrede scenarier', også selv om scenariet nu er uden ændringer", async () => {
+        state.koersler = [k({ objektiv_dkk: 5_400_000 })];
+        state.frosset = () => [...REN, { kilde: "aendring", sti: "storage.tank.enabled", vaerdi_json: "false" }];
+        vis(["referencetal"]);
+        expect(await screen.findByText("kun ændrede scenarier")).toBeInTheDocument();
+        expect(screen.queryByText("uden for tolerancen")).toBeNull();
     });
 
     it("Codex ved 90fb16e: en kørsel ved en anden modelversion end README-tallets står som det — ikke som 'ikke kørt endnu'", async () => {
