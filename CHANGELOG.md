@@ -30,6 +30,9 @@ kørsler (demo-scenarierne D01–D11, budstrategiens kontroltal, Spor A, Spor B 
   ([`doc/FABRIC.md`](doc/FABRIC.md#opdatér-en-eksisterende-installation)). Casefilerne er uændrede mellem de to
   versioner, så importen melder repoværkerne som `uaendret`. En bestilling, der ligger i køen med de gamle pins,
   afvises; bestil den igen. Ikke afprøvet i Fabric.
+  **Functions skal udrulles** (appens `rayfin-up`): oprydningen efter en afvist bestilling ligger i
+  `startBestilling` (se *Rettet*). Indtil da efterlader en afvist bestilling fortsat sin `Bestilling`-række i
+  Fabric-udgaven; resten af rettelserne ligger i brugerfladen. SQL'en er ikke kørt mod en Fabric-database.
 - **Værksark eksporteret før opgraderingen** kan ikke genuploades som en revision bagefter: arkets indholdshash dækker
   cellernes placering, og Priser-arkets rækker er rykket. Appen siger *eksportér igen*; eksportér værket på ny og før
   rettelserne over, eller upload arket som et nyt værk. (Udledt af koden, `analyse.ts`; ikke afprøvet med et gammelt ark.)
@@ -52,8 +55,43 @@ kørsler (demo-scenarierne D01–D11, budstrategiens kontroltal, Spor A, Spor B 
   tabeller (modelspejlets `vaerksark_typer`). Før var gaten grøn med en app, der ikke kendte en ny enhedstype.
 - `skabelon.spec.ts`: eksporten er bundet til selve skabelonfilen (etiketterne i Priser, hvert stilindeks, velformet
   XML, præcis én valgt fane). Rundturs-beviset har varianten `andeby_olie`.
+- **Forslag om længere tidsgrænse**: stoppede en af et pars kørsler på solverens tidsgrænse, og er usikkerheden mindst
+  10 % af forskellen (eller ukendt), er første næste skridt i anbefalingen en ny kørsel med længere tidsgrænse — med
+  den nuværende grænse, appens loft (3.600 s) og et link til scenariet. De 10 % er appens egen antagelse. En færdig
+  kørsel, der stoppede på tidsgrænsen, får mærket *Stoppet på tidsgrænsen* i kørselslisten, i Scenarier-oversigten og
+  på scenariets side, som også viser usikkerheden.
+- **Rækken *Alle lagre*** i lagertabellen i en sammenligning, og et forbehold i kortene *Lager* og *Intervaldispatch*:
+  med flere lagre er fordelingen mellem dem ikke entydig. `bevis_app_vej.py` sammenligner timefiler på summen over
+  lagre, når de ikke er byte-ens, og melder casen som `ENS*` (`viden/vaerktoej/lagersum.py`, modprøver i
+  `test_trofasthed.py`). Målt 23. november 2026: beviset er byte-ens for Andeby i begge januarvinduer; ingen målt
+  case har udløst `ENS*`.
+- Kørslens side advarer, når modelkoden eller df-data ikke er hentet som zip af regnemotoren (tomt
+  `model_zip_sha256`/`data_zip_sha256`). En adresse, der ikke findes (`#/findes/ikke`), giver en besked i stedet for
+  stille at vise Konfiguration.
 
 ### Ændret
+- **Hvornår en differens er et resultat.** Et par vises kun som godt eller dårligt — virkningsfarve, grønt mærke,
+  "billigere/dyrere", en anbefaling — når det er direkte sammenligneligt. Det kræver nu også **samme værksrevision**
+  (appens egen antagelse; før en note). Ellers står tallene side om side med grunden først. Par på tværs af
+  værksrevisioner forsvinder derfor fra *Anbefalinger*; kør referencen igen ved den nye revision.
+- **Sammenligningssidens roller følger ændringen, ikke rækkefølgen i linket.** Scenariet er den kørsel, der bærer
+  ændringen i forhold til værket; `#/analyser/sammenlign/<a>/<b>` betyder ikke længere altid "a er referencen".
+  Siden siger, når rollerne er omvendt af valget, og *Byt reference og scenarie* vises kun, når ingen af kørslerne
+  peges ud.
+- **Intet årstal af en kortere periode.** Anbefalingen viste Δ × 365 / døgn for perioder på 7–364 døgn (12 januardøgn
+  i Andeby blev til "ca. 715.000 kr." om året). Nu vises kun periodens beløb; et årstal står der alene, når perioden
+  selv er mindst 365 døgn. Reglen og teksterne står i `viden/anbefalingsregler.json` (`aarstal`).
+- **"Gentagelse"** kræver nu samme periode, ikke kun samme værk og navn, og mærket afhænger ikke af, hvilket par der
+  blev kørt først. Perioden står ved scenariets navn i kørselslisten og i Scenarier-oversigten.
+- **CO₂-udledningen vises som *ikke opgjort***, når en tændt enhed med fossilt brændsel (naturgas, fyringsolie) har
+  produceret varme med emissionsfaktor 0 — som Billund-casene, hvor CO₂-omkostningen ligger i gasprisen. Før stod
+  der "0 t". Appen gætter ingen faktor; økonomien er uændret (egen antagelse, `doc/TROFASTHED.md` §5).
+- **README-mærket i kørselslisten** følger referencens egne modelversioner: en Spor A-kørsel ved `90fb16e` eller
+  `939228a` genkendes nu som README-referencen 5.204.555, og en gammel ved `eef950a` gør det ikke længere. Pinnens
+  df-data (`106b9fc`, 26. oktober 2026) er en kendt commit.
+- Begrundelsen ved *Kan ikke afgøres* siger, om det er solverens tolerance eller væsentlighedsgrænsen, der binder
+  (eller begge); et gab over 0 og under 1 kr. skrives "< 1 kr." i stedet for "0 kr.". Knappen i *Nyt scenarie* hedder
+  *Bekræft og kør scenariet*, når referencen genbruges.
 - **Værksarkets skabelon ved `939228a`**: Priser har fået rækken *fyringsolie* (række 10), så CO₂ og alt under er
   rykket én række ned, og filen er nu skrevet direkte af openpyxl (før gemt af LibreOffice). Eksporten skriver i de nye
   rækker (ét sted: `PRISER_RAEKKER`), og Excel-skriveren bærer begge XML-former. Målt: `tjek_eksport_rundtur.py` 11
@@ -66,6 +104,25 @@ kørsler (demo-scenarierne D01–D11, budstrategiens kontroltal, Spor A, Spor B 
 - `PYTHONUTF8=1` er ikke længere nødvendig for modellen (0.10.0 læser selv UTF-8). Den sættes stadig: den skader ikke,
   og en kørsel ved en ældre pin kræver den på Windows.
 - Vektorerne `skema/vektorer/fra_ts_testene` er optaget igen (to tilfælde fra runde 14c manglede).
+
+### Rettet
+Fundene fra den uafhængige test 18. november 2026 (appen ved `251aa93`). Beregningen var rigtig; fejlene lå i
+præsentationen og i datahåndteringen omkring kørslerne.
+- **Kørsler, der ikke kan sammenlignes, blev vist som et grønt resultat.** Sammenligningssiden farvede Δ
+  driftsomkostning og satte mærket "Større end tolerancen" for to kørsler med hver sin periode, sit værk, sin
+  opløsning, df-data, modelversion eller sit gab; advarslen stod i sjette kort. Samme fejl i kandidatlisten ("X kr.
+  billigere end denne"), på scenariets kørselskort og i Scenarier-oversigten, som også viste et ΔRef fra en ældre
+  kørsel ved siden af status "Fejl".
+- ***Scenariet fortalt* kunne fortælle den anden kørsel end nøgletallene.** Var kørslen, der bærer ændringen, valgt
+  som reference (vejen fra kandidatlisten på referencens side), sagde teksten "dyrere" og nøgletallene "mindre end
+  referencen" på samme side. På scenariets side kunne referencen blive fortalt som scenariet.
+- **En afvist bestilling efterlod `Scenarie` og `Bestilling`.** Solprofilens dækning tjekkes nu, før noget oprettes
+  (med backendens regel). Bliver en bestilling alligevel afvist, sletter den betroede logik bestillingen — kun hvis
+  ingen kørsel peger på den; ny slettevej i `startBestilling` i begge udgaver — og parflowet arkiverer de scenarier,
+  det selv nåede at oprette. Den efterladte bestilling spærrede også *Prøv igen* (klientnøglen er unik).
+- Den skjulte datatabel bag *Δ driftsomkostning pr. par* viste "Scen 0,0 · Ref 0,0" for hvert par; grafen var rigtig.
+- `doc/TROFASTHED.md`: "samme timefil" gælder mod appens egen casefil; solprofilens kolonnenavn `mw` (modellens
+  `power_mw`) og den ændrede sha256 står som *egen antagelse*.
 
 ## [Ikke udgivet] — 0.4.0
 
