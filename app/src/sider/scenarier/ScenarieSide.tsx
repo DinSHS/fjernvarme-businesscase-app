@@ -27,8 +27,8 @@ import { enhedAf, gabProcent, katalogpost, læsTal, rodKode, stiEtiket, sætbare
 import { kodVarmelast, læsVarmelast, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst, type TidsserieInfo } from "./varmelast";
 import { ScenarieHistorie } from "./HistorieKort";
 import { KoerselDetaljer } from "./KoerselKort";
-import { difference, differenceTekst } from "../analyser/beregn";
-import { sammenlignHref } from "./koersel-logik";
+import { differenceTekst } from "../analyser/beregn";
+import { modReference, sammenlignHref } from "./koersel-logik";
 import { importTekst, useArkivimporter } from "@/lib/arkiv/markering";
 import {
     datoTilFelt, effektivTidsgraense, erTil, feltTilDato, forventetVarighed, objekter, parretsReference, tjekPeriode, tjekÆndringer, visBeskrivelse,
@@ -238,11 +238,13 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     const antal = aendringer.length;
     // Samme periodeform som Analyser (IBCS.md §3, review-fund B8): "5. jan.–16. jan. 2026", ikke "05-01-2026 – 16-01-2026".
     const periodeTekst = gemtPeriode.start ? periodeKort(gemtPeriode.start, gemtPeriode.slut) : "ugyldig periode";
-    const diff = seneste?.status === "faerdig" && reference?.status === "faerdig" ? difference(reference, seneste) : null;
+    // Runde 15 (mail 1): budskabet nævner kun en forskel mod en direkte sammenlignelig reference.
+    const mod = seneste ? modReference(reference, seneste) : undefined;
     const budskab = `${antal === 0 ? "Ingen ændringer" : `${antal} ændring${antal === 1 ? "" : "er"}`} mod ${vaerk.navn}, ${periodeTekst}, ${s.med_balancering ? "med" : "uden"} balancering; `
         + (!seneste ? "ikke kørt endnu."
-            : diff ? `seneste kørsel er færdig. ${differenceTekst(diff)}`
-                : `seneste kørsel: ${STATUS_TEKST[seneste.status].toLowerCase()}.`);
+            : mod?.diff ? `seneste kørsel er færdig. ${differenceTekst(mod.diff)}`
+                : mod?.afviger.length ? `seneste kørsel er færdig, men kan ikke sammenlignes direkte med referencen (${mod.afviger.join(", ")} afviger).`
+                    : `seneste kørsel: ${STATUS_TEKST[seneste.status].toLowerCase()}.`);
 
     return (
         <Side omraade="Scenarier" titel={s.navn} budskab={budskab}

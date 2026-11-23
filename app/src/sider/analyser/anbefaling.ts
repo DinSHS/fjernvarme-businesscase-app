@@ -208,6 +208,11 @@ export interface Vurdering {
     n: number | null;
     doegn: number | null;
     knap: string | null;
+    /**
+     * Er de to kørsler færdige og direkte sammenlignelige (trin 1)? Kun da er `delta` scenariets virkning. Er de ikke
+     * det, må hverken sætningen eller historien sige "billigere"/"dyrere" (runde 15, mail 1).
+     */
+    sammenlignelig: boolean;
 }
 
 const DØGN = 86_400_000;
@@ -355,22 +360,27 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     const skaleret = aarligt !== null ? ` (skaleret til et år ca. ${krRund(aarligt, false)})` : "";
     const investering = p.knap && INVESTERING.knapper.includes(p.knap) ? INVESTERING.tekst : null;
     const indenTol = delta !== null && T !== null && (Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V));
-    const svar = (kategori: Kategori, begrundelse: string, saetning?: string): Vurdering => ({
+    const svar = (kategori: Kategori, begrundelse: string, saetning?: string, sammenlignelig = true): Vurdering => ({
         kategori, maerke: KATEGORIER[kategori]?.maerke ?? kategori, tone: (KATEGORIER[kategori]?.tone ?? "neutral") as Vurdering["tone"],
         saetning: saetning ?? (delta === null ? "Mindst én af kørslerne har ingen driftsomkostning."
             : kategori === "kan_ikke_afgoeres" || (kategori === "foelsomhed" && indenTol) ? neutralSaetning(delta, indenTol)
                 : knapSaetning(p, delta, skaleret)),
         begrundelse, forbehold: nedgrader, noter, naesteSkridt: næste, investering,
         skalering: aarligt !== null ? udfyld(SKALERING_TEKST, { aarligt: krRund(aarligt, false) }) : null,
-        delta, tolerance: T, vaesentlighed: V, n, doegn: d, knap: p.knap,
+        delta, tolerance: T, vaesentlighed: V, n, doegn: d, knap: p.knap, sammenlignelig,
     });
 
-    // 1. Ikke færdige eller ikke sammenlignelige
+    // 1. Ikke færdige eller ikke sammenlignelige. Sætningen nævner da ikke forskellen som "billigere"/"dyrere for
+    // scenariet": tallet er to forskellige regnestykker trukket fra hinanden (runde 15, mail 1).
     const af = sammenlignelighed(ref.profil, scen.profil);
-    if (ref.k.status !== "faerdig" || scen.k.status !== "faerdig") return svar("kan_ikke_afgoeres", "Begge kørsler skal være færdige.");
+    const IKKE = "Kørslerne kan ikke sammenlignes direkte, så forskellen i driftsomkostning er ikke scenariets virkning.";
+    if (ref.k.status !== "faerdig" || scen.k.status !== "faerdig") return svar("kan_ikke_afgoeres", "Begge kørsler skal være færdige.", "Mindst én af kørslerne er ikke færdig.", false);
     if (sammenlignelighedStatus(af) !== "ja") {
         const felter = af.filter((x) => x.alvor !== "note").map((x) => lille(x.navn));
-        return svar("kan_ikke_afgoeres", udfyld(TRIN["1"], { felter: liste(felter) }));
+        const ukendt = sammenlignelighedStatus(af) === "ukendt";
+        return svar("kan_ikke_afgoeres", ukendt
+            ? `Det kan ikke afgøres, om kørslerne er sammenlignelige: ${liste(felter)} kendes ikke for begge.`
+            : udfyld(TRIN["1"], { felter: liste(felter) }), IKKE, false);
     }
     if (delta === null) return svar("kan_ikke_afgoeres", "Mindst én af kørslerne har ingen driftsomkostning.");
     // 2. Flere ændringer på én gang (eller ingen)
@@ -520,6 +530,9 @@ export function historie(p: Par, v: Vurdering): string {
         ? `I dette scenarie ${medVi(fraser.length > 3 ? `${vis.slice(0, 3).join(", ")} ${vis[3]}` : liste(vis))} — ellers som ${p.ref.navn}.`
         : `Scenariet har samme input som ${p.ref.navn}.`;
     if (v.delta === null) return s1;
+    // Runde 15 (mail 1): et par, der ikke er direkte sammenligneligt, fortælles ikke som en virkning ("gør driften
+    // X kr. billigere"). `=== false`: sætning 1 før kørsel kaldes med en tom vurdering.
+    if (v.sammenlignelig === false) return [s1, v.begrundelse].map((x) => x.trim()).join(" ");
     const s2 = `Det ${liste(konsekvenser(p, v.delta))}.`;
     const nT = v.tolerance === 0 ? "Begge kørsler er løst til optimum" : v.n !== null && v.n > 100 ? "Forskellen er mere end 100 gange solverens tolerance" : v.n !== null && v.n >= 2 ? `Forskellen er ${v.n} gange solverens tolerance` : null;
     const første = v.naesteSkridt[0] ? lille(v.naesteSkridt[0]) : "";

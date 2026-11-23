@@ -5,7 +5,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { formatValue } from "@/ibcs";
-import { maanedstabel, type EnhedTal, type LagerTal, type Maaned, type Samlet } from "./beregn";
+import { maanedstabel, type EnhedTal, type LagerTal, type Maaned, type Profil, type Samlet } from "./beregn";
 import type { Pakke } from "./data";
 import { ENERGI_TABEL, energiSkala } from "./ibcs-grafer";
 import { Enheder, Lager, VarmeOgMiljoe } from "./koersel";
@@ -19,6 +19,12 @@ const samlet = (over: Partial<Samlet>): Samlet => ({
     objektiv_dkk: null, varmebehov_mwh: null, produktion_mwh: null, nettab_mwh: null, nettab_pct: null, co2_ton: null, el_forbrug_mwh: null,
     tank_arbitrage_dkk: null, enheder: [], lagre: [], balance: null, el_omkostning_dkk: null, el_salg_dkk: null, el_produktionstarif_dkk: null, ...over,
 } as Samlet);
+/** En profil, der er direkte sammenlignelig med sig selv (runde 15: kortene spørger sammenligneligheden, før de farver et ΔRef). */
+const PROFIL = {
+    vaerk_id: "v", vaerk_navn: "Andeby", vaerk_revision: 1, periode_start: "2026-01-05", periode_slut: "2026-01-16",
+    periode_fra: "2026-01-05T00:00:00.000Z", periode_til: "2026-01-16T23:00:00.000Z", oploesning: "1h", data_commit: "d", model_commit: "m",
+    rel_gap: 0.0002, abs_gap: 100, med_balancering: false, miljoe: null,
+} as Profil;
 const pakke = (s: Partial<Samlet>, måneder: Maaned[] = []): Pakke => ({ samlet: samlet(s), input: [], maaneder: maanedstabel(måneder) } as unknown as Pakke);
 
 /** Heltalscifrene i hvert tal, kortet viser i tabeller og faktalister (tusindtalspunktum fjernet, decimaler ignoreret). */
@@ -86,7 +92,7 @@ describe("energi i tabeller: højst 4 heltalscifre, GWh med samme regel som graf
     });
 
     it("nøgletalskortet Elforbrug: et helårs 22.376 MWh el står som 22,38 GWh el (kort ≤ 4 cifre); små tal bliver i MWh", () => {
-        const k = (el: number) => ({ ...pakke({ el_forbrug_mwh: el }), k: { id: `k${el}`, objektiv_dkk: 1e6, best_bound: 1e6, opnaaet_gap: 0, solve_status: "optimal" } } as unknown as Pakke);
+        const k = (el: number) => ({ ...pakke({ el_forbrug_mwh: el }), profil: PROFIL, k: { id: `k${el}`, objektiv_dkk: 1e6, best_bound: 1e6, opnaaet_gap: 0, solve_status: "optimal" } } as unknown as Pakke);
         const c = render(<Noegletal a={k(13_789)} b={k(22_376)} />).container.textContent!;
         expect(c).toMatch(/GWh el/);
         expect(c).toContain("22,38");

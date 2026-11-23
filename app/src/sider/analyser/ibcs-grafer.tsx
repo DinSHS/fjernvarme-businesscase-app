@@ -255,7 +255,8 @@ export function omkostningsBro(a: Samlet, b: Samlet, objA: number | null, objB: 
 /** Vandfaldets pengeskala: hele grafen (basis, slutværdi og trin) er én skalagruppe (Codex K7 F7). */
 export const vandfaldSkala = (bro: Bridge) => pengeSkala([bro.base.value, bro.total.value, ...bro.steps.map((s) => s.delta)]);
 
-export function OmkostningsVandfald({ bro }: { bro: Bridge }) {
+/** `neutral`: parret er ikke direkte sammenligneligt — trinene tegnes uden godt/dårligt (runde 15, mail 1). */
+export function OmkostningsVandfald({ bro, neutral = false }: { bro: Bridge; neutral?: boolean }) {
     const { skala, enhed } = vandfaldSkala(bro);
     return (
         <IbcsFigur titel={`Driftsomkostning i ${enhed}, Ref → Scen: hvad forklarer ΔRef`} undertitel={<><strong>Driftsomkostning</strong> i {enhed}, Ref → Scen</>}
@@ -265,7 +266,7 @@ export function OmkostningsVandfald({ bro }: { bro: Bridge }) {
                 // sidekvalitet K7). Den laveste af nogle få oversigtsbredder vinder; ved lige højde den bredeste.
                 const andele = b < SMAL ? [0.55] : [0.55, 0.45, 0.38, 0.32];
                 return andele
-                    .map((andel) => layoutVarianceWaterfall(bro, { width: b, ppu: Math.max(1e-9, (b * andel) / maks), scale: skala, polarity: -1, magnifier: b < SMAL ? "below" : "auto" }))
+                    .map((andel) => layoutVarianceWaterfall(bro, { width: b, ppu: Math.max(1e-9, (b * andel) / maks), scale: skala, polarity: neutral ? 0 : -1, magnifier: b < SMAL ? "below" : "auto" }))
                     .reduce((x, y) => (y.height < x.height - 1 ? y : x));
             }} />
     );

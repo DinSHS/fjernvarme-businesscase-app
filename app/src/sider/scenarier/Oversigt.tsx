@@ -8,10 +8,10 @@ import { useMemo } from "react";
 import { formatDelta } from "@/ibcs";
 import { DataTilstand, Gitter, Kort, Knap, Maerke, Side, StatusMaerke, Tabel } from "@/components/layout";
 import { useKoersler, useKoerselStatus, useScenarier, useVaerker } from "@/lib/data/hooks";
-import { erAktiv } from "@/lib/data/koersel-status";
+import { STATUS_TEKST, erAktiv } from "@/lib/data/koersel-status";
 import { tal, tidspunkt } from "@/lib/format";
 import { TKR, tkr } from "../analyser/ibcs-grafer";
-import { GRAENSER } from "../../../rayfin/data/fjv.constants";
+import { GRAENSER, type KoerselStatus } from "../../../rayfin/data/fjv.constants";
 import type { OmraadeProps } from "../typer";
 import { findReference, køTid, oversigtsbudskab, type Reference, type ScenarieRække } from "./oversigt-logik";
 
@@ -24,6 +24,8 @@ export function ReferenceCelle({ r }: { r: Reference | undefined }) {
                 : <Maerke tone="advarsel">{`${r.navn} (${r.afviger.join(", ")} afviger)`}</Maerke>;
         case "par_ikke_koert":
             return <span className="fs-lille">{`referencen «${r.navn}» er ikke kørt`}</span>;
+        case "seneste_ikke_faerdig":
+            return <span className="fs-lille" title="ΔRef vises kun for scenariets seneste kørsel, og kun når den er færdig">{`${r.navn} — seneste kørsel er ikke færdig (${(STATUS_TEKST[r.status as KoerselStatus] ?? r.status).toLowerCase()})`}</span>;
         case "er_reference":
             return <Maerke>{`reference for ${r.antal} scenarie${r.antal === 1 ? "" : "r"}`}</Maerke>;
         case "sammenlignelig":
@@ -74,7 +76,7 @@ export default function Oversigt({ gåTil, bruger }: OmraadeProps) {
             <Gitter form="8-4">
                 <Kort titel="Scenarier" afgraensning="pr. værk, nyeste først"
                     budskab={rækker ? (rækker.length ? `${rækker.filter((r) => r.seneste).length} af ${rækker.length} er kørt; vælg et for at redigere, køre og sammenligne.` : "Stil et spørgsmål for at få et reference/scenarie-par.") : undefined}
-                    fod="Reference: parrets reference (grøn), eller en anden kørsel, der kan sammenlignes direkte. Direkte sammenlignelig = samme værk, periode, opløsning, df-data, modelversion og gab (differensmetoden). ΔRef = scenarie − reference i t.kr.; hvert par har sin egen periode.">
+                    fod="Reference: parrets reference (grøn), eller en anden kørsel, der kan sammenlignes direkte. Direkte sammenlignelig = samme værk og værksrevision, periode, opløsning, df-data, modelversion og gab (differensmetoden). ΔRef = scenarie − reference i t.kr., kun for et direkte sammenligneligt par og kun for scenariets seneste kørsel; hvert par har sin egen periode.">
                     <DataTilstand h={samlet} højde={260}>
                         {(r) => (
                             <Tabel rækker={r} nøgle={(x) => x.s.id} onVælg={(x) => gåTil(`scenarier/${x.s.id}`)}

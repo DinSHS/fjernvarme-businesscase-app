@@ -40,7 +40,8 @@ function Raekke({ c, denne }: { c: Kandidat; denne: string }) {
             </div>
             <div className="fjv-a-kand-tal">
                 <div><span className="fjv-a-tal">{c.k.objektiv_dkk == null ? "–" : `${tal(c.k.objektiv_dkk)} kr.`}</span> <span className="fjv-a-svag">driftsomkostning</span></div>
-                <div className={c.delta == null ? "fjv-a-svag" : undefined}>{deltaTekst(c.delta)}</div>
+                {/* Runde 15 (mail 1): ingen "billigere/dyrere end denne" om en kørsel, der ikke kan sammenlignes direkte. */}
+                <div className={c.delta == null ? "fjv-a-svag" : undefined}>{c.status === "ja" || !c.faerdig ? deltaTekst(c.delta) : "ingen differens — kan ikke sammenlignes direkte"}</div>
             </div>
         </>
     );
@@ -64,11 +65,11 @@ export default function Kandidatliste({ pakke, alle }: { pakke: Pakke; alle: Hen
                 const top = anbefalet[0];
                 const budskab = top
                     ? `${anbefalet.length} ${anbefalet.length === 1 ? "kørsel kan" : "kørsler kan"} sammenlignes direkte med denne. ${top.naturlig ? "Naturlig reference" : "Øverst"}: "${top.navn}" — ${deltaTekst(top.delta)}.`
-                    : `Der er ingen anden kørsel af ${pakke.vaerkNavn} i samme periode (${periode}) med samme data, modelversion og gab.`;
+                    : `Der er ingen anden kørsel af ${pakke.vaerkNavn} ved samme værksrevision i samme periode (${periode}) med samme data, modelversion og gab.`;
                 return (
                     <Kort titel="Hvad skal denne kørsel sammenlignes med?" afgraensning="vælg en reference — differensen er produktet"
                         budskab={budskab}
-                        fod={<>Direkte sammenlignelig = samme værk, periode, opløsning, data, modelversion og ønsket gab (differensmetoden). Den naturlige
+                        fod={<>Direkte sammenlignelig = samme værk og værksrevision, periode, opløsning, data, modelversion og ønsket gab (differensmetoden). Den naturlige
                             reference er scenariets egen reference, ellers værket som det er med samme balancering. Den valgte kørsel bliver
                             referencen; "Byt reference og scenarie" findes på sammenligningssiden.</>}>
                         {anbefalet.length > 0

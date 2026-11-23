@@ -8,8 +8,9 @@
 //    driftsintervaller og bruges ikke.
 //  * Et objektiv har en usikkerhed: det absolutte gab. To kørsler kan kun
 //    skelnes, når |Δ| er større end summen af de to gab.
-//  * To kørsler er direkte sammenlignelige, når værk, periode, opløsning,
-//    data-/modelcommit og ønsket gab er ens.
+//  * To kørsler er direkte sammenlignelige, når værk, værksrevision, periode,
+//    opløsning, data-/modelcommit og ønsket gab er ens. Kun et sådant par må
+//    vises som et resultat (sammenlignelighedsDom; runde 15).
 //-----------------------------------------------------------------------
 
 import type { FjvSchema } from "../../../rayfin/data/schema";
@@ -518,9 +519,10 @@ function vis<T>(v: T | null | undefined, f: (x: T) => string = String): string {
 
 /**
  * KONTRAKT §6b: direkte sammenlignelige, når værk, periode, opløsning,
- * data_commit, model_commit, mip_rel_gap og mip_abs_gap er ens. Tom liste
- * af advarsler = direkte sammenlignelige. Noter (værksrevision, balancering,
- * miljø) bryder ikke reglen, men skal kunne ses.
+ * data_commit, model_commit, mip_rel_gap og mip_abs_gap er ens — og, fra
+ * runde 15, værkets revision (egen antagelse: §6b nævner den ikke). Tom liste
+ * af advarsler = direkte sammenlignelige. Noter (balancering, miljø, en
+ * ukendt revision) bryder ikke reglen, men skal kunne ses.
  */
 export function sammenlignelighed(a: Profil, b: Profil): Afvigelse[] {
     const ud: Afvigelse[] = [];
@@ -557,11 +559,45 @@ export function sammenlignelighed(a: Profil, b: Profil): Afvigelse[] {
     nødvendig("model_commit", "Modelversion", sha(a.model_commit), sha(b.model_commit), kort, id);
     nødvendig("rel_gap", "Ønsket relativt gab", a.rel_gap, b.rel_gap, gabPct, (x) => `${fuldtTal(x * 100)} %`);
     nødvendig("abs_gap", "Ønsket absolut gab", a.abs_gap, b.abs_gap, (x) => `${tal(x)} kr.`, (x) => `${fuldtTal(x)} kr.`);
-    if (a.vaerk_id === b.vaerk_id) tjek("vaerk_revision", "Værkets revision", vis(a.vaerk_revision, (x: number) => `r${x}`), vis(b.vaerk_revision, (x: number) => `r${x}`), "note");
+    // Runde 15 (mail 1, den uafhængige test 18. november 2026): to kørsler ved hver sin værksrevision har hver sit værk
+    // under sig — værket er rettet imellem dem — så differensen blander værksrettelsen med scenariets ændring. Kendes
+    // begge revisioner, og er de forskellige, er parret IKKE direkte sammenligneligt (før: en note, og parret blev vist
+    // som "Sammenlignelige" med grønt mærke). Kendes en af dem ikke (ældre kørsler), er det fortsat en note.
+    if (a.vaerk_id === b.vaerk_id) {
+        const rv = (x: number) => `r${x}`;
+        if (!tom(a.vaerk_revision) && !tom(b.vaerk_revision) && a.vaerk_revision !== b.vaerk_revision) {
+            ud.push({ felt: "vaerk_revision", navn: "Værkets revision", a: rv(a.vaerk_revision), b: rv(b.vaerk_revision), alvor: "advarsel" });
+        } else tjek("vaerk_revision", "Værkets revision", vis(a.vaerk_revision, rv), vis(b.vaerk_revision, rv), "note");
+    }
     tjek("med_balancering", "Balancemarked", vis(a.med_balancering, (x: boolean) => (x ? "med" : "uden")), vis(b.med_balancering, (x: boolean) => (x ? "med" : "uden")), "note");
     tjek("miljoe", "Beregningsmiljø", vis(a.miljoe), vis(b.miljoe), "note");
     return ud;
 }
+
+/** "a", "a og b", "a, b og c". */
+function opremsning(xs: readonly string[]): string {
+    return xs.length <= 1 ? xs[0] ?? "" : `${xs.slice(0, -1).join(", ")} og ${xs[xs.length - 1]}`;
+}
+
+/**
+ * Dommen over et par, som HVERT sted, der viser en differens, skal spørge (runde 15, mail 1): kun et par med
+ * `status: "ja"` må vises som et godt eller dårligt resultat — med virkningsfarve, et grønt mærke eller ordene
+ * "billigere"/"dyrere end referencen". Ellers er `tekst` grunden i klartekst, og tallet er to kørsler side om side.
+ */
+export interface Dom { status: "ja" | "nej" | "ukendt"; tekst: string | null; afvigelser: Afvigelse[] }
+
+export function sammenlignelighedsDom(a: Profil, b: Profil): Dom {
+    const afvigelser = sammenlignelighed(a, b);
+    const status = sammenlignelighedStatus(afvigelser);
+    const navne = (alvor: Afvigelse["alvor"]) => afvigelser.filter((x) => x.alvor === alvor).map((x) => x.navn.toLowerCase());
+    const tekst = status === "ja" ? null
+        : status === "nej" ? `Kørslerne kan ikke sammenlignes direkte: ${opremsning(navne("advarsel"))} afviger.`
+            : `Det kan ikke afgøres, om kørslerne kan sammenlignes: ${opremsning(navne("ukendt"))} kendes ikke for begge.`;
+    return { status, tekst, afvigelser };
+}
+
+/** Sætningen, der står i stedet for et resultat, når parret ikke er direkte sammenligneligt. */
+export const IKKE_ET_RESULTAT = "Forskellen i driftsomkostning er derfor ikke scenariets virkning.";
 
 // ================================================================= måneder
 

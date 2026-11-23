@@ -14,10 +14,10 @@ import { opdaterAlt } from "@/lib/data/opdatering";
 import { tal, tidspunkt } from "@/lib/format";
 import { rutehref } from "@/lib/rute";
 import type { Koersel } from "../../../rayfin/data/Koersel";
-import { difference, differenceTekst } from "../analyser/beregn";
+import { differenceTekst } from "../analyser/beregn";
 import { NoegletalKort, TKR } from "../analyser/ibcs-grafer";
-import { sammenlignHref } from "./koersel-logik";
-import { sammenlignelighed, varighedTekst } from "./logik";
+import { modReference, sammenlignHref } from "./koersel-logik";
+import { varighedTekst } from "./logik";
 import { rådFor, type Rådkontekst } from "./raad";
 
 export function KoerselDetaljer({ k, varighed, reference, rådkontekst }: {
@@ -33,8 +33,8 @@ export function KoerselDetaljer({ k, varighed, reference, rådkontekst }: {
     const [sender, setSender] = useState(false);
     const aktiv = erAktiv(k.status);
     const råd = k.status === "fejl" ? rådFor(k.fejlbesked, rådkontekst) : undefined;
-    const diff = k.status === "faerdig" && reference?.status === "faerdig" ? difference(reference, k) : null;
-    const afvig = reference ? sammenlignelighed(reference, k) : [];
+    // Runde 15 (mail 1): differensen findes kun mod en færdig, direkte sammenlignelig reference (koersel-logik.ts).
+    const { diff, afviger: afvig } = modReference(reference, k);
 
     const annullér = async () => {
         setSender(true);
@@ -81,8 +81,10 @@ export function KoerselDetaljer({ k, varighed, reference, rådkontekst }: {
                     {råd && <p className="fs-tekst">{råd.tekst} <span className="fs-lille">({råd.kilde})</span></p>}
                 </div>
             )}
-            {afvig.length > 0 && k.status === "faerdig" && reference?.status === "faerdig" && (
-                <p className="fs-lille">Ikke direkte sammenlignelig med referencen: {afvig.join(", ")} afviger.</p>
+            {afvig.length > 0 && (
+                <p className="fjv-tilstand" data-tone="advarsel" role="alert">
+                    Kan ikke sammenlignes direkte med referencen: {afvig.join(", ")} afviger. Der vises derfor ingen ΔRef — kør referencen igen med samme {afvig.join(", ")}.
+                </p>
             )}
             <div className="fs-raekke">
                 {aktiv && <Knap sekundaer onClick={annullér} disabled={sender || !!k.annuller_anmodet}>{sender ? "Annullerer…" : "Annullér"}</Knap>}

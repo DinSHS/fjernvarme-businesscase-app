@@ -4,7 +4,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ScaleProvider } from "@/ibcs";
-import { produktionsvarians, relativAfvigelse, type Balance, type Samlet } from "./beregn";
+import { produktionsvarians, relativAfvigelse, type Balance, type Profil, type Samlet } from "./beregn";
 import type { Pakke } from "./data";
 import { StablededeSoejler } from "./grafer";
 import { NoegletalKort, OmkostningsVandfald, ParVarians, ProduktionPrEnhed, TKR, omkostningsBro, pengeSkala } from "./ibcs-grafer";
@@ -18,9 +18,15 @@ const balance = (brutto: number | null): Balance => {
     const m = { netto: brutto, brutto, kapacitet: null, aktivering_netto: null, sparet_elkoeb: null, aktivering_brutto: null };
     return { afrr: m, mfrr: m, i_alt: m, harProdukter: false } as Balance;
 };
+/** En profil, der er direkte sammenlignelig med sig selv (runde 15: kortene spørger sammenligneligheden, før de farver et ΔRef). */
+const PROFIL = {
+    vaerk_id: "v", vaerk_navn: "Andeby", vaerk_revision: 1, periode_start: "2026-01-05", periode_slut: "2026-01-16",
+    periode_fra: "2026-01-05T00:00:00.000Z", periode_til: "2026-01-16T23:00:00.000Z", oploesning: "1h", data_commit: "d", model_commit: "m",
+    rel_gap: 0.0002, abs_gap: 100, med_balancering: false, miljoe: null,
+} as Profil;
 const pakke = (objektiv: number, s: Samlet = samlet()): Pakke => ({
     k: { id: `k${objektiv}`, objektiv_dkk: objektiv, best_bound: objektiv, opnaaet_gap: 0, solve_status: "optimal" },
-    vaerkNavn: "Andeby", vaerkKode: null, scenarie: null, samlet: s, input: [], objekter: { enheder: [], lagre: [] },
+    vaerkNavn: "Andeby", vaerkKode: null, scenarie: null, samlet: s, input: [], objekter: { enheder: [], lagre: [] }, profil: PROFIL,
 } as unknown as Pakke);
 
 describe("F4: én regel for relativ afvigelse — N/A når referencen er ≤ 0", () => {
