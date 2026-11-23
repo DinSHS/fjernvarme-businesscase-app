@@ -5,7 +5,7 @@ import { hentDataKilde, kaldApi, sætFetch } from "@/backend/rest/data";
 import { bootstrapAuth, sessionsinfo } from "@/backend/rest/auth";
 import { KildeFejl } from "../kilde";
 import { læs, sætLæseKilde, type LæseKilde } from "../laes";
-import { Afvist, bestilKoersel, gemScenarieAendringer, oversætFejl, sætSkriveKilde, type SkriveKilde } from "../skriv";
+import { Afvist, bestilKoersel, gemScenarieAendringer, oversætFejl, sætSkriveKilde, UafklaretBestilling, type SkriveKilde } from "../skriv";
 
 interface Kald { metode: string; url: URL; krop: unknown }
 let kald: Kald[] = [];
@@ -129,9 +129,21 @@ describe("skrivning", () => {
         expect(kald[1].krop).toEqual({ bestillingId: "b1" });
     });
 
-    it("en gentaget bestilling (unik) giver samme besked som i Fabric", async () => {
-        svar = () => ({ status: 409, json: { fejl: { kode: "unik", besked: "Bestillings.klient_noegle findes allerede" } } });
+    it("en gentaget bestilling (unik), hvor nøglen er en andens, giver samme besked som i Fabric", async () => {
+        svar = (k) => (k.metode === "GET" ? { json: { items: [{ id: "B-ANDEN", scenarie_id: "s1", bestilt_af: "kollega@b.dk", klient_noegle: "noegle-1" }], hasNextPage: false, endCursor: null } }
+            : { status: 409, json: { fejl: { kode: "unik", besked: "Bestillings.klient_noegle findes allerede" } } });
         await expect(bestilKoersel("s1", "a@b.dk", "noegle-1")).rejects.toEqual(new Afvist("Bestillingen er allerede sendt — se kørselslisten."));
+    });
+
+    // Tredje rettelsesrunde i runde 15, P2-2: kan bestillingen ikke slås op, VED vi ikke, hvad der står — det er ikke
+    // "allerede sendt" (som længere oppe blev til `ryddet`, en ny nøgle og en ekstra kørsel).
+    it("en gentaget bestilling (unik), hvor opslaget fejler, er uafklaret — ikke en afvisning", async () => {
+        svar = (k) => (k.metode === "GET" ? { status: 503, json: { fejl: { kode: "teknisk", besked: "databasen svarer ikke" } } }
+            : { status: 409, json: { fejl: { kode: "unik", besked: "Bestillings.klient_noegle findes allerede" } } });
+        const fejl = await bestilKoersel("s1", "a@b.dk", "noegle-1").catch((e: unknown) => e);
+        expect(fejl).toBeInstanceOf(UafklaretBestilling);
+        expect(fejl).not.toBeInstanceOf(Afvist);
+        expect(kald.map((k) => k.url.pathname)).not.toContain("/api/fn/startBestilling");
     });
 
     // Kodegennemgangen af runde 15, fund 3: findes bestillingen allerede (samme nøgle, samme scenarie, samme bruger),

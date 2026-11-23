@@ -205,16 +205,28 @@ export async function opretVaerk(
 // ------------------------------------------------------------------ kørsler
 
 /**
- * Den bestilling, en klientnøgle allerede har givet — hvis den er brugerens egen og gælder samme scenarie.
- * (Bestillinger kan læses af alle appens brugere; derfor de to tjek.)
+ * Bestillingen findes — eller findes måske — men udfaldet kendes ikke. ALDRIG en afvisning: `bestilMedUdfald` gør en
+ * `Afvist` herfra til `ryddet` (ny nøgle, og parflowet arkiverer sit scenarie), og det må kun ske ved bekræftet fravær.
  */
-async function egenBestilling(klientNoegle: string, scenarieId: string, bruger: string): Promise<{ id: string } | null> {
+export class UafklaretBestilling extends Error {
+    constructor(besked: string) { super(besked); this.name = "UafklaretBestilling"; }
+}
+
+const fejltekst = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+/**
+ * Den bestilling, en klientnøgle allerede har givet. `egen`: brugerens egen for samme scenarie. `fremmed`: nøglen er
+ * en anden brugers eller et andet scenaries (bestillinger kan læses af alle appens brugere; derfor de to tjek).
+ * `ingen`: opslaget svarede uden en række. Et opslag, der fejler teknisk, KASTER — det er ikke et svar.
+ */
+async function slåNøgleOp(klientNoegle: string, scenarieId: string, bruger: string): Promise<{ art: "egen"; id: string } | { art: "fremmed" } | { art: "ingen" }> {
     const q = kilde().data.Bestilling.select?.(["id", "scenarie_id", "bestilt_af", "klient_noegle"]);
-    if (!q) return null;
+    if (!q) throw new Error("bestillinger kan ikke læses i denne udgave");
     const side = await q.where({ klient_noegle: { eq: klientNoegle } }).first(1).executePaginated();
     const b = (side?.items ?? [])[0] as { id: string; scenarie_id: string; bestilt_af: string } | undefined;
-    if (!b || String(b.scenarie_id).toLowerCase() !== scenarieId.toLowerCase() || b.bestilt_af !== bruger) return null;
-    return { id: String(b.id) };
+    if (!b) return { art: "ingen" };
+    if (String(b.scenarie_id).toLowerCase() !== scenarieId.toLowerCase() || b.bestilt_af !== bruger) return { art: "fremmed" };
+    return { art: "egen", id: String(b.id) };
 }
 
 /**
@@ -229,6 +241,15 @@ async function egenBestilling(klientNoegle: string, scenarieId: string, bruger: 
  * genforsøget "Bestillingen er allerede sendt", og parflowet havde da allerede oprettet et nyt, tomt scenarie.
  * Svaret med `ok: false` er ét af tre — se `Bestillingssvar` i rayfin/functions/src/function_app.ts (`ryddet`,
  * `teknisk`).
+ *
+ * Tredje rettelsesrunde, P2-2: hvad funktionen KASTER, siger, om der står en bestilling.
+ *   `Afvist`               bekræftet fravær: intet blev sendt, serveren nægtede rækken, eller nøglen er en andens.
+ *   `UafklaretBestilling`  bestillingen findes eller kan findes: opslaget på nøglen fejlede eller svarede tomt (i
+ *                          modstrid med unikhedsfejlen), eller kaldet til startBestilling blev afvist, EFTER at
+ *                          rækken var oprettet.
+ *   andet (netværk)        uafklaret.
+ * Før blev et opslag, der fejlede et øjeblik, til "Bestillingen er allerede sendt" (`.catch(() => null)`), og det
+ * blev længere oppe til `ryddet`: ny nøgle og en ekstra kørsel ved næste klik.
  */
 export async function bestilKoersel(
     scenarieId: string, bruger: string | undefined, klientNoegle: string = crypto.randomUUID(),
@@ -241,13 +262,26 @@ export async function bestilKoersel(
         });
     } catch (e) {
         if (!(e instanceof Afvist && /samme nøgle/.test(e.message))) throw e;
-        // En anden brugers eller et andet scenaries bestilling med samme nøgle genoptages aldrig — og kan den
-        // eksisterende ikke læses, er beskeden den gamle (intet er da sendt to gange).
-        const egen = await egenBestilling(klientNoegle, scenarieId, af).catch(() => null);
-        if (!egen) throw new Afvist("Bestillingen er allerede sendt — se kørselslisten.");
-        b = egen;
+        let fundet: Awaited<ReturnType<typeof slåNøgleOp>>;
+        try {
+            fundet = await slåNøgleOp(klientNoegle, scenarieId, af);
+        } catch (opslag) {
+            throw new UafklaretBestilling(`bestillingen findes allerede, men kunne ikke slås op: ${fejltekst(opslag)}`);
+        }
+        // En anden brugers eller et andet scenaries bestilling med samme nøgle genoptages aldrig.
+        if (fundet.art === "fremmed") throw new Afvist("Bestillingen er allerede sendt — se kørselslisten.");
+        // Unikhedsfejl og et tomt opslag modsiger hinanden (rækken kan være ryddet i samme øjeblik). Samme nøgle
+        // næste gang afgør det: enten oprettes rækken, eller også findes den.
+        if (fundet.art === "ingen") throw new UafklaretBestilling("bestillingen findes allerede, men kunne ikke læses");
+        b = { id: fundet.id };
     }
-    return kald("startBestilling", { bestillingId: b.id });
+    try {
+        return await kald("startBestilling", { bestillingId: b.id });
+    } catch (e) {
+        // Rækken STÅR. En `Afvist` fra adapteren (fx et ugyldigt kald) må ikke læses som "ingen bestilling".
+        if (e instanceof Afvist) throw new UafklaretBestilling(e.message);
+        throw e;
+    }
 }
 
 export const annullerKoersel = (koerselId: string) => kald("annullerKoersel", { koerselId });

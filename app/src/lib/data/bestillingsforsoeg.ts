@@ -14,8 +14,12 @@
 //   uafklaret  `teknisk: true`, et "ok" uden kørsel, eller et kald, der kastede -> samme nøgle, samme scenarie
 //
 // "Uafklaret" har sin egen tekst: vi ved ikke, om kørslen blev bestilt. Det er ikke en afvisning.
-// En `Afvist` kastet af skrivelaget (ingen bruger, en række serveren nægtede at oprette) er derimod et KENDT udfald:
-// intet blev sendt, eller serveren sagde nej til selve rækken.
+// En `Afvist` kastet af skrivelaget (ingen bruger, en række serveren nægtede at oprette, en nøgle der er en andens) er
+// derimod et KENDT udfald: der står ingen bestilling for denne bruger.
+//
+// Tredje rettelsesrunde, P2-2: `ryddet` er forbeholdt BEKRÆFTET fravær og serverens udtrykkelige `ryddet: true`. Et
+// opslag på nøglen, der fejler teknisk, og et kald, der afvises, efter at rækken er oprettet, kaster skrivelaget som
+// `UafklaretBestilling` (skriv.ts › bestilKoersel) — og alt, der ikke er en `Afvist`, er uafklaret her.
 //
 // Forsøgene huskes pr. mål i modulet — ikke i komponenten — så nøglen overlever, at brugeren forlader siden og kommer
 // tilbage. De overlever ikke en genindlæsning af appen; det er en begrænsning (rapporten for anden rettelsesrunde).
@@ -56,6 +60,7 @@ export async function bestilMedUdfald(bestil: () => Promise<Bestillingssvar>): P
         return udfaldAfSvar(await bestil());
     } catch (e) {
         // Skrivelagets egen afvisning: rækken blev ikke oprettet (eller er en andens) — et kendt udfald uden bestilling.
+        // Alt andet (netværk, `UafklaretBestilling`) er uafklaret: bestillingen kan stå.
         if (e instanceof Afvist) return { art: "ryddet", tekst: e.message };
         return { art: "uafklaret", detalje: e instanceof Error ? e.message : String(e) };
     }

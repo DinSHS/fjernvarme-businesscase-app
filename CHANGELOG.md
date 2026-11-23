@@ -192,6 +192,13 @@ præsentationen og i datahåndteringen omkring kørslerne.
   om kørslen blev bestilt — prøv igen" — i stedet for "blev ikke bestilt", og knappen hedder *Prøv igen*. En afvisning,
   hvor bestillingen blev stående (Fabric-udgaven), genoptages ligeledes med samme nøgle. Nøglen huskes, så længe
   appen er åben — ikke hen over en genindlæsning af siden.
+- **Et kort opslagssvigt kunne udløse en ekstra kørsel** (tredje rettelsesrunde, P2-2). Et genforsøg slår den
+  eksisterende bestilling op på klientnøglen. Fejlede netop det opslag et øjeblik, blev svaret til "Bestillingen er
+  allerede sendt", nøglen blev skiftet, og næste klik bestilte en kørsel mere; parflowet arkiverede desuden det
+  scenarie, det selv havde oprettet. Et opslag, der fejler teknisk — eller svarer tomt i modstrid med databasens
+  unikhedsfejl — er nu *uafklaret*: samme nøgle næste gang, og intet arkiveres. Det samme gælder et kald til
+  `startBestilling`, der afvises, efter at bestillingen er oprettet. Kun bekræftet fravær (rækken blev aldrig oprettet,
+  eller nøglen er en andens) og serverens udtrykkelige `ryddet` giver en ny nøgle.
 - ***Scenariet fortalt* kunne sige det modsatte om varmelasten** (efterprøvningen af rettelserne, fund G). En
   reference med målt varmelast og et scenarie med syntesen blev fortalt som "bruger vi målt varmelast (–) i stedet for
   syntesen", og to tidsserier med samme navn som "samme input". Historien bærer nu seriens id og sha256 frem til
