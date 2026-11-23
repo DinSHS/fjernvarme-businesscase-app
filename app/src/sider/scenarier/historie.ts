@@ -51,13 +51,28 @@ export function saetningFørKørsel(refInput: readonly InputRække[], refNavn: s
 
 export interface KørselMedData { k: Koersel; navn: string; scenarie?: Scenarie | null; input: readonly InputRække[]; noegletal: readonly Noegletal[] }
 
-/** Hele historien og vurderingen for et færdigt reference/scenarie-par. */
-export function historieEfterKørsel(ref: KørselMedData, scen: KørselMedData, vaerkNavn: string, bekraeft: ReadonlySet<string>, serier: readonly TidsserieInfo[] = []): { tekst: string; vurdering: Vurdering } {
+/**
+ * Hele historien og vurderingen for et færdigt reference/scenarie-par.
+ *
+ * Runde 15 (mail 2, den uafhængige test 18. november 2026): på scenariets side er rollerne givet af siden — dette
+ * scenarie mod sin reference — og nøgletallet i kortet "Kørsel" læser dem sådan. Generatoren (ordnPar) fortæller
+ * derimod den kørsel, der BÆRER ændringen, som scenariet. Er det referencen (`byttet`), ville historien handle om
+ * den anden kørsel end nøgletallet, med modsat fortegn. Så fortælles den ikke her: teksten siger, hvem der bærer
+ * ændringen, og henviser til sammenligningen, hvor hele siden har de roller.
+ */
+export function historieEfterKørsel(ref: KørselMedData, scen: KørselMedData, vaerkNavn: string, bekraeft: ReadonlySet<string>, serier: readonly TidsserieInfo[] = []): { tekst: string; vurdering: Vurdering; byttet: boolean } {
     const side = (x: KørselMedData): Side => ({
         k: x.k, navn: x.navn, vaerkNavn, input: medSerienavn(x.input, serier),
         samlet: samlNoegletal(x.noegletal), profil: profil(x.k, vaerkNavn, x.scenarie ?? null, x.input),
     });
     const p = ordnPar(side(ref), side(scen));
     const v = vurder(p, bekraeft);
-    return { tekst: historie(p, v), vurdering: v };
+    if (p.byttet) {
+        return {
+            byttet: true, vurdering: v,
+            tekst: `Her er det referencen «${ref.navn}», der bærer ændringen i forhold til værket; dette scenarie er uden den. `
+                + "Historien og anbefalingen handler om ændringen og står derfor i sammenligningen, hvor referencen her er scenariet.",
+        };
+    }
+    return { tekst: historie(p, v), vurdering: v, byttet: false };
 }

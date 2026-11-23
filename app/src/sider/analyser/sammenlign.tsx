@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
 // #/analyser/sammenlign/<a>/<b> — differensen er produktet.
-// a = reference, b = scenarie; Δ = b − a. Sammenlignelighed (KONTRAKT §6b),
+// Rollerne følger ÆNDRINGEN, ikke ruten (runde 15, mail 2): scenariet er den kørsel, der bærer ændringen i forhold
+// til værket (data.ts › sideRoller). Kun når ingen af dem peges ud, er a = reference og b = scenarie. Hele siden —
+// titel, nøgletal, Δ, vandfald, historie og anbefaling — læser de samme to kørsler i de samme roller.
+// Δ = scenarie − reference. Sammenlignelighed (KONTRAKT §6b),
 // Δ objektiv med toleranceregel, hvad der ændrede sig (input, produktion,
 // måneder, balance, lager) og dispatch for samme vindue på samme skala.
 //-----------------------------------------------------------------------
@@ -9,13 +12,13 @@ import { useMemo } from "react";
 import { DataTilstand, FarveValg, Gitter, HeatSkalaProvider, Knap, Kort, Maerke, Side, StatusMaerke, Tabel, useFarvesaet, useHeatMaks, useVisning } from "@/components/layout";
 import { FARVENAVNE, farverTeksten, farvning, forklaring, grafFarve, skalaMaks } from "@/lib/tabelfarve";
 import { useVaerkParametre, type Hentet } from "@/lib/data/hooks";
-import { tal } from "@/lib/format";
+import { tal, tidspunkt } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
 import {
     absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceMetode, balanceKolonner, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, kendtDelta, produktionsvarians, varianseOrden,
     IKKE_ET_RESULTAT, relativAfvigelse, sammenlignelighed, sammenlignelighedsDom, sammenligningsBudskab, spor, type Profil,
 } from "./beregn";
-import { tilSide, usePakke, type Pakke } from "./data";
+import { sideRoller, tilSide, usePakke, type Pakke } from "./data";
 import { historie, ordnPar, vurder } from "./anbefaling";
 import { AnbefalingKort, HistorieKort } from "./anbefaling-kort";
 import { Commit, Fakta, KoerselLink, SporMaerke } from "./dele";
@@ -39,28 +42,31 @@ export default function Sammenlign({ a, b, gåTil }: { a: string; b: string; gå
     const pb = usePakke(b);
     const h = begge(pa, pb);
     const klar = pa.data && pb.data && pa.data.k.status === "faerdig" && pb.data.k.status === "faerdig";
+    // Runde 15 (mail 2): ét sæt roller for hele siden — scenariet er den kørsel, der bærer ændringen.
+    const roller = useMemo(() => (klar ? sideRoller(pa.data!, pb.data!) : null), [klar, pa.data, pb.data]);
     const budskab = useMemo(() => {
-        if (!klar) return undefined;
+        if (!roller) return undefined;
         // Runde 15 (mail 1): sidens budskab siger ikke "driften bliver X kr. billigere" om to kørsler, der ikke kan sammenlignes.
-        const dom = sammenlignelighedsDom(pa.data!.profil, pb.data!.profil);
+        const dom = sammenlignelighedsDom(roller.ref.profil, roller.scen.profil);
         if (dom.status !== "ja") return `${dom.tekst} ${IKKE_ET_RESULTAT} Tallene står side om side.`;
-        const v = produktionsvarians(pa.data!.samlet.enheder, pb.data!.samlet.enheder);
-        return sammenligningsBudskab(v, difference(pa.data!.k, pb.data!.k), energi);
-    }, [klar, pa.data, pb.data]);
+        const v = produktionsvarians(roller.ref.samlet.enheder, roller.scen.samlet.enheder);
+        return sammenligningsBudskab(v, difference(roller.ref.k, roller.scen.k), energi);
+    }, [roller]);
     return (
-        <Side omraade="Analyser · Sammenligning" titel={klar ? `${pb.data!.scenarie?.navn ?? "Scenarie"} mod ${pa.data!.scenarie?.navn ?? "reference"}` : "Sammenligning"}
+        <Side omraade="Analyser · Sammenligning" titel={roller ? `${roller.scen.scenarie?.navn ?? "Scenarie"} mod ${roller.ref.scenarie?.navn ?? "reference"}` : "Sammenligning"}
             budskab={budskab ?? (h.data && !klar ? "Begge kørsler skal være færdige for at kunne sammenlignes." : undefined)}
-            titelblok={klar ? titelblok(pa.data!, pb.data!) : undefined}
+            titelblok={roller ? titelblok(roller.ref, roller.scen) : undefined}
             handlinger={<>
                 <Knap sekundaer onClick={() => gåTil("analyser")}>Alle kørsler</Knap>
-                <Knap sekundaer onClick={() => gåTil(`analyser/sammenlign/${b}/${a}`)} title="Gør scenariet til reference og omvendt">Byt reference og scenarie</Knap>
+                {/* Følger rollerne ændringen (én kørsel bærer den), ville et bytte vise præcis samme side: knappen findes kun, når rækkefølgen er brugerens. */}
+                {(!roller || roller.fri) && <Knap sekundaer onClick={() => gåTil(`analyser/sammenlign/${b}/${a}`)} title="Gør scenariet til reference og omvendt">Byt reference og scenarie</Knap>}
             </>}>
             <DataTilstand h={h} højde={300}>
                 {([da, db]) => !da || !db
-                    ? <Kort titel="Kørslen findes ikke" budskab={`${!da ? "Referencen" : "Scenariet"} findes ikke — linket kan være forkert.`} />
-                    : da.k.status !== "faerdig" || db.k.status !== "faerdig"
+                    ? <Kort titel="Kørslen findes ikke" budskab={`${!da ? "Den første" : "Den anden"} kørsel i linket findes ikke — linket kan være forkert.`} />
+                    : da.k.status !== "faerdig" || db.k.status !== "faerdig" || !roller
                         ? <IkkeKlar a={da} b={db} />
-                        : <Indhold a={da} b={db} />}
+                        : <Indhold a={roller.ref} b={roller.scen} byttet={roller.byttet} />}
             </DataTilstand>
         </Side>
     );
@@ -81,7 +87,8 @@ function titelblok(a: Pakke, b: Pakke) {
 function IkkeKlar({ a, b }: { a: Pakke; b: Pakke }) {
     return (
         <Gitter form="6-6">
-            {[["Reference", a], ["Scenarie", b]].map(([n, p]) => {
+            {/* Rollerne afgøres først, når begge er færdige (de følger ændringen): her kun rækkefølgen i linket. */}
+            {[["Første kørsel", a], ["Anden kørsel", b]].map(([n, p]) => {
                 const x = p as Pakke;
                 return (
                     <Kort key={n as string} titel={n as string} afgraensning={x.scenarie?.navn} budskab={x.k.status === "faerdig" ? "Færdig." : x.k.fejlbesked ?? x.k.fase ?? "Ikke færdig."}>
@@ -93,7 +100,11 @@ function IkkeKlar({ a, b }: { a: Pakke; b: Pakke }) {
     );
 }
 
-function Indhold({ a, b }: { a: Pakke; b: Pakke }) {
+/** Kørslen, som siden kan pege på: scenariets navn, perioden og hvornår den blev bestilt (navne kan være ens). */
+const koerselNavn = (p: Pakke) => `«${p.scenarie?.navn ?? `Kørsel ${p.k.id.slice(0, 8)}`}» (${periodeTekst(p.profil.periode_start, p.profil.periode_slut)}, kørsel bestilt ${tidspunkt(p.k.bestilt)})`;
+
+/** `a` = referencen, `b` = scenariet — allerede i sidens roller (sideRoller); `byttet` = omvendt af linkets rækkefølge. */
+function Indhold({ a, b, byttet }: { a: Pakke; b: Pakke; byttet: boolean }) {
     const pladser = useMemo(() => farvepladser([...a.objekter.enheder, ...b.objekter.enheder, ...a.samlet.enheder.map((e) => e.navn), ...b.samlet.enheder.map((e) => e.navn)]),
         [a.objekter.enheder, b.objekter.enheder, a.samlet.enheder, b.samlet.enheder]);
     const vp = useVaerkParametre(a.k.vaerk_id);
@@ -108,10 +119,18 @@ function Indhold({ a, b }: { a: Pakke; b: Pakke }) {
             ...(v.naesteSkridt.length ? [`Næste skridt: ${v.naesteSkridt.join("; ")}.`] : [])].join("\n");
         return { par, v, h, kopi };
     }, [vp.data, a, b]);
+    const navn = (p: Pakke) => p.scenarie?.navn ?? `Kørsel ${p.k.id.slice(0, 8)}`;
     // Runde 15 (mail 1): kan parret ikke sammenlignes direkte, står grunden FØRST — ikke som sjette kort under grønne tal.
     const sammenlignelige = sammenlignelighedsDom(a.profil, b.profil).status === "ja";
     return (
         <HeatSkalaProvider>
+            {byttet && (
+                <Gitter>
+                    <Kort titel="Reference og scenarie" afgraensning="rollerne følger ændringen, ikke rækkefølgen i valget"
+                        budskab={`«${navn(b)}» bærer ændringen i forhold til værket og vises derfor som scenariet; «${navn(a)}» er referencen — omvendt af den rækkefølge, de blev valgt i.`}
+                        fod="Differensmetoden: ΔRef = scenarie − reference, hvor scenariet er den kørsel, der har ændringen. Alle tal og tekster på siden læser de to kørsler i disse roller." />
+                </Gitter>
+            )}
             {!sammenlignelige && <Gitter><Sammenlignelighed a={a} b={b} /></Gitter>}
             {/* Nøgletal og vandfald over folden ved 1280 px (sidekvalitet, K7; orkestratorens beslutning 2026-10-26), så
                 historien og anbefalingen — begge regnet af data (brief 15 A2/A). */}
@@ -121,8 +140,8 @@ function Indhold({ a, b }: { a: Pakke; b: Pakke }) {
                 <Vandfald a={a} b={b} />
             </Gitter>
             {anbefaling && <>
-                <Gitter><HistorieKort par={anbefaling.par} historie={anbefaling.h} /></Gitter>
-                <Gitter><AnbefalingKort v={anbefaling.v} vaerkKode={(anbefaling.par.scen.k.id === b.k.id ? b : a).vaerkKode} kopiTekst={anbefaling.kopi} /></Gitter>
+                <Gitter><HistorieKort par={anbefaling.par} historie={anbefaling.h} koersler={`Scenarie: ${koerselNavn(b)}. Reference: ${koerselNavn(a)}.`} /></Gitter>
+                <Gitter><AnbefalingKort v={anbefaling.v} vaerkKode={b.vaerkKode} kopiTekst={anbefaling.kopi} /></Gitter>
             </>}
             {sammenlignelige && <Gitter><Sammenlignelighed a={a} b={b} /></Gitter>}
             <Gitter><ToKoersler a={a} b={b} /></Gitter>
@@ -304,7 +323,8 @@ function ToKoersler({ a, b }: { a: Pakke; b: Pakke }) {
             <Tabel rækker={rk} nøgle={(r) => r[0]} kolonner={[
                 { navn: "Rolle", vis: (r) => r[0] },
                 { navn: "Kørsel", vis: (r) => <KoerselLink id={r[1].k.id}>{r[1].scenarie?.navn ?? r[1].k.id.slice(0, 8)}</KoerselLink> },
-                { navn: "Driftsomkostning (t.kr.)", vis: (r) => tkr(r[1].samlet.objektiv_dkk ?? r[1].k.objektiv_dkk), tal: true },
+                // Samme kilde som nøgletalskortet: det præcise objektiv, manifestets afrundede tal kun som nødløsning (mail 2).
+                { navn: "Driftsomkostning (t.kr.)", vis: (r) => tkr(objektiv(r[1])), tal: true },
                 { navn: "Højst for højt (t.kr.)", vis: (r) => { const g = absolutGab(r[1].k); return g.kr === null ? "ukendt" : tkr(g.kr); }, tal: true },
                 { navn: "Status", vis: (r) => r[1].k.solve_status ?? "–" },
             ]} />

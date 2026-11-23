@@ -80,7 +80,7 @@ export default function Liste({ gåTil, kronologisk = false, sortering = null }:
             handlinger={<>
                 <Knap onClick={() => gåTil("analyser/anbefalinger")} title="Alle reference/scenarie-par med anbefaling og historie">Anbefalinger — hvad bør vi gøre?</Knap>
                 <Knap sekundaer disabled={!par || ikkeFærdig} onClick={() => par && gåTil(`analyser/sammenlign/${par[0]}/${par[1]}`)}
-                    title={!par ? "Vælg to kørsler i tabellen" : ikkeFærdig ? "Begge kørsler skal være færdige" : "Den først modtagne er referencen"}>
+                    title={!par ? "Vælg to kørsler i tabellen" : ikkeFærdig ? "Begge kørsler skal være færdige" : "Scenariet er den kørsel, der bærer ændringen i forhold til værket; ellers er den først modtagne referencen"}>
                     Sammenlign {valgte.length}/2
                 </Knap>
                 {valgte.length > 0 && <Knap sekundaer onClick={() => setValgte([])}>Ryd valg</Knap>}
@@ -90,7 +90,7 @@ export default function Liste({ gåTil, kronologisk = false, sortering = null }:
             </Gitter>
             <Gitter>
                 <Kort titel="Alle kørsler" afgraensning={afgraensning}
-                    budskab={par ? (ikkeFærdig ? "Begge valgte kørsler skal være færdige, før de kan sammenlignes." : "To kørsler valgt — den først modtagne bliver referencen.")
+                    budskab={par ? (ikkeFærdig ? "Begge valgte kørsler skal være færdige, før de kan sammenlignes." : "To kørsler valgt — scenariet er den, der bærer ændringen i forhold til værket; bærer begge eller ingen en ændring, bliver den først modtagne referencen.")
                         : kronologisk ? "Sortér efter spørgsmål for at samle reference, scenarier og gentagelser; klik på en række for at åbne kørslen."
                             : `${familier} ${familier === 1 ? "gruppe" : "grupper"} med reference og scenarier; sortér med en overskrift eller "Sortér efter", og klik på en række for at åbne kørslen.`}
                     fod={<>Δ er scenariet minus parrets reference. Parrene er de samme som under Anbefalinger: to direkte sammenlignelige kørsler, der kun

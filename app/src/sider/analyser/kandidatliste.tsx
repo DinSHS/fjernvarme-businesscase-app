@@ -48,8 +48,8 @@ function Raekke({ c, denne }: { c: Kandidat; denne: string }) {
     return (
         <li>
             {c.faerdig
-                // Kandidaten bliver referencen (a); den aktuelle kørsel er scenariet (b).
-                ? <a className="fjv-a-kand-rk" href={rutehref("analyser", "sammenlign", c.k.id, denne)} title="Sammenlign — kandidaten bliver referencen">{indhold}</a>
+                // Kandidaten står først i linket. Rollerne afgør sammenligningssiden: scenariet er den kørsel, der bærer ændringen (runde 15, mail 2).
+                ? <a className="fjv-a-kand-rk" href={rutehref("analyser", "sammenlign", c.k.id, denne)} title="Sammenlign — scenariet er den kørsel, der bærer ændringen i forhold til værket">{indhold}</a>
                 : <div className="fjv-a-kand-rk" data-deaktiveret="true">{indhold}</div>}
         </li>
     );
@@ -70,8 +70,9 @@ export default function Kandidatliste({ pakke, alle }: { pakke: Pakke; alle: Hen
                     <Kort titel="Hvad skal denne kørsel sammenlignes med?" afgraensning="vælg en reference — differensen er produktet"
                         budskab={budskab}
                         fod={<>Direkte sammenlignelig = samme værk og værksrevision, periode, opløsning, data, modelversion og ønsket gab (differensmetoden). Den naturlige
-                            reference er scenariets egen reference, ellers værket som det er med samme balancering. Den valgte kørsel bliver
-                            referencen; "Byt reference og scenarie" findes på sammenligningssiden.</>}>
+                            reference er scenariets egen reference, ellers værket som det er med samme balancering. På sammenligningssiden er
+                            scenariet den kørsel, der bærer ændringen i forhold til værket; bærer begge (eller ingen) en ændring, bliver den valgte
+                            kørsel referencen, og "Byt reference og scenarie" findes dér.</>}>
                         {anbefalet.length > 0
                             ? <ul className="fjv-a-kand">{anbefalet.map((c) => <Raekke key={c.k.id} c={c} denne={pakke.k.id} />)}</ul>
                             : <p className="fjv-brod">Bestil en reference under <a className="fjv-a-link" href={rutehref("scenarier")}>Scenarier</a> —

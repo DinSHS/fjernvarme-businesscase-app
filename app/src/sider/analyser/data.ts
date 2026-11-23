@@ -10,13 +10,27 @@ import type { Hentet } from "@/lib/data/hooks";
 import {
     maanedstabel, profil, samlNoegletal, vaerketsObjekter, type Koersel, type Maanedstabel, type Profil, type Samlet, type Scenarie,
 } from "./beregn";
-import type { Side } from "./anbefaling";
+import { ordnPar, type Side } from "./anbefaling";
 import type { Tidsserienavne } from "./datagrundlag";
 import { tidsserieIder, tidsserieShas, useTidsserienavne } from "./tidsserie-data";
 
 /** En pakke som anbefalingens `Side` (anbefaling.ts). */
 export function tilSide(p: Pakke): Side {
     return { k: p.k, navn: p.scenarie?.navn ?? `Kørsel ${p.k.id.slice(0, 8)}`, vaerkNavn: p.vaerkNavn, input: p.input, samlet: p.samlet, profil: p.profil, tidsserienavne: p.tidsserienavne };
+}
+
+/**
+ * Sammenligningssidens ROLLER (runde 15, mail 2 fra den uafhængige test 18. november 2026). Scenariet er den kørsel,
+ * der bærer ændringen i forhold til værket (anbefaling.ts › ordnPar); den anden er referencen — uanset hvilken
+ * rækkefølge ruten har. Før fulgte "Scenariet fortalt" og anbefalingen ordnPar, mens nøgletal, Δ og vandfald fulgte
+ * ruten: valgte man kørslen uden tank som reference, sagde teksten "dyrere" og tallene "billigere" på samme side.
+ * `byttet`: rollerne er omvendt af rutens. `fri`: ingen af kørslerne peges ud (begge bærer en ændring, eller ingen
+ * gør) — så gælder brugerens rækkefølge, og "Byt reference og scenarie" giver mening.
+ */
+export function sideRoller(a: Pakke, b: Pakke): { ref: Pakke; scen: Pakke; byttet: boolean; fri: boolean } {
+    const byttet = ordnPar(tilSide(a), tilSide(b)).byttet;
+    const [ref, scen] = byttet ? [b, a] : [a, b];
+    return { ref, scen, byttet, fri: !byttet && !ordnPar(tilSide(b), tilSide(a)).byttet };
 }
 
 export interface Pakke {

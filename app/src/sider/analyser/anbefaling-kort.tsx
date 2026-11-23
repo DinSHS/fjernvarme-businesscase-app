@@ -40,12 +40,16 @@ export function KopierKnap({ tekst, etiket = "Kopiér som tekst" }: { tekst: str
     );
 }
 
-export function HistorieKort({ par, historie }: { par: Par; historie: string }) {
+/**
+ * `koersler`: hvilke to kørsler teksten er regnet af, i klartekst (runde 15, mail 2) — de samme to, i de samme roller,
+ * som sidens nøgletal. Kortet bytter aldrig selv roller: det gør siden, for alle kort på én gang (data.ts › sideRoller).
+ */
+export function HistorieKort({ par, historie, koersler }: { par: Par; historie: string; koersler: string }) {
     return (
         <Kort titel="Scenariet fortalt" afgraensning={`${par.scen.navn} mod ${par.ref.navn}`}
             budskab={historie}
             handling={<KopierKnap tekst={historie} />}
-            fod={par.byttet ? "Den kørsel, der bærer ændringen ift. værket, fortælles som scenariet — her den, du valgte som reference." : "Regnet af de frosne input og resultaterne; tallene er afrundet efter appens anbefalingsregler."} />
+            fod={`${koersler} Det er de samme to kørsler som nøgletallene ovenfor. Regnet af de frosne input og resultaterne; tallene er afrundet efter appens anbefalingsregler.`} />
     );
 }
 
