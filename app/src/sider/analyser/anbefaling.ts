@@ -19,7 +19,7 @@ import {
     tidsgraenseForslag, toleranceKr, visJson,
     type InputForskel, type Koersel, type Profil, type Samlet, type TidsgraenseForslag,
 } from "./beregn";
-import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
+import { AARSTAL, FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, T0_DEFEKTE_MODEL_COMMITS, TRIN, TRIN5, VISNINGSNAVNE } from "./anbefaling.data";
 import { dec, periodeTekst } from "./fmt";
 import { aendringsResume } from "./kandidater";
 
@@ -235,7 +235,7 @@ const DØGN = 86_400_000;
  * kan ikke ganges op — tanken tjener på elprisens udsving, og varmebehov og priser er anderledes resten af året.
  * Appen opfinder derfor intet årstal: under 365 døgn vises kun periodens beløb.
  */
-export const HELAAR_DOEGN = 365;
+export const HELAAR_DOEGN = AARSTAL.helaar_doegn;
 /** Periodens længde i døgn fra den præcise periode (inkl. sidste interval). */
 export function doegn(p: Profil): number | null {
     if (!p.periode_fra || !p.periode_til) return null;
@@ -366,12 +366,9 @@ export function neutralSaetning(delta: number, indenTolerance: boolean): string 
  */
 function trin5Begrundelse(delta: number, T: number, V: number | null): string {
     const indenTolerance = Math.abs(delta) <= 2 * T, underV = V !== null && Math.abs(delta) <= V;
-    const forskel = `Forskellen på ${krRund(delta)}`;
-    const vTekst = V === null ? "" : `væsentlighedsgrænsen på ${krRund(V)} (den største af 1.000 kr. og 0,1 % af referencens driftsomkostning)`;
-    const tolRegel = `2 × summen af de to kørslers gab (${toleranceKr(T)})`;
-    if (indenTolerance && underV) return `${forskel} er både inden for solverens tolerance — højst ${tolRegel} — og under ${vTekst}. Den kan ikke skelnes fra nul.`;
-    if (indenTolerance) return `${forskel} er inden for solverens tolerance: den er højst ${tolRegel}, og det er den regel, der binder. Den kan ikke skelnes fra nul.`;
-    return `${forskel} er større end solverens tolerance (${toleranceKr(T)}), men under ${vTekst} — det er den regel, der binder. Forskellen er for lille til at bære en anbefaling.`;
+    // Teksterne er regelfilens (viden/anbefalingsregler.json, trin 5 → begrundelse); her vælges kun, hvilken der gælder.
+    const v = { delta: krRund(delta), T: toleranceKr(T), V: V === null ? "" : krRund(V) };
+    return udfyld(indenTolerance && underV ? TRIN5.begge : indenTolerance ? TRIN5.tolerance : TRIN5.vaesentlighed, v);
 }
 
 /**
@@ -396,7 +393,7 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     // Fund 3.1: intet Δ × 365 / døgn. Et årstal findes kun, når perioden selv er et år — og er da periodens tal.
     const aarligt = delta !== null && d !== null && d >= HELAAR_DOEGN ? delta : null;
     // Knappernes pladsholder {skaleret} (knapper.json) udfyldes kun for et helår, og da uden omregning.
-    const skaleret = aarligt !== null ? " (et helt år)" : "";
+    const skaleret = aarligt !== null ? AARSTAL.skaleret_helaar : "";
     const investering = p.knap && INVESTERING.knapper.includes(p.knap) ? INVESTERING.tekst : null;
     const indenTol = delta !== null && T !== null && (Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V));
     // Testrapportens afsnit 2a: stoppede en kørsel på tidsgrænsen, og er usikkerheden en væsentlig del af Δ, er første

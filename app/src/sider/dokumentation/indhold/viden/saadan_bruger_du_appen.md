@@ -145,9 +145,11 @@ indgik (spot altid; aFRR, mFRR og ubalance kun med balancemarked), DMI-område o
 (Kilde: KONTRAKT §6d)
 
 **Sammenlign to kørsler** — en reference og et scenarie. Differensen er scenarie minus reference og
-er svaret på spørgsmålet. Appen viser, om kørslerne er sammenlignelige (samme værk, periode,
-opløsning, data og gab), og om differensen er mindre end solverens tolerance — så kan den ikke
-skelnes fra nul. (Kilde: KONTRAKT §6b)
+er svaret på spørgsmålet. Appen viser, om kørslerne er sammenlignelige (samme værk og
+værksrevision, periode, opløsning, data, modelversion og gab), og om differensen er mindre end
+solverens tolerance — så kan den ikke skelnes fra nul. Er de ikke sammenlignelige, vises forskellen
+uden farve og uden "billigere" eller "dyrere". Scenariet er den kørsel, der bærer ændringen i
+forhold til værket, uanset hvilken rækkefølge de blev valgt i. (Kilde: KONTRAKT §6b)
 
 Tjek altid, om resultatet giver mening: kører enhederne i den rækkefølge, I kender? Er tanken tom
 eller fuld hele tiden? "Det kan ikke passe" er det rigtige svar at give — find så ud af, om det

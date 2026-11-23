@@ -31,7 +31,7 @@
   },
 
   "beslutningsraekkefoelge": [
-    {"trin": 1, "hvis": "En af kørslerne er ikke 'faerdig', eller kørslerne er ikke direkte sammenlignelige (en §6b-advarsel: værk, periode, opløsning, data_commit, model_commit, ønsket rel/abs gab). Manglende metadata = ikke sammenlignelige.", "kategori": "kan_ikke_afgoeres",
+    {"trin": 1, "hvis": "En af kørslerne er ikke 'faerdig', eller kørslerne er ikke direkte sammenlignelige (en §6b-advarsel: værk, periode, opløsning, data_commit, model_commit, ønsket rel/abs gab — og, som appens egen antagelse fra runde 15, to kendte, forskellige værksrevisioner). Manglende metadata = ikke sammenlignelige. Så er forskellen i driftsomkostning ikke scenariets virkning: sætningen og historien siger hverken 'billigere' eller 'dyrere'.", "kategori": "kan_ikke_afgoeres",
      "begrundelse": "Kørslerne er ikke sammenlignelige: {felter} afviger, så differensen blander flere effekter."},
     {"trin": 2, "hvis": "Inputforskellen indeholder andet end knappens egne ændringer (fx både tank fra og gaspris op). Gælder også 'balancemarkedets værdi': kun når den eneste forskel er _koersel.med_balancering (evt. _koersel.balancing_method) (K3-N3).", "kategori": "kan_ikke_afgoeres",
      "begrundelse": "Scenariet ændrer flere ting på én gang ({antal} ændringer); bidragene kan ikke skilles ad (doc/KOERSEL.md:43-44)."},
@@ -39,8 +39,12 @@
      "begrundelse": "Solverens tolerance kendes ikke for begge kørsler, så forskellen kan ikke vurderes."},
     {"trin": 4, "hvis": "Knappens forventede fortegn (knapper.json → anbefaling.forventet_fortegn) er brudt med mere end T.", "kategori": "kan_ikke_afgoeres",
      "begrundelse": "Fortegnet kan ikke passe: {forklaring}. Tjek gab, starttilstand og første interval, før tallet bruges."},
-    {"trin": 5, "hvis": "|Δ| ≤ 2 × T eller |Δ| ≤ V.", "kategori": "kan_ikke_afgoeres",
-     "begrundelse": "Forskellen på {delta} er inden for solverens tolerance ({T}) eller under væsentlighedsgrænsen ({V}) og kan ikke skelnes fra nul."},
+    {"trin": 5, "hvis": "|Δ| ≤ 2 × T eller |Δ| ≤ V. Begrundelsen siger, hvilken af de to regler der binder (runde 15, fund 3.4); {T} skrives '< 1 kr.', når tolerancen er over 0 og under 1 kr.", "kategori": "kan_ikke_afgoeres",
+     "begrundelse": {
+       "tolerance": "Forskellen på {delta} er inden for solverens tolerance: den er højst 2 × summen af de to kørslers gab ({T}), og det er den regel, der binder. Den kan ikke skelnes fra nul.",
+       "vaesentlighed": "Forskellen på {delta} er større end solverens tolerance ({T}), men under væsentlighedsgrænsen på {V} (den største af 1.000 kr. og 0,1 % af referencens driftsomkostning) — det er den regel, der binder. Forskellen er for lille til at bære en anbefaling.",
+       "begge": "Forskellen på {delta} er både inden for solverens tolerance — højst 2 × summen af de to kørslers gab ({T}) — og under væsentlighedsgrænsen på {V} (den største af 1.000 kr. og 0,1 % af referencens driftsomkostning). Den kan ikke skelnes fra nul."
+     }},
     {"trin": 6, "hvis": "Et forbehold med virkning 'nedgrader_begge' er opfyldt.", "kategori": "undersoeg_naermere",
      "begrundelse": "{forbehold}"},
     {"trin": 7, "hvis": "Δ > 0 (scenariet er dyrere).", "kategori": "fraraades",
@@ -78,15 +82,17 @@
      "tekst": "Spor B er kalibreret på marts–juni 2026 og forudsiger ikke andre perioder.", "kilde": "doc/BALANCEMARKED.md:216-218"}
   ],
 
-  "skalering": {
-    "formel": "aarligt ≈ Δ × 365 / doegn",
-    "vis_kun_hvis": "7 ≤ doegn < 365. Ved ≥ 365 døgn er Δ allerede et år.",
-    "tekst": "Skaleret til et år er det ca. {aarligt} — kun hvis perioden er repræsentativ, og det er en enkelt sæson ikke.",
-    "afrunding": "Som kr.-reglen i historie.afrunding, og altid med 'ca.'."
+  "aarstal": {
+    "regel": "Appen skalerer ikke en kortere periode til et år. Et årstal vises kun, når perioden selv er mindst helaar_doegn døgn — og er da periodens Δ uændret. Før runde 15 blev Δ × 365 / døgn vist for 7–364 døgn: 12 januardøgn i Andeby (23.516 kr.) blev til 'ca. 715.000 kr.' om året, 121 forårsdøgn i Billund (ca. 2,18 mio. kr.) til ca. 6,6 mio. kr.",
+    "helaar_doegn": 365,
+    "skaleret_helaar": " (et helt år)",
+    "tekst_helaar": "Perioden er et helt år ({doegn} døgn): beløbet er årets, ikke et skøn.",
+    "tekst_kortere": "Beløbet gælder de {doegn} døgn, kørslerne dækker. Appen skalerer det ikke til et år: en kortere periode er ikke repræsentativ for året (varmebehov, elpriser og tankens udnyttelse følger årstiden). Et årstal kræver en kørsel på mindst {helaar} døgn.",
+    "kilde": "egen antagelse (den uafhængige test 18. november 2026, fund 3.1); rapport v4, bilag A: en enkelt sæson er ikke repræsentativ"
   },
 
   "investering": {
-    "tekst": "Modellen regner kun driften. Investeringsbeløbet findes ikke i modellen, og det årlige beløb er driftsbesparelsen før kapitalomkostning, skat og faste D&V.",
+    "tekst": "Modellen regner kun driften. Investeringsbeløbet findes ikke i modellen, og driftsbesparelsen fra et helt år er beløbet før kapitalomkostning, skat og faste D&V. Appen regner ikke en kortere periode om til et år.",
     "kilde": "README.md:68; src/config.py:765 (investment.enabled læses, men bruges ikke)",
     "annuitet": {
       "formel": "A = I × r / (1 − (1 + r)^(−n))",

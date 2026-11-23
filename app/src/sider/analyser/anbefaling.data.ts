@@ -106,17 +106,29 @@ export const TRIN: Readonly<Record<string, string>> = {
  "2": "Scenariet ændrer flere ting på én gang ({antal} ændringer); bidragene kan ikke skilles ad (doc/KOERSEL.md:43-44).",
  "3": "Solverens tolerance kendes ikke for begge kørsler, så forskellen kan ikke vurderes.",
  "4": "Fortegnet kan ikke passe: {forklaring}. Tjek gab, starttilstand og første interval, før tallet bruges.",
- "5": "Forskellen på {delta} er inden for solverens tolerance ({T}) eller under væsentlighedsgrænsen ({V}) og kan ikke skelnes fra nul.",
  "6": "{forbehold}",
  "7": "Scenariet gør driften {delta} kr. dyrere — {n} gange solverens tolerance.",
  "8": "Scenariet er {delta} kr. billigere, men: {forbehold}",
  "9": "Scenariet gør driften {delta} kr. billigere — {n} gange solverens tolerance, uden blokerende forbehold."
 };
 
-export const SKALERING_TEKST = "Skaleret til et år er det ca. {aarligt} — kun hvis perioden er repræsentativ, og det er en enkelt sæson ikke.";
+/** Trin 5: begrundelsen efter hvilken regel der binder — tolerancen, væsentlighedsgrænsen eller begge. */
+export const TRIN5: Readonly<Record<"tolerance" | "vaesentlighed" | "begge", string>> = {
+ "tolerance": "Forskellen på {delta} er inden for solverens tolerance: den er højst 2 × summen af de to kørslers gab ({T}), og det er den regel, der binder. Den kan ikke skelnes fra nul.",
+ "vaesentlighed": "Forskellen på {delta} er større end solverens tolerance ({T}), men under væsentlighedsgrænsen på {V} (den største af 1.000 kr. og 0,1 % af referencens driftsomkostning) — det er den regel, der binder. Forskellen er for lille til at bære en anbefaling.",
+ "begge": "Forskellen på {delta} er både inden for solverens tolerance — højst 2 × summen af de to kørslers gab ({T}) — og under væsentlighedsgrænsen på {V} (den største af 1.000 kr. og 0,1 % af referencens driftsomkostning). Den kan ikke skelnes fra nul."
+};
+
+/** Årstal: appen skalerer ikke en kortere periode; et årstal vises kun fra `helaar_doegn` døgn. */
+export const AARSTAL = {
+ "helaar_doegn": 365,
+ "skaleret_helaar": " (et helt år)",
+ "tekst_helaar": "Perioden er et helt år ({doegn} døgn): beløbet er årets, ikke et skøn.",
+ "tekst_kortere": "Beløbet gælder de {doegn} døgn, kørslerne dækker. Appen skalerer det ikke til et år: en kortere periode er ikke repræsentativ for året (varmebehov, elpriser og tankens udnyttelse følger årstiden). Et årstal kræver en kørsel på mindst {helaar} døgn."
+};
 
 export const INVESTERING = {
- "tekst": "Modellen regner kun driften. Investeringsbeløbet findes ikke i modellen, og det årlige beløb er driftsbesparelsen før kapitalomkostning, skat og faste D&V.",
+ "tekst": "Modellen regner kun driften. Investeringsbeløbet findes ikke i modellen, og driftsbesparelsen fra et helt år er beløbet før kapitalomkostning, skat og faste D&V. Appen regner ikke en kortere periode om til et år.",
  "knapper": [
   "ny_enhed",
   "tankstoerrelse",
@@ -164,7 +176,7 @@ export const KNAPPER: Readonly<Record<string, { spoergsmaal: string; anbefaling:
    "type": "beslutning",
    "kraever_helaar": true,
    "forventet_fortegn": "≤ 0 mod 'ingen tank' (en tank kan kun hjælpe)",
-   "hvis_billigere": "En tank på {vaerdi} sparer {abs} i perioden mod ingen tank{skaleret}. Sammenhold det årlige beløb med tankens annuitet.",
+   "hvis_billigere": "En tank på {vaerdi} sparer {abs} i perioden mod ingen tank{skaleret}. Tankens annuitet skal holdes op mod besparelsen fra et helt år.",
    "hvis_dyrere": "Tanken sparer intet mod ingen tank. Det kan ikke passe ud over tolerancen; tjek starttilstand og gab.",
    "naeste_skridt": [
     "Kør hele rækken 4.000 / 8.000 / 14.000 m³ for at se, hvor værdien mættes",
@@ -193,7 +205,7 @@ export const KNAPPER: Readonly<Record<string, { spoergsmaal: string; anbefaling:
    "type": "beslutning",
    "kraever_helaar": true,
    "forventet_fortegn": "≤ 0 (en ekstra enhed kan kun udvide mulighederne)",
-   "hvis_billigere": "Den nye {enhed} sparer {abs} i driften i perioden{skaleret}. Investeringen betaler sig, hvis den årlige besparelse er større end investeringens annuitet plus faste omkostninger.",
+   "hvis_billigere": "Den nye {enhed} sparer {abs} i driften i perioden{skaleret}. Investeringen betaler sig, hvis besparelsen fra et helt år er større end investeringens annuitet plus faste omkostninger.",
    "hvis_dyrere": "Den nye {enhed} gør driften dyrere — det kan ikke passe ud over tolerancen; tjek gab og starttilstand.",
    "naeste_skridt": [
     "Kør helåret (1. juli 2025 – 30. juni 2026) med samme gab",

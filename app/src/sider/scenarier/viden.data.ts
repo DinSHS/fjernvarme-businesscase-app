@@ -295,7 +295,7 @@ export const KNAPPER: readonly Knap[] = [
    "type": "beslutning",
    "kraever_helaar": true,
    "forventet_fortegn": "≤ 0 mod 'ingen tank' (en tank kan kun hjælpe)",
-   "hvis_billigere": "En tank på {vaerdi} sparer {abs} i perioden mod ingen tank{skaleret}. Sammenhold det årlige beløb med tankens annuitet.",
+   "hvis_billigere": "En tank på {vaerdi} sparer {abs} i perioden mod ingen tank{skaleret}. Tankens annuitet skal holdes op mod besparelsen fra et helt år.",
    "hvis_dyrere": "Tanken sparer intet mod ingen tank. Det kan ikke passe ud over tolerancen; tjek starttilstand og gab.",
    "naeste_skridt": [
     "Kør hele rækken 4.000 / 8.000 / 14.000 m³ for at se, hvor værdien mættes",
@@ -421,7 +421,7 @@ export const KNAPPER: readonly Knap[] = [
    "type": "beslutning",
    "kraever_helaar": true,
    "forventet_fortegn": "≤ 0 (en ekstra enhed kan kun udvide mulighederne)",
-   "hvis_billigere": "Den nye {enhed} sparer {abs} i driften i perioden{skaleret}. Investeringen betaler sig, hvis den årlige besparelse er større end investeringens annuitet plus faste omkostninger.",
+   "hvis_billigere": "Den nye {enhed} sparer {abs} i driften i perioden{skaleret}. Investeringen betaler sig, hvis besparelsen fra et helt år er større end investeringens annuitet plus faste omkostninger.",
    "hvis_dyrere": "Den nye {enhed} gør driften dyrere — det kan ikke passe ud over tolerancen; tjek gab og starttilstand.",
    "naeste_skridt": [
     "Kør helåret (1. juli 2025 – 30. juni 2026) med samme gab",

@@ -7,7 +7,7 @@ import { Knap, Kort, Maerke } from "@/components/layout";
 import { rutehref } from "@/lib/rute";
 import { tal } from "@/lib/format";
 import { HELAAR_DOEGN, type Par, type Vurdering } from "./anbefaling";
-import { KATEGORIER } from "./anbefaling.data";
+import { AARSTAL, KATEGORIER } from "./anbefaling.data";
 
 /**
  * Næste skridt med link: "Kør helåret …" → Scenarier med værk og knap valgt. Forslaget om en længere tidsgrænse
@@ -70,8 +70,8 @@ export function AnbefalingKort({ v, vaerkKode, kopiTekst }: { v: Vurdering; vaer
             {/* Fund 3.1 (den uafhængige test 18. november 2026): intet "skaleret til et år". Kortet siger, hvad beløbet gælder. */}
             {v.sammenlignelig && v.delta !== null && v.doegn !== null && (
                 <p className="fjv-brod">{v.aarligt !== null
-                    ? `Perioden er et helt år (${tal(v.doegn)} døgn): beløbet er årets, ikke et skøn.`
-                    : `Beløbet gælder de ${tal(v.doegn)} døgn, kørslerne dækker. Appen skalerer det ikke til et år: en kortere periode er ikke repræsentativ for året (varmebehov, elpriser og tankens udnyttelse følger årstiden). Et årstal kræver en kørsel på mindst ${HELAAR_DOEGN} døgn.`}</p>
+                    ? AARSTAL.tekst_helaar.replace("{doegn}", tal(v.doegn))
+                    : AARSTAL.tekst_kortere.replace("{doegn}", tal(v.doegn)).replace("{helaar}", String(HELAAR_DOEGN))}</p>
             )}
             {v.forbehold.length > 0 && (
                 <div className="fjv-brod"><strong>Forbehold</strong>

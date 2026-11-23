@@ -191,6 +191,12 @@ Systematiske fejl, der rammer begge kørsler ens, går ud, og antagelser, der ik
 behøver kun at være rimelige (rapport v4 §2.3; doc/KOERSEL.md:9-15). Samme case, periode og
 datakilde i begge kørsler.
 
+**Direkte sammenlignelige** er to kørsler i appen, når værk, periode, opløsning, df-data,
+modelversion og ønsket gab er ens (KONTRAKT §6b) — og, som appens egen antagelse, værkets revision:
+er værket rettet mellem de to kørsler, blander differensen rettelsen med scenariets ændring. Kun et
+direkte sammenligneligt par vises som et resultat; ellers står tallene side om side med grunden.
+(Kilde: KONTRAKT §6b; doc/TROFASTHED.md §5)
+
 **Solvergab.** Solveren stopper, når den har bevist, at løsningen ligger inden for et gab af det
 bedst mulige. Standarden 0,5 % eller 5.000 kr. er fin til absolutte tal, men på et objektiv
 omkring 5 mio. kr. er 0,5 % ca. 26.000 kr., mens et scenarie kan flytte 2.000–14.000 kr. Så kan
@@ -271,9 +277,16 @@ beløb fra et helår er driftsbesparelsen før kapitalomkostning. Den sammenhold
 annuitet A = I × r / (1 − (1 + r)^(−n)) plus faste årlige omkostninger. Andeby og Billund angiver en
 real rente på 3,5 %, som modellen ikke selv bruger. (Kilde: README.md:68; cases/andeby.yaml:74)
 
-**Skalering til et år** (Δ × 365 / døgn) vises kun som et groft skøn og kun for vinduer på mindst en
-uge: en enkelt sæson er ikke repræsentativ, fordi døgnets prisspænd — som tanken tjener på — er
-størst forår og sommer. (Kilde: rapport v4, bilag A)
+**Intet årstal af en kortere periode.** Appen skalerer ikke en kortere periode til et år: et årstal
+vises kun, når perioden selv er mindst 365 døgn, og er da periodens tal uændret. En enkelt sæson er
+ikke repræsentativ, fordi døgnets prisspænd — som tanken tjener på — er størst forår og sommer. Det
+er appens egen antagelse; før blev Δ × 365 / døgn vist for vinduer på 7–364 døgn.
+(Kilde: anbefalingsregler.json; rapport v4, bilag A)
+
+**Stoppet på tidsgrænsen.** Stoppede en af parrets kørsler på solverens tidsgrænse, og er
+usikkerheden mindst 10 % af forskellen (eller ukendt), er første næste skridt en ny kørsel med
+længere tidsgrænse; appen tillader op til 3.600 s. De 10 % er appens egen antagelse.
+(Kilde: doc/TROFASTHED.md §5)
 
 **Historien i klartekst.** Hvert par fortæller sig selv i tre sætninger: hvad vi ændrer, de vigtigste
 konsekvenser i MWh, kroner og ton CO₂, og hvor sikkert det er. Fx: "I dette scenarie slår vi begge
