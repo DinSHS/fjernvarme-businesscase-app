@@ -45,7 +45,7 @@ import {
     type RayfinContext,
 } from '@microsoft/fabric-user-data-functions';
 import { behandlBestilling, type Bestillingsudfald } from './bestilling.js';
-import { forbind, iTransaktion, sql } from './db.js';
+import { applockTildelt, forbind, iTransaktion, sql } from './db.js';
 import { IMPORTER_NOTEBOOK_ID, LAKEHOUSE_ID, MOTOR_ID, ONELAKE_DFS, WORKSPACE_ID } from './konfig.js';
 import { startNotebook } from './jobs.js';
 import { læsTekst, skrivFil } from './onelake.js';
@@ -867,7 +867,7 @@ function sqlArkivLager(pool: sql.ConnectionPool): ArkivLager {
                 const r = await req().input('res', sql.NVarChar(255), `fjv_arkiv:${id.toLowerCase()}`).query(
                     "DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = @res, @LockMode = N'Exclusive', " +
                     "@LockOwner = N'Transaction', @LockTimeout = 60000; SELECT @rc AS rc;");
-                if (Number(r.recordset[0]?.rc) < 0) throw new Error(`Kunne ikke få kørselslåsen for ${id} (sp_getapplock = ${r.recordset[0]?.rc}).`);
+                applockTildelt(r.recordset, `kørselslåsen for ${id}`);
             }
         },
         børneside: async (koerselId, tabel, fra, antal) => {

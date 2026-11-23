@@ -44,6 +44,21 @@ export async function iTransaktion<T>(
 }
 
 /**
+ * ÉT tjek af `sp_getapplock`'s svar, for alle transaktionsejede låse (kvote, bestilling, arkivets kørselslås).
+ * Proceduren melder en lås, den ikke fik, i sin returværdi (-1 timeout, -2 annulleret, -3 deadlock-offer, -999 fejl),
+ * ikke som en SQL-fejl. Efterprøvningen af runde 15 (fund I): `Number(recordset[0]?.rc) < 0` læste en MANGLENDE række
+ * som `NaN`, og `NaN < 0` er falsk — en lås uden svar talte som tildelt. Her kræves en række med et helt,
+ * ikke-negativt tal (0 = tildelt, 1 = tildelt efter ventetid); alt andet kaster inde i transaktionen (rollback).
+ */
+export function applockTildelt(recordset: readonly Record<string, unknown>[] | undefined, hvad: string): void {
+    const række = recordset?.[0];
+    const rc = række?.rc;
+    if (typeof rc !== 'number' || !Number.isInteger(rc) || rc < 0) {
+        throw new Error(`Kunne ikke få ${hvad} (sp_getapplock = ${række === undefined ? 'intet svar' : String(rc)}).`);
+    }
+}
+
+/**
  * Kvote-lås pr. bruger for resten af transaktionen (KONTRAKT §6c, K2-F9): to samtidige bestillinger fra
  * samme bruger — også på forskellige værker — tæller og indsætter efter hinanden. E-mailen er den, DAB's
  * create-policy har verificeret på Bestilling.
@@ -53,8 +68,7 @@ export async function låsKvote(req: () => sql.Request, email: string): Promise<
         "DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = @res, @LockMode = N'Exclusive', " +
         "@LockOwner = N'Transaction', @LockTimeout = 15000; SELECT @rc AS rc;",
     );
-    const rc = Number(r.recordset[0]?.rc);
-    if (rc < 0) throw new Error(`Kunne ikke få kvotelåsen (sp_getapplock = ${rc}).`);
+    applockTildelt(r.recordset, 'kvotelåsen');
 }
 
 /**
@@ -68,6 +82,5 @@ export async function låsBestilling(req: () => sql.Request, bestillingId: strin
         "DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = @res, @LockMode = N'Exclusive', " +
         "@LockOwner = N'Transaction', @LockTimeout = 15000; SELECT @rc AS rc;",
     );
-    const rc = Number(r.recordset[0]?.rc);
-    if (rc < 0) throw new Error(`Kunne ikke få bestillingens lås (sp_getapplock = ${rc}).`);
+    applockTildelt(r.recordset, 'bestillingens lås');
 }

@@ -160,6 +160,11 @@ præsentationen og i datahåndteringen omkring kørslerne.
   CO₂-faktoren er modelrepoets. Tallene står i `doc/TROFASTHED.md` §5.
 - `doc/TROFASTHED.md`: "samme timefil" gælder mod appens egen casefil; solprofilens kolonnenavn `mw` (modellens
   `power_mw`) og den ændrede sha256 står som *egen antagelse*.
+- **En applås uden svar kunne tælle som tildelt** (efterprøvningen af rettelserne i runde 15, fund I). Den lokale
+  udgaves kvotelås kaldte `sp_getapplock` uden at læse returværdien: ved en timeout på SQL Server kunne to
+  bestillinger fra samme bruger begge tælle køen. Fabric-udgaven læste en manglende svarrække som tildelt. Begge
+  udgaver har nu ét tjek for alle tre låse (kvote, bestilling, arkivets kørselslås): kun et gyldigt, ikke-negativt
+  svar er en lås. Kun relevant på SQL Server; sqlite og PostgreSQL er uændrede. Ikke kørt mod en SQL Server.
 
 ## [Ikke udgivet] — 0.4.0
 

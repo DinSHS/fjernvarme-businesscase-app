@@ -43,6 +43,26 @@ def _d(r) -> dict | None:
     return dict(r._mapping) if r is not None else None
 
 
+#: ``sp_getapplock`` har fået låsen ved 0 (tildelt) og 1 (tildelt efter ventetid). Alt andet er ikke en lås.
+APPLOCK_TILDELT = (0, 1)
+
+
+def applock(cn, ressource: str, timeout_ms: int, hvad: str) -> None:
+    """Én transaktionsejet, eksklusiv SQL Server-applock — og ÉT tjek af svaret, for alle den lokale udgaves applåse
+    (kvote, bestilling, arkiv).
+
+    ``sp_getapplock`` melder en lås, den ikke fik, i sin RETURVÆRDI (-1 timeout, -2 annulleret, -3 deadlock-offer,
+    -999 fejl), ikke som en SQL-fejl (K10b-N1). Efterprøvningen af runde 15 (fund I) fandt, at kvotelåsen kaldte
+    proceduren uden at læse værdien: ved en timeout talte bestillingen køen uden brugerens lås. Her kræves en gyldig
+    succesværdi; et manglende eller uforståeligt svar er også en fejl. Fejlen kastes inde i transaktionen (rollback).
+    IKKE kørt mod en SQL Server (kun mod en optagende forbindelse, ``community/tests/test_r15_laase.py``)."""
+    rc = cn.execute(text("DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
+                         f"@LockOwner = 'Transaction', @LockTimeout = {int(timeout_ms)}; SELECT @rc AS rc;"),
+                    {"k": ressource}).scalar()
+    if isinstance(rc, bool) or not isinstance(rc, int) or rc not in APPLOCK_TILDELT:
+        raise RuntimeError(f"Kunne ikke få {hvad} (sp_getapplock = {rc}).")
+
+
 class SqlTransaktion:
     def __init__(self, db, cn):
         self.db, self.cn = db, cn
@@ -77,12 +97,7 @@ class SqlTransaktion:
         if d == "postgresql":
             self.cn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": "fjv_bestilling:" + id.lower()})
         elif d == "mssql":
-            # sp_getapplock melder en fejlet lås i sin RETURKODE (< 0), ikke som en fejl (K10b-N1).
-            rc = self.cn.execute(text("DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
-                                      "@LockOwner = 'Transaction', @LockTimeout = 30000; SELECT @rc AS rc;"),
-                                 {"k": "fjv_bestilling:" + id.lower()}).scalar()
-            if rc is None or int(rc) < 0:
-                raise RuntimeError(f"Kunne ikke få bestillingens lås (sp_getapplock = {rc}).")
+            applock(self.cn, "fjv_bestilling:" + id.lower(), 30000, "bestillingens lås")
 
     def slet_bestilling(self, id: str, bestilt_af: str) -> int:
         """Fund 3.2: kun en bestilling, der ikke blev til en kørsel — og (gennemgangens fund 2) kun ejerens egen."""
@@ -96,8 +111,9 @@ class SqlTransaktion:
         if d == "postgresql":
             self.cn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": "fjv_kvote:" + email})
         elif d == "mssql":
-            self.cn.execute(text("EXEC sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
-                                 "@LockOwner = 'Transaction', @LockTimeout = 30000"), {"k": "fjv_kvote:" + email})
+            # Efterprøvningen af runde 15, fund I: returværdien blev ikke læst her — en timeout gav en bestilling,
+            # der talte køen uden brugerens kvotelås.
+            applock(self.cn, "fjv_kvote:" + email, 30000, "kvotelåsen")
         # sqlite: BEGIN IMMEDIATE har allerede serialiseret alle skrivere.
 
     def scenarie(self, id: str, laas: bool):
@@ -312,13 +328,8 @@ class SqlTransaktion:
             if d == "postgresql":
                 self.cn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": "fjv_arkiv:" + id.lower()})
             elif d == "mssql":
-                # K10b-N1: sp_getapplock melder en fejlet lås i sin RETURKODE (< 0), ikke som en fejl — læs den og
-                # kast inde i transaktionen (rollback), som Fabric-TS gør.
-                rc = self.cn.execute(text("DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
-                                          "@LockOwner = 'Transaction', @LockTimeout = 60000; SELECT @rc AS rc;"),
-                                     {"k": "fjv_arkiv:" + id.lower()}).scalar()
-                if rc is None or int(rc) < 0:
-                    raise RuntimeError(f"Kunne ikke få kørselslåsen for {id} (sp_getapplock = {rc}).")
+                # K10b-N1: returværdien læses, og en fejlet lås kastes inde i transaktionen (``applock``).
+                applock(self.cn, "fjv_arkiv:" + id.lower(), 60000, f"kørselslåsen for {id}")
 
     def arkiv_boerneside(self, koersel_id: str, tabel: str, fra: int, antal: int) -> list[dict]:
         t = self.t(tabel)
