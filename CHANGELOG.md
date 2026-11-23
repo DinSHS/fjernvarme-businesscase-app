@@ -200,6 +200,15 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **En tidsstoppet kørsel kunne få en fejldom mod README** (tredje rettelsesrunde, P2-6). Om en kørsel var en måling
+  af et README-tal, blev afgjort på det ØNSKEDE gab. En Spor A-kørsel bestilt med casens gab, men stoppet på
+  tidsgrænsen med et opnået gab på 33 %, stod derfor som *uden for tolerancen* under *Information › Referencetal* og
+  som *README-reference* i Analyser. En måling kræver nu en afsluttet løsning inden for casens gab: solveren meldte
+  optimal, og det opnåede gab er kendt og inden for casens relative eller absolutte gab. Ellers vises kørslen ved
+  siden af README-tallet som *ikke løst til casens gab* med sin solverstatus ("stoppet ved tidsgrænsen; opnået gab
+  33 %") — uden afvigelse og uden dom — og den får ikke README-mærket i Analyser. **Følge, man skal kende:** en ældre
+  kørsel uden gemt opnået gab eller solverstatus er ikke længere en måling, også når den var optimal. En kørsel med
+  et teknisk testnavn (`probe-…`), der er en måling, viser nu *Røgtest* ved siden af *README-reference*.
 - **Historien og anbefalingen kunne sige hver sin retning om varmelasten** (tredje rettelsesrunde, P2-5). *Scenariet
   fortalt* kendte alle retninger, men anbefalingen brugte knappens ene sætning — "Målt varmelast i stedet for syntesen
   flytter … et mål for syntesens fejl" — for enhver forskel i varmelast: også med målt reference og syntetisk

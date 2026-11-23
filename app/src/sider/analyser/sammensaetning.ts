@@ -44,6 +44,12 @@ export interface Oprindelse {
     /** Demo-id (D01 …) når scenariet er en af demo-kørslerne — også for en README-reference. */
     demoId: string | null;
     readme: Reference | null;
+    /**
+     * Scenariet bærer et teknisk testnavn (`probe-…`, `Test K<n>`). For en README-reference vises det som et røgtestmærke
+     * VED SIDEN AF README-mærket (tredje rettelsesrunde, P2-6): målingen går forud for navnet, men at kørslen var en
+     * teknisk prøve, skal stadig kunne ses.
+     */
+    roegtest: boolean;
 }
 
 let _refs: Reference[] | null = null;
@@ -86,12 +92,16 @@ export { frossenOpsaetning, readmePins, type VaerkKilde } from "../information/r
  * kvalificeret kørsel omdøbt til "probe-spora" var en måling under Information › Referencetal og en røgtest her.
  * Udvælgelsen er nu den samme begge steder: kvalifikationen på kørslens frosne felter — scenariets navn er et levende
  * felt og kan ikke gøre en måling til noget andet (eller omvendt).
+ *
+ * Tredje rettelsesrunde (P2-6): en måling er en AFSLUTTET løsning inden for casens gab (`kvalificer › loest`); en
+ * tidsstoppet kørsel får ikke README-mærket. Og en måling med et teknisk testnavn bærer `roegtest: true`, så listen
+ * viser røgtestmærket ved siden af README-mærket.
  */
 export function oprindelse(k: Koersel, scenarie: Scenarie | null, vaerkKode: string, input: readonly InputRække[], vaerk?: VaerkKilde): Oprindelse {
     const navn = scenarie?.navn ?? "";
     const demo = demoId(navn, vaerkKode);
     const svar = (type: OprindelseType, detalje: string | null, readme: Reference | null = null): Oprindelse =>
-        ({ type, etiket: OPRINDELSE_ETIKET[type], detalje, demoId: demo, readme });
+        ({ type, etiket: OPRINDELSE_ETIKET[type], detalje, demoId: demo, readme, roegtest: type === "roegtest" || TESTNAVN.test(navn) });
     // Én kvalifikation pr. reference, på de frosne felter — den samme, Information › Referencetal bruger. Den kræver
     // en færdig kørsel, så en kontrolkørsel, der ikke blev færdig (fx F3's annulleringstest), genskaber intet tal.
     const r = readmeReferencer().find((x) => x.kode === vaerkKode && kvalificer(x, k, input, vaerk).maaling);

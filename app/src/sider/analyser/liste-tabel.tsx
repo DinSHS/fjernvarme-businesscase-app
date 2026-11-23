@@ -16,7 +16,7 @@ import { absolutGab, koerselsVarighed, modtaget, type Koersel } from "./beregn";
 import { gabPct, varighed } from "./fmt";
 import { ANKRE, KOLONNE_FORKLARING, ordHref } from "./liste-tekster";
 import { KOLONNER, type Kol } from "./liste-visning";
-import { deltaOrd, type Gruppe, type ListeRaekke, type Sortering } from "./sammensaetning";
+import { deltaOrd, OPRINDELSE_ETIKET, type Gruppe, type ListeRaekke, type Sortering } from "./sammensaetning";
 import { DeltaTal, TKR, tkr } from "./ibcs-grafer";
 import { TidsgraenseMaerke } from "./dele";
 
@@ -36,12 +36,15 @@ function Navn({ r, indryk }: { r: ListeRaekke; indryk: boolean }) {
     );
 }
 
-function Oprindelse({ r }: { r: ListeRaekke }) {
+/** Kolonnen "Oprindelse". Eksporteret til test (information/r15c_loesning.spec.tsx). */
+export function OprindelseCelle({ r }: { r: ListeRaekke }) {
     const o = r.oprindelse;
     const tone = o.type === "roegtest" ? "advarsel" : o.type === "readme" ? "ok" : "neutral";
     return (
         <div className="fjv-a-kl-stak">
             <Maerke tone={tone}>{o.etiket}</Maerke>
+            {/* P2-6: en README-reference, der blev kørt som teknisk prøve (probe-…), beholder røgtestmærket. */}
+            {o.type !== "roegtest" && o.roegtest && <span title="Scenariet bærer et teknisk testnavn (probe-…): kørslen er en prøve af kørselsvejen, som også opfylder kravene til en README-reference."><Maerke tone="advarsel">{OPRINDELSE_ETIKET.roegtest}</Maerke></span>}
             {o.detalje && <span className="fjv-a-kl-lille fjv-a-svag" title={o.readme ? `README-referencetal: ${o.readme.navn} (${o.readme.vindue})` : undefined}>{o.detalje}</span>}
         </div>
     );
@@ -74,7 +77,7 @@ const VIS: Record<string, (r: ListeRaekke, k: Koersel, indryk: boolean) => React
     spoergsmaal: (r, _k, indryk) => <Navn r={r} indryk={indryk} />,
     aendringer: (r) => <span className="fjv-a-kl-aendr">{r.aendringer}</span>,
     rolle: (r) => <span className={r.rolle.type === "gentagelse" ? "fjv-a-svag" : undefined}>{r.rolle.tekst}</span>,
-    oprindelse: (r) => <Oprindelse r={r} />,
+    oprindelse: (r) => <OprindelseCelle r={r} />,
     periode: (r) => <div className="fjv-a-kl-stak"><span>{r.periode.laengde ?? "–"}</span><span className="fjv-a-kl-lille fjv-a-svag">{r.periode.datoer}</span></div>,
     markeder: (r) => <Markeder r={r} />,
     varmelast: (r) => (
@@ -151,7 +154,7 @@ export function KoerselTabel({ grupper, raekker, flere, sortering, onSorter, val
                 </div>
                 {r.spoergsmaal && <p className="fjv-a-kl-spm">{r.spoergsmaal}</p>}
                 <div className="fjv-a-raekke">
-                    <Oprindelse r={r} />
+                    <OprindelseCelle r={r} />
                     {r.vurdering && <Maerke tone={r.vurdering.tone}>{r.vurdering.maerke}</Maerke>}
                     <StatusMaerke status={k.status} />
                     <TidsgraenseMaerke k={k} />

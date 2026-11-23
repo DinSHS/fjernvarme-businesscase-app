@@ -15,7 +15,8 @@
 
 import type { FjvSchema } from "../../../rayfin/data/schema";
 import { KOERSEL_PRAEFIKS, effektivtInput, type InputRække } from "@/lib/data/afflad";
-import { tidsseriekilde, tidsseriekildeTekst } from "../analyser/beregn";
+import { absolutGab, erOptimal, loesningTekst, tidsseriekilde, tidsseriekildeTekst } from "../analyser/beregn";
+import { gabProcent, gabTekst } from "./tal";
 import { README_PINS } from "../analyser/sammensaetning.data";
 
 type Koersel = FjvSchema["Koersel"];
@@ -209,8 +210,54 @@ export interface Kvalifikation {
      */
     grundlag: boolean;
     grundlagAfviger: string[];
+    /**
+     * Løsningen er AFSLUTTET inden for casens gab (tredje rettelsesrunde, P2-6): solveren meldte optimal, og det
+     * OPNÅEDE gab er kendt og inden for casens. Det ønskede gab (`gab`) siger kun, hvad der blev bedt om.
+     */
+    loest: boolean;
+    loesning: Loesning;
     /** Alt ovenfor: kørslen er en måling af README-tallet, og en afvigelse må regnes. */
     maaling: boolean;
+}
+
+/** Kørslens løsning mod casens gab (P2-6). `rel`/`kr` er det OPNÅEDE gab; null = ikke oplyst af solveren. */
+export interface Loesning {
+    status: string | null;
+    rel: number | null;
+    kr: number | null;
+    /** Solveren meldte optimal (ikke stoppet på tidsgrænsen, ikke afbrudt). */
+    afsluttet: boolean;
+    /** Det opnåede gab er inden for casens: solveren stopper ved det FØRSTE af de to, så ét af dem er nok. */
+    indenfor: boolean;
+    caseGab: { rel: number | null; abs: number | null };
+}
+
+/**
+ * Kørslens løsning holdt op mod casens gab. Det opnåede gab er solverens egen måling: |objektiv − nedre grænse|,
+ * ellers det rapporterede relative gab (`beregn.ts › absolutGab`, kilderne `best_bound` og `opnaaet`). Et gab udledt
+ * af det ØNSKEDE (kilden `oensket_loft`) er ikke en måling og tæller som ikke oplyst.
+ *
+ * Efterprøvningen (P2-6): en Spor A-kørsel bestilt med casens gab, stoppet på tidsgrænsen med et opnået gab på 33 %,
+ * var en "måling" — og Information dømte dens foreløbige objektiv "uden for tolerancen".
+ */
+function loesning(k: Koersel, r: Reference): Loesning {
+    const g = absolutGab(k);
+    const maalt = g.kilde === "best_bound" || g.kilde === "opnaaet";
+    const rel = maalt ? g.rel : null, kr = maalt ? g.kr : null;
+    const { rel: cr, abs: ca } = r.caseGab;
+    // En lille margen for afrunding i databasens decimaler; ellers præcis casens tal.
+    const relOk = cr !== null && rel !== null && rel <= cr * (1 + 1e-9) + EPS;
+    const krOk = ca !== null && kr !== null && kr <= ca * (1 + 1e-9) + 1e-6;
+    const ingenGraense = cr === null && ca === null;
+    return { status: k.solve_status ?? null, rel, kr, afsluttet: erOptimal(k.solve_status), indenfor: maalt && (ingenGraense || relOk || krOk), caseGab: { rel: cr, abs: ca } };
+}
+
+/** Løsningen i ord, til rækken ved siden af facittet: "stoppet ved tidsgrænsen; opnået gab 33 %". */
+export function loesningsTekst(q: Pick<Kvalifikation, "loesning">): string {
+    const l = q.loesning;
+    const gab = l.rel !== null ? `opnået gab ${gabProcent(l.rel)}` : l.kr !== null ? `opnået gab ${Math.round(l.kr).toLocaleString("da-DK")} kr.` : "opnået gab ikke oplyst";
+    const forStort = l.afsluttet && (l.rel !== null || l.kr !== null) && !l.indenfor ? ` — større end casens (${gabTekst(l.caseGab.rel, l.caseGab.abs)})` : "";
+    return `${loesningTekst(l.status)}; ${gab}${forStort}`;
 }
 
 /**
@@ -266,6 +313,7 @@ export function kvalificer(r: Reference, k: Koersel, input: readonly InputRække
     const model = pin("model_commit"), data = pin("data_commit"), importeret = vaerk?.repo_commit?.toLowerCase();
     const dato = data ? README_PINS.df_data_kendt[data] : undefined;
     const grundlagAfviger = kendt ? grundlagAfvigelser(r, k, input) : [];
+    const l = loesning(k, r);
     const q = {
         faerdig: k.status === "faerdig" && typeof k.objektiv_dkk === "number",
         opsaetning: kendt && harReferencensOpsaetning(frossen, r),
@@ -275,8 +323,9 @@ export function kvalificer(r: Reference, k: Koersel, input: readonly InputRække
         vaerk: !!vaerk && vaerk.kilde === "repo" && !!importeret && versioner.includes(importeret) && k.vaerk_revision === 1,
         data: !!dato && dato >= README_PINS.df_data_fra,
         grundlag: kendt && grundlagAfviger.length === 0, grundlagAfviger,
+        loest: l.afsluttet && l.indenfor, loesning: l,
     };
-    return { ...q, maaling: q.faerdig && q.opsaetning && q.uaendret && gab.erTilladt && q.version && q.vaerk && q.data && q.grundlag };
+    return { ...q, maaling: q.faerdig && q.opsaetning && q.uaendret && gab.erTilladt && q.version && q.vaerk && q.data && q.grundlag && q.loest };
 }
 
 /**
@@ -367,6 +416,12 @@ export type RefTilstand =
     | "andet-grundlag"
     /** Kun uændrede kørsler ved en anden modelversion end referencetallenes: kørt, men kan ikke sammenlignes. */
     | "anden-version"
+    /**
+     * En kørsel opfylder alt på nær LØSNINGEN (P2-6): den er stoppet på tidsgrænsen, eller det opnåede gab er for stort
+     * eller ikke oplyst. Objektivet er foreløbigt; kørslen står ved siden af facittet med sin solverstatus, uden
+     * afvigelse og uden dom.
+     */
+    | "ikke-loest"
     | "indenfor"
     | "udenfor"
     /** En måling findes, men README angiver ingen tolerance at måle den mod. */
@@ -405,6 +460,10 @@ export function byggRaekker(refs: readonly Reference[], vaerker: readonly Vaerk[
             return { ref, kandidat: maaling, vurdering, tilstand: vurdering.indenfor === null ? "uafgoerligt" : vurdering.indenfor ? "indenfor" : "udenfor" } satisfies RefRække;
         }
         const rene = alle.filter((x) => x.kvalifikation.uaendret);
+        // P2-6: alt er README's — kun løsningen er ikke afsluttet inden for casens gab. Den nyeste sådanne vises med sin
+        // solverstatus; en afvigelse regnes ikke for et foreløbigt objektiv.
+        const uloest = rene.find((x) => { const q = x.kvalifikation; return q.faerdig && q.version && q.vaerk && q.data && q.grundlag && !q.loest; });
+        if (uloest) return { ref, kandidat: uloest, tilstand: "ikke-loest" } satisfies RefRække;
         // Ved referencens version, men ikke en måling: så er det værket eller df-data, der ikke er bekræftet.
         const vedVersionen = rene.find((x) => x.kvalifikation.version);
         if (vedVersionen) return { ref, kandidat: vedVersionen, tilstand: "andet-grundlag" } satisfies RefRække;

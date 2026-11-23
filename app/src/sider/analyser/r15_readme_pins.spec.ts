@@ -18,7 +18,8 @@ const vaerk = (commit: string): VaerkKilde => ({ kilde: "repo", repo_commit: com
 function koersel(model: string, data: string, rel: number, abs: number): Koersel {
     // Med et objektiv: kun en færdig kørsel med et resultat kan være en måling (efterprøvningen af runde 15, fund F).
     return { id: "k", scenarie_id: "s", vaerk_id: "v", vaerk_revision: 1, status: "faerdig", objektiv_dkk: 1, kilde: "app", model_commit: model, data_commit: data,
-        oensket_rel_gap: rel, oensket_abs_gap: abs } as Koersel;
+        // P2-6 (tredje rettelsesrunde): en måling er en afsluttet løsning — status optimal og et opnået gab inden for casens.
+        oensket_rel_gap: rel, oensket_abs_gap: abs, solve_status: "optimal", opnaaet_gap: 0 } as Koersel;
 }
 const scenarie = (navn: string) => ({ id: "s", navn, med_balancering: false } as Scenarie);
 const SPOR_A = [ind("_koersel.med_balancering", "true")];

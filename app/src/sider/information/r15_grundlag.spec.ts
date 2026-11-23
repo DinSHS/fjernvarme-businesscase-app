@@ -45,6 +45,8 @@ const serie = (rolle: "varmelast" | "solprofil", sha = "a") => f(`_koersel.tidss
 const vaerk = (r = SPOR_A, pin = PIN) => ({ id: "v", kode: r.kode, kilde: "repo", repo_commit: pin }) as Vaerk;
 const koersel = (objektiv_dkk: number | undefined, over: Partial<Koersel> = {}, r = SPOR_A) => ({
     id: "k", vaerk_id: "v", scenarie_id: "s", status: "faerdig", objektiv_dkk, model_commit: r.modelCommits?.at(-1) ?? PIN, data_commit: DF, vaerk_revision: 1,
+    // P2-6 (tredje rettelsesrunde): en måling er en afsluttet løsning — status optimal og et opnået gab inden for casens.
+    solve_status: "optimal", opnaaet_gap: 0.0001,
     afsluttet: new Date("2026-11-23T07:32:12Z"), bestilt: new Date("2026-11-23T07:29:42Z"), ...over,
 }) as Koersel;
 /** Samme kørsel set fra begge sider: Information › Referencetal og Analysers mærke i kørselslisten. */

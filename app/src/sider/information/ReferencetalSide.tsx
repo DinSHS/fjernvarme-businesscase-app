@@ -14,7 +14,7 @@ import { EmneRamme } from "./EmneRamme";
 import { EmneTekstKort } from "./EmneSide";
 import { useEmneTekst } from "./emneTekst";
 import type { Emne } from "./emner";
-import { grundlagTekst, sporBBudskab, versionsTekst, type RefRække, type RefTilstand, type SporB } from "./referencer";
+import { grundlagTekst, loesningsTekst, sporBBudskab, versionsTekst, type RefRække, type RefTilstand, type SporB } from "./referencer";
 import { gabProcent, gabTekst, signedKr, signedProcent } from "./tal";
 import { useReferencetal } from "./useReferencer";
 
@@ -22,20 +22,24 @@ const TILSTAND: Record<RefTilstand, { tekst: string; tone: "neutral" | "ok" | "a
     "ikke-koert": { tekst: "ikke kørt endnu", tone: "neutral", titel: "Ingen færdig kørsel af værket med referencens opsætning." },
     "andet-grundlag": { tekst: "kørt på et andet grundlag", tone: "neutral", titel: "En færdig, uændret kørsel med referencens opsætning findes, men grundlaget er ikke bekræftet som README's: værket er ikke modelrepoets case uændret, eller kørslens df-data er ikke en version, der er målt til at opfylde README's datakrav. Der regnes ingen afvigelse — en forskel ville måle grundlaget, ikke modellen." },
     "anden-version": { tekst: "kørt ved en anden modelversion", tone: "neutral", titel: "En færdig kørsel med referencens opsætning findes, men ved en anden modelversion end den, README-tallet er regnet ved. Tallene kan ikke sammenlignes, så der regnes ingen afvigelse." },
+    // Tredje rettelsesrunde i runde 15, P2-6: et foreløbigt objektiv dømmes ikke mod README-tallet.
+    "ikke-loest": { tekst: "ikke løst til casens gab", tone: "neutral", titel: "En færdig, uændret kørsel på README's grundlag findes, men løsningen er ikke afsluttet inden for casens solvergab: solveren stoppede på tidsgrænsen, eller det opnåede gab er for stort eller ikke oplyst. Objektivet er foreløbigt og måles ikke mod README-tallet — kør igen med længere tidsgrænse." },
     "aendret": { tekst: "kun ændrede scenarier", tone: "advarsel", titel: "Kørsler med referencens opsætning findes, men alle blev bestilt med ændringer i scenariet — ingen er den rene reference." },
     "indenfor": { tekst: "inden for tolerancen", tone: "ok", titel: "Afvigelsen er mindre end casens eget solvergab tillader." },
     "udenfor": { tekst: "uden for tolerancen", tone: "fejl", titel: "Afvigelsen er større end casens solvergab tillader. Tjek data-version, kerner og gab." },
     "uafgoerligt": { tekst: "ingen tolerance at måle mod", tone: "neutral", titel: "Hverken et kronebeløb eller et opnået gab er oplyst for dette tal." },
 };
 
-function RefRaekke({ r }: { r: RefRække }) {
+export function RefRaekke({ r }: { r: RefRække }) {
     const t = TILSTAND[r.tilstand];
     const k = r.kandidat?.koersel;
+    // P2-6: den uafsluttede kørsel står VED SIDEN AF facittet — objektivet vises, men ingen afvigelse og ingen tolerance.
+    const uloest = r.tilstand === "ikke-loest";
     return (
         <tr>
             <td>{r.ref.navn}<span className="fjv-ref-sub">{r.ref.vindue} · værk {r.ref.kode}</span></td>
             <td className="fjv-h">{tal(r.ref.objektiv)}</td>
-            <td className="fjv-h">{r.vurdering && k ? tal(k.objektiv_dkk as number) : "–"}</td>
+            <td className="fjv-h">{(r.vurdering || uloest) && k ? tal(k.objektiv_dkk as number) : "–"}</td>
             <td className="fjv-h">
                 {r.vurdering ? <>{signedKr(r.vurdering.diff)}<span className="fjv-ref-sub">{signedProcent(r.vurdering.brøk)}</span></> : "–"}
             </td>
@@ -44,6 +48,7 @@ function RefRaekke({ r }: { r: RefRække }) {
                 <span title={t.titel}><Maerke tone={t.tone}>{t.tekst}</Maerke></span>
                 {/* Gennemgangens fund 6: hvad der skiller kørslens grundlag fra README's, i klartekst. */}
                 {r.tilstand === "andet-grundlag" && r.kandidat && <span className="fjv-ref-sub">{grundlagTekst(r.kandidat.kvalifikation)}</span>}
+                {uloest && r.kandidat && <span className="fjv-ref-sub">{loesningsTekst(r.kandidat.kvalifikation)}</span>}
             </td>
             <td>
                 {r.kandidat ? (
@@ -63,7 +68,7 @@ function RefRaekke({ r }: { r: RefRække }) {
     );
 }
 
-function sammenfatning(raekker: readonly RefRække[]): string {
+export function sammenfatning(raekker: readonly RefRække[]): string {
     const inden = raekker.filter((r) => r.tilstand === "indenfor").length;
     const uden = raekker.filter((r) => r.tilstand === "udenfor").length;
     const mangler = raekker.filter((r) => r.tilstand === "ikke-koert" || r.tilstand === "aendret").length;
@@ -72,6 +77,8 @@ function sammenfatning(raekker: readonly RefRække[]): string {
     const anden = raekker.filter((r) => r.tilstand === "anden-version").length;
     const grundlag = raekker.filter((r) => r.tilstand === "andet-grundlag").length;
     if (mangler > 0) dele.push(`${mangler} er ikke kørt endnu`);
+    const uloest = raekker.filter((r) => r.tilstand === "ikke-loest").length;
+    if (uloest > 0) dele.push(`${uloest} er kørt, men ikke løst til casens gab (objektivet er foreløbigt og måles ikke)`);
     if (grundlag > 0) dele.push(`${grundlag} er kun kørt på et grundlag, der ikke er bekræftet som README's`);
     if (anden > 0) dele.push(`${anden} er kun kørt ved en anden modelversion og kan ikke sammenlignes`);
     return dele.join(", ") + ".";

@@ -24,6 +24,8 @@ const N90 = "90fb16eb1e2d5aa8e619b5a951b93760fa803985";
 const PIN = "939228aa048563c8498382a79d207c8b03fbda57";
 const koersel = (id: string, vaerk_id: string, scenarie_id: string, objektiv_dkk: number | undefined, over: Partial<Koersel> = {}) =>
     ({ id, vaerk_id, scenarie_id, status: "faerdig", objektiv_dkk, model_commit: EEF950A, data_commit: "106b9fce9a2e3610090b1a542559024056449b88", vaerk_revision: 1,
+        // P2-6 (tredje rettelsesrunde): en måling er en afsluttet løsning — status optimal og et opnået gab inden for casens.
+        solve_status: "optimal", opnaaet_gap: 0.0001,
         afsluttet: new Date("2026-10-26T07:32:12Z"), bestilt: new Date("2026-10-26T07:29:42Z"), ...over }) as Koersel;
 
 describe("README-referencerne", () => {

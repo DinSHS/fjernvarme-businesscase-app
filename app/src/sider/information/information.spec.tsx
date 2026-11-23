@@ -35,7 +35,8 @@ const k = (o: Partial<Koersel>) => ({
     // ved 90fb16e eller 939228a er en måling af det (referencetal.json › spora_anker › regnet_ved).
     id: "2e345787-3a37-4c5f-a1b4-ecfd321355c1", vaerk_id: "v1", scenarie_id: "s1", status: "faerdig", objektiv_dkk: 5204526.33,
     afsluttet: new Date("2026-11-23T07:32:12Z"), oensket_rel_gap: 0.005, oensket_abs_gap: 5000, opnaaet_gap: 0.000501, model_commit: "939228aa048563c8498382a79d207c8b03fbda57",
-    data_commit: "106b9fce9a2e3610090b1a542559024056449b88", vaerk_revision: 1, ...o,
+    // P2-6 (tredje rettelsesrunde): en måling er en afsluttet løsning — status optimal og et opnået gab inden for casens.
+    data_commit: "106b9fce9a2e3610090b1a542559024056449b88", vaerk_revision: 1, solve_status: "optimal", ...o,
 }) as Koersel;
 /** Det, en bestilling af repo-casen uden ændringer fryser: balancemarkedet til (Spor A og B). */
 const REN = [{ kilde: "scenarie", sti: "_koersel.med_balancering", vaerdi_json: "true" }];
