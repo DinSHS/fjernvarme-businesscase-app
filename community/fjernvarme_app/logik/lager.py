@@ -67,6 +67,9 @@ class Transaktion(Protocol):
     def indsaet_input(self, koersel_id: str, raekker: list[dict]) -> None: ...
     """KoerselInput: én række pr. ``{kilde, sti, vaerdi_json}`` med nyt id."""
     def koersel_for_bestilling(self, bestilling_id: str) -> dict | None: ...
+    def slet_bestilling(self, id: str) -> int: ...
+    """Slet Bestilling-rækken, hvis INGEN Koersel peger på den (runde 15, fund 3.2: en afvist bestilling
+    efterlader ingen række). Returnerer antal slettede rækker (0 eller 1)."""
     """Koersel: id, status."""
 
     # -------------------------------------------------- kørsler (annullerKoersel)

@@ -24,7 +24,7 @@ import type { Vaerk } from "../../../rayfin/data/Vaerk";
 import type { OmraadeProps } from "../typer";
 import { Felt, Fundliste } from "./faelles";
 import { enhedAf, gabProcent, katalogpost, læsTal, rodKode, stiEtiket, sætbareStier, talTilFelt, tekstTal, useBlade, useVaerketsTidsserier } from "./hjaelp";
-import { kodVarmelast, læsVarmelast, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst, type TidsserieInfo } from "./varmelast";
+import { kodVarmelast, læsVarmelast, tjekSolprofil, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst, type TidsserieInfo } from "./varmelast";
 import { ScenarieHistorie } from "./HistorieKort";
 import { KoerselDetaljer } from "./KoerselKort";
 import { differenceTekst } from "../analyser/beregn";
@@ -175,7 +175,9 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     const varmelastMul = varmelastMuligheder(serier, rod);
     const periode = tjekPeriode(fSvar.felter.periode_start, fSvar.felter.periode_slut, blade, { medBalancering: k.medBal });
     const fund: Fund[] = [...fSvar.fund, ...periode.fund, ...æSvar.fund, ...tjekÆndringer(æSvar.ændringer.filter((x) => x.type !== "set" || x.vaerdi_json), blade),
-        ...tjekVarmelast(varmelastValg, serier, { start: fSvar.felter.periode_start, slut: fSvar.felter.periode_slut }, blade)];
+        ...tjekVarmelast(varmelastValg, serier, { start: fSvar.felter.periode_start, slut: fSvar.felter.periode_slut }, blade),
+        // Fund 3.2: solprofilens dækning kendes før bestilling; backenden afviser ellers først, når bestillingen er oprettet.
+        ...tjekSolprofil(æSvar.ændringer, fSvar.felter.heat_csv, serier, { start: fSvar.felter.periode_start, slut: fSvar.felter.periode_slut }, blade)];
     if (serierFejl) fund.push({ niveau: "advarsel", tekst: `Værkets tidsserier kunne ikke hentes (${serierFejl.message}); varmelast kan kun være syntetisk eller en af repoets filer.` });
     if (k.metode === "activation_value" && !blade.has("balancing.bid_strategy.up_markup_dkk_mwh")) {
         fund.push({ niveau: "fejl", tekst: "Metoden activation_value kræver balancing.bid_strategy i værket." });

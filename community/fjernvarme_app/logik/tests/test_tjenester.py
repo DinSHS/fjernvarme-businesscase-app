@@ -153,6 +153,42 @@ class TestStartBestilling(Grund):
         self.assertIn("som ikke findes i værket", svar["afvist"])
         self.assertEqual((self.l.raekker("Koersels"), self.l.raekker("KoerselInputs")), ([], []))
 
+    # Runde 15, fund 3.2 (den uafhængige test 18. november 2026): en afvist bestilling efterlod sin Bestilling-række.
+    # Klienten må kun oprette og læse den (skema.json), så kun den betroede logik kan fjerne den. Rækken var ikke
+    # kun rod: klientnøglen er unik, så et genforsøg med samme nøgle ("Prøv igen") ramte den gamle række.
+    def test_afvist_bestilling_efterlader_ingen_raekke(self):
+        s = self.scenarie()
+        ae = self.l.indsaet("ScenarieAendrings", {"scenarie_id": s["id"], "type": "set", "sti": "prices.olie.value",
+                                                  "vaerdi_json": "1.0", "raekkefoelge": 1})
+        b = self.l.indsaet("Bestillings", {"scenarie_id": s["id"], "bestilt_af": AF, "klient_noegle": "samme-noegle"})
+        svar = S.start_bestilling(self.l, b["id"], self.arbejder)
+        self.assertIn("som ikke findes i værket", svar["afvist"])
+        self.assertEqual(self.l.raekker("Bestillings"), [])
+        self.assertEqual(self.l.raekker("Koersels"), [])
+        # Scenariet er brugerens og bliver stående (det kan være et, hun har redigeret længe): kun bestillingen fjernes.
+        self.assertEqual(len(self.l.raekker("Scenaries", id=s["id"])), 1)
+        # Genforsøg med SAMME klientnøgle, nu med en gyldig ændring: bestillingen kan oprettes og køres.
+        self.opdater("ScenarieAendrings", ae["id"], sti="prices.straw.value")
+        b2 = self.l.indsaet("Bestillings", {"scenarie_id": s["id"], "bestilt_af": AF, "klient_noegle": "samme-noegle"})
+        self.assertTrue(S.start_bestilling(self.l, b2["id"], self.arbejder)["ok"])
+        self.assertEqual(len(self.l.raekker("Bestillings")), 1)
+
+    def test_kvoteafvisning_fjerner_bestillingen(self):
+        for _ in range(3):
+            self.assertTrue(self.bestil()[1]["ok"])
+        bid, svar = self.bestil()
+        self.assertFalse(svar["ok"])
+        self.assertEqual(len(self.l.raekker("Bestillings")), 3)             # de tre, der blev til kørsler
+        self.assertEqual(self.l.raekker("Bestillings", id=bid), [])
+
+    def test_godkendt_bestilling_bliver_staaende(self):
+        bid, svar = self.bestil()
+        self.assertTrue(svar["ok"])
+        self.assertEqual(len(self.l.raekker("Bestillings", id=bid)), 1)
+        # Et gentaget kald (idempotent) rører den heller ikke.
+        S.start_bestilling(self.l, bid, self.arbejder)
+        self.assertEqual(len(self.l.raekker("Bestillings", id=bid)), 1)
+
     def test_scenariets_decimaler(self):
         from decimal import Decimal
         # Decimal er hvad en SQL-decimal kan komme ud som; sqlite kan ikke binde den, så dér seedes float.
@@ -213,6 +249,9 @@ class TestStartBestilling(Grund):
         self.l.transaktion = tx
         svar = S.start_bestilling(self.l, U, self.arbejder)
         self.assertEqual(svar, {"ok": False, "afvist": "Teknisk fejl i startBestilling: forbindelsen døde"})
+        # En teknisk fejl er ikke en afvisning: bestillingen bliver stående og kan forsøges igen (fund 3.2 fjerner kun afviste).
+        self.l.transaktion = o
+        self.assertEqual(len(self.l.raekker("Bestillings", id=U)), 1)
 
 
 class TestUdfoerAendring(Grund):

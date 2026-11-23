@@ -184,6 +184,61 @@ export function tjekVarmelast(valg: Varmelastvalg, serier: readonly TidsserieInf
     return fund;
 }
 
+/** Markøren i `units.<sol>.production_profile_path`, når værkets solprofil er en tidsserie (backendens SOLPROFIL_MARKOER). */
+export const SOLPROFIL_MARKOER = "tidsserie:solprofil";
+
+/** Et tidsstempel, som modellen læser det (backendens `modeltid`): naivt = UTC, en bar dato = midnat. NaN, hvis det ikke kan læses. */
+function modeltid(s: string): number {
+    const x = s.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(x)) return Date.parse(`${x}T00:00:00Z`);
+    return Date.parse(/(Z|[+-]\d{2}:?\d{2})$/i.test(x) ? x : `${x}Z`);
+}
+
+/**
+ * Solprofilens dækning, tjekket FØR bestilling (runde 15, fund 3.2 fra den uafhængige test 18. november 2026).
+ * Backenden (bygFrossetInput) afviser en solprofil-tidsserie, der mangler bare én af periodens timer — modellen
+ * nulfylder ikke en solprofil. Før opdagede klienten det først, når Scenarie og Bestilling var oprettet; afvisningen
+ * efterlod dem. Samme regel og samme valg af serie som backenden: scenariets `_tidsserie.solprofil`, ellers værkets
+ * ene aktive, gyldige solprofil; aksen er scenariets datoer som hele døgn (00–23 UTC), ellers værkets time-blok.
+ * Seriens egne huller kender klienten kun antallet af (ikke hvor): de er en advarsel — backenden afgør det.
+ * r15_afvist.spec.ts holder tallet op mod bygFrossetInput.
+ */
+export function tjekSolprofil(ændringer: readonly Ændring[], _heat_csv: string | null | undefined, serier: readonly TidsserieInfo[], periode: { start: string | null; slut: string | null }, blade: Blade): Fund[] {
+    const gyldige = serier.filter((s) => s.status === "gyldig");
+    const æ = ændringer.find((x) => x.type === "set" && x.sti === "_tidsserie.solprofil");
+    let valg: unknown;
+    try { valg = æ?.vaerdi_json ? JSON.parse(æ.vaerdi_json) : undefined; } catch { valg = undefined; }
+    let s: TidsserieInfo | undefined;
+    if (typeof valg === "string" && valg) {
+        s = gyldige.find((x) => x.id.toLowerCase() === valg.toLowerCase());
+        if (!s) return [{ niveau: "fejl", tekst: "Den valgte solprofil findes ikke blandt værkets gyldige tidsserier — vælg en anden." }];
+    } else {
+        const aktive = gyldige.filter((x) => x.rolle === "solprofil" && x.aktiv);
+        if (aktive.length > 1) return [{ niveau: "fejl", tekst: `Værket har ${aktive.length} aktive solprofil-tidsserier — gør kun én aktiv under Konfiguration → Tidsserier, før der køres.` }];
+        s = aktive[0];
+    }
+    if (!s) {
+        const markør = [...blade].some(([sti, v]) => /^units\.[^.]+\.production_profile_path$/.test(sti) && v === JSON.stringify(SOLPROFIL_MARKOER));
+        return markør ? [{ niveau: "fejl", tekst: "Værket bruger en solprofil-tidsserie, men ingen er aktiv eller valgt — gør en af værkets solprofiler aktiv under Konfiguration → Tidsserier." }] : [];
+    }
+    let fra: number, til: number;
+    if (periode.start && periode.slut) { fra = Date.parse(`${periode.start}T00:00:00Z`); til = Date.parse(`${periode.slut}T23:00:00Z`); }
+    else {
+        const tekst = (sti: string) => { try { const v = JSON.parse(blade.get(sti) ?? "null") as unknown; return typeof v === "string" ? v : ""; } catch { return ""; } };
+        fra = modeltid(tekst("time.start")); til = modeltid(tekst("time.end"));
+    }
+    const a = iso(s.start), b = iso(s.slut);
+    if (!Number.isFinite(fra) || !Number.isFinite(til) || til < fra || !a || !b) return [];
+    const timer = (til - fra) / TIME + 1;
+    const tsFra = Date.parse(a), tsTil = Date.parse(b);
+    const mangler = tsFra > til || tsTil < fra ? timer : Math.round(Math.max(0, (tsFra - fra) / TIME) + Math.max(0, (til - tsTil) / TIME));
+    if (mangler > 0) {
+        return [{ niveau: "fejl", tekst: `Solprofilen "${s.navn}" mangler ${mangler} af periodens ${timer} timer (profilen dækker ${serieperiode(s)}); modellen nulfylder ikke en solprofil, så bestillingen afvises. Vælg en periode inden for profilen, eller upload en solprofil, der dækker perioden.` }];
+    }
+    if (s.antal_huller) return [{ niveau: "advarsel", tekst: `Solprofilen "${s.navn}" har ${s.antal_huller} huller; ligger et af dem i perioden, afvises bestillingen (modellen nulfylder ikke en solprofil).` }];
+    return [];
+}
+
 /** Omvendt af valgNøgle (til <select>-værdier). */
 export function valgFraNøgle(n: string): Varmelastvalg {
     if (n.startsWith("tidsserie:")) return { type: "tidsserie", id: n.slice("tidsserie:".length) };

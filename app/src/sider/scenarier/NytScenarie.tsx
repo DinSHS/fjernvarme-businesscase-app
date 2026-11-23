@@ -24,7 +24,7 @@ import type { OmraadeProps } from "../typer";
 import { Felt, Fundliste } from "./faelles";
 import { enhedAf, gabProcent, rodKode, stiEtiket, useBlade, useVaerketsTidsserier } from "./hjaelp";
 import {
-    aktivSerie, anvendVarmelast, læsVarmelast, maalteMuligheder, standardVarmelastvalg, maaltVarmelastMulig, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst,
+    aktivSerie, anvendVarmelast, læsVarmelast, maalteMuligheder, standardVarmelastvalg, maaltVarmelastMulig, tjekSolprofil, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst,
     type TidsserieInfo, type Varmelastvalg,
 } from "./varmelast";
 import {
@@ -187,7 +187,9 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
     if (par.par && blade) {
         const tjekket = new Set<string>();
         for (const side of [par.par.reference, par.par.scenarie]) {
-            for (const f of tjekVarmelast(læsVarmelast(side.aendringer, side.felter.heat_csv, serier), serier, { start: pf.start, slut: pf.slut }, blade)) {
+            // Fund 3.2: også solprofilens dækning tjekkes her — før et scenarie eller en bestilling er oprettet.
+            for (const f of [...tjekVarmelast(læsVarmelast(side.aendringer, side.felter.heat_csv, serier), serier, { start: pf.start, slut: pf.slut }, blade),
+                ...tjekSolprofil(side.aendringer, side.felter.heat_csv, serier, { start: pf.start, slut: pf.slut }, blade)]) {
                 if (!tjekket.has(f.tekst)) { tjekket.add(f.tekst); fund.push(f); }
             }
         }
@@ -233,6 +235,8 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
                 // Efter bestilling: hvilke pins fik scenariet faktisk frosset (startBestilling skriver dem på Koersel)?
                 frosnePins: async (id) => { const k = await læsÉn("Koersel", id); return { model: k?.model_commit, data: k?.data_commit }; },
                 sætReference: async (id, ref) => { await opdaterScenarie(id, { reference_scenarie_id: ref }); },
+                // Fund 3.2: et scenarie, parret selv oprettede, og hvis bestilling blev afvist, skal ikke stå tilbage som "ikke kørt".
+                arkivérScenarie: async (id) => { await opdaterScenarie(id, { arkiveret: true }); },
             }, setSkridt);
             if (svar.ok) { setFærdig({ ...svar.tilstand }); nøgle.current = null; tilstand.current = {}; }
             else setFejl(svar.afvist);

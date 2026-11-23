@@ -11,6 +11,11 @@
 // der allerede en sammenlignelig referencekørsel, genbruges den (§6b) — men kun
 // hvis scenariets FROSNE pins (model, df-data) bagefter er de samme som
 // referencens; ellers bestilles en ny reference (K3-N4).
+//
+// Runde 15 (fund 3.2, den uafhængige test 18. november 2026): afviser backenden en bestilling, ARKIVERES det
+// scenarie, parflowet oprettede til den i samme handling, og det glemmes i `tilstand` — så en afvisning ikke
+// efterlader et scenarie, der står som "ikke kørt" mellem de rigtige, og "Prøv igen" opretter det på ny. (Sletning
+// er bevidst ikke tilladt for Scenarie, KONTRAKT §3.4.) En genbrugt reference er ikke parflowets og røres aldrig.
 //-----------------------------------------------------------------------
 
 import type { ÆndringUdkast, ScenarieFelter } from "@/lib/data/skriv";
@@ -41,6 +46,8 @@ export interface ParAfhængigheder {
     frosnePins?: (koerselId: string) => Promise<Pins>;
     /** Peg scenariets `reference_scenarie_id` på en anden reference. */
     sætReference?: (scenarieId: string, refScenarieId: string) => Promise<void>;
+    /** Arkivér et scenarie, parflowet selv oprettede, hvis bestilling blev afvist (fund 3.2). Uden den bliver scenariet stående. */
+    arkivérScenarie?: (scenarieId: string) => Promise<void>;
 }
 
 export interface ParInput {
@@ -87,6 +94,18 @@ export async function opretOgBestilPar(
     /** Genbrug er kun et tilbud, indtil scenariets frosne pins er kontrolleret (K3-N4). */
     const genbrugTilbudt = !!input.genbrug && !t.pinsUdskiftet;
 
+    /**
+     * Fund 3.2: bestillingen af et scenarie, denne handling selv oprettede, blev afvist — arkivér det og glem det.
+     * Fejler arkiveringen (netværk), beholdes id'et i tilstanden, så "Prøv igen" genbruger rækken i stedet for at lave en til.
+     */
+    const rydAfvist = async (hvilket: "ref" | "scen"): Promise<void> => {
+        const id = hvilket === "ref" ? t.refScenarieId : t.scenScenarieId;
+        if (!id || !deps.arkivérScenarie) return;
+        try { await deps.arkivérScenarie(id); } catch { return; }
+        if (hvilket === "ref") { t.refScenarieId = undefined; t.refÆndringerGemt = false; }
+        else { t.scenScenarieId = undefined; t.scenÆndringerGemt = false; }
+    };
+
     /** Opret og bestil en NY reference (springer færdige skridt over ved et nyt forsøg). */
     const nyReference = async (): Promise<string | undefined> => {
         if (!t.refScenarieId) {
@@ -106,7 +125,10 @@ Reference: ${input.forklaring}`),
         if (!t.refKoerselId) {
             påSkridt?.("Bestiller referencen…");
             const r = await deps.bestilKoersel(t.refScenarieId, bruger, `${nøgle}-r`);
-            if (!r.ok || !r.koersel_id) return `Referencen blev ikke bestilt: ${r.afvist ?? "afvist uden forklaring."}`;
+            if (!r.ok || !r.koersel_id) {
+                await rydAfvist("ref");
+                return `Referencen blev ikke bestilt: ${r.afvist ?? "afvist uden forklaring."}`;
+            }
             t.refKoerselId = r.koersel_id;
         }
         return undefined;
@@ -136,7 +158,10 @@ Reference: ${input.forklaring}`),
     if (!t.scenKoerselId) {
         påSkridt?.("Bestiller scenariet…");
         const r = await deps.bestilKoersel(t.scenScenarieId!, bruger, `${nøgle}-s`);
-        if (!r.ok || !r.koersel_id) return { ok: false, tilstand: t, afvist: `Scenariet blev ikke bestilt: ${r.afvist ?? "afvist uden forklaring."}` };
+        if (!r.ok || !r.koersel_id) {
+            await rydAfvist("scen");
+            return { ok: false, tilstand: t, afvist: `Scenariet blev ikke bestilt: ${r.afvist ?? "afvist uden forklaring."}` };
+        }
         t.scenKoerselId = r.koersel_id;
     }
     // K3-N4: Motor kan have skiftet pins mellem visning og bestilling. Fik scenariet andre frosne
