@@ -905,6 +905,69 @@ export function stoersteEnhed(enheder: readonly EnhedTal[]): EnhedTal | null {
     return enheder.filter((e) => (e.produktion_mwh ?? 0) > 0)[0] ?? null;
 }
 
+// ================================================================= CO₂: er udledningen opgjort?
+
+/**
+ * Brændsler, hvis forbrænding udleder fossil CO₂. Ved modelversion 90fb16e bruger casene kun `natural_gas`; olie og
+ * kul står her, så en ny enhedstype ikke stille bliver regnet som CO₂-fri (egen antagelse — modellen har ingen liste).
+ */
+const FOSSILT_BRAENDSEL = /^(natural_gas|naturgas|gas|oil|fuel_oil|gas_oil|gasoil|olie|fyringsolie|diesel|lpg|coal|kul)$/i;
+/** Enhedstyper, der brænder fossilt, også hvis `fuel` mangler. */
+const FOSSIL_TYPE = /^(gas_boiler|gas_engine_chp|oil_boiler)$/;
+const BRAENDSELSNAVN: Record<string, string> = { natural_gas: "naturgas", oil: "olie", fuel_oil: "olie", gas_oil: "olie", coal: "kul" };
+
+export interface Co2Opgoerelse {
+    /** false: modellens `co2_ton` dækker ikke alle fossile enheder, der producerede — tallet må ikke vises som udledningen. */
+    opgjort: boolean;
+    /** De enheder, der producerede varme på fossilt brændsel med emissionsfaktor 0, sorteret. */
+    enheder: string[];
+    /** Grunden i klartekst (null når opgjort). */
+    grund: string | null;
+}
+
+/**
+ * Er kørslens CO₂-udledning opgjort? (Runde 15, fund 4E fra den uafhængige test 18. november 2026.)
+ *
+ * Modellens `co2_ton` er Σ varme / eta_fuel_to_heat × `co2_emissions_per_mwh_fuel` over enhederne og springer en
+ * enhed med faktoren 0 over (src/manifest.py:130-147; standarden er 0,0, src/config.py:504). Billund-casene har 0,0
+ * på gasenhederne, fordi CO₂-omkostningen ligger i gasprisen — rigtigt for økonomien, men så er `co2_ton` 0 for et
+ * værk, der brænder naturgas. Appen viste "CO₂-udledning 0 t".
+ *
+ * Appens regel (EGEN ANTAGELSE, doc/TROFASTHED.md §5): udledningen er IKKE opgjort, når mindst én tændt enhed med
+ * fossilt brændsel har produceret varme (eller dens produktion er ukendt) med emissionsfaktor ≤ 0. Biomasse med
+ * faktor 0 er modellens egen regel (neutral) og rører ikke opgørelsen; en fossil enhed, der ikke producerede, heller ikke.
+ * Appen retter ikke tallet og gætter ingen faktor — den siger, at tallet mangler, og hvorfor.
+ */
+export function co2Opgoerelse(input: readonly InputRække[], samlet: Pick<Samlet, "enheder">): Co2Opgoerelse {
+    const e = effektivtInput(input).blade;
+    const læs = (sti: string): unknown => { const r = e.get(sti); if (!r) return undefined; try { return JSON.parse(r.vaerdi_json) as unknown; } catch { return undefined; } };
+    const produktion = new Map(samlet.enheder.map((x) => [x.navn, x.produktion_mwh]));
+    const navne = new Set<string>();
+    for (const sti of e.keys()) { const m = /^units\.([^.]+)\./.exec(sti); if (m) navne.add(m[1]); }
+    const ramt: { navn: string; braendsel: string }[] = [];
+    for (const navn of [...navne].sort()) {
+        if (læs(`units.${navn}.enabled`) === false) continue;
+        const fuel = læs(`units.${navn}.fuel`), type = læs(`units.${navn}.type`);
+        const fossil = (typeof fuel === "string" && FOSSILT_BRAENDSEL.test(fuel)) || (typeof type === "string" && FOSSIL_TYPE.test(type));
+        if (!fossil) continue;
+        const faktor = læs(`units.${navn}.co2_emissions_per_mwh_fuel`);
+        if (typeof faktor === "number" && faktor > 0) continue;
+        // Enheden er ikke i resultaterne (ingen nøgletal): den var ikke med i kørslen. 0 MWh: intet at opgøre.
+        if (!produktion.has(navn)) continue;
+        const mwh = produktion.get(navn);
+        if (mwh != null && !(mwh > 0)) continue;
+        ramt.push({ navn, braendsel: typeof fuel === "string" ? BRAENDSELSNAVN[fuel] ?? fuel : "fossilt brændsel" });
+    }
+    if (ramt.length === 0) return { opgjort: true, enheder: [], grund: null };
+    const enheder = ramt.map((x) => x.navn);
+    const braendsler = opremsning([...new Set(ramt.map((x) => x.braendsel))]);
+    return {
+        opgjort: false, enheder,
+        grund: `Ikke opgjort: emissionsfaktoren (co2_emissions_per_mwh_fuel) er 0 for ${opremsning(enheder)}, som producerede varme på ${braendsler}. `
+            + "Modellen regner da ingen udledning for dem — typisk fordi CO₂-omkostningen ligger i brændselsprisen. Økonomien er uændret; kun udledningen mangler.",
+    };
+}
+
 // ================================================================= sammenligning af produktion
 
 /**

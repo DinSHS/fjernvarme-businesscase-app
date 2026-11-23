@@ -15,7 +15,7 @@ import { useVaerkParametre, type Hentet } from "@/lib/data/hooks";
 import { tal, tidspunkt } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
 import {
-    absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceMetode, balanceKolonner, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, kendtDelta, produktionsvarians, varianseOrden,
+    absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceMetode, balanceKolonner, co2Opgoerelse, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, kendtDelta, produktionsvarians, varianseOrden,
     IKKE_ET_RESULTAT, relativAfvigelse, sammenlignelighed, sammenlignelighedsDom, sammenligningsBudskab, spor, type Profil,
 } from "./beregn";
 import { sideRoller, tilSide, usePakke, type Pakke } from "./data";
@@ -267,12 +267,18 @@ export function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
     // Runde 15 (mail 1): et par, der ikke er direkte sammenligneligt, får ingen godt/dårligt-farve — alle ΔRef er neutrale.
     const dom = sammenlignelighedsDom(a.profil, b.profil);
     const pol = (p: number) => (dom.status === "ja" ? p : 0);
+    // Fund 4E: er udledningen ikke opgjort i en af kørslerne (fossil enhed med emissionsfaktor 0), vises intet CO₂-tal
+    // og intet ΔRef — hverken "0 t" eller en ændring, der kun kommer fra de enheder, modellen talte med.
+    const co2a = co2Opgoerelse(a.input ?? [], sa), co2b = co2Opgoerelse(b.input ?? [], sb);
+    const co2Opgjort = co2a.opgjort && co2b.opgjort;
     const tal_: Noegletal[] = [
         {
             navn: "Driftsomkostning", enhed: "t.kr.", ref: objektiv(a), scen: objektiv(b), skala: TKR, polaritet: pol(-1),
             definition: "Objektivet: brændsel, el, tariffer, afgifter, D&V og starter minus elsalg og balanceindtægt, hele perioden.",
         },
-        { navn: "CO₂-udledning", enhed: "t", ref: sa.co2_ton, scen: sb.co2_ton, skala: heltal, polaritet: pol(-1) },
+        co2Opgjort
+            ? { navn: "CO₂-udledning", enhed: "t", ref: sa.co2_ton, scen: sb.co2_ton, skala: heltal, polaritet: pol(-1) }
+            : { navn: "CO₂-udledning", enhed: "t — ikke opgjort", ref: null, scen: null, skala: heltal, polaritet: 0, definition: (co2b.opgjort ? co2a : co2b).grund ?? undefined },
         {
             // Kortets tal har højst 4 heltalscifre (IBCS.md §3): GWh, når et helårs elforbrug ellers får 5 cifre.
             navn: "Elforbrug", enhed: `${el.enhed} el`, ref: sa.el_forbrug_mwh, scen: sb.el_forbrug_mwh, skala: el.skala, polaritet: 0,
@@ -281,7 +287,8 @@ export function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
         ...(sa.balance || sb.balance ? [{ navn: "Balanceindtægt netto", enhed: "t.kr.", ref: sa.balance?.i_alt.netto ?? null, scen: sb.balance?.i_alt.netto ?? null, skala: TKR, polaritet: pol(1), relativ: false }] : []),
     ];
     const d = difference(a.k, b.k);
-    const co2 = sa.co2_ton != null && sb.co2_ton != null ? `; CO₂ ${medFortegn(sb.co2_ton - sa.co2_ton)} t` : "";
+    const co2 = !co2Opgjort ? "; CO₂-udledningen er ikke opgjort" : sa.co2_ton != null && sb.co2_ton != null ? `; CO₂ ${medFortegn(sb.co2_ton - sa.co2_ton)} t` : "";
+    const co2Fod = co2Opgjort ? "" : ` CO₂-udledning: ${(co2b.opgjort ? co2a : co2b).grund} (appens egen antagelse).`;
     const budskab = dom.status !== "ja" ? `${dom.tekst} ${IKKE_ET_RESULTAT}`
         : d
             ? `Scenariet koster ${tkr(Math.abs(d.delta))} t.kr. ${d.delta > 0 ? "mere" : d.delta < 0 ? "mindre" : "det samme"} end referencen${co2}.`
@@ -289,8 +296,8 @@ export function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
     return (
         <Kort titel="Nøgletal" afgraensning="Scen med ΔRef og ΔRef%" budskab={budskab}
             fod={dom.status === "ja"
-                ? "Værdien er scenariets; ΔRef = scenarie − reference. Grøn = bedre, rød = dårligere, blå = neutral; et ΔRef, der afrundes til 0, har ingen farve. ΔRef% er N/A, når referencen er 0."
-                : "Værdien er scenariets; ΔRef = scenarie − reference. Alle ΔRef er neutrale (blå): kørslerne er ikke direkte sammenlignelige, så et ΔRef er hverken bedre eller dårligere. ΔRef% er N/A, når referencen er 0."}>
+                ? `Værdien er scenariets; ΔRef = scenarie − reference. Grøn = bedre, rød = dårligere, blå = neutral; et ΔRef, der afrundes til 0, har ingen farve. ΔRef% er N/A, når referencen er 0.${co2Fod}`
+                : `Værdien er scenariets; ΔRef = scenarie − reference. Alle ΔRef er neutrale (blå): kørslerne er ikke direkte sammenlignelige, så et ΔRef er hverken bedre eller dårligere. ΔRef% er N/A, når referencen er 0.${co2Fod}`}>
             <NoegletalKort tal={tal_} fremhaev={dom.status === "ja" ? "Driftsomkostning" : undefined} />
         </Kort>
     );

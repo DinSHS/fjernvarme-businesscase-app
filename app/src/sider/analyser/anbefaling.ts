@@ -14,7 +14,7 @@
 import { effektivtInput, KOERSEL_PRAEFIKS, type InputRække } from "@/lib/data/afflad";
 import { tal } from "@/lib/format";
 import {
-    absolutGab, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, visJson,
+    absolutGab, co2Opgoerelse, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, visJson,
     type InputForskel, type Koersel, type Profil, type Samlet,
 } from "./beregn";
 import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
@@ -519,7 +519,9 @@ export function konsekvenser(p: Par, delta: number): string[] {
         }
     }
     const ca = ref.samlet.co2_ton, cb = scen.samlet.co2_ton;
-    if (ud.length < 2 && ca != null && cb != null && Math.abs(cb - ca) >= Math.max(1, 0.01 * Math.abs(ca))) {
+    // Fund 4E: en CO₂-ændring fortælles kun, når udledningen er opgjort i begge kørsler (ingen fossil enhed med faktor 0).
+    const co2Opgjort = co2Opgoerelse(ref.input, ref.samlet).opgjort && co2Opgoerelse(scen.input, scen.samlet).opgjort;
+    if (ud.length < 2 && co2Opgjort && ca != null && cb != null && Math.abs(cb - ca) >= Math.max(1, 0.01 * Math.abs(ca))) {
         ud.push(`${cb > ca ? "øger" : "sænker"} CO₂-udledningen med ${tal(Math.abs(cb - ca))} t`);
     }
     const ea = ref.samlet.el_forbrug_mwh, eb = scen.samlet.el_forbrug_mwh;
