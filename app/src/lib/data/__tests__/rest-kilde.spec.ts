@@ -134,6 +134,24 @@ describe("skrivning", () => {
         await expect(bestilKoersel("s1", "a@b.dk", "noegle-1")).rejects.toEqual(new Afvist("Bestillingen er allerede sendt — se kørselslisten."));
     });
 
+    // Kodegennemgangen af runde 15, fund 3: findes bestillingen allerede (samme nøgle, samme scenarie, samme bruger),
+    // genoptages den — startBestilling kaldes igen med DENS id. Her gennem den rigtige rest-adapter.
+    it("en gentaget bestilling, som er brugerens egen for samme scenarie, genoptages: læs den, og kald Functionen igen", async () => {
+        const egen = { id: "B-GAMMEL", scenarie_id: "s1", bestilt_af: "a@b.dk", klient_noegle: "noegle-1" };
+        svar = (k) => (k.metode === "POST" && k.url.pathname === "/api/data/Bestilling" ? { status: 409, json: { fejl: { kode: "unik", besked: "findes allerede" } } }
+            : k.metode === "GET" ? { json: { items: [egen], hasNextPage: false, endCursor: null } }
+                : { json: { ok: true, koersel_id: "k1", status: "koe", ny: false } });
+        const r = await bestilKoersel("s1", "a@b.dk", "noegle-1");
+        expect(r).toMatchObject({ ok: true, koersel_id: "k1" });
+        expect(kald.map((k) => `${k.metode} ${k.url.pathname}`)).toEqual(["POST /api/data/Bestilling", "GET /api/data/Bestilling", "POST /api/fn/startBestilling"]);
+        expect(JSON.parse(kald[1].url.searchParams.get("filter")!)).toEqual({ klient_noegle: { eq: "noegle-1" } });
+        expect(kald[2].krop).toEqual({ bestillingId: "B-GAMMEL" });
+        // En andens bestilling med samme nøgle genoptages ikke.
+        kald = [];
+        await expect(bestilKoersel("s1", "kollega@b.dk", "noegle-1")).rejects.toEqual(new Afvist("Bestillingen er allerede sendt — se kørselslisten."));
+        expect(kald.map((k) => k.url.pathname)).not.toContain("/api/fn/startBestilling");
+    });
+
     it("scenarieændringer: DELETE/PATCH på id i stien, POST for nye", async () => {
         svar = (k) => ({ json: k.metode === "DELETE" ? { id: "x" } : { id: "ny", ...(k.krop as object) } });
         await gemScenarieAendringer("s1",
