@@ -121,7 +121,7 @@ describe("F7: pengegraferne vælger t.kr. eller mio. kr. efter gruppens største
         expect(kort).toContain("mio. kr., Ref → Scen");
     });
     it("par-variansen følger samme regel", () => {
-        const { container } = render(<ParVarians par={[{ navn: "a", delta: 2_500_000, indenForTolerance: false }, { navn: "b", delta: -40_000, indenForTolerance: false }]} />);
+        const { container } = render(<ParVarians par={[{ navn: "a", ref: 30_000_000, scen: 32_500_000, delta: 2_500_000, indenForTolerance: false }, { navn: "b", ref: 3_000_000, scen: 2_960_000, delta: -40_000, indenForTolerance: false }]} />);
         expect(container.textContent).toContain("mio. kr.");
         expect(container.textContent).toContain("+2,50");
     });

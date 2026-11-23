@@ -183,14 +183,18 @@ export function ProduktionMod({ varians, fremhaev, farve }: { varians: readonly 
 
 // ---------------------------------------------------------------- ΔRef pr. par (anbefalinger)
 
-export interface ParDelta { navn: string; delta: number; indenForTolerance: boolean }
+/** `ref` og `scen`: de to kørslers driftsomkostning i kr. — til den skjulte datatabel; grafen tegner kun `delta`. */
+export interface ParDelta { navn: string; ref: number; scen: number; delta: number; indenForTolerance: boolean }
 
 /**
  * A-25: én variansbjælke pr. par i t.kr. (spec analyser-anbefalinger v1). Omkostning: op = dårligt (rød), ned = godt.
  * Et ΔRef inden for solverens tolerance kan ikke skelnes fra nul: det er tvetydigt og tegnes neutralt (blå, IBCS UN 4.1).
  */
 export function ParVarians({ par }: { par: readonly ParDelta[] }) {
-    const rækker: StructureRow[] = par.map((p) => ({ category: p.navn, delta: p.delta, deltaImpact: p.indenForTolerance ? 0 : undefined, PL: 0 }));
+    // Fund 3.5 (den uafhængige test 18. november 2026): rækkerne havde `PL: 0` og ingen `AC`, så den skjulte tabel til
+    // skærmlæsere viste "Scen 0,0 · Ref 0,0" for hvert par. Nu bærer rækken de to kørslers driftsomkostning; grafen
+    // tegner fortsat kun ΔRef (`only: "delta"`), og Δ er parrets eget tal, ikke en ny udregning.
+    const rækker: StructureRow[] = par.map((p) => ({ category: p.navn, AC: p.scen, PL: p.ref, delta: p.delta, deltaImpact: p.indenForTolerance ? 0 : undefined }));
     const { skala, enhed } = pengeSkala(par.map((p) => p.delta));
     return (
         <IbcsFigur titel={`ΔRef driftsomkostning i ${enhed}, pr. par`} undertitel={<><strong>Driftsomkostning</strong> ΔRef i {enhed}, pr. par</>}
