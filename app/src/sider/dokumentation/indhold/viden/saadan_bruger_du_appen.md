@@ -55,9 +55,12 @@ værk — med hele indholdet, også appens faner. En række i arket med et navn,
 importen med rækkenummer; modellens script ville springe den over uden besked. Står alle enheder til slukket ved
 start, advarer importens log: uden tank kan værket ikke dække den første time. (Kilde: KONTRAKT §6d; doc/EGNE_DATA.md)
 
-**Enheder:** "Ny enhed" laver en enhed ud fra en skabelon for typen; "Fjern enheden" kan kun bruges,
+**Enheder:** "Ny enhed" laver en enhed ud fra en skabelon for typen: varmepumpe, elkedel, biomassekedel, gaskedel,
+oliekedel, gasmotor, solvarme eller overskudsvarme. Bruger enheden et brændsel, værket ikke har en pris for (fx
+fyringsolie til en oliekedel), spørger formularen om prisen og gemmer den sammen med enheden; modellen kan ikke regne
+enheden uden. Skabelonens tal er pladsholdere, som du retter til værkets egne. "Fjern enheden" kan kun bruges,
 når intet scenarie bruger enheden. Vil du bare regne uden en enhed, så brug et scenarie i stedet —
-så forbliver værket urørt.
+så forbliver værket urørt. (Kilde: doc/EGET_VAERK.md:31-36; viden/enhedstyper.json)
 
 **Balancemarked på et værk uden:** værkets balancing-blok beskriver, *hvordan* værket byder; *om* der regnes med
 balancemarked, vælger du på scenariet. Uden blok kan scenarier ikke regne med balancemarkedet. Et værk, der er oprettet

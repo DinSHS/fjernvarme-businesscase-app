@@ -9,6 +9,64 @@ Hver version siger, hvilken model- og df-data-commit den er pinnet til, og hvilk
 skal køre ([`doc/FABRIC.md`](doc/FABRIC.md#opdatér-en-eksisterende-installation)). Tal fra før en ny modelpin kan ikke
 sammenlignes med tal efter.
 
+## [Ikke udgivet] — 0.5.0
+
+Model **`939228a`** (modelrepoets v0.11.0; før `90fb16e`), df-data **`106b9fc`** (uændret). **Tallene er de samme som ved
+`90fb16e`:** modelrepoets 0.10.0 (tekstfiler læses som UTF-8) og 0.11.0 (oliekedel) flytter ingen tal, og det er målt
+gennem appens kæde: Andeby 5.–6. januar 2026 uden balancemarked **866.567,72 kr.** ved begge versioner, og 16 andre
+kørsler (demo-scenarierne D01–D11, budstrategiens kontroltal, Spor A, Spor B og Billunds rullende år) er ens til øren
+(`noter/maaling_model_939228a.md`). Kørsler ved `90fb16e` kan derfor sammenlignes med nye; kørsler ved `eef950a` og
+ældre kan stadig ikke (spotrettelsen, se 0.4.0). df-data er ikke skiftet: modellen pinner ikke df-data, koden ved
+`939228a` læser ingen ny datafil, og `bea2c1e` (modelrepoets CHANGELOG) afviger kun fra `106b9fc` i rækker fra
+23. oktober 2026 og frem (målt).
+
+**Det kræver af en installation.** Intet skemaskift og ingen migrering.
+
+- **Lokal udgave:** byg og installér den nye wheel (README, *Kom i gang*: `npm run build:community`,
+  `community/pakke.py`, `pip install … [model]`). Modelkoden ved `939228a` hentes som zip ved første kørsel (kræver net
+  én gang). Databasen og datamappen bruges uændret.
+- **Fabric:** `deploy.py kode` (motoren, feltkataloget og pins i `dbo.Motors`), appen (`rayfin-up`, eller de to deltrin
+  i en installation med skemaafvigelsen) og `deploy.py koer fjv_importer_vaerker`
+  ([`doc/FABRIC.md`](doc/FABRIC.md#opdatér-en-eksisterende-installation)). Casefilerne er uændrede mellem de to
+  versioner, så importen melder repoværkerne som `uaendret`. En bestilling, der ligger i køen med de gamle pins,
+  afvises; bestil den igen. Ikke afprøvet i Fabric.
+- **Værksark eksporteret før opgraderingen** kan ikke genuploades som en revision bagefter: arkets indholdshash dækker
+  cellernes placering, og Priser-arkets rækker er rykket. Appen siger *eksportér igen*; eksportér værket på ny og før
+  rettelserne over, eller upload arket som et nyt værk. (Udledt af koden, `analyse.ts`; ikke afprøvet med et gammelt ark.)
+  Et ark bygget på modelrepoets gamle skabelon kan stadig uploades som nyt værk: modelscriptet læser Priser på
+  etiketterne (modelrepoets CHANGELOG 0.11.0).
+
+### Tilføjet
+- **Oliekedel** (modelrepoets enhedstype `oil_boiler` med brændslet `fuel_oil`): typen kan vælges under *Konfiguration ›
+  Tilføj enhed* og i guiden *Nyt værk*, med prisen *Fyringsoliepris* (`prices.fuel_oil.value`, kr. pr. MWh olie inkl.
+  energiafgift) og CO₂-faktoren 0,266 t/MWh fra modelscriptet (tung fuelolie: ret til ca. 0,28). Mangler værket
+  olieprisen, spørger *Tilføj enhed* om den og opretter den sammen med enheden. Valideringen kræver olieprisen og en
+  CO₂-pris, som modellen og modelscriptet gør — i browseren og i den betroede logik i begge udgaver (fælles vektorer).
+  Værksarket bærer oliekedlen (typen i Anlaeg, prisen i rækken *fyringsolie*; en anden CO₂-faktor end scriptets står i
+  fanen *Start og drift*). I Analyser hedder enheden *oliekedlen*, og olieprisen er en brændselspris i knappen
+  *Hvor følsom er økonomien for brændselsprisen?*. CO₂-opgørelsen er modellens egen og tæller olien med.
+  Målt: Andeby med en oliekedel på 20 MW i stedet for gaskedlen, 5.–6. januar 2026: **1.083.242,38 kr.** direkte med
+  `run_case.py`, ad appens bestillingsvej (timefil og KPI-fil ens byte for byte) og gennem hele arbejderkæden;
+  5.–16. januar: 4.001.969,31 kr. ad alle tre veje (`noter/maaling_model_939228a.md`).
+- `tjek_trofasthed.py` [5] holder appens enhedstyper, brændsler, CO₂-faktorer og priser op mod modelscriptets egne
+  tabeller (modelspejlets `vaerksark_typer`). Før var gaten grøn med en app, der ikke kendte en ny enhedstype.
+- `skabelon.spec.ts`: eksporten er bundet til selve skabelonfilen (etiketterne i Priser, hvert stilindeks, velformet
+  XML, præcis én valgt fane). Rundturs-beviset har varianten `andeby_olie`.
+
+### Ændret
+- **Værksarkets skabelon ved `939228a`**: Priser har fået rækken *fyringsolie* (række 10), så CO₂ og alt under er
+  rykket én række ned, og filen er nu skrevet direkte af openpyxl (før gemt af LibreOffice). Eksporten skriver i de nye
+  rækker (ét sted: `PRISER_RAEKKER`), og Excel-skriveren bærer begge XML-former. Målt: `tjek_eksport_rundtur.py` 11
+  værker, 0 fejl.
+- **Referencetal**: README's Spor A-anker er regnet igen efter spotrettelsen (5.204.555 kr.; før 5.069.729). En
+  reference kan nu bære sin egen liste af modelversioner (`regnet_ved`): Spor A måles ved `90fb16e` eller `939228a`, de
+  fire øvrige README-tal stadig ved `eef950a`.
+- Gatens undtagelse for modelforfatterens kontaktlinje i skabelonen peger på arkets XML (`offentlig/regler.json`): samme
+  linje og samme regel som før, kun stien er flyttet med den nye skabelon.
+- `PYTHONUTF8=1` er ikke længere nødvendig for modellen (0.10.0 læser selv UTF-8). Den sættes stadig: den skader ikke,
+  og en kørsel ved en ældre pin kræver den på Windows.
+- Vektorerne `skema/vektorer/fra_ts_testene` er optaget igen (to tilfælde fra runde 14c manglede).
+
 ## [Ikke udgivet] — 0.4.0
 
 Model **`90fb16e`** (før `eef950a`), df-data **`106b9fc`** (uændret). **Tallene kan ikke sammenlignes med før:** modellen

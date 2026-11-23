@@ -104,6 +104,15 @@ python fabric/deploy.py koer fjv_importer_vaerker   # kun hvis MODEL_COMMIT er �
 Rækkefølgen betyder noget: motoren (og dermed `dbo.Motors`) før appen, så den første bestilling efter opdateringen fryser de nye pins.
 `CHANGELOG.md` siger for hver version, hvilke af trinene den kræver.
 
+**Modelskiftet `90fb16e` → `939228a` (version 0.5.0, oliekedel).** Kun `MODEL_COMMIT` skifter; `DF_DATA_SHA` (`106b9fc`) og
+skemaet er uændrede, og tallene er de samme (målt lokalt: Andeby 5.–6. januar 2026 866.567,72 kr. ved begge versioner).
+Kør `deploy.py kode` (motoren, feltkataloget med oliekedlen og pins i `dbo.Motors`), appen (`rayfin-up` eller de to
+deltrin; frontenden bærer den nye skabelon til værksarket) og `deploy.py koer fjv_importer_vaerker`. Casefilerne er de
+samme ved de to versioner (målt: `git diff --stat 90fb16e 939228a` i modelrepoet rører ingen fil under `cases/`), så
+importen melder hvert uændret repoværk som `uaendret`. En bestilling i køen med de gamle pins afvises; bestil den igen.
+Kørsler ved `90fb16e` kan sammenlignes med nye. Et værksark eksporteret før opdateringen skal eksporteres igen, før det
+kan genuploades som en revision (se `CHANGELOG.md`). **Ikke udrullet og ikke afprøvet i Fabric.**
+
 **Modelskiftet `eef950a` → `90fb16e` (version 0.4.0).** Kun `MODEL_COMMIT` skifter; `DF_DATA_SHA` (`106b9fc`) og skemaet er
 uændrede. Kør `deploy.py kode` (motoren og pins i `dbo.Motors`) og `deploy.py koer fjv_importer_vaerker`. Casefilerne er
 de samme ved de to versioner (målt: `git diff --stat eef950a 90fb16e` i modelrepoet rører kun `src/data_loader.py`,

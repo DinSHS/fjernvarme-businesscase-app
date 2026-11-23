@@ -73,8 +73,8 @@ Browseren åbner `http://localhost:8000`. Første start henter modelkoden og df-
 → perioden *Egen periode*, 05-01-2026 til 06-01-2026 → *Bekræft og kør begge*. Appen bestiller to kørsler: referencen
 (Andeby, som modelrepoet kører casen) og scenariet (uden tanke). Efter et par minutter (første gang henter den
 data) står de under *Analyser*. Referencens driftsomkostning skal være **866.567,72 kr.** — samme tal som modellen selv
-giver ved den pinnede commit (90fb16e). Ved den forrige pin, eef950a, var det 867.031,23 kr.: modellen midler nu
-spotprisen over timens kvarterer, og tal fra før kan ikke sammenlignes.
+giver ved den pinnede commit (939228a, modellens version 0.11.0; samme tal ved den forrige pin, 90fb16e). Ved eef950a
+var det 867.031,23 kr.: modellen midler nu spotprisen over timens kvarterer, og tal fra før kan ikke sammenlignes.
 
 * **Windows: datamappen skal have en kort sti** (`C:\fjv`). Modellens filnavne er lange, og Windows' grænse er 260 tegn.
 * Uden `[model]` bygger appen selv et venv med modelrepoets `requirements.txt` ved første kørsel.

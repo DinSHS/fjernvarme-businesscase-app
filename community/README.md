@@ -29,8 +29,9 @@ python -m venv .venv
 
 Browseren åbner `http://localhost:8000`. `--demo` indlæser modelrepoets egne cases (Andeby, Billund …) som værker
 første gang; næste gang springes de over. Bestil så en kørsel af Andeby på 2 døgn: den skal give
-**866.567,72 kr.** ved modelversion 90fb16e (målt 2026-11-14 med den ægte arbejder i `fabric/koer_minne.py`; vejen med
-wheel'en fra et rent venv er ikke målt igen ved 90fb16e). Ved eef950a var tallet 867.031,23 kr. (målt 2026-10-26 fra et
+**866.567,72 kr.** ved modelversion 939228a (målt 2026-11-23 med den ægte arbejder i `fabric/koer_minne.py`; samme tal
+ved 90fb16e, målt 2026-11-14; vejen med wheel'en fra et rent venv er ikke målt igen ved 90fb16e eller 939228a). Ved
+eef950a var tallet 867.031,23 kr. (målt 2026-10-26 fra et
 rent venv med wheel'en), før rettelserne 19/10-2026 (b49aeb0) 844.727,28 kr. Tal fra før en ny modelversion kan ikke
 sammenlignes.
 

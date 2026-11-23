@@ -12,7 +12,7 @@ viser, hvordan du selv kan efterprøve det på en halv time (det meste er instal
 
 | | Commit | Står i |
 |---|---|---|
-| Modellen | `90fb16eb1e2d5aa8e619b5a951b93760fa803985` ("Note om nye spotpriser …", november 2026; spot midles over tidsskridtet fra `5021a5e`) | `MODEL_COMMIT` i [`fabric/fjv/konstanter.py`](../fabric/fjv/konstanter.py) |
+| Modellen | `939228aa048563c8498382a79d207c8b03fbda57` ("Udgiv 0.11.0: oliekedel som enhedstype", november 2026; oliekedlen fra `131f305`, UTF-8 fra `3cf753a`, spot midles over tidsskridtet fra `5021a5e`) | `MODEL_COMMIT` i [`fabric/fjv/konstanter.py`](../fabric/fjv/konstanter.py) |
 | df-data | `106b9fce9a2e3610090b1a542559024056449b88` | `DF_DATA_SHA` samme sted |
 
 Pinnen står også i [`CREDITS.md`](../CREDITS.md), `app/src/sider/dokumentation/kilde.ts` og `viden/*.json`, og gaten
@@ -48,7 +48,7 @@ cases/<værk>.yaml ── fjv/flad.py ──► blade i databasen (sti → værd
 ## 3. Modelspejlet — appen læser dine filer, den afskriver dem ikke
 
 [`viden/vaerktoej/byg_modelspejl.py`](../viden/vaerktoej/byg_modelspejl.py) læser modelrepoet ved den pinnede commit
-(`git show 90fb16e:<fil>`) og skriver tre genererede filer:
+(`git show 939228a:<fil>`) og skriver fire genererede filer:
 
 | Fil | Indhold |
 |---|---|
@@ -56,6 +56,11 @@ cases/<værk>.yaml ── fjv/flad.py ──► blade i databasen (sti → værd
 | `app/src/lib/modelspejl.data.ts` | samme spejl, som appen viser (kortet *Modelrepoet* på hvert værk, kilden under hvert felt) |
 | `app/src/sider/konfiguration/eksport/vaerksdata_skabelon.xlsx` | modelrepoets værksark ved pinnen, byte for byte (runde 12); eksporten udfylder det |
 | `app/src/sider/konfiguration/skalering.vektorer.json` | facit for skaleringen: modelrepoets egne linjer i `vaerksark_til_yaml.py` (`f`, `andeby_profil`, `heat_params`) udført i Python for 135 værdier af årsbehovet, inkl. alle halvtilfælde |
+
+Fra runde 15 bærer spejlet også `vaerksark_typer`: værksark-scriptets egne tabeller over enhedstyper, brændsel pr. type,
+CO₂-faktorer og prisarkets etiketter (`BRAENDSEL_PR_TYPE`, `CO2_PR_MWH_BRAENDSEL`, `BRAENDSEL_ORD`, `BIOMASSE` og `navne` i
+`laes_priser`), læst af kildeteksten. Trofasthedstjekkets [5] holder appens enhedstyper, brændsler og priser op mod dem.
+Baggrunden: da modellen fik `oil_boiler` ved `939228a`, var tjekket grønt med en app, der ikke kendte typen.
 
 Kørselskommandoerne læses **strengt** af [`fabric/fjv/modelkoersel.py`](../fabric/fjv/modelkoersel.py): flag og antal
 værdier tages fra `run_case.py`'s egen `argparse`. En linje, der ikke kan fortolkes, eller et ukendt flag stopper
@@ -70,7 +75,7 @@ filnavne er lange).
 ```bash
 git clone https://github.com/DinSHS/fjernvarme-businesscase-app.git app
 git clone https://github.com/skj-1964/fjernvarme-businesscase.git model
-git -C model checkout 90fb16eb1e2d5aa8e619b5a951b93760fa803985
+git -C model checkout 939228aa048563c8498382a79d207c8b03fbda57
 git clone https://github.com/skj-1964/df-data.git model/data/df-data
 git -C model/data/df-data checkout 106b9fce9a2e3610090b1a542559024056449b88
 
@@ -126,10 +131,10 @@ python app/viden/vaerktoej/bevis_app_vej.py --model model --ud bevis
 
 For hver af de 7 cases køres 10.–11. marts 2026 to gange med modelrepoets egen kommando for casen: **A** direkte
 (`python run_case.py cases/<fil> --data-source github …`) og **B** ad appens vej (blade → frosset input → `case.yaml` +
-argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.csv` byte for byte. Målt 2026-11-14 ved
-`90fb16e` med df-data **`106b9fc`** (= appens pin; scriptet melder `df-data 106b9fc, appens pin 106b9fc`), linopy 0.10.0,
-highspy 1.15.1 (`bevis_app_vej.py --model ../fjernvarme-businesscase --ud C:/fjvb2`). En første kørsel samme dag læste
-modelrepoets egen df-data-klon ved `a859b8b`, ikke pinnen; den gav de samme 7 objektiver, men tæller ikke som beviset:
+argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.csv` byte for byte. Målt 2026-11-23 ved
+`939228a` med df-data **`106b9fc`** (= appens pin; scriptet melder `df-data 106b9fc, appens pin 106b9fc`), linopy 0.10.0,
+highspy 1.15.1, i en klon af modelrepoet ved pinnen. Objektiverne er de samme som ved `90fb16e` (2026-11-14):
+modelrepoets 0.10.0 og 0.11.0 flytter ingen tal:
 
 | Case | Kommando (kilde) | Objektiv A = B, kr. | `_hourly.csv`, `_kpi.csv` | Ved `eef950a` (2026-10-27) |
 |---|---|---:|---|---:|
@@ -141,7 +146,11 @@ modelrepoets egen df-data-klon ved `a859b8b`, ikke pinnen; den gav de samme 7 ob
 | billund_sporB | med, målt (`cases/billund_sporB.yaml:17-19`) | 54.619 | byte-ens | 51.764 |
 | billund_sporB_rullende | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.859 | byte-ens | 236.659 |
 
-**7 af 7 er ens** ved begge versioner. Marts 2026 ligger efter 1. oktober 2025, så objektiverne flytter sig med
+**7 af 7 er ens** ved alle tre versioner. En ottende case, som ikke står i modelrepoet, er kørt samme vej: Andeby med
+en oliekedel på 20 MW i stedet for gaskedlen (`oil_boiler`, `fuel_oil` 900 kr./MWh, ny ved `939228a`). 5.–6. januar 2026:
+**1.083.242 kr.** direkte = ad appens vej, begge filer byte-ens, og 1.083.242,38 kr. gennem hele arbejderkæden
+(oliekedlen 480,1 MWh, CO₂ 207,4 t mod 159,2 t med gaskedlen); 5.–16. januar: 4.001.969 kr. ad alle tre veje
+(`noter/maaling_model_939228a.md`). Marts 2026 ligger efter 1. oktober 2025, så objektiverne flytter sig med
 spotrettelsen (5021a5e); kolonnen *ved eef950a* kan ikke sammenlignes med de nye tal, og forskellen er ikke en fejl. Ét vindue kan vælges med `--start`/`--slut`, enkelte cases som argumenter (`andeby.yaml`).
 
 ### 4d. Eksport til værksark — rundturen
@@ -151,9 +160,10 @@ FJV_MODELPYTHON=<python med modelrepoets requirements.txt> python viden/vaerktoe
 ```
 
 Gaten kører det som trinnet *eksport rundtur*. For hvert værk i kataloget (de 7 cases, plus `billund_idag_maalt`:
-billund_idag med casens egen målte varmelast aktiv, så Timedata prøves) og tre varianter fra Codex' review K11
+billund_idag med casens egen målte varmelast aktiv, så Timedata prøves), tre varianter fra Codex' review K11
 (`andeby_navne`: halmkedlen hedder `halm__kedel`; `andeby_hul`: solprofilen med et dagtimehul og to tomme nattetimer i
-vinduets ende; `billund_idag_maalt_hul`: den målte varmelast med et hul) laver **appens egen kode** eksporten, og
+vinduets ende; `billund_idag_maalt_hul`: den målte varmelast med et hul) og `andeby_olie` (runde 15: en oliekedel i
+stedet for gaskedlen, med oliepris og CO₂-faktor 0,28) laver **appens egen kode** eksporten, og
 modelrepoets `scripts/vaerksark_til_yaml.py` køres **uændret** på arket, som importen kører det. Kravene:
 
 * importens `slug()` (`fjv.revision`) = scriptets egen på svære navne;
@@ -164,8 +174,8 @@ modelrepoets `scripts/vaerksark_til_yaml.py` køres **uændret** på arket, som 
   (`fjv.vaerksark.laeg_lag`) og modelkravene — er præcis eksportens forudsigelse (`lag.ts`) og **det oprindelige værk
   blad for blad**, bortset fra den eksplicitte, begrundede liste i `UNDTAGELSER` (solprofilens sti: det nye værk
   peger på sin egen solprofil). Hver forskel står på eksportens liste *ikke med i arket*, og listen har intet andet;
-  markeringens *afvigelser* er listens ikke-artefakter. Målt ved `90fb16e`: Andeby 232 af 232 blade med én forskel
-  (før runde 14: 80), Billund-værkerne ingen (før 71–106);
+  markeringens *afvigelser* er listens ikke-artefakter. Målt ved `90fb16e` og igen ved `939228a` med den nye skabelon
+  (2026-11-23): Andeby 232 af 232 blade med én forskel (før runde 14: 80), Billund-værkerne ingen (før 71–106);
 * revisionssporet for det nye værk er revision 1 = scriptets læsning og revision 2 = fanernes ændringer, og hvert
   blad, laget har sat, bærer kilden som kommentar; samme ark uden appens faner giver præcis scriptets læsning;
 * den målte serie i arket kommer tilbage byte for byte (inden for arkets periode), og begge mængdeforskelle i
@@ -192,9 +202,9 @@ En fejl i forudsigelsen (målt: tankenes selvafladning sat til 0,0006) gør trin
 ### 4c. Hele appen med en rigtig kørsel
 
 Følg [kom-i-gang i README](../README.md#kom-i-gang--lokal-udgave-520-minutter) og bestil Andeby 5.–6. januar 2026 uden
-balancemarked: **866.567,72 kr.** ved `90fb16e` (867.031,23 ved `eef950a`, før spotrettelsen). Samme tal giver den ægte
-arbejder uden server (`python fabric/koer_minne.py andeby 2026-01-05 2026-01-06`, målt 2026-11-14) og `run_case.py`
-direkte på modelrepoet ved `90fb16e`. Kørslens side viser modelversionerne og *Data i denne kørsel*; de rå filer — `case.yaml`,
+balancemarked: **866.567,72 kr.** ved `939228a` og `90fb16e` (867.031,23 ved `eef950a`, før spotrettelsen). Samme tal giver
+den ægte arbejder uden server (`python fabric/koer_minne.py andeby 2026-01-05 2026-01-06`, målt 2026-11-23 ved `939228a`)
+og `run_case.py` direkte på modelrepoet ved `939228a` (866.568, målt samme dag). Kørslens side viser modelversionerne og *Data i denne kørsel*; de rå filer — `case.yaml`,
 `argv.json`, modellens egne `_kpi.csv`/`_hourly.csv`/`_manifest.json` og solverloggen — ligger i
 `<datamappe>/Files/fjv/koersler/<kørsels-id>/`, så du kan køre præcis den kørsel med `run_case.py`.
 
@@ -214,14 +224,15 @@ direkte på modelrepoet ved `90fb16e`. Kørslens side viser modelversionerne og 
 | Netto og brutto balanceindtægt | vises hver for sig, aldrig lagt sammen | objektivet bruger brutto, manifestet netto | som modellens egen dokumentation |
 | Værksarkets faner *Start og drift*, *Balancemarked* og *Øvrige felter* (runde 14) | appens eget lag: eksporten skriver dem efter modelrepoets faner, og importen lægger deres værdier oven på scriptets læsning — typen fra feltkataloget, hver værdi valideret som en redigering i appen, det færdige værk mod modellens minimumskrav. En række i *Øvrige felter* viger for en rettelse i modelrepoets faner (kolonnen *kun hvis modelscriptet giver*). Et nyt værk er revision 2 (revision 1 = scriptets læsning), og bladet bærer kilden som kommentar | skabelonen har fanerne Vejledning, Timedata, Anlaeg, Varmepumpe, Priser (og Solvarme); scriptet sætter selv `initial_status: 0` (`scripts/vaerksark_til_yaml.py:872-873`), halvfuld tank, selvafladning 0,0005 og `cycle_binding` (`:912-916`), CO₂-faktor 0,2 (`:846-847`), unit commitment efter minimumslasten (`:853-854`) og skriver en case uden `balancing` (`:1685`) | et værk skal kunne eksporteres, rettes og uploades uden at miste et felt; målt stod 71–106 felter pr. katalogværk på listen *ikke med i arket*. Scriptet køres stadig uændret, og fanerne siger selv, at de er appens |
 | Højlydt import af værksarket (runde 14) | en række i Anlaeg med navn uden type (eller omvendt, eller kun tal), en tank uden volumen eller under de seks tankrækker og et målepunkt under varmepumpens tabel afviser importen med rækkenummer, før scriptet kører; importens log advarer, når hver styrbar enhed står til slukket ved start | scriptet springer rækken over uden besked (`dropna`, `scripts/vaerksark_til_yaml.py:616` og `:878`; `nrows=6`, `:876`; `nrows` i Varmepumpe, `:513-515`) | målt: otte af et værks 17 enheder forsvandt, og kørslen uden tank var uløselig, fordi alle enheder var slukket i første time |
-| Referencetal efter spotrettelsen (`5021a5e`) | README-tallene vises som *regnet før spotrettelsen* med egne målinger ved `90fb16e` ved siden af (Information › Referencetal og Budstrategi, METODE §7, `referencetal.json` › `regnet_igen`); *README mod Fabric* tæller kun kørsler ved `eef950a` (`model_commit` med `regnet_ved`); demoernes forventede tal er egne målinger, og D12 har intet | README-tabellen, `doc/` (fx `doc/BUDSTRATEGI.md:328-335`) og rapport v4 er regnet før rettelsen og opdateres senere (README.md:20-27); efter rettelsen kun tre kontroltal (CLAUDE.md:30-38) | koden ved pinnen regner med den nye spotregel; et gammelt tal som facit ville melde en korrekt kørsel som forkert |
+| Referencetal efter spotrettelsen (`5021a5e`) | fire af README's fem tal vises som *regnet før spotrettelsen* med egne målinger ved `939228a` ved siden af (Information › Referencetal og Budstrategi, METODE §7, `referencetal.json` › `regnet_igen`); Spor A-ankeret er README's tal efter rettelsen. *README mod Fabric* tæller for hvert tal kun kørsler ved en version, tallet er regnet ved: Spor A ved `90fb16e` eller `939228a` (`regnet_ved` på referencen — **egen antagelse**, at netop de to pins giver README's tal; den hviler på modelrepoets CHANGELOG og to målinger), de fire øvrige ved `eef950a`; demoernes forventede tal er egne målinger, og D12 har intet | README-tabellen, `doc/` (fx `doc/BUDSTRATEGI.md:328-335`) og rapport v4 er regnet før rettelsen og opdateres senere (README.md:20-27); efter rettelsen kun tre kontroltal (CLAUDE.md:30-38) | koden ved pinnen regner med den nye spotregel; et gammelt tal som facit ville melde en korrekt kørsel som forkert |
 
 Ikke med i appen: `--heat-params`, `--heat-csv-column`/`--heat-csv-tz`, `--legacy-nettab` i standardkørslen, `--dummy`.
 
 ## 6. Observationer i modelrepoet
 
 Fundet under arbejdet ved `eef950a` og ikke rettet af os (modelrepoet er dit). Ingen af dem påvirker appens tal. Rækker
-mærket *ved 90fb16e* er fundet ved modelskiftet 14. november 2026; deres linjer er ved `90fb16e`.
+mærket *ved 90fb16e* er fundet ved modelskiftet 14. november 2026; deres linjer er ved `90fb16e`. Rækker mærket
+*ved 939228a* er fundet ved modelskiftet 23. november 2026.
 
 | Hvor | Hvad |
 |---|---|
@@ -241,6 +252,8 @@ mærket *ved 90fb16e* er fundet ved modelskiftet 14. november 2026; deres linjer
 | `cases/andeby.yaml:184` | CO₂-enheden hedder `DKK/t`; konverteringen skriver `DKK/t_CO2` |
 | `scripts/vaerksark_til_yaml.py:606`, `:878` (ved 90fb16e) | `dropna(subset=["navn", "type"])` springer en enhed med navn, men uden type, over uden besked — og `dropna(subset=["navn", "volumen"])` en tank uden volumen. Målt i gaten: en kedel uden type giver exit 0 og en case uden kedlen. Appens import afviser arket med rækkenummer (afsnit 5) |
 | `scripts/vaerksark_til_yaml.py:855-856` mod `src/config.py:520` (ved 90fb16e) | konverteringen skriver `initial_status: 0` for hver enhed med unit commitment; modellens standard er 1. Et værk fra arket kan derfor ikke dække første time uden tank (målt: kørslen løser med `units.el_kedel.initial_status: 1`). Appens import advarer |
+| `vaerksdata_skabelon.xlsx` (ved 939228a) | filen er skrevet direkte af `scripts/byg_skabelon.py` (openpyxl) og ikke gemt i et regneark: formlerne i `Varmepumpe!E6:E23` har intet gemt resultat (før: gemt af LibreOffice med resultater). `doc/EGET_VAERK.md` siger, at formler skal have en beregnet værdi; konverteringen læser ikke kolonne E, så arket virker (målt i rundturen). Appens eksport måtte følge den nye XML-form (afsnit 4d) |
+| `CHANGELOG.md` 0.11.0 (ved 939228a) | nævner DMI-område B28 → B29 og priszone B29 → B30; værkets navn er rykket med (B30 → B31), og det var den celle, vores test skrev i |
 | `scripts/vaerksark_til_yaml.py:111-118` | `slug()` normaliserer til NFKD **før** æ/ø/å erstattes: `å` er da allerede `a` + en kombinerende ring og bliver `a` (ikke `aa`), og et stort Æ eller Ø falder bort i `.encode("ascii", "ignore")`. Målt: "Ærø Fjernvarme" → `roe_fjernvarme`, "Brønderslev Østerby" → `broenderslev_sterby`, "Tårs Halmværk" → `tars_halmvaerk`. Appens eksport forudsiger det samme |
 
 <a id="highs"></a>Om gabet: med `--mip-gap 0.0002` alene stopper HiGHS ved det absolutte gab (casens 5.000 kr.), før det

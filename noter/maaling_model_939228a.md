@@ -45,7 +45,42 @@ spotrettelsen). De fire øvrige README-tal er stadig fra før rettelsen og kan i
 
 Billund rullende år ramte som ved 90fb16e kodens tidsgrænse (600 s) med gab 2,59 %: tallet er en øvre grænse.
 
-## 3. Ikke regnet igen ved 939228a
+## 3. En kørsel med oliekedel (ny enhedstype ved 939228a)
+
+Casen er Andeby med en oliekedel i stedet for gaskedlen: `gaskedel_agg` slået fra, en oliekedel på 20 MW
+(`type: oil_boiler`, `fuel: fuel_oil`, virkningsgrad 0,92, D&V 40 kr./MWh, start 500 kr., CO₂-faktor 0,266 t/MWh som
+modelscriptet sætter den) og `prices.fuel_oil` 900 kr./MWh olie. Casefilen er lavet ved tekstrettelser i
+`cases/andeby.yaml` i en separat klon af modelrepoet ved pinnen, ikke af appens kode. Tallene er *appens egen case*,
+ikke et tal fra modelrepoet.
+
+| Vindue | A: `run_case.py` direkte | B: appens bestillingsvej (`bevis_app_vej.py`) | C: hele arbejderkæden (frosset input, `input_hash`, `fjv.arbejder`) |
+|---|---:|---:|---:|
+| 5.–6. januar 2026, uden balancemarked | 1.083.242 | 1.083.242,38 (timefil og KPI-fil byte-ens med A) | **1.083.242,38** (gab 0) |
+| 5.–16. januar 2026, uden balancemarked (gab 0,0002 / 100 kr. i C) | 4.001.969 | 4.001.969,31 (byte-ens med A) | **4.001.969,31** (gab 0) |
+| 5.–16. januar 2026, med balancemarked | ikke kørt | ikke kørt | 3.616.106,96 (gab 0) |
+
+A viser manifestets objektiv i hele kroner; B og C wrapperens præcise tal. Til sammenligning Andeby med gaskedlen:
+866.567,72 kr. (2 døgn) og 3.441.004,22 kr. (12 døgn, D01).
+
+Oliekedlen i kørslen 5.–6. januar: 480,1 MWh varme (32,4 % af produktionen), i drift 35 af 47 timer, maks. 20 MW.
+CO₂ for værket: 207,4 t mod 159,2 t med gaskedlen (modellens egen opgørelse, `src/manifest.py`). 5.–16. januar:
+1.302,0 MWh fra oliekedlen, CO₂ 517,9 t. Arbejderen publicerede oliekedlens nøgletal (produktion, andel, driftstimer,
+fuldlasttimer) og 47 hhv. 287 timerækker.
+
+**Beviset `bevis_app_vej.py` ved 939228a** (10.–11. marts 2026, df-data 106b9fc): 8 af 8 cases ens (objektiv,
+`_hourly.csv` og `_kpi.csv` byte for byte): de syv fra modelrepoet med samme objektiver som ved 90fb16e
+(andeby 224.912 · billund_idag 132.766 · billund_sporA 183.920 · billund_sporA_rullende 183.494 ·
+billund_sporA_rullende_bud 236.859 · billund_sporB 54.619 · billund_sporB_rullende 236.859 kr.) og oliekedel-casen
+(224.912 kr.: i marts-vinduet er hverken olie- eller gaskedlen i drift).
+
+**Gennem værksarket** (`tjek_eksport_rundtur.py --koer`, varianten `andeby_olie` med CO₂-faktor 0,28): appens eksport →
+modelrepoets `vaerksark_til_yaml.py` → upload som nyt værk → genupload → `run_case` på original og nyt værk. 219 blade
+fra scriptet, 250 i det nye værk, kun solprofilens sti på listen "ikke med i arket". Scriptet læser faktoren som 0,266;
+appens fane *Start og drift* fører 0,28 tilbage. Objektivet for original og nyt værk er ens: 10.–11. marts 2026 224.911,78 kr. (oliekedlen er ikke i drift) og
+5.–6. januar 2026 **1.087.588,24 kr.** (oliekedlen i drift; højere end 1.083.242,38 ovenfor, fordi varianten regner med
+0,28 t CO₂ pr. MWh olie). Andeby selv gennem samme vej 5.–6. januar: 866.567,72 kr. for både original og nyt værk.
+
+## 4. Ikke regnet igen ved 939228a
 
 - **D12 / Andeby helår med balancemarked** (ca. en time; ramte ved 90fb16e tidsgrænsen 3.600 s med gab 0,13 %).
 - **Billund i dag, kun spot og faktisk marked** (modelrepoets kontroltal; ved 90fb16e ramt til kronen).
