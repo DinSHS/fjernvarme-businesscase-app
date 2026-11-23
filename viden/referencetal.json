@@ -7,7 +7,9 @@
   "datakrav": {
     "df_data": "fra 5. oktober 2026 eller senere; nye dataopdateringer ændrer ikke januar–juni 2026 (målt 26/10: 10be997→106b9fc har samme værdier for 2025 og januar–juni 2026)",
     "datakilde": "github (df-data)",
-    "kilde": "README.md:175-176"
+    "kilde": "README.md:175-176",
+    "df_data_kendt": {"106b9fce9a2e3610090b1a542559024056449b88": "2026-10-26"},
+    "df_data_kendt_betyder": "df-data-commits, hvis dato er målt (commit-datoen i df-data, git log -1 --format=%cI: 106b9fc = 2026-10-26T04:10:16Z) og ligger efter datakravet. Sammen med data_krav.json → maalt_daekning er det de datagrundlag, en kørsel må have for at blive genkendt som en README-reference i Analyser (README_PINS)."
   },
   "objektiv_betyder": "Modellens samlede driftsomkostning i kr. for vinduet (manifest noegletal.objektiv_dkk). Med settle realized er det trin 2-objektivet, afregnet på det realiserede.",
   "grupper": [

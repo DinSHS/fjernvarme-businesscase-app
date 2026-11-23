@@ -88,15 +88,23 @@ export function frossenOpsaetning(input: readonly InputRække[]): Scenarie {
 
 /**
  * README-mærket kræver mere end ens scenariefelter (Codex K5-F9): værket skal være repo-casen uændret
- * (kilde `repo`, revision 1, importeret ved referencetallenes modelcommit), kørslen skal have samme
- * modelcommit og en df-data-commit, hvis dato er målt og ligger efter README's datakrav.
+ * (kilde `repo`, revision 1, importeret ved en af REFERENCENS modelversioner), kørslen skal være regnet ved en af
+ * dem, og df-data-commit'ens dato skal være målt og ligge efter README's datakrav.
+ *
+ * Runde 15: versionerne er referencens egne (`Reference.modelCommits`: referencens `regnet_ved.model_commits`,
+ * ellers filens `model_commit`). Ved modelrepoets 939228a er README's Spor A-anker regnet igen efter spotrettelsen
+ * (måles ved 90fb16e eller 939228a), mens de fire øvrige tal er fra før (eef950a). Med én fælles version
+ * (`README_PINS.model_commit`) fik en Spor A-kørsel ved pinnen ikke mærket — og en gammel ved eef950a fik det
+ * fejlagtigt mod det nye tal. Uden `r` (eller uden oplyste versioner) gælder filens fælles version.
  */
-export function readmePins(k: Koersel, input: readonly InputRække[], vaerk: VaerkKilde | undefined): boolean {
+export function readmePins(k: Koersel, input: readonly InputRække[], vaerk: VaerkKilde | undefined, r?: Pick<Reference, "modelCommits">): boolean {
     const pin = (navn: "model_commit" | "data_commit") => (k[navn] ?? (() => { try { const r = input.find((x) => x.sti === `${KOERSEL_PRAEFIKS}${navn}`); return r ? JSON.parse(r.vaerdi_json) as string : null; } catch { return null; } })())?.toLowerCase() ?? null;
     const data = pin("data_commit");
     const dato = data ? README_PINS.df_data_kendt[data] : undefined;
-    return !!vaerk && vaerk.kilde === "repo" && vaerk.repo_commit?.toLowerCase() === README_PINS.model_commit && k.vaerk_revision === 1
-        && pin("model_commit") === README_PINS.model_commit && !!dato && dato >= README_PINS.df_data_fra;
+    const versioner = r?.modelCommits ?? [README_PINS.model_commit];
+    const model = pin("model_commit"), importeret = vaerk?.repo_commit?.toLowerCase();
+    return !!vaerk && vaerk.kilde === "repo" && !!importeret && versioner.includes(importeret) && k.vaerk_revision === 1
+        && !!model && versioner.includes(model) && !!dato && dato >= README_PINS.df_data_fra;
 }
 
 /**
@@ -118,9 +126,11 @@ export function oprindelse(k: Koersel, scenarie: Scenarie | null, vaerkKode: str
     // En kontrolkørsel, der ikke blev færdig (fx F3's annulleringstest af Spor A-opsætningen), genskaber intet tal.
     if (KONTROLNAVN.test(navn) && k.status !== "faerdig") return svar("roegtest", "kontrolkørsel fra opsætningen — ikke en analyse");
     const ændret = input.some((r) => r.kilde === "aendring");
-    if (!ændret && readmePins(k, input, vaerk)) {
+    if (!ændret) {
         const frossen = frossenOpsaetning(input);
-        const r = readmeReferencer().find((x) => x.kode === vaerkKode && harReferencensOpsaetning(frossen, x) && kørslensGab(k, frossen, x).erTilladt);
+        // Pins afgøres pr. reference (runde 15): hver reference har sine egne modelversioner.
+        const r = readmeReferencer().find((x) => x.kode === vaerkKode && harReferencensOpsaetning(frossen, x) && kørslensGab(k, frossen, x).erTilladt
+            && readmePins(k, input, vaerk, x));
         if (r) return svar("readme", `README ${tal(r.objektiv)} kr.${demo ? ` · ${demo}` : ""}`, r);
     }
     if (demo) return svar("demo", demo);
