@@ -90,8 +90,8 @@ describe("bygFrossetInput — tidsserier (KONTRAKT §6d)", () => {
         expect(JSON.parse(frosset(r, "varmelast")!.vaerdi_json).sha256).toBe("b".repeat(64));
         expect(r.rækker.some((x) => x.sti.startsWith("_tidsserie."))).toBe(false);
     });
-    it('"syntetisk" fravælger værkets aktive varmelast', () => {
-        expect(frosset(bygFrossetInput(VÆRK, [valg("varmelast", '"syntetisk"')], SCEN, {}, [ts({})]), "varmelast")).toBeUndefined();
+    it('"syntetisk" fravælger værkets aktive varmelast — og valget fryses (P2-3, r15c_syntese.spec.ts)', () => {
+        expect(frosset(bygFrossetInput(VÆRK, [valg("varmelast", '"syntetisk"')], SCEN, {}, [ts({})]), "varmelast")?.vaerdi_json).toBe('"syntetisk"');
     });
     it("repoets heat_csv bevares og slår den aktive tidsserie fra", () => {
         const r = bygFrossetInput(VÆRK, [], { ...SCEN, heat_csv: "billund_abvaerk_hourly.csv" }, {}, [ts({})]);

@@ -200,6 +200,18 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- ***Målt varmelast* mistede resultatet for værkets egne tidsserier** (tredje rettelsesrunde, P2-3). Parret er en
+  syntetisk reference mod et målt scenarie. Referencens udtrykkelige valg af syntesen frøs ingen række, så det frosne
+  input ikke kunne bevise valget, og over for en af værkets egne serier blev dommen *kan ikke afgøres* — uden ΔRef og
+  anbefaling. Valget fryses nu som `_koersel.tidsserie.varmelast = "syntetisk"` i begge udgaver: samme række, som den
+  manuelle vej altid har skrevet, og som arbejderen læser som "ingen tidsserie" — intet nyt rækkeskema og intet nyt
+  format hos arbejderen. Ikke sammen med en af modelrepoets varmelastfiler (dér bruger arbejderen filen, og filen er
+  beviset). Arkivets tjek og visningerne læser rækken som "ingen tidsserie"; før afviste arkivimporten en kørsel med
+  den række ("mangler id eller sha256"), og kørselslisten skrev "Målt · tidsserie ukendt" for den.
+  **Følger, man skal kende:** ældre kørsler uden rækken forbliver *kan ikke afgøres* over for en serie, og en ældre
+  syntetisk reference genbruges ikke til et nyt par — der bestilles en ny, som bærer beviset. To forskellige af
+  værkets egne serier over for hinanden er fortsat *kan ikke afgøres*. I Fabric virker det først, når Functions er
+  udrullet; et arkiv med rækken afvises af en ældre Functions-udgave med en læselig besked.
 - **Et kort opslagssvigt kunne udløse en ekstra kørsel** (tredje rettelsesrunde, P2-2). Et genforsøg slår den
   eksisterende bestilling op på klientnøglen. Fejlede netop det opslag et øjeblik, blev svaret til "Bestillingen er
   allerede sendt", nøglen blev skiftet, og næste klik bestilte en kørsel mere; parflowet arkiverede desuden det

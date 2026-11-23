@@ -526,11 +526,13 @@ export function effektivPeriode(input: readonly InputRække[]): { fra: string; t
  * BEVISER, at scenariet har valgt kilden udtrykkeligt, eller at den er arvet fra værket:
  *
  *  * en af modelrepoets varmelastfiler (`_koersel.heat_csv`) er et scenariefelt — altid et udtrykkeligt valg;
- *  * `_koersel.tidsserie.varmelast = "syntetisk"` (den manuelle vej, `fjv.db.oploes_tidsserier`) er udtrykkeligt;
+ *  * `_koersel.tidsserie.varmelast = "syntetisk"` er udtrykkeligt: den manuelle vej (`fjv.db.oploes_tidsserier`) og —
+ *    fra tredje rettelsesrunde i runde 15, P2-3 — appens egen bestilling (`bygFrossetInput`). Står der OGSÅ en
+ *    repo-fil (kun muligt ad den manuelle vej), bruger arbejderen filen (`byg_case.byg`), og kilden er filen;
  *  * en frossen serie `{id, sha256}` fryses ENS, hvad enten scenariet valgte den, eller den var værkets aktive —
  *    oprindelsen er ukendt;
- *  * ingen række for varmelasten er enten et udtrykkeligt "syntetisk" bestilt i appen (som ikke fryser en række)
- *    eller et værk uden aktiv serie — ukendt;
+ *  * ingen række for varmelasten er et værk uden aktiv serie — eller, for kørsler bestilt i appen FØR P2-3, et
+ *    udtrykkeligt "syntetisk", som dengang ikke frøs en række. De to kan ikke skelnes — ukendt;
  *  * ingen række for solprofilen er værkets egen profilsti: den kan ikke vælges fra i et scenarie — arvet.
  */
 export type Serievalg = "udtrykkeligt" | "arvet" | "ukendt";
@@ -550,9 +552,9 @@ export function tidsseriekilde(input: readonly InputRække[], rolle: "varmelast"
         return { art: "serie", id: typeof o.id === "string" ? o.id.toLowerCase() : null, sha256: typeof o.sha256 === "string" ? o.sha256.toLowerCase() : null, valg: "ukendt" };
     }
     if (rolle === "varmelast") {
-        if (har && (v === "syntetisk" || v === null)) return { art: "standard", valg: "udtrykkeligt" };
         const fil = læs(e.flag.get("heat_csv"));
         if (typeof fil === "string" && fil) return { art: "fil", fil, valg: "udtrykkeligt" };
+        if (har && (v === "syntetisk" || v === null)) return { art: "standard", valg: "udtrykkeligt" };
         return { art: "standard", valg: "ukendt" };
     }
     return { art: "standard", valg: "arvet" };

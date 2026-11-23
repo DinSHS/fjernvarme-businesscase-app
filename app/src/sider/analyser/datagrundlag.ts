@@ -32,13 +32,20 @@ export interface DataLinje {
 
 const json = (j: string | undefined): unknown => { if (j === undefined) return undefined; try { return JSON.parse(j); } catch { return j; } };
 
-/** Alle frosne tidsserier i inputtet (rolle → id + sha256). */
+/**
+ * Alle frosne tidsserier i inputtet (rolle → id + sha256).
+ *
+ * Tredje rettelsesrunde i runde 15, P2-3: en række, der IKKE henviser til en serie — `"syntetisk"` (det udtrykkelige
+ * syntesevalg; den manuelle vej altid, appvejen fra denne runde) eller `null` — er ingen tidsserie. Før blev den læst
+ * som en serie uden id og sha256, og en kørsel på syntesen stod som "Målt · tidsserie ukendt".
+ */
 export function frosneTidsserier(input: readonly InputRække[]): FrossenTidsserie[] {
     const ud: FrossenTidsserie[] = [];
     for (const r of input) {
         const m = new RegExp(`^${KOERSEL_PRAEFIKS.replace(".", "\\.")}tidsserie\\.([a-z_]+)$`).exec(r.sti);
         if (!m) continue;
-        const v = json(r.vaerdi_json) as { id?: unknown; sha256?: unknown } | null;
+        const v = json(r.vaerdi_json) as { id?: unknown; sha256?: unknown } | string | null;
+        if (v === null || typeof v !== "object") continue;
         ud.push({ rolle: m[1], id: typeof v?.id === "string" ? v.id : null, sha256: typeof v?.sha256 === "string" ? v.sha256 : null });
     }
     return ud;

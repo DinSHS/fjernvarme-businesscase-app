@@ -14,7 +14,7 @@
 //-----------------------------------------------------------------------
 
 import { createHash } from 'node:crypto';
-import { frossenSti, frossenTidsserie } from './frysning.js';
+import { FROSSET_SYNTETISK, frossenSti, frossenTidsserie } from './frysning.js';
 import { FARLIGE_SEGMENTER } from './sti.js';
 
 /** Fejl der skal vises for brugeren — ikke en programfejl. */
@@ -366,6 +366,9 @@ export function bygFrossetInput(
         }
         if (valg === 'syntetisk') {
             if (rolle !== 'varmelast') throw new Afvisning('"syntetisk" findes kun for varmelast.');
+            // P2-3: det udtrykkelige valg fryses, så det kan bevises bagefter. Ikke sammen med en af repoets filer:
+            // arbejderen bruger da filen (byg_case.byg), og `_koersel.heat_csv` er allerede beviset for et valg.
+            if (!scenarie.heat_csv) sæt('scenarie', frossenSti(rolle), FROSSET_SYNTETISK, 'varmelastvalg');
             continue;
         }
         let ts: TidsserieRad | undefined;

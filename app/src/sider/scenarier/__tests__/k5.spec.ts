@@ -72,7 +72,8 @@ describe("K5-F7: klientens forventede frysning = backendens bygFrossetInput", ()
     });
     it("eksplicit syntetisk varmelast (solprofilen fryses stadig)", () => {
         const r = sammenlign([{ type: "set", sti: "_tidsserie.varmelast", vaerdi_json: '"syntetisk"' }], felter, [AKTIV, SOL]);
-        expect(r.faktisk.has("_koersel.tidsserie.varmelast")).toBe(false);
+        // P2-3 (tredje rettelsesrunde i runde 15): valget fryses nu som "syntetisk" — ikke som en udeladt række.
+        expect(r.faktisk.get("_koersel.tidsserie.varmelast")).toBe('"syntetisk"');
         expect(r.ens).toBe(true);
     });
     it("repoets fil (heat_csv) slår den aktive varmelast fra", () => {

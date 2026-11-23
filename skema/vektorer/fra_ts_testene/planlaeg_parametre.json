@@ -1,8 +1,8 @@
 {
  "_om": "Udtrukket af TS-testene (planlaeg_parametre) med skema/vektorer/udtraek.mjs: input og TS' faktiske udfald for hvert kald, testene selv laver. Ret aldrig i hånden — udtræk igen.",
  "kilder": {
-  "app/rayfin/functions/src/logik.ts": "e66ccb79a1b78608881862890a93dcd9a7e0af794c7911ebafcbe38b533c1963",
-  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/logik.ts": "b32e5d94b748b0d5b7afb7812e6ddd111e964305071696d9ec005aa7798328ed",
+  "app/rayfin/functions/src/frysning.ts": "abaf8e62578f751dcfc7295955681483a2b6025b57b2c1f1c15d0c8a41c9b157",
   "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
   "app/rayfin/functions/src/tidsserie.ts": "1cce44ad863accac534d56ee116da48676375238349c09166c9701a6e8ceee40",
   "app/rayfin/functions/src/tidsserie-validering.ts": "fa3f4389a650f0064983082b6a2146e4a9a817c1adf4f35b3c86e48c016d349f",
@@ -18,9 +18,11 @@
   "app/rayfin/functions/test/opret_vaerk.spec.ts": "bca3d74a7c29d354b956fc00da0283e4030e586fc1932fd9bf30cf91c2160826",
   "app/rayfin/functions/test/r12_revision.spec.ts": "36cc1a511de8f860b704bcde22a2eb14daffb3cf952da708c98fdd35fe0973b1",
   "app/rayfin/functions/test/r15_bestilling.spec.ts": "5f01d57a8fd872aa085f15667f3131011c94299df14e5877feab82c8d048b54a",
+  "app/rayfin/functions/test/r15_laase.spec.ts": "c714dd3d9eccf59f33672fda97738f23ba7fb89d9566eb7fe340cc499174a1cc",
+  "app/rayfin/functions/test/r15c_syntese.spec.ts": "f7b2fd10ef9275d030a9c75351f933b18380ec17642229405f2658c160a22bcb",
   "app/rayfin/functions/test/registrering.spec.ts": "1b5a86c116ddfb77fbfb69cc41cd32bc200e14fc2f38f1cbbadc788be37f3d6e",
   "app/rayfin/functions/test/tidsserie.spec.ts": "49048b3d1da5c28742f15232852a301454a0e60486d5521f76432f165bbfa9d4",
-  "app/rayfin/functions/test/tidsserie_backend.spec.ts": "6c501d927381a2973a610d97dbb917a3581bf09ba8a26ff9438d0e2dc46a2251"
+  "app/rayfin/functions/test/tidsserie_backend.spec.ts": "2b26bce6962f981832016890bdea9712e640720a90ebaff795e31f5f1eeb4753"
  },
  "tilfaelde": [
   {

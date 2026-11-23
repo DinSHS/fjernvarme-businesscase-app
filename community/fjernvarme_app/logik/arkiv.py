@@ -340,17 +340,22 @@ def vaerk_revisioner(revision: int, blade, log) -> dict[str, list[int]]:
 
 
 def frosne_tidsserier(inp) -> list[dict]:
+    """Tidsserierne, en kørsel er frosset med. ``"syntetisk"`` (varmelast) og ``null`` er det udtrykkelige fravalg:
+    arbejderen læser dem som "ingen tidsserie", og der er ingen serie at kræve (P2-3; arkiv.ts › frosneTidsserier)."""
     ud = []
     for r in inp:
         if not r["sti"].startswith("_koersel.tidsserie."):
             continue
+        rolle = r["sti"][len("_koersel.tidsserie."):]
         try:
             v = J.parse(r["vaerdi_json"])
         except Exception:
             raise ArkivAfvisning(f"{r['sti']} er ikke gyldig JSON.") from None
+        if v is None or (rolle == "varmelast" and isinstance(v, str) and v == "syntetisk"):
+            continue
         if not isinstance(v, dict) or not isinstance(v.get("sha256"), str) or not isinstance(v.get("id"), str):
             raise ArkivAfvisning(f"{r['sti']} mangler id eller sha256.")
-        ud.append({"rolle": r["sti"][len("_koersel.tidsserie."):], "id": v["id"], "sha256": v["sha256"]})
+        ud.append({"rolle": rolle, "id": v["id"], "sha256": v["sha256"]})
     return ud
 
 

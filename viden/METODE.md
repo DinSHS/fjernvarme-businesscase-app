@@ -208,7 +208,10 @@ den står — en bar dato i `time.end` er midnat. Modellens manifest bærer kun 
 kontrol. Varmelast og solprofil skal også være de samme, medmindre scenariet selv har valgt en anden
 (det er da parrets ændring). Gøres en anden tidsserie aktiv på værket mellem to kørsler, skifter
 grundlaget uden at værkets revision gør det; kan det frosne input ikke vise, om en serie er valgt i
-scenariet eller arvet fra værket, er dommen *kan ikke afgøres*.
+scenariet eller arvet fra værket, er dommen *kan ikke afgøres*. Vælger et scenarie udtrykkeligt den
+syntetiske varmelast, fryses valget med kørslen, så *målt mod syntetisk varmelast* kan sammenlignes,
+også når den målte last er en af værkets egne tidsserier. Kørsler bestilt før runde 15's tredje
+rettelsesrunde bærer ikke det bevis og forbliver *kan ikke afgøres* over for en tidsserie.
 (Kilde: KONTRAKT §6b; doc/TROFASTHED.md §5)
 
 **Solvergab.** Solveren stopper, når den har bevist, at løsningen ligger inden for et gab af det

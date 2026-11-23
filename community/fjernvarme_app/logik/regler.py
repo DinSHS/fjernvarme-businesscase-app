@@ -92,6 +92,10 @@ def frossen_sti(rolle: str) -> str:
     return f"_koersel.tidsserie.{rolle}"
 
 
+#: ``_koersel.tidsserie.varmelast``, når scenariet udtrykkeligt har valgt syntesen (frysning.ts › FROSSET_SYNTETISK).
+FROSSET_SYNTETISK = '"syntetisk"'
+
+
 def frossen_tidsserie(s: dict) -> str:
     """``_koersel.tidsserie.<rolle>``'s værdi — præcis ``{id, sha256}``, id med små bogstaver."""
     return J.stringify({"id": s["id"].lower(), "sha256": s["sha256"]})
@@ -407,6 +411,11 @@ def byg_frosset_input(params, aendringer, scenarie: dict, pins: dict | None = No
         if valg == "syntetisk":
             if rolle != "varmelast":
                 raise Afvisning('"syntetisk" findes kun for varmelast.')
+            # P2-3 (tredje rettelsesrunde i runde 15): det udtrykkelige valg fryses, så det kan bevises bagefter —
+            # med den række, den manuelle vej allerede skriver, og som arbejderen læser som "ingen tidsserie". Ikke
+            # sammen med en af repoets filer: arbejderen bruger da filen, og heat_csv er allerede beviset for et valg.
+            if not heat_csv:
+                saet("scenarie", frossen_sti(rolle), FROSSET_SYNTETISK, "varmelastvalg")
             continue
         ts = None
         if rolle == "solprofil" and valg and any(_PROFILSTI.fullmatch(s) for s in sat):

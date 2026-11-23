@@ -18,6 +18,7 @@ import { GRAENSER, TILLADTE_FLAG } from "../../../rayfin/data/fjv.constants";
 import type { Knap, KnapAendring, KnapSide, KnapValg } from "./viden";
 import { ANBEFALET_GAB, VISNINGSNAVNE } from "./viden.data";
 import { DEMO_KOERSLER, DEMO_PAR } from "../analyser/sammensaetning.data";
+import { FROSSET_SYNTETISK } from "../../../rayfin/functions/src/frysning";
 import { frosneSerier, frossetTidsserie, type TidsserieInfo } from "./varmelast";
 
 /** Værkets blade som opslag sti -> vaerdi_json. */
@@ -522,6 +523,11 @@ export function frossetRækker(ændringer: readonly Ændring[], felter: Scenarie
     if (felter.mip_rel_gap != null) sc("solver.mip_rel_gap", String(felter.mip_rel_gap));
     if (felter.mip_abs_gap != null) sc("solver.mip_abs_gap", String(felter.mip_abs_gap));
     if (felter.tidsgraense_s != null) sc("solver.time_limit", String(felter.tidsgraense_s));
+    // P2-3 (tredje rettelsesrunde i runde 15): det udtrykkelige syntesevalg fryses som `"syntetisk"` — uafhængigt af
+    // værkets serier, men ikke sammen med en af repoets filer (som backenden; `r15c_syntese.spec.ts`).
+    if (!felter.heat_csv && ændringer.some((æ) => æ.type === "set" && æ.sti === "_tidsserie.varmelast" && kanon(æ.vaerdi_json ?? "null") === FROSSET_SYNTETISK)) {
+        sc("_koersel.tidsserie.varmelast", FROSSET_SYNTETISK);
+    }
     // Tidsserierne, startBestilling fryser (begge roller), i dens form `{id, sha256}` (K5-F7; k5.spec.ts sammenligner
     // direkte med bygFrossetInput). Kendes serierne ikke, udelades de (så genbruges en reference bare ikke).
     if (serier) {
