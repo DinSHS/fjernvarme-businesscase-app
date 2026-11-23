@@ -144,6 +144,24 @@ modelrepoets egen df-data-klon ved `a859b8b`, ikke pinnen; den gav de samme 7 ob
 **7 af 7 er ens** ved begge versioner. Marts 2026 ligger efter 1. oktober 2025, så objektiverne flytter sig med
 spotrettelsen (5021a5e); kolonnen *ved eef950a* kan ikke sammenlignes med de nye tal, og forskellen er ikke en fejl. Ét vindue kan vælges med `--start`/`--slut`, enkelte cases som argumenter (`andeby.yaml`).
 
+**Hvad "samme timefil" dækker — og hvad det ikke gør.** Tabellen ovenfor er målt i ét vindue (10.–11. marts 2026) og
+er byte-ens dér. Den generelle garanti er snævrere: timefilen fra en kørsel i appen er den samme som `run_case.py`
+giver på appens **egen** casefil — den `case.yaml`, der ligger i kørslens mappe ([4c](#4c-hele-appen-med-en-rigtig-kørsel)).
+Mod modelrepoets `cases/<værk>.yaml` med de samme flag er **objektivet, den samlede produktion og det samlede lager**
+de samme, men fordelingen mellem flere lagre behøver ikke være det. Den uafhængige test 18. november 2026 målte det på
+Andeby i januarvinduerne: byte-identisk timefil mod appens `case.yaml`; mod `cases/andeby.yaml` en anden fordeling
+mellem `tank_lav` og `tank_hoej` (op til 68 MWh og 25 MW pr. tank), mens summen over de to tanke, produktionen og
+objektivet var ens (afvigelse < 1e-13). Det er en alternativ optimal løsning, ikke en regnefejl: to lagre uden
+tie-break gør tidsserierne pr. lager afhængige af, hvordan casefilen er skrevet (appen skriver `case.yaml` fra
+bladene), og resultatet er det samme på Linux og Windows — givet inputfilen er fordelingen deterministisk.
+
+Derfor: **sammenlign summen over lagre, ikke hvert lager for sig.** Appen gør det samme, hvor et tal står pr. lager:
+lagertabellen i en sammenligning har rækken *Alle lagre*, og kortene *Lager* og *Intervaldispatch* siger, at
+fordelingen ikke er entydig, når kørslen har mere end ét lager (`app/src/sider/analyser/tekster.ts` ›
+`FLERE_LAGRE_FORBEHOLD`). Det samme gælder enheder med unit commitment (start/stop): to kørsler af samme input kan
+ende i forskellige løsninger med samme objektiv inden for gabet — målt samme dag på Billund Spor B, hvor appen og den
+direkte kørsel gav samme objektiv, men en anden fordeling mellem flis- og halmkedel.
+
 ### 4d. Eksport til værksark — rundturen
 
 ```bash

@@ -26,7 +26,7 @@ import DispatchKort from "./dispatch-kort";
 import { dec, ellers, energi, maanedKort, medFortegn, periodeTekst } from "./fmt";
 import { formatValue } from "@/ibcs";
 import { DeltaTal, ENERGI_TABEL, NoegletalKort, OmkostningsVandfald, ProduktionMod, TKR, energiSkala, omkostningsBro, tkr, vandfaldSkala, type Noegletal } from "./ibcs-grafer";
-import { forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
+import { FLERE_LAGRE_FORBEHOLD, forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
 import { SammensaetningMaaned } from "./sammensaetning-kort";
 
 function begge(a: Hentet<Pakke | null>, b: Hentet<Pakke | null>): Hentet<[Pakke | null, Pakke | null]> {
@@ -520,8 +520,15 @@ export function LagerDelta({ a, b }: { a: Pakke; b: Pakke }) {
     // Codex K9 F1: et lager, kørslen ikke har ("slået fra"), tæller 0; en ukendt afladning for et lager, den har, gør Δ ukendt.
     const afladet = (m: typeof la, n: string) => (m.has(n) ? m.get(n)!.afladet_mwh : 0);
     const dl = (n: string) => { const x = afladet(la, n), y = afladet(lb, n); return x == null || y == null ? null : y - x; };
+    // Runde 15 (iagttagelse 3.7): med flere lagre er fordelingen mellem dem ikke entydig, så tabellen får en sumrække
+    // ("Alle lagre") og forbeholdet. Summen er ukendt, hvis ét lagers tal er ukendt — aldrig "resten".
+    const flere = a.samlet.lagre.length > 1 || b.samlet.lagre.length > 1;
+    const sum = (m: typeof la) => { let s = 0; for (const l of m.values()) { if (l.afladet_mwh == null) return null; s += l.afladet_mwh; } return s; };
+    const sa = sum(la), sb = sum(lb), sd = sa == null || sb == null ? null : sb - sa;
+    const ALLE = "Alle lagre ";   // rækkenøgle; kan ikke kollidere med et lagernavn (modellens navne er [a-z0-9_])
+    const rækker = flere ? [...navne, ALLE] : navne;
     // Ét præfiks for tabellen, højst 4 heltalscifre (IBCS.md §3): et helårs afladning er > 10.000 MWh.
-    const E = energiSkala(navne.flatMap((n) => [la.get(n)?.afladet_mwh, lb.get(n)?.afladet_mwh, dl(n)]), ENERGI_TABEL);
+    const E = energiSkala([...navne.flatMap((n) => [la.get(n)?.afladet_mwh, lb.get(n)?.afladet_mwh, dl(n)]), ...(flere ? [sa, sb, sd] : [])], ENERGI_TABEL);
     const en = (v: number) => formatValue(v, E.skala);
     // Samme MWh-skala som månedstabellens 'Hele perioden' (begge er periodens ΔRef i MWh; IBCS.md §8).
     const vis = useVisning("delta"), saet = useFarvesaet();
@@ -531,12 +538,15 @@ export function LagerDelta({ a, b }: { a: Pakke; b: Pakke }) {
     return (
         <Kort titel="Lager" afgraensning={`afladet energi, ${E.enhed}`} budskab={budskab}
             handling={navne.length ? <FarveValg slags="delta" /> : undefined}
-            fod={`${kunA.length || kunB.length ? forbehold("ved sammenligning med og uden tank") : "Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance)."}${legende ? ` ΔRef: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
-            <Tabel rækker={navne} nøgle={(n) => n} tom="Ingen lagre." kolonner={[
-                { navn: "Lager", vis: (n) => n },
-                { navn: `Ref (${E.enhed})`, vis: (n) => (la.has(n) ? ellers(la.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
-                { navn: `Scen (${E.enhed})`, vis: (n) => (lb.has(n) ? ellers(lb.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
-                { navn: "ΔRef", tal: true, farve: (n) => farvning(vis, dl(n), art, maks, E.skala), vis: (n) => <DeltaTal v={dl(n)} polaritet={0} skala={E.skala} arv={farverTeksten(vis, art)} /> },
+            fod={`${kunA.length || kunB.length ? forbehold("ved sammenligning med og uden tank") : "Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance)."}${flere ? ` ${FLERE_LAGRE_FORBEHOLD}` : ""}${legende ? ` ΔRef: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
+            <Tabel rækker={rækker} nøgle={(n) => n} tom="Ingen lagre." kolonner={[
+                { navn: "Lager", vis: (n) => (n === ALLE ? <strong>Alle lagre</strong> : n) },
+                { navn: `Ref (${E.enhed})`, vis: (n) => (n === ALLE ? <strong>{ellers(sa, en)}</strong> : la.has(n) ? ellers(la.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
+                { navn: `Scen (${E.enhed})`, vis: (n) => (n === ALLE ? <strong>{ellers(sb, en)}</strong> : lb.has(n) ? ellers(lb.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
+                {
+                    navn: "ΔRef", tal: true, farve: (n) => farvning(vis, n === ALLE ? null : dl(n), art, maks, E.skala),
+                    vis: (n) => (n === ALLE ? <strong><DeltaTal v={sd} polaritet={0} skala={E.skala} /></strong> : <DeltaTal v={dl(n)} polaritet={0} skala={E.skala} arv={farverTeksten(vis, art)} />),
+                },
             ]} />
         </Kort>
     );

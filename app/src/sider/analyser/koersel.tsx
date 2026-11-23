@@ -28,7 +28,7 @@ import { NOEGLETAL_TEKST } from "./etiketter.data";
 import { dec, ellers, energi, gabPct, maanedKort, pctVaerdi, periodeTekst, varighed } from "./fmt";
 import { Forklaring, PunktRaekke, StablededeSoejler } from "./grafer";
 import { ENERGI_TABEL, ProduktionPrEnhed, energiSkala, tkr } from "./ibcs-grafer";
-import { forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
+import { FLERE_LAGRE_FORBEHOLD, forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
 
 /**
  * Én kørsel. `sammenlign` = kandidatlisten er åben (ruten `#/analyser/<id>/sammenlign`,
@@ -379,7 +379,7 @@ export function Lager({ d }: { d: Pakke }) {
     return (
         <Kort titel="Lager" afgraensning={`hele perioden, ${E.enhed}`}
             budskab={l.length === 0 ? "Ingen aktive lagre i kørslen." : `${l.length === 1 ? "Tanken" : `De ${l.length} lagre`} ladede ${en(op)} ${E.enhed} op og afladede ${en(af)} ${E.enhed}.`}
-            fod={<>Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance). {forbehold("ved MILP og skyggepriser")}</>}>
+            fod={<>Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance). {forbehold("ved MILP og skyggepriser")}{l.length > 1 && <> {FLERE_LAGRE_FORBEHOLD}</>}</>}>
             {l.length > 0 && (
                 <Tabel rækker={l} nøgle={(x) => x.navn} kolonner={[
                     { navn: "Lager", vis: (x) => x.navn },
