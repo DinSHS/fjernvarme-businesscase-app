@@ -21,7 +21,7 @@ Uanset vej kan du bagefter lægge **målte tidsserier** (varmelast, solprofil) p
 
 Skabelonen er modellens egen (`vaerksdata_skabelon.xlsx` i modelrepoets rod). Hent den i appen under
 **Dokumentation › Skabelon til værksdata**, og udfyld den efter modelrepoets
-[`doc/EGET_VAERK.md`](https://github.com/skj-1964/fjernvarme-businesscase/blob/90fb16eb1e2d5aa8e619b5a951b93760fa803985/doc/EGET_VAERK.md).
+[`doc/EGET_VAERK.md`](https://github.com/skj-1964/fjernvarme-businesscase/blob/939228aa048563c8498382a79d207c8b03fbda57/doc/EGET_VAERK.md).
 
 Upload den under **Konfiguration › Upload værksark**. Appen konverterer arket med modelrepoets **eget**
 `scripts/vaerksark_til_yaml.py` ved den pinnede commit — samme case, som hvis du kørte scriptet selv — og opretter værket

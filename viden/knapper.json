@@ -1,6 +1,6 @@
 {
   "_om": "Scenarie-knapper udtrykt i appens datamodel (KONTRAKT v2 §3.4 Scenarie og §3.5 ScenarieAendring). Et svar er altid en differens mellem to konkrete kørsler med samme værk, periode og datakilde: 'reference' og 'scenarie'. Pladsholdere i <vinkler> udfyldes af brugerens valg ('valg'); 'gentag_for' betyder én ændring pr. element. 'kraever_stier' skal findes i værkets låste revision, ellers er knappen ikke tilgængelig (KONTRAKT v2 §3.5: set kun på eksisterende sti). 'tilgaengelig_i' er målt på repoets værker @ eef950a. Kilder er fil:linje i modelrepoet.",
-  "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
+  "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
   "kontrakt_version": "2.2",
   "faelles_regler": [
     {

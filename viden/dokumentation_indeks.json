@@ -1,6 +1,6 @@
 {
   "_om": "Hvilke dokumenter appens Dokumentation-side viser, i hvilken rækkefølge, og hvorfra. Repo-dokumenter hentes ved build fra modelrepoet ved model_commit (git show <commit>:<sti>), aldrig fra arbejdsmappen: den indeholder utrackede filer (.claude/, doc/AUTOMATISERING.*, doc/*.html), som ikke er en del af den pinnede udgivelse.",
-  "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
+  "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
   "licens": {
     "navn": "MIT",
     "indehaver": "Copyright (c) 2026 Dansk Fjernvarme",

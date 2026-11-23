@@ -12,7 +12,7 @@ import os
 from pathlib import PurePosixPath
 
 MODEL_REPO = "skj-1964/fjernvarme-businesscase"
-MODEL_COMMIT = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
+MODEL_COMMIT = "939228aa048563c8498382a79d207c8b03fbda57"
 
 DF_DATA_REPO = "skj-1964/df-data"
 #: HEAD pr. 2026-10-26 (push 2026-10-26 04:10 UTC). Målt med git ls-remote. Modellens README-tal (eef950a)
