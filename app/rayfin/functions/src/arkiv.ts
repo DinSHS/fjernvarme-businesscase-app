@@ -763,6 +763,10 @@ async function nyeRækker(tx: ArkivTx, tabel: ImportTabel, rækker: readonly Kan
 async function skrivDel(tx: ArkivTx, del: Del): Promise<{ oprettet: number; fandtes: number }> {
     const { tabel } = del;
     // K10-F3: låsen pr. kørsel tages FØR noget læses — af børnedele og afslutningen ens, i fast (sorteret) orden.
+    // Efterprøvningen af runde 15, fund A: den lokale udgave tager her også bestillingens lås (logik/arkiv.py ›
+    // _skriv_del), fordi dens betroede logik kan SLETTE en afvist bestilling mellem importens læsning og dens
+    // indsættelse. Fabric-udgaven sletter ingen bestillinger (bestilling.ts), så trinnet findes ikke her. Får
+    // Fabric en slettevej, skal låsen med: kørsel -> bestilling, i sorteret orden, før Bestilling læses.
     if (tabel === 'Koersel') await tx.låsKørsler([...new Set(del.raekker.map((r) => r[0] as string))].sort());
     else if ((KOERSEL_BOERN as readonly string[]).includes(tabel)) {
         await tx.låsKørsler([...new Set(del.raekker.map((r) => kol(tabel, r, 'koersel_id') as string))].sort());

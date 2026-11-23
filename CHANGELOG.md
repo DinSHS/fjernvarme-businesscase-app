@@ -165,6 +165,12 @@ præsentationen og i datahåndteringen omkring kørslerne.
   bestillinger fra samme bruger begge tælle køen. Fabric-udgaven læste en manglende svarrække som tildelt. Begge
   udgaver har nu ét tjek for alle tre låse (kvote, bestilling, arkivets kørselslås): kun et gyldigt, ikke-negativt
   svar er en lås. Kun relevant på SQL Server; sqlite og PostgreSQL er uændrede. Ikke kørt mod en SQL Server.
+- **Arkivimporten kunne efterlade en kørsel uden sin `Bestilling`** (efterprøvningen af rettelserne, fund A; kun lokal
+  udgave på en delt PostgreSQL- eller SQL Server-database). Importen læste den importerede bestilling og indsatte
+  derefter den historiske kørsel; imellem de to kunne ejerens afviste bestilling blive ryddet. Kørselsdelen tager nu
+  bestillingens lås — den samme, som bestillingsvejen tager — før bestillingen læses, i sorteret orden ved flere
+  bestillinger. Ingen fremmednøgle i denne runde. sqlite kan ikke genskabe kapløbet (én skriver ad gangen); det er
+  afprøvet mod en model med READ COMMITTED og ventende låse, ikke mod en rigtig PostgreSQL eller SQL Server.
 
 ## [Ikke udgivet] — 0.4.0
 

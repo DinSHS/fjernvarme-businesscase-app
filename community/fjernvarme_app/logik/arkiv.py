@@ -610,6 +610,16 @@ def _skriv_del(tx, d: dict) -> tuple[int, int]:
     # K10-F3: låsen pr. kørsel tages FØR noget læses — af børnedele og afslutningen ens, i fast (sorteret) orden.
     if tabel == "Koersel":
         tx.arkiv_laas_koersler(sorted({r[0] for r in d["raekker"]}))
+        # Efterprøvningen af runde 15, fund A: også bestillingens lås (den samme som ``tjenester.start_bestilling``
+        # tager), FØR Bestilling læses — i fast, sorteret orden, så to importer ikke kan låse hinanden fast. Uden
+        # den kunne ejerens afviste bestilling blive ryddet (``_ryd_afvist``) mellem importens læsning og dens
+        # indsættelse: en Koersel uden sin Bestilling. Rækken læses derfor først herefter (``_tjek_nye``), og den
+        # står, til kørslen er indsat. Låserækkefølgen er kørsel -> bestilling her og bestilling -> kvote i
+        # ``start_bestilling``; ingen vej tager dem modsat. Kun den lokale udgave: Fabric-udgaven sletter ingen
+        # bestillinger (``bestilling.ts``), så ``arkiv.ts`` har ikke trinnet. sqlite: BEGIN IMMEDIATE har allerede
+        # serialiseret alle skrivere; kapløbet er SQL Servers og PostgreSQLs (``community/tests/test_r15_laase.py``).
+        for bestilling_id in sorted({_kol(tabel, r, "bestilling_id") for r in d["raekker"]}):
+            tx.laas_bestilling(bestilling_id)
     elif tabel in KOERSEL_BOERN:
         tx.arkiv_laas_koersler(sorted({_kol(tabel, r, "koersel_id") for r in d["raekker"]}))
     nye = _nye_raekker(tx, tabel, d["raekker"])
