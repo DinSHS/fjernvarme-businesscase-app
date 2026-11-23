@@ -6,7 +6,7 @@
   "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
   "app/rayfin/functions/src/tidsserie.ts": "1cce44ad863accac534d56ee116da48676375238349c09166c9701a6e8ceee40",
   "app/rayfin/functions/src/tidsserie-validering.ts": "fa3f4389a650f0064983082b6a2146e4a9a817c1adf4f35b3c86e48c016d349f",
-  "app/rayfin/functions/src/datakrav.data.ts": "4a90dc018dec50a6f15609bd70e03074305db65a735f887aa4b002bc54ffac91",
+  "app/rayfin/functions/src/datakrav.data.ts": "1ce712b2555f124ecb61b226b2f7b067651c7a615c66cf32e064f22531090b72",
   "app/rayfin/functions/src/zip.ts": "40f3ce8e66817b30854563e4d975e88c0c5fcc5f521b953124d585e4de150ae6",
   "app/rayfin/functions/src/vaerksark.ts": "68bf94b5679c12030496f9fe43daaca600950ab1fd9e6232a6f0553c968808c5"
  },
@@ -14354,6 +14354,1842 @@
     ]
    },
    "ud": null
+  },
+  {
+   "navn": "oliekedel med oliepris",
+   "input": {
+    "blade": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"k4_review\""
+     },
+     {
+      "sti": "meta.titel",
+      "vaerdi_json": "\"K4 review\""
+     },
+     {
+      "sti": "meta.description",
+      "vaerdi_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\""
+     },
+     {
+      "sti": "meta.timezone_internal",
+      "vaerdi_json": "\"UTC\""
+     },
+     {
+      "sti": "meta.timezone_reporting",
+      "vaerdi_json": "\"Europe/Copenhagen\""
+     },
+     {
+      "sti": "meta.discount_rate_real",
+      "vaerdi_json": "0.035"
+     },
+     {
+      "sti": "data.dmi_area",
+      "vaerdi_json": "\"karup\""
+     },
+     {
+      "sti": "data.price_zone",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.spot_area",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.tariff_consumption_flat",
+      "vaerdi_json": "125.0"
+     },
+     {
+      "sti": "electricity.tariff_production_flat",
+      "vaerdi_json": "4.1"
+     },
+     {
+      "sti": "electricity.electricity_tax",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.unit",
+      "vaerdi_json": "\"kr_per_mwh\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.source",
+      "vaerdi_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.energinet",
+      "vaerdi_json": "115.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.dv",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+      "vaerdi_json": "7.4"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+      "vaerdi_json": "14.8"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+      "vaerdi_json": "29.5"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+      "vaerdi_json": "[10, 11, 12, 1, 2, 3]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+      "vaerdi_json": "\"spids\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+      "vaerdi_json": "[4, 5, 6, 7, 8, 9]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2025-07-01T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-06-30T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "solver.mip_rel_gap",
+      "vaerdi_json": "0.001"
+     },
+     {
+      "sti": "solver.mip_abs_gap",
+      "vaerdi_json": "1000.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "3600.0"
+     },
+     {
+      "sti": "heat_load_params.gaf_mw_per_k",
+      "vaerdi_json": "0.3626"
+     },
+     {
+      "sti": "heat_load_params.t_ref",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "heat_load_params.thermal_inertia_hours",
+      "vaerdi_json": "24"
+     },
+     {
+      "sti": "heat_load_params.nettab_slope_mw_per_k",
+      "vaerdi_json": "0.2259"
+     },
+     {
+      "sti": "heat_load_params.t_net",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[2.102, 2.132, 2.181, 2.259, 2.285, 2.422, 2.649, 2.656, 2.537, 2.348, 2.263, 2.225, 2.162, 2.118, 2.092, 2.065, 2.099, 2.181, 2.24, 2.259, 2.244, 2.24, 2.184, 2.08]"
+     },
+     {
+      "sti": "heat_load_params.weekly_dip",
+      "vaerdi_json": "0.02"
+     },
+     {
+      "sti": "heat_load_params._source",
+      "vaerdi_json": "\"Skabelon: Andeby × 50/105.52 GWh\""
+     },
+     {
+      "sti": "storage",
+      "vaerdi_json": "{}"
+     },
+     {
+      "sti": "prices.natural_gas.value",
+      "vaerdi_json": "606.0"
+     },
+     {
+      "sti": "prices.natural_gas.unit",
+      "vaerdi_json": "\"DKK/MWh_fuel\""
+     },
+     {
+      "sti": "prices.co2_eua.value",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "prices.co2_eua.unit",
+      "vaerdi_json": "\"DKK/t_CO2\""
+     },
+     {
+      "sti": "units.gaskedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.gaskedel.type",
+      "vaerdi_json": "\"gas_boiler\""
+     },
+     {
+      "sti": "units.gaskedel.p_max_heat",
+      "vaerdi_json": "25.0"
+     },
+     {
+      "sti": "units.gaskedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.fuel",
+      "vaerdi_json": "\"natural_gas\""
+     },
+     {
+      "sti": "units.gaskedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.gaskedel.var_om",
+      "vaerdi_json": "30.0"
+     },
+     {
+      "sti": "units.gaskedel.start_cost",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.min_uptime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.min_downtime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.uc_enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.2"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.afrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.mfrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.fcr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.oliekedel.type",
+      "vaerdi_json": "\"oil_boiler\""
+     },
+     {
+      "sti": "units.oliekedel.fuel",
+      "vaerdi_json": "\"fuel_oil\""
+     },
+     {
+      "sti": "units.oliekedel.p_max_heat",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "units.oliekedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.oliekedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.266"
+     },
+     {
+      "sti": "prices.fuel_oil.value",
+      "vaerdi_json": "900.0"
+     }
+    ]
+   },
+   "ud": null
+  },
+  {
+   "navn": "oliekedel uden oliepris",
+   "input": {
+    "blade": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"k4_review\""
+     },
+     {
+      "sti": "meta.titel",
+      "vaerdi_json": "\"K4 review\""
+     },
+     {
+      "sti": "meta.description",
+      "vaerdi_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\""
+     },
+     {
+      "sti": "meta.timezone_internal",
+      "vaerdi_json": "\"UTC\""
+     },
+     {
+      "sti": "meta.timezone_reporting",
+      "vaerdi_json": "\"Europe/Copenhagen\""
+     },
+     {
+      "sti": "meta.discount_rate_real",
+      "vaerdi_json": "0.035"
+     },
+     {
+      "sti": "data.dmi_area",
+      "vaerdi_json": "\"karup\""
+     },
+     {
+      "sti": "data.price_zone",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.spot_area",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.tariff_consumption_flat",
+      "vaerdi_json": "125.0"
+     },
+     {
+      "sti": "electricity.tariff_production_flat",
+      "vaerdi_json": "4.1"
+     },
+     {
+      "sti": "electricity.electricity_tax",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.unit",
+      "vaerdi_json": "\"kr_per_mwh\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.source",
+      "vaerdi_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.energinet",
+      "vaerdi_json": "115.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.dv",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+      "vaerdi_json": "7.4"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+      "vaerdi_json": "14.8"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+      "vaerdi_json": "29.5"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+      "vaerdi_json": "[10, 11, 12, 1, 2, 3]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+      "vaerdi_json": "\"spids\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+      "vaerdi_json": "[4, 5, 6, 7, 8, 9]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2025-07-01T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-06-30T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "solver.mip_rel_gap",
+      "vaerdi_json": "0.001"
+     },
+     {
+      "sti": "solver.mip_abs_gap",
+      "vaerdi_json": "1000.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "3600.0"
+     },
+     {
+      "sti": "heat_load_params.gaf_mw_per_k",
+      "vaerdi_json": "0.3626"
+     },
+     {
+      "sti": "heat_load_params.t_ref",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "heat_load_params.thermal_inertia_hours",
+      "vaerdi_json": "24"
+     },
+     {
+      "sti": "heat_load_params.nettab_slope_mw_per_k",
+      "vaerdi_json": "0.2259"
+     },
+     {
+      "sti": "heat_load_params.t_net",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[2.102, 2.132, 2.181, 2.259, 2.285, 2.422, 2.649, 2.656, 2.537, 2.348, 2.263, 2.225, 2.162, 2.118, 2.092, 2.065, 2.099, 2.181, 2.24, 2.259, 2.244, 2.24, 2.184, 2.08]"
+     },
+     {
+      "sti": "heat_load_params.weekly_dip",
+      "vaerdi_json": "0.02"
+     },
+     {
+      "sti": "heat_load_params._source",
+      "vaerdi_json": "\"Skabelon: Andeby × 50/105.52 GWh\""
+     },
+     {
+      "sti": "storage",
+      "vaerdi_json": "{}"
+     },
+     {
+      "sti": "prices.natural_gas.value",
+      "vaerdi_json": "606.0"
+     },
+     {
+      "sti": "prices.natural_gas.unit",
+      "vaerdi_json": "\"DKK/MWh_fuel\""
+     },
+     {
+      "sti": "prices.co2_eua.value",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "prices.co2_eua.unit",
+      "vaerdi_json": "\"DKK/t_CO2\""
+     },
+     {
+      "sti": "units.gaskedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.gaskedel.type",
+      "vaerdi_json": "\"gas_boiler\""
+     },
+     {
+      "sti": "units.gaskedel.p_max_heat",
+      "vaerdi_json": "25.0"
+     },
+     {
+      "sti": "units.gaskedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.fuel",
+      "vaerdi_json": "\"natural_gas\""
+     },
+     {
+      "sti": "units.gaskedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.gaskedel.var_om",
+      "vaerdi_json": "30.0"
+     },
+     {
+      "sti": "units.gaskedel.start_cost",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.min_uptime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.min_downtime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.uc_enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.2"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.afrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.mfrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.fcr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.oliekedel.type",
+      "vaerdi_json": "\"oil_boiler\""
+     },
+     {
+      "sti": "units.oliekedel.fuel",
+      "vaerdi_json": "\"fuel_oil\""
+     },
+     {
+      "sti": "units.oliekedel.p_max_heat",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "units.oliekedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.oliekedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.266"
+     }
+    ]
+   },
+   "afvisning": "Værket kan ikke bruges af modellen: prices.fuel_oil.value mangler eller er ikke et tal."
+  },
+  {
+   "navn": "oliekedel med oliepris som tekst",
+   "input": {
+    "blade": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"k4_review\""
+     },
+     {
+      "sti": "meta.titel",
+      "vaerdi_json": "\"K4 review\""
+     },
+     {
+      "sti": "meta.description",
+      "vaerdi_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\""
+     },
+     {
+      "sti": "meta.timezone_internal",
+      "vaerdi_json": "\"UTC\""
+     },
+     {
+      "sti": "meta.timezone_reporting",
+      "vaerdi_json": "\"Europe/Copenhagen\""
+     },
+     {
+      "sti": "meta.discount_rate_real",
+      "vaerdi_json": "0.035"
+     },
+     {
+      "sti": "data.dmi_area",
+      "vaerdi_json": "\"karup\""
+     },
+     {
+      "sti": "data.price_zone",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.spot_area",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.tariff_consumption_flat",
+      "vaerdi_json": "125.0"
+     },
+     {
+      "sti": "electricity.tariff_production_flat",
+      "vaerdi_json": "4.1"
+     },
+     {
+      "sti": "electricity.electricity_tax",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.unit",
+      "vaerdi_json": "\"kr_per_mwh\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.source",
+      "vaerdi_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.energinet",
+      "vaerdi_json": "115.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.dv",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+      "vaerdi_json": "7.4"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+      "vaerdi_json": "14.8"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+      "vaerdi_json": "29.5"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+      "vaerdi_json": "[10, 11, 12, 1, 2, 3]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+      "vaerdi_json": "\"spids\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+      "vaerdi_json": "[4, 5, 6, 7, 8, 9]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2025-07-01T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-06-30T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "solver.mip_rel_gap",
+      "vaerdi_json": "0.001"
+     },
+     {
+      "sti": "solver.mip_abs_gap",
+      "vaerdi_json": "1000.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "3600.0"
+     },
+     {
+      "sti": "heat_load_params.gaf_mw_per_k",
+      "vaerdi_json": "0.3626"
+     },
+     {
+      "sti": "heat_load_params.t_ref",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "heat_load_params.thermal_inertia_hours",
+      "vaerdi_json": "24"
+     },
+     {
+      "sti": "heat_load_params.nettab_slope_mw_per_k",
+      "vaerdi_json": "0.2259"
+     },
+     {
+      "sti": "heat_load_params.t_net",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[2.102, 2.132, 2.181, 2.259, 2.285, 2.422, 2.649, 2.656, 2.537, 2.348, 2.263, 2.225, 2.162, 2.118, 2.092, 2.065, 2.099, 2.181, 2.24, 2.259, 2.244, 2.24, 2.184, 2.08]"
+     },
+     {
+      "sti": "heat_load_params.weekly_dip",
+      "vaerdi_json": "0.02"
+     },
+     {
+      "sti": "heat_load_params._source",
+      "vaerdi_json": "\"Skabelon: Andeby × 50/105.52 GWh\""
+     },
+     {
+      "sti": "storage",
+      "vaerdi_json": "{}"
+     },
+     {
+      "sti": "prices.natural_gas.value",
+      "vaerdi_json": "606.0"
+     },
+     {
+      "sti": "prices.natural_gas.unit",
+      "vaerdi_json": "\"DKK/MWh_fuel\""
+     },
+     {
+      "sti": "prices.co2_eua.value",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "prices.co2_eua.unit",
+      "vaerdi_json": "\"DKK/t_CO2\""
+     },
+     {
+      "sti": "units.gaskedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.gaskedel.type",
+      "vaerdi_json": "\"gas_boiler\""
+     },
+     {
+      "sti": "units.gaskedel.p_max_heat",
+      "vaerdi_json": "25.0"
+     },
+     {
+      "sti": "units.gaskedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.fuel",
+      "vaerdi_json": "\"natural_gas\""
+     },
+     {
+      "sti": "units.gaskedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.gaskedel.var_om",
+      "vaerdi_json": "30.0"
+     },
+     {
+      "sti": "units.gaskedel.start_cost",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.min_uptime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.min_downtime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.uc_enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.2"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.afrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.mfrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.fcr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.oliekedel.type",
+      "vaerdi_json": "\"oil_boiler\""
+     },
+     {
+      "sti": "units.oliekedel.fuel",
+      "vaerdi_json": "\"fuel_oil\""
+     },
+     {
+      "sti": "units.oliekedel.p_max_heat",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "units.oliekedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.oliekedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.266"
+     },
+     {
+      "sti": "prices.fuel_oil.value",
+      "vaerdi_json": "\"900\""
+     }
+    ]
+   },
+   "afvisning": "Værket kan ikke bruges af modellen: prices.fuel_oil.value mangler eller er ikke et tal."
+  },
+  {
+   "navn": "oliekedel uden oliepris, men slået fra",
+   "input": {
+    "blade": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"k4_review\""
+     },
+     {
+      "sti": "meta.titel",
+      "vaerdi_json": "\"K4 review\""
+     },
+     {
+      "sti": "meta.description",
+      "vaerdi_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\""
+     },
+     {
+      "sti": "meta.timezone_internal",
+      "vaerdi_json": "\"UTC\""
+     },
+     {
+      "sti": "meta.timezone_reporting",
+      "vaerdi_json": "\"Europe/Copenhagen\""
+     },
+     {
+      "sti": "meta.discount_rate_real",
+      "vaerdi_json": "0.035"
+     },
+     {
+      "sti": "data.dmi_area",
+      "vaerdi_json": "\"karup\""
+     },
+     {
+      "sti": "data.price_zone",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.spot_area",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.tariff_consumption_flat",
+      "vaerdi_json": "125.0"
+     },
+     {
+      "sti": "electricity.tariff_production_flat",
+      "vaerdi_json": "4.1"
+     },
+     {
+      "sti": "electricity.electricity_tax",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.unit",
+      "vaerdi_json": "\"kr_per_mwh\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.source",
+      "vaerdi_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.energinet",
+      "vaerdi_json": "115.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.dv",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+      "vaerdi_json": "7.4"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+      "vaerdi_json": "14.8"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+      "vaerdi_json": "29.5"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+      "vaerdi_json": "[10, 11, 12, 1, 2, 3]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+      "vaerdi_json": "\"spids\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+      "vaerdi_json": "[4, 5, 6, 7, 8, 9]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2025-07-01T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-06-30T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "solver.mip_rel_gap",
+      "vaerdi_json": "0.001"
+     },
+     {
+      "sti": "solver.mip_abs_gap",
+      "vaerdi_json": "1000.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "3600.0"
+     },
+     {
+      "sti": "heat_load_params.gaf_mw_per_k",
+      "vaerdi_json": "0.3626"
+     },
+     {
+      "sti": "heat_load_params.t_ref",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "heat_load_params.thermal_inertia_hours",
+      "vaerdi_json": "24"
+     },
+     {
+      "sti": "heat_load_params.nettab_slope_mw_per_k",
+      "vaerdi_json": "0.2259"
+     },
+     {
+      "sti": "heat_load_params.t_net",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[2.102, 2.132, 2.181, 2.259, 2.285, 2.422, 2.649, 2.656, 2.537, 2.348, 2.263, 2.225, 2.162, 2.118, 2.092, 2.065, 2.099, 2.181, 2.24, 2.259, 2.244, 2.24, 2.184, 2.08]"
+     },
+     {
+      "sti": "heat_load_params.weekly_dip",
+      "vaerdi_json": "0.02"
+     },
+     {
+      "sti": "heat_load_params._source",
+      "vaerdi_json": "\"Skabelon: Andeby × 50/105.52 GWh\""
+     },
+     {
+      "sti": "storage",
+      "vaerdi_json": "{}"
+     },
+     {
+      "sti": "prices.natural_gas.value",
+      "vaerdi_json": "606.0"
+     },
+     {
+      "sti": "prices.natural_gas.unit",
+      "vaerdi_json": "\"DKK/MWh_fuel\""
+     },
+     {
+      "sti": "prices.co2_eua.value",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "prices.co2_eua.unit",
+      "vaerdi_json": "\"DKK/t_CO2\""
+     },
+     {
+      "sti": "units.gaskedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.gaskedel.type",
+      "vaerdi_json": "\"gas_boiler\""
+     },
+     {
+      "sti": "units.gaskedel.p_max_heat",
+      "vaerdi_json": "25.0"
+     },
+     {
+      "sti": "units.gaskedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.fuel",
+      "vaerdi_json": "\"natural_gas\""
+     },
+     {
+      "sti": "units.gaskedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.gaskedel.var_om",
+      "vaerdi_json": "30.0"
+     },
+     {
+      "sti": "units.gaskedel.start_cost",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.min_uptime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.min_downtime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.uc_enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.2"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.afrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.mfrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.fcr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.oliekedel.type",
+      "vaerdi_json": "\"oil_boiler\""
+     },
+     {
+      "sti": "units.oliekedel.fuel",
+      "vaerdi_json": "\"fuel_oil\""
+     },
+     {
+      "sti": "units.oliekedel.p_max_heat",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "units.oliekedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.oliekedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.266"
+     },
+     {
+      "sti": "units.oliekedel.enabled",
+      "vaerdi_json": "false"
+     }
+    ]
+   },
+   "ud": null
+  },
+  {
+   "navn": "oliekedel uden virkningsgrad",
+   "input": {
+    "blade": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"k4_review\""
+     },
+     {
+      "sti": "meta.titel",
+      "vaerdi_json": "\"K4 review\""
+     },
+     {
+      "sti": "meta.description",
+      "vaerdi_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\""
+     },
+     {
+      "sti": "meta.timezone_internal",
+      "vaerdi_json": "\"UTC\""
+     },
+     {
+      "sti": "meta.timezone_reporting",
+      "vaerdi_json": "\"Europe/Copenhagen\""
+     },
+     {
+      "sti": "meta.discount_rate_real",
+      "vaerdi_json": "0.035"
+     },
+     {
+      "sti": "data.dmi_area",
+      "vaerdi_json": "\"karup\""
+     },
+     {
+      "sti": "data.price_zone",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.spot_area",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.tariff_consumption_flat",
+      "vaerdi_json": "125.0"
+     },
+     {
+      "sti": "electricity.tariff_production_flat",
+      "vaerdi_json": "4.1"
+     },
+     {
+      "sti": "electricity.electricity_tax",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.unit",
+      "vaerdi_json": "\"kr_per_mwh\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.source",
+      "vaerdi_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.energinet",
+      "vaerdi_json": "115.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.dv",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+      "vaerdi_json": "7.4"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+      "vaerdi_json": "14.8"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+      "vaerdi_json": "29.5"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+      "vaerdi_json": "[10, 11, 12, 1, 2, 3]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+      "vaerdi_json": "\"spids\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+      "vaerdi_json": "[4, 5, 6, 7, 8, 9]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2025-07-01T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-06-30T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "solver.mip_rel_gap",
+      "vaerdi_json": "0.001"
+     },
+     {
+      "sti": "solver.mip_abs_gap",
+      "vaerdi_json": "1000.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "3600.0"
+     },
+     {
+      "sti": "heat_load_params.gaf_mw_per_k",
+      "vaerdi_json": "0.3626"
+     },
+     {
+      "sti": "heat_load_params.t_ref",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "heat_load_params.thermal_inertia_hours",
+      "vaerdi_json": "24"
+     },
+     {
+      "sti": "heat_load_params.nettab_slope_mw_per_k",
+      "vaerdi_json": "0.2259"
+     },
+     {
+      "sti": "heat_load_params.t_net",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[2.102, 2.132, 2.181, 2.259, 2.285, 2.422, 2.649, 2.656, 2.537, 2.348, 2.263, 2.225, 2.162, 2.118, 2.092, 2.065, 2.099, 2.181, 2.24, 2.259, 2.244, 2.24, 2.184, 2.08]"
+     },
+     {
+      "sti": "heat_load_params.weekly_dip",
+      "vaerdi_json": "0.02"
+     },
+     {
+      "sti": "heat_load_params._source",
+      "vaerdi_json": "\"Skabelon: Andeby × 50/105.52 GWh\""
+     },
+     {
+      "sti": "storage",
+      "vaerdi_json": "{}"
+     },
+     {
+      "sti": "prices.natural_gas.value",
+      "vaerdi_json": "606.0"
+     },
+     {
+      "sti": "prices.natural_gas.unit",
+      "vaerdi_json": "\"DKK/MWh_fuel\""
+     },
+     {
+      "sti": "prices.co2_eua.value",
+      "vaerdi_json": "600.0"
+     },
+     {
+      "sti": "prices.co2_eua.unit",
+      "vaerdi_json": "\"DKK/t_CO2\""
+     },
+     {
+      "sti": "units.gaskedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.gaskedel.type",
+      "vaerdi_json": "\"gas_boiler\""
+     },
+     {
+      "sti": "units.gaskedel.p_max_heat",
+      "vaerdi_json": "25.0"
+     },
+     {
+      "sti": "units.gaskedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.fuel",
+      "vaerdi_json": "\"natural_gas\""
+     },
+     {
+      "sti": "units.gaskedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.gaskedel.var_om",
+      "vaerdi_json": "30.0"
+     },
+     {
+      "sti": "units.gaskedel.start_cost",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.min_uptime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.min_downtime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.uc_enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.2"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.afrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.mfrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.fcr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.oliekedel.type",
+      "vaerdi_json": "\"oil_boiler\""
+     },
+     {
+      "sti": "units.oliekedel.fuel",
+      "vaerdi_json": "\"fuel_oil\""
+     },
+     {
+      "sti": "units.oliekedel.p_max_heat",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "units.oliekedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.266"
+     },
+     {
+      "sti": "prices.fuel_oil.value",
+      "vaerdi_json": "900.0"
+     }
+    ]
+   },
+   "afvisning": "Værket kan ikke bruges af modellen: units.oliekedel.eta_fuel_to_heat mangler eller er ikke et tal."
+  },
+  {
+   "navn": "oliekedel uden CO2-pris",
+   "input": {
+    "blade": [
+     {
+      "sti": "meta.case_name",
+      "vaerdi_json": "\"k4_review\""
+     },
+     {
+      "sti": "meta.titel",
+      "vaerdi_json": "\"K4 review\""
+     },
+     {
+      "sti": "meta.description",
+      "vaerdi_json": "\"Oprettet fra skabelon: én gaskedel, intet lager, 50 GWh/år.\""
+     },
+     {
+      "sti": "meta.timezone_internal",
+      "vaerdi_json": "\"UTC\""
+     },
+     {
+      "sti": "meta.timezone_reporting",
+      "vaerdi_json": "\"Europe/Copenhagen\""
+     },
+     {
+      "sti": "meta.discount_rate_real",
+      "vaerdi_json": "0.035"
+     },
+     {
+      "sti": "data.dmi_area",
+      "vaerdi_json": "\"karup\""
+     },
+     {
+      "sti": "data.price_zone",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.spot_area",
+      "vaerdi_json": "\"DK1\""
+     },
+     {
+      "sti": "electricity.tariff_consumption_flat",
+      "vaerdi_json": "125.0"
+     },
+     {
+      "sti": "electricity.tariff_production_flat",
+      "vaerdi_json": "4.1"
+     },
+     {
+      "sti": "electricity.electricity_tax",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.unit",
+      "vaerdi_json": "\"kr_per_mwh\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.source",
+      "vaerdi_json": "\"Andebys bånd (fiktivt netselskab) — erstat med jeres prisblad\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.energinet",
+      "vaerdi_json": "115.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.dv",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.fixed_components.elafgift_net",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.lav",
+      "vaerdi_json": "7.4"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.hoej",
+      "vaerdi_json": "14.8"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.bands.spids",
+      "vaerdi_json": "29.5"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.months",
+      "vaerdi_json": "[10, 11, 12, 1, 2, 3]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.06-21",
+      "vaerdi_json": "\"spids\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekday.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.06-21",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.vinter.weekend.21-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.months",
+      "vaerdi_json": "[4, 5, 6, 7, 8, 9]"
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekday.06-24",
+      "vaerdi_json": "\"hoej\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.00-06",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "electricity.tariff_consumption.net_tariff.seasons.sommer.weekend.06-24",
+      "vaerdi_json": "\"lav\""
+     },
+     {
+      "sti": "time.start",
+      "vaerdi_json": "\"2025-07-01T00:00:00Z\""
+     },
+     {
+      "sti": "time.end",
+      "vaerdi_json": "\"2026-06-30T23:00:00Z\""
+     },
+     {
+      "sti": "time.resolution",
+      "vaerdi_json": "\"1h\""
+     },
+     {
+      "sti": "solver.mip_rel_gap",
+      "vaerdi_json": "0.001"
+     },
+     {
+      "sti": "solver.mip_abs_gap",
+      "vaerdi_json": "1000.0"
+     },
+     {
+      "sti": "solver.time_limit",
+      "vaerdi_json": "3600.0"
+     },
+     {
+      "sti": "heat_load_params.gaf_mw_per_k",
+      "vaerdi_json": "0.3626"
+     },
+     {
+      "sti": "heat_load_params.t_ref",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "heat_load_params.thermal_inertia_hours",
+      "vaerdi_json": "24"
+     },
+     {
+      "sti": "heat_load_params.nettab_slope_mw_per_k",
+      "vaerdi_json": "0.2259"
+     },
+     {
+      "sti": "heat_load_params.t_net",
+      "vaerdi_json": "12.0"
+     },
+     {
+      "sti": "heat_load_params.baseline_profile_mw",
+      "vaerdi_json": "[2.102, 2.132, 2.181, 2.259, 2.285, 2.422, 2.649, 2.656, 2.537, 2.348, 2.263, 2.225, 2.162, 2.118, 2.092, 2.065, 2.099, 2.181, 2.24, 2.259, 2.244, 2.24, 2.184, 2.08]"
+     },
+     {
+      "sti": "heat_load_params.weekly_dip",
+      "vaerdi_json": "0.02"
+     },
+     {
+      "sti": "heat_load_params._source",
+      "vaerdi_json": "\"Skabelon: Andeby × 50/105.52 GWh\""
+     },
+     {
+      "sti": "storage",
+      "vaerdi_json": "{}"
+     },
+     {
+      "sti": "prices.natural_gas.value",
+      "vaerdi_json": "606.0"
+     },
+     {
+      "sti": "prices.natural_gas.unit",
+      "vaerdi_json": "\"DKK/MWh_fuel\""
+     },
+     {
+      "sti": "prices.co2_eua.unit",
+      "vaerdi_json": "\"DKK/t_CO2\""
+     },
+     {
+      "sti": "units.gaskedel.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "sti": "units.gaskedel.type",
+      "vaerdi_json": "\"gas_boiler\""
+     },
+     {
+      "sti": "units.gaskedel.p_max_heat",
+      "vaerdi_json": "25.0"
+     },
+     {
+      "sti": "units.gaskedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.fuel",
+      "vaerdi_json": "\"natural_gas\""
+     },
+     {
+      "sti": "units.gaskedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.gaskedel.var_om",
+      "vaerdi_json": "30.0"
+     },
+     {
+      "sti": "units.gaskedel.start_cost",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.gaskedel.min_uptime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.min_downtime",
+      "vaerdi_json": "1"
+     },
+     {
+      "sti": "units.gaskedel.uc_enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.2"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.afrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.mfrr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.gaskedel.ancillary.fcr_qualified",
+      "vaerdi_json": "false"
+     },
+     {
+      "sti": "units.oliekedel.type",
+      "vaerdi_json": "\"oil_boiler\""
+     },
+     {
+      "sti": "units.oliekedel.fuel",
+      "vaerdi_json": "\"fuel_oil\""
+     },
+     {
+      "sti": "units.oliekedel.p_max_heat",
+      "vaerdi_json": "15.0"
+     },
+     {
+      "sti": "units.oliekedel.p_min_heat",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.alpha",
+      "vaerdi_json": "0.0"
+     },
+     {
+      "sti": "units.oliekedel.eta_fuel_to_heat",
+      "vaerdi_json": "0.95"
+     },
+     {
+      "sti": "units.oliekedel.co2_emissions_per_mwh_fuel",
+      "vaerdi_json": "0.266"
+     },
+     {
+      "sti": "prices.fuel_oil.value",
+      "vaerdi_json": "900.0"
+     }
+    ]
+   },
+   "afvisning": "Værket kan ikke bruges af modellen: prices.co2_eua.value mangler eller er ikke et tal."
   },
   {
    "navn": "ikke-endeligt tal",

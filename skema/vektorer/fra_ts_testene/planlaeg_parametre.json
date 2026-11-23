@@ -6,14 +6,14 @@
   "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
   "app/rayfin/functions/src/tidsserie.ts": "1cce44ad863accac534d56ee116da48676375238349c09166c9701a6e8ceee40",
   "app/rayfin/functions/src/tidsserie-validering.ts": "fa3f4389a650f0064983082b6a2146e4a9a817c1adf4f35b3c86e48c016d349f",
-  "app/rayfin/functions/src/datakrav.data.ts": "f5161974fa9318fb928e9c42e120ebfd6944f7d03980fd8a254e34235db36c77",
+  "app/rayfin/functions/src/datakrav.data.ts": "1ce712b2555f124ecb61b226b2f7b067651c7a615c66cf32e064f22531090b72",
   "app/rayfin/functions/src/zip.ts": "40f3ce8e66817b30854563e4d975e88c0c5fcc5f521b953124d585e4de150ae6",
   "app/rayfin/functions/src/vaerksark.ts": "68bf94b5679c12030496f9fe43daaca600950ab1fd9e6232a6f0553c968808c5",
   "app/rayfin/functions/test/arkiv.spec.ts": "bea63d559fc94f2b398db3c7f551e8adbe63f29c4303ace811c93e1d8e0d4959",
   "app/rayfin/functions/test/arkiv_k10.spec.ts": "5f593e545d13dea1fd226ad555f5a4723b6dd9b1ed22872867a1b2c32efe634c",
   "app/rayfin/functions/test/k4.spec.ts": "7a7b32738c6d7012fc5875b55784f002b147174247db4679b37ff39884887fde",
   "app/rayfin/functions/test/k5.spec.ts": "0da34182a443b5c07ca45bf309863aac817b6ddc21e0ff648efdc553a0e4f537",
-  "app/rayfin/functions/test/logik.spec.ts": "ccd354607085f5c46df86e5acefa8fa5bcd00653df06f36175854cd4cd505a32",
+  "app/rayfin/functions/test/logik.spec.ts": "40c2a59ed323b126b9abf9faa9b75704afb6e2284255151c82c377fc09a01c81",
   "app/rayfin/functions/test/motor.spec.ts": "e7bfdd1bec93c5436bffd76d1847eaf1ef504c2e9700843f8548ffd43800d9b1",
   "app/rayfin/functions/test/opret_vaerk.spec.ts": "bca3d74a7c29d354b956fc00da0283e4030e586fc1932fd9bf30cf91c2160826",
   "app/rayfin/functions/test/r12_revision.spec.ts": "36cc1a511de8f860b704bcde22a2eb14daffb3cf952da708c98fdd35fe0973b1",
@@ -146,6 +146,148 @@
     ]
    },
    "afvisning": "\"prices.olie.value\" findes ikke i værket (måske slettet af en anden)."
+  },
+  {
+   "navn": "logik.spec.ts › læsAnmodning og planlægParametre > opretter en hel balancing-blok, værket ikke har, og fjerner den igen (runde 14c, målt)",
+   "input": {
+    "nuvaerende": {
+     "$map": [
+      [
+       "prices.straw.value",
+       "45.0"
+      ],
+      [
+       "units.halmkedel.p_max_heat",
+       "12.0"
+      ]
+     ]
+    },
+    "aendringer": [
+     {
+      "sti": "balancing.method",
+      "handling": "opret",
+      "ny_json": "\"activation_value\""
+     },
+     {
+      "sti": "balancing.bid_strategy.up_markup_dkk_mwh",
+      "handling": "opret",
+      "ny_json": "500"
+     },
+     {
+      "sti": "balancing.ancillary_caps.per_unit_mw.halmkedel",
+      "handling": "opret",
+      "ny_json": "6.0"
+     },
+     {
+      "sti": "balancing.ancillary_caps.total_mw",
+      "handling": "opret",
+      "ny_json": "14.0"
+     }
+    ]
+   },
+   "ud": {
+    "opret": [
+     {
+      "sti": "balancing.method",
+      "ny_json": "\"activation_value\"",
+      "sektion": "balancing",
+      "objekt": null
+     },
+     {
+      "sti": "balancing.bid_strategy.up_markup_dkk_mwh",
+      "ny_json": "500",
+      "sektion": "balancing",
+      "objekt": null
+     },
+     {
+      "sti": "balancing.ancillary_caps.per_unit_mw.halmkedel",
+      "ny_json": "6.0",
+      "sektion": "balancing",
+      "objekt": null
+     },
+     {
+      "sti": "balancing.ancillary_caps.total_mw",
+      "ny_json": "14.0",
+      "sektion": "balancing",
+      "objekt": null
+     }
+    ],
+    "ret": [],
+    "slet": []
+   }
+  },
+  {
+   "navn": "logik.spec.ts › læsAnmodning og planlægParametre > opretter en hel balancing-blok, værket ikke har, og fjerner den igen (runde 14c, målt)",
+   "input": {
+    "nuvaerende": {
+     "$map": [
+      [
+       "prices.straw.value",
+       "45.0"
+      ],
+      [
+       "units.halmkedel.p_max_heat",
+       "12.0"
+      ],
+      [
+       "balancing.method",
+       "\"activation_value\""
+      ],
+      [
+       "balancing.bid_strategy.up_markup_dkk_mwh",
+       "500"
+      ],
+      [
+       "balancing.ancillary_caps.per_unit_mw.halmkedel",
+       "6.0"
+      ],
+      [
+       "balancing.ancillary_caps.total_mw",
+       "14.0"
+      ]
+     ]
+    },
+    "aendringer": [
+     {
+      "sti": "balancing.method",
+      "handling": "slet"
+     },
+     {
+      "sti": "balancing.bid_strategy.up_markup_dkk_mwh",
+      "handling": "slet"
+     },
+     {
+      "sti": "balancing.ancillary_caps.per_unit_mw.halmkedel",
+      "handling": "slet"
+     },
+     {
+      "sti": "balancing.ancillary_caps.total_mw",
+      "handling": "slet"
+     }
+    ]
+   },
+   "ud": {
+    "opret": [],
+    "ret": [],
+    "slet": [
+     {
+      "sti": "balancing.method",
+      "gammel_json": "\"activation_value\""
+     },
+     {
+      "sti": "balancing.bid_strategy.up_markup_dkk_mwh",
+      "gammel_json": "500"
+     },
+     {
+      "sti": "balancing.ancillary_caps.per_unit_mw.halmkedel",
+      "gammel_json": "6.0"
+     },
+     {
+      "sti": "balancing.ancillary_caps.total_mw",
+      "gammel_json": "14.0"
+     }
+    ]
+   }
   },
   {
    "navn": "logik.spec.ts › læsAnmodning og planlægParametre > planlægger ret/opret/slet og springer en uændret værdi over",
