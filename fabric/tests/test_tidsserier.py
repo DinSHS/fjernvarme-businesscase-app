@@ -510,7 +510,11 @@ class TestVaerksark(unittest.TestCase):
             ws.cell(rr, 2).value = 10 + (t.hour % 7) * 0.5
             rr += 1
             t += timedelta(hours=1)
-        wb["Priser"]["B30"] = "Test Vaerksark"
+        # Værkets navn findes på etiketten i kolonne A, som modelscriptet læser arket. Ved 939228a rykkede rækken fra
+        # 30 til 31 (ny række fyringsolie), og en fast B30 skrev navnet i priszonens celle (runde 15).
+        pr = wb["Priser"]
+        r = next(r for r in range(1, pr.max_row + 1) if str(pr.cell(r, 1).value or "").strip() == "værkets navn")
+        pr.cell(r, 2).value = "Test Vaerksark"
         cls.ark = cls.tmp / "ark.xlsx"
         wb.save(cls.ark)
         cls.rc, cls.log = VS.koer_script(kode, sys.executable, cls.ark, cls.tmp / "ud", False)

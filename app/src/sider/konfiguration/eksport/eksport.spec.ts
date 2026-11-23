@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { analyserUpload, type Hentere } from "./analyse";
 import { eksporter, indholdstekst, læsMarkering, MARKOER_ARK } from "./eksporter";
 import { genkend, læsArkmodel, sammenlign } from "./genkend";
-import { planlæg, slug } from "./kort";
+import { planlæg, PRISER_RAEKKER, slug } from "./kort";
 import { fladPy, f, i, pyFloatTekst, pyJson } from "./pyjson";
 import { andeby, ANDEBY_ID, skabelon } from "./testdata";
 import { Arbejdsbog, excelSerie, fraExcelSerie, læsCeller } from "./xlsx";
@@ -40,17 +40,20 @@ describe("eksporten af Andeby", () => {
     it("udfylder modelrepoets skabelon og bevarer resten byte for byte", async () => {
         const e = await eksporter(andeby(), skabelon(), NU);
         const før = filer(skabelon()), efter = filer(e.bytes);
-        // Det, eksporten ikke skriver i, er skabelonens egne bytes: vejledning, styles, delte strenge, tema.
-        for (const f_ of ["xl/styles.xml", "xl/sharedStrings.xml", "xl/theme/theme1.xml", "docProps/core.xml"]) {
+        // Det, eksporten ikke skriver i, er skabelonens egne bytes: styles, tema, egenskaber (og delte strenge, hvis
+        // skabelonen har dem: fra 939228a er den skrevet af openpyxl med teksterne i cellerne). skabelon.spec.ts
+        // prøver HVER del, eksporten ikke rører.
+        for (const f_ of ["xl/styles.xml", "xl/theme/theme1.xml", "docProps/core.xml"]) {
             expect(strFromU8(efter[f_]), f_).toBe(strFromU8(før[f_]));
         }
-        // Vejledning: kun fanevalget er flyttet til fanen Læs først (runde 14, rettelser) — indholdet er uændret.
-        expect(strFromU8(efter["xl/worksheets/sheet1.xml"])).toBe(strFromU8(før["xl/worksheets/sheet1.xml"]).replace('tabSelected="true"', 'tabSelected="false"'));
+        // Vejledning: højst fanevalget er flyttet til fanen Læs først (runde 14, rettelser) — indholdet er uændret.
+        const fravalgt = (x: string) => x.replace(/\btabSelected="(true|1)"/, 'tabSelected="false"');
+        expect(fravalgt(strFromU8(efter["xl/worksheets/sheet1.xml"]))).toBe(fravalgt(strFromU8(før["xl/worksheets/sheet1.xml"])));
         // Dropdowns (datavalidering) i Anlaeg og Priser står der stadig.
         const anlaeg = strFromU8(efter["xl/worksheets/sheet3.xml"]), priser = strFromU8(efter["xl/worksheets/sheet5.xml"]);
         expect(anlaeg).toContain('sqref="B5:B23"');
         expect(anlaeg).toContain('sqref="L5:L23"');
-        expect(priser).toContain('sqref="B28"');
+        expect(priser).toContain(`sqref="B${PRISER_RAEKKER.dmi}"`);
         // Den skjulte markering og arket Solvarme (Andeby har en aktiv solprofil).
         const wb = strFromU8(efter["xl/workbook.xml"]);
         expect(wb).toMatch(/<sheet name="_app" sheetId="\d+" state="hidden"/);
@@ -69,8 +72,8 @@ describe("eksporten af Andeby", () => {
         // Start og drift bærer "i drift: nej". Før stod de kun på listen "ikke med i arket".
         expect([...an.entries()].filter(([k, v]) => /^A(5|6|7|8|9|1\d|2[0-3])$/.test(k) && typeof v === "string").map(([, v]) => v))
             .toEqual(["vp_luft_vand", "elkedel_ny", "elkedel_gl", "fliskedel", "halmkedel", "gasmotor", "gaskedel_agg", "solvarme"]);
-        expect(pr.get("B6")).toBe(606);
-        expect(pr.get("B30")).toBe("Andeby — fiktivt referenceværk");
+        expect(pr.get(`B${PRISER_RAEKKER.natural_gas}`)).toBe(606);
+        expect(pr.get(`B${PRISER_RAEKKER.navn}`)).toBe("Andeby — fiktivt referenceværk");
         expect(c.get("Timedata")!.get("B3")).toBe(100);         // Andebys kalibrering × 1,0
         expect(c.get("Solvarme")!.get("A5")).toBe("tidsstempel");
     });
@@ -120,11 +123,15 @@ describe("eksporten af Andeby", () => {
         const k = andeby();
         const e = await eksporter({ ...k, blade: [...k.blade, { sti: "prices.wood_pellets.value", vaerdi_json: "250.0" }, { sti: "prices.wood_pellets.unit", vaerdi_json: '"DKK/MWh_fuel"' }] }, skabelon(), NU);
         const pr = læsCeller(e.bytes).get("Priser")!;
-        expect([pr.get("A11"), pr.get("B11")]).toEqual(["træpiller", 250]);
-        expect(pr.has("A12")).toBe(false);                         // blokken slutter stadig ved en tom række
-        expect(pr.get("A13")).toBe("Elafgift og faste tarifled");
-        expect(pr.get("B29")).toBe("karup");
-        expect(strFromU8(filer(e.bytes)["xl/worksheets/sheet5.xml"])).toContain('sqref="B29"');
+        // Rækken efter CO2 (række 12 ved 939228a, hvor fyringsolie er kommet ind som række 10; før række 11).
+        const r = PRISER_RAEKKER.traepillerIndsat;
+        expect(r).toBe(12);
+        expect([pr.get(`A${r}`), pr.get(`B${r}`)]).toEqual(["træpiller", 250]);
+        expect(String(pr.get(`A${r - 1}`))).toMatch(/^CO2/);
+        expect(pr.has(`A${r + 1}`)).toBe(false);                   // blokken slutter stadig ved en tom række
+        expect(pr.get(`A${r + 2}`)).toBe("Elafgift og faste tarifled");
+        expect(pr.get(`B${PRISER_RAEKKER.dmi + 1}`)).toBe("karup");
+        expect(strFromU8(filer(e.bytes)["xl/worksheets/sheet5.xml"])).toContain(`sqref="B${PRISER_RAEKKER.dmi + 1}"`);
     });
 });
 

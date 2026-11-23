@@ -24,14 +24,33 @@ import { synligTekst, ulovligtXmlTegn } from "./xlsx";
 
 // ------------------------------------------------------------------ modelscriptets konstanter (ved pinnen)
 
-/** scripts/vaerksark_til_yaml.py:73-95 */
+/**
+ * scripts/vaerksark_til_yaml.py:73-104. De tre tabeller er modelscriptets egne (BRAENDSEL_PR_TYPE,
+ * CO2_PR_MWH_BRAENDSEL); kort.spec.ts holder dem op mod modelspejlets `vaerksark_typer`, så en ny enhedstype i
+ * modellen (som oil_boiler ved 939228a) gør en hurtig test rød og ikke først rundturen.
+ */
 const TYPER_UDEN_BRAENDSEL = new Set(["heat_pump", "electric_boiler", "solar_thermal"]);
-const BRAENDSEL_PR_TYPE: Record<string, string | null> = {
+export const BRAENDSEL_PR_TYPE: Record<string, string | null> = {
     heat_pump: "electricity", electric_boiler: "electricity", biomass_boiler: null, gas_boiler: "natural_gas",
-    gas_engine_chp: "natural_gas", solar_thermal: "solar", waste_heat: "waste_heat",
+    gas_engine_chp: "natural_gas", oil_boiler: "fuel_oil", solar_thermal: "solar", waste_heat: "waste_heat",
 };
+/** Fysisk CO2-udledning pr. MWh brændsel, som scriptet sætter den: naturgas 0,2; fyringsolie og gasolie 0,266 (74 kg/GJ). */
+export const CO2_PR_MWH_BRAENDSEL: Record<string, number> = { gas_boiler: 0.2, gas_engine_chp: 0.2, oil_boiler: 0.266 };
 const BIOMASSE_DANSK: Record<string, string> = { straw: "halm", wood_pellets: "træpiller", flis: "flis" };
-/** src/config.py KENDTE_DMI_OMRAADER = skabelonens dropdown (Priser!B28). */
+/**
+ * Priser-arkets rækker i skabelonen ved pinnen. Ved 939228a kom `fyringsolie` ind som række 10, og CO2 og alt under
+ * den rykkede én række ned (B28 -> B29, B29 -> B30). Modelscriptet læser arket på etiketterne i kolonne A; eksporten
+ * skriver i faste celler, så tabellen holdes op mod selve skabelonfilen af skabelon.spec.ts. Rækkenumrene står KUN her.
+ */
+export const PRISER_RAEKKER = {
+    natural_gas: 6, straw: 7, flis: 8, waste_heat: 9, fuel_oil: 10, co2_eua: 11,
+    /** Den tomme række efter brændselsblokken: her indsættes træpiller, og rækkerne under flyttes én ned. */
+    traepillerIndsat: 12,
+    elafgift: 15, energinet: 16, dv: 17, indfoedning: 18, lavlast: 23, hoejlast: 24, spidslast: 25, dmi: 29, priszone: 30, navn: 31,
+} as const;
+/** Brændslerne med en fast række i skabelonens prisblok, i arkets rækkefølge. */
+const PRISBLOK = ["natural_gas", "straw", "flis", "waste_heat", "fuel_oil", "co2_eua"] as const;
+/** src/config.py KENDTE_DMI_OMRAADER = skabelonens dropdown (Priser!B29). */
 export const DMI_OMRAADER = ["fyn", "vestkyst", "karup", "ringsted"] as const;
 /** Andebys døgnprofil, som scriptet skalerer (main, vaerksark_til_yaml.py:1582-1585). */
 const ANDEBY_PROFIL = [4.437, 4.500, 4.602, 4.767, 4.822, 5.112, 5.590, 5.606, 5.355, 4.955, 4.775, 4.696,
@@ -144,14 +163,17 @@ export function planlæg(k: Eksportkilde): Eksportplan {
     // Træpiller har ingen række i skabelonen: en række indsættes i brændselsblokken (scriptet læser blokken til
     // første tomme celle i A og kender 'træpiller'). Rækkerne under flyttes én ned.
     const o = harPiller ? 1 : 0;
-    prisCelle("natural_gas", "B6"); prisCelle("straw", "B7"); prisCelle("flis", "B8"); prisCelle("waste_heat", "B9"); prisCelle("co2_eua", "B10");
+    const R = PRISER_RAEKKER;
+    for (const n of PRISBLOK) prisCelle(n, `B${R[n]}`);
     if (harPiller) {
-        sæt("Priser", "A11", "træpiller", 22); sæt("Priser", "C11", "kr/MWh", 22); sæt("Priser", "D11", "Pr. MWh brændsel (eksporteret af appen).", 24);
-        prisCelle("wood_pellets", "B11");
+        const r = R.traepillerIndsat;
+        sæt("Priser", `A${r}`, "træpiller", 22); sæt("Priser", `C${r}`, "kr/MWh", 22); sæt("Priser", `D${r}`, "Pr. MWh brændsel (eksporteret af appen).", 24);
+        prisCelle("wood_pellets", `B${r}`);
     }
     for (const p of b.objekter("prices")) {
-        if (!["natural_gas", "straw", "flis", "waste_heat", "co2_eua", "wood_pellets"].includes(p)) grunde.set(`prices.${p}`, "brændslet har ingen række i skabelonens prisblok");
+        if (!(PRISBLOK as readonly string[]).includes(p) && p !== "wood_pellets") grunde.set(`prices.${p}`, "brændslet har ingen række i skabelonens prisblok");
     }
+    // Rækkerne under brændselsblokken (og under en indsat træpillerække).
     const rk = (r: number) => r + o;
 
     const elafgift = tal(b.get("electricity.electricity_tax"));
@@ -177,18 +199,18 @@ export function planlæg(k: Eksportkilde): Eksportplan {
         energinet = flad; dv = 0; lavV = 0; højV = 0; spidsV = null; lavS = 0; højS = 0;
         grunde.set(TC, "værket har en flad eltarif; arket har altid et tarifskema");
     }
-    sæt("Priser", `B${rk(14)}`, elafgift);
-    sæt("Priser", `B${rk(15)}`, energinet);
-    sæt("Priser", `B${rk(16)}`, dv);
-    sæt("Priser", `B${rk(17)}`, tal(b.get("electricity.tariff_production_flat")));
-    sæt("Priser", `B${rk(22)}`, lavV); sæt("Priser", `C${rk(22)}`, lavS);
-    sæt("Priser", `B${rk(23)}`, højV); sæt("Priser", `C${rk(23)}`, højS);
-    sæt("Priser", `B${rk(24)}`, spidsV); sæt("Priser", `C${rk(24)}`, null);
+    sæt("Priser", `B${rk(R.elafgift)}`, elafgift);
+    sæt("Priser", `B${rk(R.energinet)}`, energinet);
+    sæt("Priser", `B${rk(R.dv)}`, dv);
+    sæt("Priser", `B${rk(R.indfoedning)}`, tal(b.get("electricity.tariff_production_flat")));
+    sæt("Priser", `B${rk(R.lavlast)}`, lavV); sæt("Priser", `C${rk(R.lavlast)}`, lavS);
+    sæt("Priser", `B${rk(R.hoejlast)}`, højV); sæt("Priser", `C${rk(R.hoejlast)}`, højS);
+    sæt("Priser", `B${rk(R.spidslast)}`, spidsV); sæt("Priser", `C${rk(R.spidslast)}`, null);
     const dmi = tekst(b.get("data.dmi_area"));
     const zone = tekst(b.get("data.price_zone"));
-    sæt("Priser", `B${rk(28)}`, dmi);
-    sæt("Priser", `B${rk(29)}`, zone);
-    sæt("Priser", `B${rk(30)}`, k.vaerk.navn);
+    sæt("Priser", `B${rk(R.dmi)}`, dmi);
+    sæt("Priser", `B${rk(R.priszone)}`, zone);
+    sæt("Priser", `B${rk(R.navn)}`, k.vaerk.navn);
     if (elafgift === null) nægter.push("Værket har ingen elafgift (electricity.electricity_tax) — arket kræver den.");
     if (energinet === null) nægter.push("Værket har ingen Energinet-tarif (tariff_consumption.fixed_components.energinet) — arket kræver den.");
     if ((lavV === null && lavS === null) || (højV === null && højS === null)) nægter.push("Tarifskemaet mangler lavlast eller højlast — arket kræver begge.");
@@ -674,7 +696,9 @@ function læsEnhed(x: Pick<Forudsig, "b" | "priser" | "sol">, n: string, punkter
     } else {
         o.fuel = BRAENDSEL_PR_TYPE[type];
     }
-    if ((type === "gas_boiler" || type === "gas_engine_chp") && !("co2_eua" in x.priser)) throw new Error(`Gasenheden ${n} kræver en CO2-pris på arket Priser.`);
+    // Scriptets rækkefølge (laes_enheder:754-766): CO2-prisen for gas og olie, så olieprisen. Begge afvises som ArkFejl.
+    if (type in CO2_PR_MWH_BRAENDSEL && !("co2_eua" in x.priser)) throw new Error(`${type === "oil_boiler" ? "Oliekedlen" : "Gasenheden"} ${n} kræver en CO2-pris på arket Priser.`);
+    if (type === "oil_boiler" && !("fuel_oil" in x.priser)) throw new Error(`Oliekedlen ${n} kræver en pris for fyringsolie på arket Priser.`);
     if (type === "waste_heat" && !x.priser.waste_heat?.value) throw new Error(`Overskudsvarmen ${n} kræver en pris for overskudsvarme.`);
     if (type === "solar_thermal") {
         const gwh = x.sol ? pyRound(x.sol.punkter.reduce((s, p) => s + (p[1] ?? 0), 0) / 1000, 3) : null;
@@ -703,7 +727,7 @@ function læsEnhed(x: Pick<Forudsig, "b" | "priser" | "sol">, n: string, punkter
     } else {
         o.alpha = f(0);
     }
-    if (type === "gas_boiler" || type === "gas_engine_chp") o.co2_emissions_per_mwh_fuel = f(0.2);
+    if (type in CO2_PR_MWH_BRAENDSEL) o.co2_emissions_per_mwh_fuel = f(CO2_PR_MWH_BRAENDSEL[type]);
     const uc = type !== "solar_thermal" && (pmin > 0 || (o.min_uptime as { v: number }).v > 1);
     o.uc_enabled = uc;
     if (uc) o.initial_status = i(0);
