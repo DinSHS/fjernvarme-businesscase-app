@@ -196,6 +196,8 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--dash-navy); }
 /* ---------------- Tilstande: indlæsning, tom, fejl ---------------- */
 .fjv-tilstand { font-size: var(--t-brod); line-height: var(--t-brod-lh); color: var(--dash-ink-2); padding: 8px 0; }
 .fjv-tilstand[data-tone="fejl"] { color: var(--dash-neg); white-space: pre-wrap; }
+/* Advarsel (runde 15): teksten beholder brødtekstens farve (kontrast), en ravfarvet kant bærer tonen. */
+.fjv-tilstand[data-tone="advarsel"] { border-left: 3px solid var(--dash-amber); padding-left: 10px; margin: 6px 0; }
 /* Tom: en rolig ramme, der viser, hvor indholdet kommer — ikke en hvid plet. */
 .fjv-tom { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border: 1px dashed var(--dash-hairline); border-radius: var(--r-felt);
   font-size: var(--t-brod); line-height: var(--t-brod-lh); color: var(--dash-ink-2); background: var(--dash-elevated); }

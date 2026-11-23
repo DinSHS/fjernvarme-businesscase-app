@@ -5,6 +5,7 @@
 import type { ReactNode } from "react";
 import { Maerke } from "@/components/layout";
 import { rutehref } from "@/lib/rute";
+import { kodeOprindelse } from "./beregn";
 
 /** Navn/værdi-par som definitionsliste. */
 export function Fakta({ par }: { par: readonly (readonly [string, ReactNode] | null | false)[] }) {
@@ -25,6 +26,13 @@ export function Commit({ sha }: { sha: string | null | undefined }) {
 
 export function KoerselLink({ id, children }: { id: string; children: ReactNode }) {
     return <a className="fjv-a-link" href={rutehref("analyser", id)}>{children}</a>;
+}
+
+/** Advarslen, når kørslens modelkode eller df-data ikke er hentet som zip af regnemotoren (fund 3.6; beregn.ts › kodeOprindelse). */
+export function KodeOprindelse({ miljoe_json }: { miljoe_json: string | null | undefined }) {
+    const { advarsler } = kodeOprindelse(miljoe_json);
+    if (advarsler.length === 0) return null;
+    return <p className="fjv-tilstand" data-tone="advarsel" role="status">{advarsler.join(" ")}</p>;
 }
 
 /** Spor A/B-mærket på balancetal. */

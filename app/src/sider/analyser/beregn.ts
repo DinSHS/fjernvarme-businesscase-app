@@ -497,6 +497,25 @@ function miljoeNoegle(json: string | null | undefined): string | null {
     } catch { return json; }
 }
 
+/**
+ * Hvor kørslens modelkode og df-data kom fra (runde 15, fund 3.6 fra den uafhængige test 18. november 2026).
+ * Arbejderen henter begge som zip fra GitHub ved den pinnede commit og gemmer zippens sha256 i kørslens miljø
+ * (`model_zip_sha256`, `data_zip_sha256`; fabric/fjv/runtime.py › sikr_repo, koersel.py). Står feltet der som `null`,
+ * er mappen lagt i cachen på anden vis (testen brugte `git archive`): kørslen kan være helt rigtig, men appen har
+ * ikke selv hentet koden og kan ikke stå inde for, at den er pinnens. En kørsel UDEN felterne (ældre motor, eller
+ * intet miljø) har aldrig målt det — dér siges intet.
+ */
+export function kodeOprindelse(miljoe_json: string | null | undefined): { model: string | null; data: string | null; advarsler: string[] } {
+    let m: Record<string, unknown> = {};
+    try { const v = miljoe_json ? JSON.parse(miljoe_json) as unknown : null; if (v && typeof v === "object") m = v as Record<string, unknown>; } catch { /* intet miljø at læse */ }
+    const sha = (k: string) => (typeof m[k] === "string" && m[k] ? m[k] as string : null);
+    const tom = (k: string) => k in m && !sha(k);
+    const advarsler: string[] = [];
+    if (tom("model_zip_sha256")) advarsler.push("Modelkoden blev ikke hentet som zip fra GitHub af regnemotoren (kørslen har intet zip-fingeraftryk): mappen med koden er lagt i cachen på anden vis, så appen kan ikke selv stå inde for, at den er den pinnede commit.");
+    if (tom("data_zip_sha256")) advarsler.push("df-data blev ikke hentet som zip fra GitHub af regnemotoren (kørslen har intet zip-fingeraftryk): appen kan ikke selv stå inde for, at datagrundlaget er den pinnede commit.");
+    return { model: sha("model_zip_sha256"), data: sha("data_zip_sha256"), advarsler };
+}
+
 /** En kørsels sammenligningsprofil. Perioden tages af manifestet, ellers af scenariet. */
 export function profil(k: Koersel, vaerkNavn: string, scenarie?: Scenarie | null, input?: readonly InputRække[]): Profil {
     const mp = manifestPeriode(k);

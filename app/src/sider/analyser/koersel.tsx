@@ -18,7 +18,7 @@ import {
 import { usePakke, type Pakke } from "./data";
 import { PERIODE, andel, celleTekst, pct1, visteAndele } from "./andele";
 import { DataIKoersel } from "./data-kort";
-import { Commit, Fakta, SporMaerke } from "./dele";
+import { Commit, Fakta, KodeOprindelse, SporMaerke } from "./dele";
 import { importTekst, useArkivimporter } from "@/lib/arkiv/markering";
 import DispatchKort from "./dispatch-kort";
 import { egneRaekker, useKandidatInfo } from "./kandidat-data";
@@ -137,6 +137,7 @@ function Spoergsmaal({ d }: { d: Pakke }) {
                 v != null && ["Varighed", varighed(v)],
                 !!imp && ["Oprindelse", `${importTekst(imp)} af ${imp.af}${imp.filnavn ? ` (${imp.filnavn})` : ""} — en historisk kørsel; den er ikke kørt i denne installation`],
             ]} />
+            <KodeOprindelse miljoe_json={d.k.miljoe_json} />
         </Kort>
     );
 }

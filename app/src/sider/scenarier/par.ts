@@ -77,6 +77,16 @@ function felter(input: ParInput, f: Forslag, navn: string, beskrivelse: string):
     return ud as unknown as ScenarieFelter;
 }
 
+/**
+ * Teksterne i trinnet "Bekræft og kør" (runde 15, fund 3.6): knappen hed "Bekræft og kør begge" og kortet "to
+ * kørsler", også når referencen blev genbrugt, og kun scenariet blev bestilt.
+ */
+export function parTekster(referenceGenbruges: boolean): { knap: string; afgraensning: string; bestilt: string } {
+    return referenceGenbruges
+        ? { knap: "Bekræft og kør scenariet", afgraensning: "én kørsel — referencen genbruges", bestilt: "Scenariet er bestilt; referencen er genbrugt — følg det på scenariets side." }
+        : { knap: "Bekræft og kør begge", afgraensning: "to kørsler", bestilt: "Begge er bestilt — følg dem på scenariets side." };
+}
+
 export type ParSvar = { ok: true; tilstand: ParTilstand } | { ok: false; tilstand: ParTilstand; afvist: string };
 
 /** Scenariets beskrivelse: spørgsmålet og knappens forklaring. Referencen står i `reference_scenarie_id`. */
