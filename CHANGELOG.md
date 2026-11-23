@@ -214,6 +214,14 @@ præsentationen og i datahåndteringen omkring kørslerne.
   - *Scenarier* dømmer på de frosne input: scenariets side bruger dem, den allerede henter, og oversigten og
     kandidatlisten henter en kort frossen profil (kørslens egne rækker og værkets tidsblok). Oversigtens fodtekst
     kalder ikke længere en ukendt værksrevision et krav.
+- **Sammenligningssiden viste differenser og farver ved en ukendt dom** (efterprøvningen af rettelserne, fund E).
+  *Δ driftsomkostning* viste stadig et tal under mærket "Kan ikke afgøres"; vandfaldets fodnote sagde "op = dyrere";
+  *Varmeproduktion pr. enhed*, *Måned for måned* og *Lager* spurgte slet ikke dommen, så farvevalget (Retning eller
+  Heatmap med rød/grøn) kunne farve et ΔRef efter fortegn; og balancekortet sagde, at kørslerne "afviger" i en
+  modelversion, der blot ikke kendes. Alle kort spørger nu samme dom. Ved *kan ikke afgøres* står de to kørslers tal
+  side om side med hver sin periode — uden afledt Δ, uden retningsfarve, uden prisord og uden vandfald — og
+  balancekortet siger, hvad der mangler. Ved *ikke direkte sammenlignelige* er ΔRef neutralt, og farvevalget er slået
+  fra. Kortet *Kan de to kørsler sammenlignes?* viser også varmelast og solprofil.
 
 ## [Ikke udgivet] — 0.4.0
 

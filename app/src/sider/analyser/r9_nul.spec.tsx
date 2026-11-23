@@ -11,13 +11,14 @@ import { TKR } from "./ibcs-grafer";
 import { Maaneder } from "./koersel";
 import { MaanedDelta } from "./sammenlign";
 import { tal } from "@/lib/format";
+import { SAMMENLIGNELIG } from "./profil.testdata";
 
 /** Et tal, som det står i cellen, der læses som nul: 0, 0,00, −0, 0,0 %, … */
 const VIST_NUL = /^[−+-]?0(,0+)?( %)?$/;
 
 const række = (maaned: string, objekt: string | null, noegle: string, vaerdi: number): Maaned =>
     ({ id: `${maaned}|${objekt}|${noegle}`, koersel_id: "k", maaned, objekt, noegle, vaerdi } as unknown as Maaned);
-const pakke = (rækker: Maaned[]): Pakke => ({ maaneder: maanedstabel(rækker) } as unknown as Pakke);
+const pakke = (rækker: Maaned[]): Pakke => ({ maaneder: maanedstabel(rækker), profil: SAMMENLIGNELIG } as unknown as Pakke);
 
 /** Alle celler i tabellen: [vist tekst, farvet?]. Farvet = data-heat eller en inline-farve (Retning sætter kun color). */
 function celler(c: HTMLElement): [string, boolean][] {

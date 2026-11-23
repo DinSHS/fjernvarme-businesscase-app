@@ -10,12 +10,13 @@ import type { Pakke } from "./data";
 import { Lager } from "./koersel";
 import { LagerDelta } from "./sammenlign";
 import { FLERE_LAGRE_FORBEHOLD } from "./tekster";
+import { SAMMENLIGNELIG } from "./profil.testdata";
 
 afterEach(cleanup);
 
 const lager = (navn: string, afladet: number | null, opladet: number | null = afladet): LagerTal =>
     ({ navn, opladet_mwh: opladet, afladet_mwh: afladet, niveau_start_mwh: 50, niveau_slut_mwh: 50, niveau_max_mwh: 120 });
-const pakke = (lagre: LagerTal[]): Pakke => ({ samlet: { lagre, tank_arbitrage_dkk: null } as unknown as Samlet, input: [], maaneder: maanedstabel([]) } as unknown as Pakke);
+const pakke = (lagre: LagerTal[]): Pakke => ({ samlet: { lagre, tank_arbitrage_dkk: null } as unknown as Samlet, input: [], maaneder: maanedstabel([]), profil: SAMMENLIGNELIG } as unknown as Pakke);
 const raekker = (c: HTMLElement) => [...c.querySelectorAll("tbody tr")].map((tr) => [...tr.querySelectorAll("td, th")].map((x) => x.textContent ?? ""));
 
 describe("3.7: differensen pr. lager vises med summen over lagre og med forbeholdet", () => {

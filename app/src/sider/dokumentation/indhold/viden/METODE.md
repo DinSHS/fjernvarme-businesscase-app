@@ -198,6 +198,9 @@ direkte sammenligneligt par vises som et resultat; ellers står tallene side om 
 Dommen fældes på det, der blev frosset eller målt for kørslen (ikke på scenariet, som det ser ud nu),
 og den er den samme under Scenarier og Analyser. Kendes et af felterne ikke for begge kørsler, er
 dommen *kan ikke afgøres*: der vises intet resultat, men parret kaldes heller ikke usammenligneligt.
+På sammenligningssiden spørger hvert kort den samme dom. Ved *kan ikke afgøres* står de to kørslers
+tal side om side, hver med sin egen periode, uden nogen differens, uden farver efter retning og
+uden ord som billigere eller dyrere; ved *ikke direkte sammenlignelige* vises differenserne neutralt.
 
 Perioden sammenlignes time for time og udledes af kørslens frosne input med modellens egen regel:
 scenariets slutdato er hele døgnet (til kl. 23 UTC), mens værkets egen tidsblok bruges præcis, som

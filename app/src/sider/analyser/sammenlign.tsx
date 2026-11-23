@@ -16,7 +16,7 @@ import { tal, tidspunkt } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
 import {
     absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceMetode, balanceKolonner, co2Etiket, co2Opgoerelse, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, kendtDelta, produktionsvarians, varianseOrden,
-    ikkeEtResultat, relativAfvigelse, sammenlignelighed, sammenlignelighedsDom, sammenligningsBudskab, spor, toleranceKr, type Profil,
+    ikkeEtResultat, relativAfvigelse, sammenlignelighed, sammenlignelighedsDom, sammenligningsBudskab, spor, tidsseriekildeTekst, toleranceKr, type Profil,
 } from "./beregn";
 import { sideRoller, tilSide, usePakke, type Pakke } from "./data";
 import { historie, ordnPar, vurder } from "./anbefaling";
@@ -28,6 +28,24 @@ import { formatValue } from "@/ibcs";
 import { DeltaTal, ENERGI_TABEL, NoegletalKort, OmkostningsVandfald, ProduktionMod, TKR, energiSkala, omkostningsBro, tkr, vandfaldSkala, type Noegletal } from "./ibcs-grafer";
 import { FLERE_LAGRE_FORBEHOLD, forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
 import { SammensaetningMaaned } from "./sammensaetning-kort";
+
+//-----------------------------------------------------------------------
+// Efterprøvningen af rettelserne i runde 15, fund E: ALLE kort på siden spørger samme dom
+// (beregn.ts › sammenlignelighedsDom) — også Varmeproduktion, Måned for måned, Balancemarked og Lager, som før
+// viste ΔRef og lod farvevalget (Retning/Heatmap, rød/grøn) farve det efter fortegn uden at spørge.
+//
+//   ja      ΔRef som før, med virkningsfarve hvor et mål har en retning.
+//   nej     tallene og ΔRef vises neutralt (ingen virkningsfarve, intet farvevalg), med grunden.
+//   ukendt  begge værdier side om side, hver med sin kørsels periode: INGEN afledt Δ, ingen retningsfarve, ingen
+//           prisord og intet "op = dyrere". Det er ikke en afvisning — grundlaget kendes bare ikke for begge.
+//-----------------------------------------------------------------------
+
+/** Kolonnehovedet ved en ukendt dom: rollen og kørslens EGEN periode. */
+const medPeriode = (rolle: string, p: Pakke) => `${rolle} · ${periodeTekst(p.profil.periode_start, p.profil.periode_slut)}`;
+/** Fodens sætning i et kort, der ved en ukendt dom ikke viser et ΔRef. */
+const UDEN_DELTA = "Der regnes ingen differens: hver kolonne er sin egen kørsel med sin egen periode.";
+/** Fodens sætning i et kort, der ved "nej" viser sit ΔRef neutralt. */
+const NEUTRAL_NEJ = "Kørslerne er ikke direkte sammenlignelige, så en forskel er ikke scenariets virkning: tallene er neutrale, og farvevalget er slået fra.";
 
 function begge(a: Hentet<Pakke | null>, b: Hentet<Pakke | null>): Hentet<[Pakke | null, Pakke | null]> {
     return {
@@ -74,13 +92,14 @@ export default function Sammenlign({ a, b, gåTil }: { a: string; b: string; gå
 
 /** IBCS-titlen (UN 2.2, spec analyser-sammenlign): værk + balancemarked / mål + enhed / periode + scenarier. */
 function titelblok(a: Pakke, b: Pakke) {
+    const ukendt = sammenlignelighedsDom(a.profil, b.profil).status === "ukendt";
     const bal = (p: Pakke) => (p.profil.med_balancering == null ? "balancemarked ukendt" : p.profil.med_balancering ? "med balancemarked" : "uden balancemarked");
     const balance = bal(a) === bal(b) ? bal(a) : `reference ${bal(a)}, scenarie ${bal(b)}`;
     const periode = (p: Pakke) => periodeTekst(p.profil.periode_start, p.profil.periode_slut);
     return {
         hvem: `${a.vaerkNavn}${b.vaerkNavn !== a.vaerkNavn ? ` og ${b.vaerkNavn}` : ""}, ${balance}`,
         hvad: <><strong>Driftsomkostning</strong> i t.kr. · <strong>varmeproduktion</strong> i MWh, pr. enhed</>,
-        hvornaar: `${periode(a) === periode(b) ? periode(a) : `${periode(a)} og ${periode(b)}`} · Ref og Scen, ΔRef`,
+        hvornaar: `${periode(a) === periode(b) ? periode(a) : `${periode(a)} og ${periode(b)}`} · Ref og Scen${ukendt ? "" : ", ΔRef"}`,
     };
 }
 
@@ -173,6 +192,9 @@ const PROFILFELTER: readonly [string, (p: Profil) => React.ReactNode, string][] 
     ["Modelversion", (p) => <Commit sha={p.model_commit} />, "model_commit"],
     ["Ønsket relativt gab", (p) => ellers(p.rel_gap, (v) => `${dec(v * 100, 3)} %`), "rel_gap"],
     ["Ønsket absolut gab", (p) => ellers(p.abs_gap, (v) => `${tal(v)} kr.`), "abs_gap"],
+    // Fund D: kørslens frosne varmelast og solprofil hører til grundlaget.
+    ["Varmelast", (p) => tidsseriekildeTekst("varmelast", p.varmelast), "varmelast"],
+    ["Solprofil", (p) => tidsseriekildeTekst("solprofil", p.solprofil), "solprofil"],
     ["Værkets revision", (p) => ellers(p.vaerk_revision, (v) => `r${v}`), "vaerk_revision"],
     ["Balancemarked", (p) => (p.med_balancering == null ? "ukendt" : p.med_balancering ? "med" : "uden"), "med_balancering"],
     ["Beregningsmiljø", (p) => <span className="fjv-a-svag">{p.miljoe ?? "ukendt"}</span>, "miljoe"],
@@ -184,7 +206,11 @@ export function Sammenlignelighed({ a, b }: { a: Pakke; b: Pakke }) {
     const adv = af.filter((x) => x.alvor === "advarsel"), ukendt = af.filter((x) => x.alvor === "ukendt");
     const noter = af.filter((x) => x.alvor === "note");
     const afv = new Map(af.map((x) => [x.felt as string, x]));
-    const liste = (xs: typeof af) => xs.map((x) => x.navn.toLowerCase()).join(", ");
+    // En afvigelse med sin egen `grund` (varmelast, solprofil) siges som en hel sætning; resten opremses.
+    const liste = (xs: typeof af) => xs.filter((x) => !x.grund).map((x) => x.navn.toLowerCase()).join(", ");
+    const grunde = (xs: typeof af) => xs.flatMap((x) => (x.grund ? [` ${x.grund}`] : [])).join("");
+    // Varmelast eller solprofil, der er forskellig UDEN at være en afvigelse, er scenariets eget valg (fund D).
+    const eget = (["varmelast", "solprofil"] as const).filter((f) => !afv.has(f) && tidsseriekildeTekst(f, a.profil[f]) !== tidsseriekildeTekst(f, b.profil[f]));
     // Gennemgangens fund 4: en ukendt værksrevision er (stadig) kun en note — men så må teksten ikke påstå "samme
     // værksrevision". Den siges for sig, også når den er ukendt på BEGGE sider (da er der ingen note at vise).
     const revUkendt = a.profil.vaerk_revision == null || b.profil.vaerk_revision == null;
@@ -192,9 +218,10 @@ export function Sammenlignelighed({ a, b }: { a: Pakke; b: Pakke }) {
     const budskab = status === "ja"
         ? `Direkte sammenlignelige: samme værk${revUkendt ? "" : " og værksrevision"}, periode, opløsning, data, modelversion og ønsket gab${andreNoter.length ? ` (forskelle: ${liste(andreNoter)})` : ""}.`
             + (revUkendt ? " Værkets revision kendes ikke for begge kørsler, så det er ikke bekræftet, at værket var det samme." : "")
+            + (eget.length ? ` ${eget.map((f) => (f === "varmelast" ? "Varmelasten" : "Solprofilen")).join(" og ")} er forskellig, men valgt i scenariet — det er parrets ændring.` : "")
         : status === "nej"
-            ? `Ikke direkte sammenlignelige — ${liste(adv)} afviger. Differensen blander flere effekter.`
-            : `Kan ikke afgøres — ${liste(ukendt)} kendes ikke for begge kørsler.`;
+            ? `Ikke direkte sammenlignelige${liste(adv) ? ` — ${liste(adv)} afviger` : ""}.${grunde(adv)} Differensen blander flere effekter.`
+            : `Kan ikke afgøres${liste(ukendt) ? ` — ${liste(ukendt)} kendes ikke for begge kørsler` : ""}.${grunde(ukendt)}`;
     return (
         <Kort titel="Kan de to kørsler sammenlignes?" afgraensning="differensmetoden" budskab={budskab}
             handling={status === "ja" ? <Maerke tone="ok">Sammenlignelige</Maerke>
@@ -209,6 +236,7 @@ export function Sammenlignelighed({ a, b }: { a: Pakke; b: Pakke }) {
                 {
                     navn: "Ens?", vis: (r) => {
                         const s = afv.get(r[2])?.alvor;
+                        if (!s && (eget as readonly string[]).includes(r[2])) return <Maerke>scenariets valg</Maerke>;
                         return !s ? <Maerke tone="ok">ens</Maerke> : s === "advarsel" ? <Maerke tone="advarsel">afviger</Maerke>
                             : s === "ukendt" ? <Maerke tone="advarsel">ukendt</Maerke> : <Maerke>forskellig</Maerke>;
                     },
@@ -227,14 +255,29 @@ export function DeltaObjektiv({ a, b }: { a: Pakke; b: Pakke }) {
     // Runde 15 (mail 1): uden direkte sammenlignelighed er tallet forskellen mellem to forskellige regnestykker. Det
     // vises uden virkningsfarve, uden "Større end tolerancen" (grønt) og uden "koster X kr. mindre end referencen".
     const dom = sammenlignelighedsDom(a.profil, b.profil);
+    if (dom.status === "ukendt") {
+        // Fund E: ingen afledt Δ ved en ukendt dom (før: tallet stod der stadig, under et advarselsmærke). De to
+        // driftsomkostninger står hver for sig med deres egen periode; mærket er neutralt — det er ikke en afvisning.
+        return (
+            <Kort titel="Driftsomkostning" afgraensning="reference og scenarie side om side, t.kr. — ingen differens"
+                budskab={`${dom.tekst} Der regnes derfor ingen differens.`}
+                handling={<Maerke>Kan ikke afgøres</Maerke>}
+                fod="Differensmetoden kræver, at kun det, scenariet ændrer, er forskelligt. Så længe grundlaget ikke kendes for begge kørsler, vises de to driftsomkostninger hver for sig med deres egen periode.">
+                <Fakta par={[
+                    ["Reference", `${tkr(objektiv(a))} t.kr. · ${periodeTekst(a.profil.periode_start, a.profil.periode_slut)}`],
+                    ["Scenarie", `${tkr(objektiv(b))} t.kr. · ${periodeTekst(b.profil.periode_start, b.profil.periode_slut)}`],
+                ]} />
+            </Kort>
+        );
+    }
     if (dom.status !== "ja") {
         return (
             <Kort titel="Δ driftsomkostning" afgraensning="scenarie − reference, t.kr. — ikke en differens efter differensmetoden"
                 budskab={`${dom.tekst} ${ikkeEtResultat(dom)}`}
-                handling={<Maerke tone="advarsel">{dom.status === "nej" ? "Ikke sammenlignelige" : "Kan ikke afgøres"}</Maerke>}
+                handling={<Maerke tone="advarsel">Ikke sammenlignelige</Maerke>}
                 fod="Differensmetoden kræver, at kun det, scenariet ændrer, er forskelligt. Tallet er de to driftsomkostninger trukket fra hinanden og kan hverken læses som en besparelse eller en meromkostning.">
                 {d && <>
-                    <div className="fjv-a-helt"><span className="fjv-a-svag">{medFortegn(d.delta / 1000, (v) => dec(v, 1))}</span><small>{dom.status === "nej" ? "t.kr. (ikke sammenlignelige)" : "t.kr. (kan ikke afgøres)"}</small></div>
+                    <div className="fjv-a-helt"><span className="fjv-a-svag">{medFortegn(d.delta / 1000, (v) => dec(v, 1))}</span><small>t.kr. (ikke sammenlignelige)</small></div>
                     <Fakta par={[["Præcist", `${medFortegn(d.delta)} kr.`]]} />
                 </>}
             </Kort>
@@ -297,6 +340,26 @@ export function Noegletal({ a, b }: { a: Pakke; b: Pakke }) {
         },
         ...(sa.balance || sb.balance ? [{ navn: "Balanceindtægt netto", enhed: "t.kr.", ref: sa.balance?.i_alt.netto ?? null, scen: sb.balance?.i_alt.netto ?? null, skala: TKR, polaritet: pol(1), relativ: false }] : []),
     ];
+    const co2Fod_ = co2Opgjort ? "" : ` CO₂-udledning: ${co2Mangel?.grund} (appens egen antagelse).`;
+    if (dom.status === "ukendt") {
+        // Fund E: begge værdier, hver i sin kolonne med kørslens egen periode — intet ΔRef og intet ΔRef%.
+        const rk: (readonly [string, string, string])[] = [
+            ["Driftsomkostning (t.kr.)", tkr(objektiv(a)), tkr(objektiv(b))],
+            co2Opgjort ? ["CO₂-udledning (t)", ellers(sa.co2_ton, tal), ellers(sb.co2_ton, tal)] : ["CO₂-udledning", co2Etiket(co2a), co2Etiket(co2b)],
+            [`Elforbrug (${el.enhed} el)`, ellers(sa.el_forbrug_mwh, (v) => formatValue(v, el.skala)), ellers(sb.el_forbrug_mwh, (v) => formatValue(v, el.skala))],
+            ...(sa.balance || sb.balance ? [["Balanceindtægt netto (t.kr.)", tkr(sa.balance?.i_alt.netto), tkr(sb.balance?.i_alt.netto)] as const] : []),
+        ];
+        return (
+            <Kort titel="Nøgletal" afgraensning="reference og scenarie side om side" budskab={`${dom.tekst} ${ikkeEtResultat(dom)}`}
+                fod={`${UDEN_DELTA}${co2Fod_}`}>
+                <Tabel rækker={rk} nøgle={(r) => r[0]} kolonner={[
+                    { navn: "Nøgletal", vis: (r) => r[0] },
+                    { navn: medPeriode("Reference", a), vis: (r) => r[1], tal: true },
+                    { navn: medPeriode("Scenarie", b), vis: (r) => r[2], tal: true },
+                ]} />
+            </Kort>
+        );
+    }
     const d = difference(a.k, b.k);
     const co2 = !co2Opgjort ? (co2Mangel?.status === "ukendt" ? "; CO₂-udledningen kan ikke afgøres" : "; CO₂-udledningen er ikke opgjort") : sa.co2_ton != null && sb.co2_ton != null ? `; CO₂ ${medFortegn(sb.co2_ton - sa.co2_ton)} t` : "";
     const co2Fod = co2Opgjort ? "" : ` CO₂-udledning: ${co2Mangel?.grund} (appens egen antagelse).`;
@@ -321,13 +384,21 @@ export function Vandfald({ a, b }: { a: Pakke; b: Pakke }) {
     const største = bro ? [...bro.steps].sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta))[0] : undefined;
     // Runde 15 (mail 1): trinene er neutrale, når parret ikke er direkte sammenligneligt (rød/grøn ville være en dom).
     const dom = sammenlignelighedsDom(a.profil, b.profil);
+    if (dom.status === "ukendt") {
+        // Fund E: vandfaldet deler et ΔRef op i poster. Uden et ΔRef er der intet at dele op — og intet "op = dyrere".
+        return (
+            <Kort titel="Hvad forklarer forskellen i driftsomkostning" afgraensning="vises ikke"
+                budskab={`${dom.tekst} Der regnes ingen differens, så der er ingen poster at vise.`}
+                fod="Vandfaldet deler en differens i driftsomkostning op i poster. De to kørslers egne tal står i kortet Nøgletal." />
+        );
+    }
     const budskab = !bro || !største ? "Mindst én af kørslerne mangler et objektiv."
         : dom.status !== "ja" ? `${dom.tekst} Posterne viser, hvor de to driftsomkostninger er forskellige — ikke hvad scenariet koster eller sparer.`
             : `Største post: ${største.label.charAt(0).toLowerCase()}${største.label.slice(1)} ${medFortegn(største.delta / 1000, (v) => dec(v, 1))} t.kr.`;
     return (
         <Kort titel="Hvad forklarer Δ driftsomkostning" afgraensning={`${bro ? vandfaldSkala(bro).enhed : "t.kr."}, Ref → Scen`} budskab={budskab}
             // Gennemgangens fund 4: fodnoten følger dommen — "rød" kun, når trinene faktisk er farvet.
-            fod={`${dom.status === "ja" ? "Trinene er i omkostningsfortegn (op = dyrere = rød)." : `Trinene er i omkostningsfortegn (op = dyrere) og neutrale: ${dom.status === "nej" ? "kørslerne er ikke direkte sammenlignelige" : "det kan ikke afgøres, om kørslerne kan sammenlignes"}, så et trin er hverken godt eller dårligt.`} Elsalg og balanceindtægt er indtægter, så mindre salg tæller som en omkostning. 'Brændsel, CO₂-kvoter, D&V, start m.m.' er resten: ΔRef minus de poster, kørslerne gemmer hver for sig — brændsel og CO₂-kvoter gemmes ikke pr. kørsel (de indgår i modellens objektiv, src/model.py:93-110). Ved balanceringsmetoden legacy er modellens brutto = netto; den sparede tarif og afgift står da i resten. Mangler en post i den ene kørsel, fordeles den ikke: den står i resten med navn og '(ukendt)'.`}>
+            fod={`${dom.status === "ja" ? "Trinene er i omkostningsfortegn (op = dyrere = rød)." : "Trinene er i omkostningsfortegn (op = dyrere) og neutrale: kørslerne er ikke direkte sammenlignelige, så et trin er hverken godt eller dårligt."} Elsalg og balanceindtægt er indtægter, så mindre salg tæller som en omkostning. 'Brændsel, CO₂-kvoter, D&V, start m.m.' er resten: ΔRef minus de poster, kørslerne gemmer hver for sig — brændsel og CO₂-kvoter gemmes ikke pr. kørsel (de indgår i modellens objektiv, src/model.py:93-110). Ved balanceringsmetoden legacy er modellens brutto = netto; den sparede tarif og afgift står da i resten. Mangler en post i den ene kørsel, fordeles den ikke: den står i resten med navn og '(ukendt)'.`}>
             {bro && <OmkostningsVandfald bro={bro} neutral={dom.status !== "ja"} />}
         </Kort>
     );
@@ -385,18 +456,40 @@ export function Produktion({ a, b }: { a: Pakke; b: Pakke }) {
         return pa == null || pb == null ? null : pb - pa;
     };
     const PP = { factor: 1, prefix: "", decimals: 1 };
-    const vis = useVisning("delta"), saet = useFarvesaet();
+    // Fund E: kortet spørger dommen. Kun et direkte sammenligneligt par får farvevalget (Retning/Heatmap); før farvede
+    // det et ΔRef grønt eller rødt efter fortegn, også når parret ikke kunne sammenlignes.
+    const dom = sammenlignelighedsDom(a.profil, b.profil);
+    const valgt = useVisning("delta"), saet = useFarvesaet();
+    const vis = dom.status === "ja" ? valgt : "ingen";
     const maks = useHeatMaks("Δpp·andel", skalaMaks(rækker.map(andelDelta)));
     const art = { slags: "delta", polaritet: 0, saet } as const;
+    if (dom.status === "ukendt") {
+        const E = energiSkala(rækker.flatMap((x) => [x.a, x.b]), ENERGI_TABEL);
+        return (
+            <Kort titel="Varmeproduktion pr. enhed" afgraensning={`hele perioden · Ref og Scen, ${E.enhed}`}
+                budskab={`${dom.tekst} Produktionen i de to kørsler står side om side.`}
+                fod={`${UDEN_DELTA} Andel er enhedens del af kørslens egen varmeproduktion.`}>
+                <Tabel rækker={rækker} nøgle={(x) => x.navn} kolonner={[
+                    { navn: "Enhed", vis: (x) => x.navn },
+                    { navn: `Ref (${E.enhed})`, vis: (x) => ellers(x.a, (z) => formatValue(z, E.skala)), tal: true },
+                    { navn: `Scen (${E.enhed})`, vis: (x) => ellers(x.b, (z) => formatValue(z, E.skala)), tal: true },
+                    { navn: "Andel Ref", vis: (x) => ellers(ea.get(x.navn)?.andel_pct, (z) => `${dec(z, 1)} %`), tal: true },
+                    { navn: "Andel Scen", vis: (x) => ellers(eb.get(x.navn)?.andel_pct, (z) => `${dec(z, 1)} %`), tal: true },
+                    { navn: "Driftstimer Ref", vis: (x) => ellers(ea.get(x.navn)?.driftstimer, tal), tal: true },
+                    { navn: "Driftstimer Scen", vis: (x) => ellers(eb.get(x.navn)?.driftstimer, tal), tal: true },
+                ]} />
+            </Kort>
+        );
+    }
     // Farvevalget gælder hele kortet (runde 11): under Retning og Heatmap tegner grafen ΔRef og ΔRef% i farvesættets
     // pol (ét trin); under Ingen er de neutrale (blå) som i IBCS. Tabellens legende nævner kun trinene — farverne står én gang.
     const legende = vis === "heatmap" ? forklaring(vis, art, [["", maks, `${dec(maks, 1)} pp`]]) : "";
-    const farver = vis === "ingen"
+    const farver = dom.status !== "ja" ? NEUTRAL_NEJ : vis === "ingen"
         ? "Afvigelserne er neutrale (blå): at en enhed producerer mere, er hverken godt eller skidt — virkningen står i Δ driftsomkostning."
         : `Farvevalget gælder hele kortet. ${FARVENAVNE[saet][0]}; virkningen står i Δ driftsomkostning. ${vis === "heatmap" ? "Grafen har ét trin (søjlens længde er størrelsen); tabellens celler har fem." : "Graf og tabeltal har samme farve for samme fortegn."}`;
     return (
         <Kort titel="Varmeproduktion pr. enhed" afgraensning="hele perioden · Ref og Scen, ΔRef, ΔRef%" budskab={budskab}
-            handling={<FarveValg slags="delta" />}
+            handling={dom.status === "ja" ? <FarveValg slags="delta" /> : undefined}
             fod={`Ref = omrids (reference), Scen = fyldt (scenarie), ΔRef = scenarie − reference på samme skala; ΔRef% med én decimal, N/A når referencen er 0. ${farver} Tabellen viser andel og driftstimer, som grafen ikke viser.${legende ? ` Tabellens ΔRef andel: ${legende.replace(/^[^;]*; jo/, "jo")}` : ""}`}>
             <ProduktionMod varians={v} fremhaev={fremhaev && Math.abs(fremhaev.delta) > 0.5 ? fremhaev.navn : undefined}
                 farve={vis === "ingen" ? undefined : (x) => grafFarve(vis, art, x)} />
@@ -450,15 +543,25 @@ export function MaanedDelta({ a, b }: { a: Pakke; b: Pakke }) {
     // totalen ikke vasker månederne ud. Varmebehovet står i samme MWh og deler månedernes skala.
     const rækker = [...enheder, VARMEBEHOV];
     const celle = (m: string, e: string) => d(m, e === VARMEBEHOV ? null : e);
-    const vis = useVisning("delta"), saet = useFarvesaet();
+    // Fund E: kortet spørger dommen (se Produktion).
+    const dom = sammenlignelighedsDom(a.profil, b.profil);
+    const valgt = useVisning("delta"), saet = useFarvesaet();
+    const vis = dom.status === "ja" ? valgt : "ingen";
     const maksM = useHeatMaks("ΔMWh·måned", skalaMaks(måneder.flatMap((m) => rækker.map((e) => celle(m, e)))));
     const maksP = useHeatMaks("ΔMWh·periode", skalaMaks(rækker.map((e) => celle("periode", e))));
     const art = { slags: "delta", polaritet: 0, saet } as const;
     const legende = forklaring(vis, art, [["månederne", maksM, en(maksM)], ["hele perioden", maksP, en(maksP)]]);
+    if (dom.status === "ukendt") {
+        // Hele kortet er et ΔRef pr. måned; uden det henvises til niveauet (sammensætningen i Ref og Scen) ovenfor.
+        return (
+            <Kort titel="Måned for måned" afgraensning="varmeproduktion pr. enhed og måned — ingen differens"
+                budskab={`${dom.tekst} Der regnes ingen differens pr. måned; sammensætningen pr. måned i de to kørsler står i kortet ovenfor.`} />
+        );
+    }
     return (
         <Kort titel="Måned for måned" afgraensning={`ΔRef = Scen − Ref, varmeproduktion i ${E.enhed} pr. enhed og måned`} budskab={budskab}
-            handling={<FarveValg slags="delta" />}
-            fod={`ΔRef = scenarie − reference${vis === "ingen" ? ", neutral (blå)" : ""}. ${legende ? `${legende} ` : ""}'Hele perioden' er differensen mellem de to kørslers periode-rækker (regnet på de fulde tidsserier), ikke summen af månederne.`}>
+            handling={dom.status === "ja" ? <FarveValg slags="delta" /> : undefined}
+            fod={`ΔRef = scenarie − reference${vis === "ingen" ? ", neutral (blå)" : ""}. ${dom.status === "nej" ? `${NEUTRAL_NEJ} ` : ""}${legende ? `${legende} ` : ""}'Hele perioden' er differensen mellem de to kørslers periode-rækker (regnet på de fulde tidsserier), ikke summen af månederne.`}>
             <Tabel rækker={rækker} nøgle={(e) => e} kolonner={[
                 { navn: "Enhed", vis: (e) => (e === VARMEBEHOV ? <span className="fjv-a-svag">Varmebehov</span> : e) },
                 ...kolonner.map((m) => ({
@@ -477,12 +580,15 @@ export function MaanedDelta({ a, b }: { a: Pakke; b: Pakke }) {
 /** Rækkenøgle for varmebehovet i månedstabellen (kan ikke kollidere med et enhedsnavn: modellens navne er [a-z0-9_]). */
 const VARMEBEHOV = "Varmebehov ";
 
-function BalanceDelta({ a, b }: { a: Pakke; b: Pakke }) {
+export function BalanceDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const ba = a.samlet.balance, bb = b.samlet.balance;
     const rk = ba || bb ? balanceDelta(ba, bb, balanceKolonner([a.k.model_commit, b.k.model_commit])) : [];   // K7-F2
     // Heatmap: 'I alt'-rækkerne har deres egen skala, så summen ikke vasker produkterne ud (IBCS.md §8). Balanceindtægt:
     // op = godt (polaritet +1): farvesættets godt/dårligt (grøn/blå = godt, rød = dårligt; Neutral: temaets god/dårlig). Hooks før den tidlige retur.
-    const vis = useVisning("delta"), saet = useFarvesaet();
+    // Fund E: kortet spørger dommen (se Produktion).
+    const dom = sammenlignelighedsDom(a.profil, b.profil);
+    const valgt = useVisning("delta"), saet = useFarvesaet();
+    const vis = dom.status === "ja" ? valgt : "ingen";
     const maksP = useHeatMaks("Δt.kr.·balance", skalaMaks(rk.filter((r) => r.marked !== "I alt").map((r) => r.delta)));
     const maksI = useHeatMaks("Δt.kr.·balance i alt", skalaMaks(rk.filter((r) => r.marked === "I alt").map((r) => r.delta)));
     if (!ba && !bb) {
@@ -491,22 +597,42 @@ function BalanceDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const forskel = balanceForskel(a, b);
     const dNetto = ba?.i_alt.netto != null && bb?.i_alt.netto != null ? bb.i_alt.netto - ba.i_alt.netto : null;
     const sporer = [...new Set([...(ba ? [spor(a.input)] : []), ...(bb ? [spor(b.input)] : [])])];
+    if (dom.status === "ukendt") {
+        // Fund E: egen tekst for MANGLENDE grundlag. Før: "kørslerne afviger også i modelversion" om en modelversion,
+        // der ikke kendes — og en "balancemarkedets værdi"-lignende omkostningsforskel i samme sætning.
+        const kun = ba && !bb ? "Kun referencen er regnet med balancemarked. " : bb && !ba ? "Kun scenariet er regnet med balancemarked. " : "";
+        return (
+            <Kort titel="Balancemarked" afgraensning="pr. marked og produkt, t.kr." budskab={`${kun}${dom.tekst} Balancetallene står side om side, uden differens.`}
+                fod={<>{forbehold("altid ved balancetal")} {sporer.includes("A") ? SPOR_A_FORBEHOLD : ""} {sporer.includes("B") ? SPOR_B_FORBEHOLD : ""} Netto og brutto lægges aldrig sammen. {UDEN_DELTA}</>}>
+                <div className="fjv-a-raekke">{sporer.map((s) => <SporMaerke key={s} spor={s} />)}</div>
+                <Tabel rækker={rk} nøgle={(r) => `${r.marked}|${r.felt}`} kolonner={[
+                    { navn: "Marked", vis: (r) => (r.marked === "I alt" ? <strong>I alt</strong> : r.marked) },
+                    { navn: "Produkt", vis: (r) => r.etiket },
+                    { navn: "Ref (t.kr.)", vis: (r) => tkr(r.a), tal: true },
+                    { navn: "Scen (t.kr.)", vis: (r) => tkr(r.b), tal: true },
+                ]} />
+            </Kort>
+        );
+    }
+    // Ved "nej": kun det, der FAKTISK afviger, kaldes en afvigelse — et felt, der ikke kendes, er ikke forskelligt.
+    const ukendteNavne = new Set(dom.afvigelser.filter((x) => x.alvor === "ukendt").map((x) => x.navn));
+    const afvigende = forskel?.type === "blandet" ? forskel.grunde.filter((g) => !ukendteNavne.has(g)) : [];
     const hvem = (m: "a" | "b") => (m === "b" ? "scenariet" : "referencen");
     // Codex K3-N3: "balancemarkedets værdi" kun når balanceringen er den eneste forskel.
     const grund = (g: string) => (g.includes(".") ? (() => { const f = feltInfo(g); return `${f.etiket.toLowerCase()}${f.objekt ? ` (${f.objekt})` : ""}`; })() : g.toLowerCase());
     const budskab = forskel?.type === "vaerdi"
         ? `Kun ${hvem(forskel.med)} har balancemarked, og det er den eneste forskel. Balancemarkedets værdi: ${tkr(forskel.vaerdi)} t.kr. — se Δ driftsomkostning; indtægten nedenfor er ikke værdien.`
         : forskel?.type === "blandet"
-            ? `Kun ${hvem(forskel.med)} har balancemarked, men kørslerne afviger også i ${forskel.grunde.slice(0, 3).map(grund).join(", ")}${forskel.grunde.length > 3 ? " med flere" : ""}. Δ driftsomkostning (${medFortegn((forskel.med === "b" ? -forskel.vaerdi : forskel.vaerdi) / 1000, (v) => dec(v, 1))} t.kr.) er en samlet omkostningsforskel med flere ændringer — ikke balancemarkedets værdi.`
+            ? `Kun ${hvem(forskel.med)} har balancemarked, men kørslerne afviger også i ${afvigende.slice(0, 3).map(grund).join(", ")}${afvigende.length > 3 ? " med flere" : ""}. Δ driftsomkostning (${medFortegn((forskel.med === "b" ? -forskel.vaerdi : forskel.vaerdi) / 1000, (v) => dec(v, 1))} t.kr.) er en samlet omkostningsforskel med flere ændringer — ikke balancemarkedets værdi.`
             : dNetto !== null ? `ΔRef balanceindtægt netto ${medFortegn(dNetto / 1000, (v) => dec(v, 1))} t.kr.` : "Balancetallene kan ikke stilles op mod hinanden.";
     // Runde 15 (mail 1): ingen godt/dårligt-farve på balancetallene, når parret ikke er direkte sammenligneligt.
-    const polaritet = sammenlignelighedsDom(a.profil, b.profil).status === "ja" ? 1 : 0;
+    const polaritet = dom.status === "ja" ? 1 : 0;
     const art = { slags: "delta", polaritet, saet } as const;
     const legende = forklaring(vis, art, [["markederne", maksP, `${tkr(maksP)} t.kr.`], ["I alt", maksI, `${tkr(maksI)} t.kr.`]]);
     return (
         <Kort titel="Balancemarked" afgraensning="pr. marked og produkt, t.kr." budskab={budskab}
-            handling={rk.some((r) => r.delta != null) ? <FarveValg slags="delta" /> : undefined}
-            fod={<>{forbehold("altid ved balancetal")} {sporer.includes("A") ? SPOR_A_FORBEHOLD : ""} {sporer.includes("B") ? SPOR_B_FORBEHOLD : ""} Netto og brutto lægges aldrig sammen. Δ vises kun, når begge kørsler har tallet.{legende ? ` ΔRef: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}</>}>
+            handling={dom.status === "ja" && rk.some((r) => r.delta != null) ? <FarveValg slags="delta" /> : undefined}
+            fod={<>{forbehold("altid ved balancetal")} {sporer.includes("A") ? SPOR_A_FORBEHOLD : ""} {sporer.includes("B") ? SPOR_B_FORBEHOLD : ""} Netto og brutto lægges aldrig sammen. Δ vises kun, når begge kørsler har tallet.{dom.status === "nej" ? ` ${NEUTRAL_NEJ}` : ""}{legende ? ` ΔRef: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}</>}>
             <div className="fjv-a-raekke">{sporer.map((s) => <SporMaerke key={s} spor={s} />)}</div>
             <Tabel rækker={rk} nøgle={(r) => `${r.marked}|${r.felt}`} kolonner={[
                 { navn: "Marked", vis: (r) => (r.marked === "I alt" ? <strong>I alt</strong> : r.marked) },
@@ -543,22 +669,26 @@ export function LagerDelta({ a, b }: { a: Pakke; b: Pakke }) {
     const E = energiSkala([...navne.flatMap((n) => [la.get(n)?.afladet_mwh, lb.get(n)?.afladet_mwh, dl(n)]), ...(flere ? [sa, sb, sd] : [])], ENERGI_TABEL);
     const en = (v: number) => formatValue(v, E.skala);
     // Samme MWh-skala som månedstabellens 'Hele perioden' (begge er periodens ΔRef i MWh; IBCS.md §8).
-    const vis = useVisning("delta"), saet = useFarvesaet();
+    // Fund E: kortet spørger dommen (se Produktion).
+    const dom = sammenlignelighedsDom(a.profil, b.profil);
+    const valgt = useVisning("delta"), saet = useFarvesaet();
+    const vis = dom.status === "ja" ? valgt : "ingen";
     const maks = useHeatMaks("ΔMWh·periode", skalaMaks(navne.map(dl)));
     const art = { slags: "delta", polaritet: 0, saet } as const;
     const legende = forklaring(vis, art, [["", maks, `${en(maks)} ${E.enhed}, samme skala som månedstabellens 'Hele perioden'`]]);
     return (
-        <Kort titel="Lager" afgraensning={`afladet energi, ${E.enhed}`} budskab={budskab}
-            handling={navne.length ? <FarveValg slags="delta" /> : undefined}
-            fod={`${kunA.length || kunB.length ? forbehold("ved sammenligning med og uden tank") : "Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance)."}${flere ? ` ${FLERE_LAGRE_FORBEHOLD}` : ""}${legende ? ` ΔRef: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
+        <Kort titel="Lager" afgraensning={`afladet energi, ${E.enhed}`} budskab={dom.status === "ukendt" ? `${budskab} ${dom.tekst}` : budskab}
+            handling={dom.status === "ja" && navne.length ? <FarveValg slags="delta" /> : undefined}
+            fod={`${dom.status === "ukendt" ? `${UDEN_DELTA} ` : dom.status === "nej" ? `${NEUTRAL_NEJ} ` : ""}${kunA.length || kunB.length ? forbehold("ved sammenligning med og uden tank") : "Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance)."}${flere ? ` ${FLERE_LAGRE_FORBEHOLD}` : ""}${legende ? ` ΔRef: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
             <Tabel rækker={rækker} nøgle={(n) => n} tom="Ingen lagre." kolonner={[
                 { navn: "Lager", vis: (n) => (n === ALLE ? <strong>Alle lagre</strong> : n) },
                 { navn: `Ref (${E.enhed})`, vis: (n) => (n === ALLE ? <strong>{ellers(sa, en)}</strong> : la.has(n) ? ellers(la.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
                 { navn: `Scen (${E.enhed})`, vis: (n) => (n === ALLE ? <strong>{ellers(sb, en)}</strong> : lb.has(n) ? ellers(lb.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
-                {
-                    navn: "ΔRef", tal: true, farve: (n) => farvning(vis, n === ALLE ? null : dl(n), art, maks, E.skala),
-                    vis: (n) => (n === ALLE ? <strong><DeltaTal v={sd} polaritet={0} skala={E.skala} /></strong> : <DeltaTal v={dl(n)} polaritet={0} skala={E.skala} arv={farverTeksten(vis, art)} />),
-                },
+                // Fund E: intet ΔRef ved en ukendt dom — kun de to kørslers egne tal.
+                ...(dom.status === "ukendt" ? [] : [{
+                    navn: "ΔRef", tal: true, farve: (n: string) => farvning(vis, n === ALLE ? null : dl(n), art, maks, E.skala),
+                    vis: (n: string) => (n === ALLE ? <strong><DeltaTal v={sd} polaritet={0} skala={E.skala} /></strong> : <DeltaTal v={dl(n)} polaritet={0} skala={E.skala} arv={farverTeksten(vis, art)} />),
+                }]),
             ]} />
         </Kort>
     );

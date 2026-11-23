@@ -169,12 +169,14 @@ describe("fund 4: teksterne i Analyser følger dommen", () => {
         const sammenlignelig = render(<Vandfald a={pakke(koersel(ref, 866_567.72, TO))} b={pakke(koersel(scen, 843_051.76, TO))} />);
         expect(sammenlignelig.container.textContent).toMatch(/op = dyrere = rød/);
         cleanup();
-        for (const b of [koersel(scen, 3_441_004.22, manifest("2026-01-05", "2026-01-16")), koersel(scen, 843_051.76, TO, UDEN)]) {
-            const { container } = render(<Vandfald a={pakke(koersel(ref, 866_567.72, TO))} b={pakke(b)} />);
-            expect(container.textContent).not.toMatch(/rød|grøn/);                 // før: "(op = dyrere = rød)" under neutrale trin
-            expect(container.textContent).toMatch(/neutrale/);
-            cleanup();
-        }
+        const ikke = render(<Vandfald a={pakke(koersel(ref, 866_567.72, TO))} b={pakke(koersel(scen, 3_441_004.22, manifest("2026-01-05", "2026-01-16")))} />);
+        expect(ikke.container.textContent).not.toMatch(/rød|grøn/);                // før: "(op = dyrere = rød)" under neutrale trin
+        expect(ikke.container.textContent).toMatch(/neutrale/);
+        cleanup();
+        // Efterprøvningen af rettelserne (fund E): ved en UKENDT dom vises slet ingen trin — og intet "op = dyrere".
+        const ukendt = render(<Vandfald a={pakke(koersel(ref, 866_567.72, TO))} b={pakke(koersel(scen, 843_051.76, TO, UDEN))} />);
+        expect(ukendt.container.textContent).not.toMatch(/rød|grøn|op = dyrere/);
+        expect(ukendt.container.textContent).toMatch(/ingen poster at vise/);
     });
 });
 

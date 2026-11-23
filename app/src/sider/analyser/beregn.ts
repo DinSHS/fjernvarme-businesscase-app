@@ -559,6 +559,10 @@ export function tidsseriekilde(input: readonly InputRække[], rolle: "varmelast"
 }
 
 const serieNøgle = (k: Tidsseriekilde): string => (k.art === "serie" ? `serie:${k.sha256 ?? `id:${k.id ?? "?"}`}` : k.art === "fil" ? `fil:${k.fil}` : "standard");
+/** En kørsels varmelast eller solprofil som kort tekst til sammenligningstabellen ("ukendt", når det frosne input ikke kendes). */
+export function tidsseriekildeTekst(felt: "varmelast" | "solprofil", k: Tidsseriekilde | null | undefined): string {
+    return k ? serieTekst(k, felt === "varmelast" ? "syntesen" : "værkets egen profil") : "ukendt";
+}
 const serieTekst = (k: Tidsseriekilde, standard: string): string => (k.art === "serie" ? `tidsserie ${k.sha256 ? k.sha256.slice(0, 12) : "uden sha256"}` : k.art === "fil" ? k.fil : standard);
 
 /**

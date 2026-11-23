@@ -11,12 +11,13 @@ import type { Pakke } from "./data";
 import { energi } from "./fmt";
 import { Enheder, Maaneder } from "./koersel";
 import { LagerDelta, MaanedDelta } from "./sammenlign";
+import { SAMMENLIGNELIG } from "./profil.testdata";
 
 const PERIODER = ["2026-01", "2026-02", "periode"];
 const måneder = (vs: Record<string, (number | null)[]>) => maanedstabel(Object.entries(vs).flatMap(([objekt, værdier]) =>
     værdier.map((vaerdi, i) => ({ id: objekt + i, koersel_id: "k", maaned: PERIODER[i], objekt, noegle: "produktion_gwh", vaerdi }))) as unknown as Maaned[]);
 const lager = (navn: string, afladet_mwh: number | null) => ({ navn, afladet_mwh }) as LagerTal;
-const pakke = (vs: Record<string, (number | null)[]>, lagre: LagerTal[] = []) => ({ maaneder: måneder(vs), samlet: { lagre }, input: [] }) as unknown as Pakke;
+const pakke = (vs: Record<string, (number | null)[]>, lagre: LagerTal[] = []) => ({ maaneder: måneder(vs), samlet: { lagre }, input: [], profil: SAMMENLIGNELIG }) as unknown as Pakke;
 type Celle = { text: string | null; heat: string | null };
 const celler = (c: HTMLElement): Celle[][][] => [...c.querySelectorAll("table")]
     .map((t) => [...t.querySelectorAll("tbody tr")].map((r) => [...r.querySelectorAll("td")].map((td) => ({ text: td.textContent, heat: td.getAttribute("data-heat") }))))
@@ -92,8 +93,8 @@ describe("ukendt er ikke 0 — men et objekt, kørslen ikke har, er stadig 0", (
     it("måned: en enhed, referencen ikke har, tæller 0; ukendt varmebehov er –", () => {
         const a = måneder({ x: [1, 1, 2] }), b = måneder({ x: [1, 1, 2], ny: [0.5, 0.5, 1] });
         const behov = (t: number | null) => ({ id: `b${t}`, koersel_id: "k", maaned: "2026-01", objekt: null, noegle: "varmebehov_gwh", vaerdi: t }) as unknown as Maaned;
-        const pa = { maaneder: maanedstabel([...rækkerAf(a), behov(null)]), samlet: { lagre: [] }, input: [] } as unknown as Pakke;
-        const pb = { maaneder: maanedstabel([...rækkerAf(b), behov(3)]), samlet: { lagre: [] }, input: [] } as unknown as Pakke;
+        const pa = { maaneder: maanedstabel([...rækkerAf(a), behov(null)]), samlet: { lagre: [] }, input: [], profil: SAMMENLIGNELIG } as unknown as Pakke;
+        const pb = { maaneder: maanedstabel([...rækkerAf(b), behov(3)]), samlet: { lagre: [] }, input: [], profil: SAMMENLIGNELIG } as unknown as Pakke;
         const c = celler(render(<MaanedDelta a={pa} b={pb} />).container)[0];
         expect(række(c, "ny")[1]).toEqual({ text: "+500", heat: "op-5" });
         expect(række(c, "Varmebehov")[1]).toEqual({ text: "–", heat: null });

@@ -9,6 +9,7 @@ import type { Scenarie } from "../../../../rayfin/data/Scenarie";
 import type { Pakke } from "../../analyser/data";
 import { Produktion } from "../../analyser/sammenlign";
 import Oversigt from "../Oversigt";
+import { SAMMENLIGNELIG } from "../../analyser/profil.testdata";
 
 const hentet = <T,>(data: T) => ({ data, fejl: undefined, indlæser: false, genindlæs: () => {} });
 const ref = { id: "s1", vaerk_id: "v1", navn: "Reference", arkiveret: false, oprettet: new Date(Date.UTC(2026, 9, 1)), oprettet_af: "a@example.org" } as Scenarie;
@@ -60,7 +61,7 @@ describe("scenarielisten uden farvevalg og heatmap", () => {
         expect(localStorage.getItem("fjv.tabelfarve.farvesaet.v1")).toBe("roedgroen");
         cleanup();
         const enheder = (x: number) => [{ navn: "a", produktion_mwh: x, andel_pct: 40, driftstimer: 1 }, { navn: "b", produktion_mwh: 1000, andel_pct: 60, driftstimer: 1 }];
-        const p = (x: number) => ({ samlet: { enheder: enheder(x), lagre: [] }, input: [] }) as unknown as Pakke;
+        const p = (x: number) => ({ samlet: { enheder: enheder(x), lagre: [] }, input: [], profil: SAMMENLIGNELIG }) as unknown as Pakke;
         const { container } = render(<Produktion a={p(500)} b={{ ...p(900), samlet: { enheder: [{ ...enheder(900)[0], andel_pct: 47 }, { ...enheder(900)[1], andel_pct: 53 }], lagre: [] } } as unknown as Pakke} />);
         expect(container.querySelector("[aria-label='Farver i tabellen'] [aria-pressed='true']")!.textContent).toBe("Heatmap");
         expect(container.querySelector("[aria-label='Farvesæt'] [aria-pressed='true']")!.textContent).toBe("Rød/grøn");
