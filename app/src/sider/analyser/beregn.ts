@@ -19,6 +19,7 @@ import { tal } from "@/lib/format";
 import { VISNINGSNAVNE } from "./anbefaling.data";
 import { ENHEDSTYPER, FELTER, FORBRUGSMODREGNING_VERSIONER, REGISTER } from "./etiketter.data";
 import { dec, gabPct, periodeTekst } from "./fmt";
+import { kendtRepoProfil } from "./repoprofiler";
 
 export type Koersel = FjvSchema["Koersel"];
 export type Noegletal = FjvSchema["KoerselNoegletal"];
@@ -537,10 +538,15 @@ export function effektivPeriode(input: readonly InputRække[]): { fra: string; t
  */
 export type Serievalg = "udtrykkeligt" | "arvet" | "ukendt";
 export type Tidsseriekilde =
-    | { art: "serie"; id: string | null; sha256: string | null; valg: Serievalg }
+    /** `brug: "ubrugt"` (P2-4): kørslens manifest dokumenterer, at den IKKE brugte den frosne serie (`profil`). */
+    | { art: "serie"; id: string | null; sha256: string | null; valg: Serievalg; brug?: "ubrugt" }
     | { art: "fil"; fil: string; valg: "udtrykkeligt" }
-    /** Varmelast: syntesen. Solprofil: værkets egen profilsti. */
-    | { art: "standard"; valg: Serievalg };
+    /**
+     * Varmelast: syntesen. Solprofil: værkets egen profilsti. `repo` (P2-4): stien er én af modelrepoets profilfiler,
+     * og dens hash i normaliseret form er målt ved kørslens modelversion (`repoprofiler.ts`) — samme kilde som en
+     * tidsserie med den hash.
+     */
+    | { art: "standard"; valg: Serievalg; repo?: { sti: string; sha256: string } };
 
 export function tidsseriekilde(input: readonly InputRække[], rolle: "varmelast" | "solprofil"): Tidsseriekilde {
     const e = effektivtInput(input);
@@ -560,12 +566,52 @@ export function tidsseriekilde(input: readonly InputRække[], rolle: "varmelast"
     return { art: "standard", valg: "arvet" };
 }
 
-const serieNøgle = (k: Tidsseriekilde): string => (k.art === "serie" ? `serie:${k.sha256 ?? `id:${k.id ?? "?"}`}` : k.art === "fil" ? `fil:${k.fil}` : "standard");
+const serieNøgle = (k: Tidsseriekilde): string => (k.art === "serie" ? `serie:${k.sha256 ?? `id:${k.id ?? "?"}`}` : k.art === "fil" ? `fil:${k.fil}` : k.repo ? `serie:${k.repo.sha256}` : "standard");
+const erUbrugt = (k: Tidsseriekilde): boolean => k.art === "serie" && k.brug === "ubrugt";
+
+/**
+ * P2-4 (tredje rettelsesrunde i runde 15): mærk en frossen serie som ubrugt, når kørslens manifest dokumenterer det.
+ * Arbejderen skriver `manifest_json.tidsserier = {anvendt: {rolle: {id, sha256, …}}, ubrugt: {rolle: {id, sha256,
+ * grund}}}` (fabric/fjv/koersel.py › tidsserie_brug; i dag kun solprofilen kan være ubrugt: ingen aktiv
+ * solvarmeenhed). Registreringen skal gælde NETOP den frosne serie (samme sha256); ældre kørsler uden den er ikke
+ * dokumenteret.
+ */
+function medBrug(kilde: Tidsseriekilde, k: Koersel, rolle: "varmelast" | "solprofil"): Tidsseriekilde {
+    if (kilde.art !== "serie" || !kilde.sha256) return kilde;
+    try {
+        const m = k.manifest_json ? JSON.parse(k.manifest_json) as { tidsserier?: { ubrugt?: Record<string, { sha256?: unknown } | undefined> } } : null;
+        const u = m?.tidsserier?.ubrugt?.[rolle];
+        if (u && typeof u.sha256 === "string" && u.sha256.toLowerCase() === kilde.sha256) return { ...kilde, brug: "ubrugt" };
+    } catch { /* ulæseligt manifest: intet er dokumenteret */ }
+    return kilde;
+}
+
+/**
+ * P2-4: uden en frossen solprofil-tidsserie læser enheden værkets egen profilsti. Er den ÉN af modelrepoets filer
+ * (alle enheder med en sti peger på samme fil), og er filens normaliserede hash målt ved kørslens modelversion, bærer
+ * kilden hashen — så den er samme kilde som en tidsserie med samme indhold. Markøren `tidsserie:solprofil` er ikke en
+ * fil; flere forskellige filer beviser ikke én kilde.
+ */
+function medRepoProfil(kilde: Tidsseriekilde, input: readonly InputRække[], model_commit: string | null): Tidsseriekilde {
+    if (kilde.art !== "standard") return kilde;
+    const stier = new Set<string>();
+    for (const [sti, x] of effektivtInput(input).blade) {
+        if (!/^units\.[^.]+\.production_profile_path$/.test(sti)) continue;
+        let v: unknown;
+        try { v = JSON.parse(x.vaerdi_json) as unknown; } catch { return kilde; }
+        if (typeof v === "string" && v) stier.add(v);
+    }
+    if (stier.size !== 1) return kilde;
+    const [sti] = [...stier];
+    const sha256 = kendtRepoProfil(sti, model_commit);
+    return sha256 ? { ...kilde, repo: { sti, sha256 } } : kilde;
+}
 /** En kørsels varmelast eller solprofil som kort tekst til sammenligningstabellen ("ukendt", når det frosne input ikke kendes). */
 export function tidsseriekildeTekst(felt: "varmelast" | "solprofil", k: Tidsseriekilde | null | undefined): string {
     return k ? serieTekst(k, felt === "varmelast" ? "syntesen" : "værkets egen profil") : "ukendt";
 }
-const serieTekst = (k: Tidsseriekilde, standard: string): string => (k.art === "serie" ? `tidsserie ${k.sha256 ? k.sha256.slice(0, 12) : "uden sha256"}` : k.art === "fil" ? k.fil : standard);
+const serieTekst = (k: Tidsseriekilde, standard: string): string => (k.art === "serie" ? `tidsserie ${k.sha256 ? k.sha256.slice(0, 12) : "uden sha256"}${erUbrugt(k) ? " (bruges ikke)" : ""}`
+    : k.art === "fil" ? k.fil : `${standard}${k.repo ? ` (${k.repo.sti})` : ""}`);
 
 /**
  * Dommen over to kørslers varmelast eller solprofil (fund D, leads afgørelse):
@@ -580,11 +626,17 @@ const serieTekst = (k: Tidsseriekilde, standard: string): string => (k.art === "
  * Det frosne input beviser i dag aldrig "arvet" for en frossen serie (se `Tidsseriekilde`), så grenen "grundlaget er
  * ændret" nås først, når frysningen bærer valgets oprindelse; indtil da ender et skift af værkets aktive serie som
  * ukendt — aldrig som et grønt resultat, som før.
+ *
+ * Tredje rettelsesrunde, P2-4 — to ting, der IKKE er en afvigelse, selv om hashene er forskellige:
+ *  * begge kørslers manifest dokumenterer, at serien ikke blev brugt (`brug: "ubrugt"`): den indgik i ingen af de to
+ *    beregninger. Kun på BEGGE sider; er den brugt eller udokumenteret på den ene, gælder reglerne ovenfor;
+ *  * modelrepoets profilfil over for samme fil frosset som tidsserie (`repo`, se `medRepoProfil`): samme kilde.
  */
 export function tidsserieafvigelse(felt: "varmelast" | "solprofil", a: Tidsseriekilde | null | undefined, b: Tidsseriekilde | null | undefined): Afvigelse | null {
     const [navn, standard] = felt === "varmelast" ? ["Varmelast", "syntesen"] : ["Solprofil", "værkets egen profil"];
     if (!a || !b) return { felt, navn, a: a ? serieTekst(a, standard) : "ukendt", b: b ? serieTekst(b, standard) : "ukendt", alvor: "ukendt" };
     if (serieNøgle(a) === serieNøgle(b)) return null;
+    if (erUbrugt(a) && erUbrugt(b)) return null;
     if (a.valg === "udtrykkeligt" || b.valg === "udtrykkeligt") return null;
     const [ta, tb] = [serieTekst(a, standard), serieTekst(b, standard)];
     const lille = navn.toLowerCase();
@@ -594,6 +646,22 @@ export function tidsserieafvigelse(felt: "varmelast" | "solprofil", a: Tidsserie
     }
     return { felt, navn: `${navn}ens oprindelse`, a: ta, b: tb, alvor: "ukendt",
         grund: `De to kørsler har ikke samme ${lille} (${ta} mod ${tb}), og det frosne input viser ikke, om den er valgt i scenariet eller arvet fra værket.` };
+}
+
+/**
+ * Hvordan to kørslers varmelast eller solprofil forholder sig, når det IKKE er en afvigelse — til teksten i
+ * sammenligningskortet (P2-4). Før sagde kortet "valgt i scenariet" om enhver forskel, der ikke spærrede.
+ *   samme      samme kilde, samme tekst
+ *   samme_fil  samme kilde i to former: modelrepoets profilfil og samme fil frosset som tidsserie
+ *   ubrugt     forskellige serier, men ingen af kørslerne brugte sin
+ *   valg       forskellige, og mindst én er bevisligt valgt i scenariet — parrets ændring
+ *   afviger    alt andet (se `tidsserieafvigelse`)
+ */
+export function tidsserieforhold(a: Tidsseriekilde | null | undefined, b: Tidsseriekilde | null | undefined): "samme" | "samme_fil" | "ubrugt" | "valg" | "afviger" {
+    if (!a || !b) return "afviger";
+    if (serieNøgle(a) === serieNøgle(b)) return a.art === b.art ? "samme" : "samme_fil";
+    if (erUbrugt(a) && erUbrugt(b)) return "ubrugt";
+    return a.valg === "udtrykkeligt" || b.valg === "udtrykkeligt" ? "valg" : "afviger";
 }
 
 function manifestPeriode(k: Koersel): { start: string | null; slut: string | null; oploesning: string | null } {
@@ -651,6 +719,7 @@ export function profil(k: Koersel, vaerkNavn: string, scenarie?: Scenarie | null
         if (r) medBal = r.vaerdi_json === "true";
     }
     const oploesning = k.oploesning ?? mp.oploesning ?? null;
+    const model_commit = k.model_commit ?? frossetFlag(input, "model_commit");
     // Præcis periode (fund D, leads afgørelse): første kilde er den effektive periode udledt af det FROSNE input.
     // Manifestet bruges kun, hvor det selv bærer tidspunkter — modellen skriver rene datoer (src/manifest.py ›
     // _date10), og en dato siger ikke, om kørslen sluttede kl. 00 eller kl. 23 — og ellers som KONTROL: siger dets
@@ -667,9 +736,11 @@ export function profil(k: Koersel, vaerkNavn: string, scenarie?: Scenarie | null
         periode_start: mp.start?.slice(0, 10) ?? scenarie?.periode_start ?? udledt?.fra.slice(0, 10) ?? null,
         periode_slut: mp.slut?.slice(0, 10) ?? scenarie?.periode_slut ?? udledt?.til.slice(0, 10) ?? null,
         periode_fra: periode?.fra ?? null, periode_til: periode?.til ?? null,
-        varmelast: input ? tidsseriekilde(input, "varmelast") : null, solprofil: input ? tidsseriekilde(input, "solprofil") : null,
+        // P2-4: manifestets registrering af brugen, og modelrepoets profilfil med sin målte hash.
+        varmelast: input ? medBrug(tidsseriekilde(input, "varmelast"), k, "varmelast") : null,
+        solprofil: input ? medRepoProfil(medBrug(tidsseriekilde(input, "solprofil"), k, "solprofil"), input, model_commit) : null,
         oploesning,
-        data_commit: k.data_commit ?? frossetFlag(input, "data_commit"), model_commit: k.model_commit ?? frossetFlag(input, "model_commit"),
+        data_commit: k.data_commit ?? frossetFlag(input, "data_commit"), model_commit,
         rel_gap: k.oensket_rel_gap ?? null, abs_gap: k.oensket_abs_gap ?? null,
         med_balancering: medBal,
         miljoe: miljoeNoegle(k.miljoe_json),

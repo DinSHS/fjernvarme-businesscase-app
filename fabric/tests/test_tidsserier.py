@@ -216,6 +216,39 @@ class TestModellensLaeserErBitvisEns(unittest.TestCase):
             tekst = (MODELREPO / x["vaerk"]["kilde_fil"]).read_text(encoding="utf-8")
             self.assertEqual("production_profile_path" in tekst, bool(x.get("solprofil_sha256")), x["id"])
 
+    def test_referencetallenes_solprofilsti_og_versioner_holder(self):
+        """Tredje rettelsesrunde i runde 15, P2-4: appen regner casens egen profilfil og SAMME fil frosset som
+        tidsserie for én kilde, når den frosne sti og modelversionen beviser det (``analyser/repoprofiler.ts``). Beviset
+        er tre felter i ``viden/referencetal.json``: ``solprofil_sti`` skal være den sti, casen selv bruger; pinnen skal
+        stå blandt ``solprofil_model_commits``; og filen skal være samme git-blob ved hver af de oplyste versioner
+        (ellers gælder hashen ikke dér). Blob-sammenligningen kræver, at modelrepoet er en git-klon med de commits."""
+        import json
+        import subprocess
+
+        import yaml
+        from fjv import konstanter as K
+        ref = json.loads((HER.parent.parent / "viden" / "referencetal.json").read_text(encoding="utf-8"))
+        med = [r for r in next(g for g in ref["grupper"] if g["id"] == "readme")["referencer"] if r.get("solprofil_sha256")]
+        self.assertTrue(med)
+        for x in med:
+            case = yaml.safe_load((MODELREPO / x["vaerk"]["kilde_fil"]).read_text(encoding="utf-8"))
+            stier = {e["production_profile_path"] for e in case["units"].values()
+                     if isinstance(e, dict) and e.get("production_profile_path")}
+            self.assertEqual(stier, {x["solprofil_sti"]}, x["id"])
+            commits = x["solprofil_model_commits"]
+            self.assertIn(K.MODEL_COMMIT, commits, x["id"])
+            for c in commits:
+                self.assertRegex(c, r"^[0-9a-f]{40}$")
+
+            def blob(commit, sti=x["solprofil_sti"]):
+                r = subprocess.run(["git", "-C", str(MODELREPO), "rev-parse", f"{commit}:{sti}"],
+                                   capture_output=True, text=True)
+                return r.stdout.strip() if r.returncode == 0 else None
+            blobs = {c: blob(c) for c in commits}
+            if any(b is None for b in blobs.values()):
+                self.skipTest("modelrepoet er ikke en git-klon med alle de oplyste versioner")
+            self.assertEqual(len(set(blobs.values())), 1, f"{x['id']}: filen er ikke den samme ved {blobs}")
+
 
 # ------------------------------------------------------------------ frysning -> case + argv
 

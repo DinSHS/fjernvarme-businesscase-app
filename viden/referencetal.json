@@ -245,6 +245,9 @@
           },
           "solprofil_sha256": "35706793bf4dd9c81d88c2b045e39ef9866c17ccfb86e0703067fb42a9e93f29",
           "solprofil_kilde": "data/solar_andeby_dmi_karup.csv (cases/andeby.yaml:399), i appens normaliserede form (fabric/fjv/tidsserie.py); samme fil ved eef950a, 90fb16e og 939228a. Målt 2026-11-23; holdt op mod modelrepoet af fabric/tests/test_tidsserier.py",
+          "solprofil_sti": "data/solar_andeby_dmi_karup.csv",
+          "solprofil_model_commits": ["eef950a2ac7b3808a9456dcf48742ce08e52366a", "90fb16eb1e2d5aa8e619b5a951b93760fa803985", "939228aa048563c8498382a79d207c8b03fbda57"],
+          "solprofil_model_commits_betyder": "De modelversioner, hvor filen i solprofil_sti er SAMME git-blob (6cb3c59, målt 2026-11-23) og dermed har hashen i solprofil_sha256 i normaliseret form. Appen bruger det til at genkende casens egen profilfil og samme fil frosset som tidsserie som én kilde (analyser/repoprofiler.ts). Tilføj en version, når filen er målt ved den.",
           "scenarie": {
             "navn": "Andeby helår, med balancering",
             "periode_start": null,
@@ -298,6 +301,9 @@
           },
           "solprofil_sha256": "35706793bf4dd9c81d88c2b045e39ef9866c17ccfb86e0703067fb42a9e93f29",
           "solprofil_kilde": "data/solar_andeby_dmi_karup.csv (cases/andeby.yaml:399), i appens normaliserede form (fabric/fjv/tidsserie.py); samme fil ved eef950a, 90fb16e og 939228a. Målt 2026-11-23; holdt op mod modelrepoet af fabric/tests/test_tidsserier.py",
+          "solprofil_sti": "data/solar_andeby_dmi_karup.csv",
+          "solprofil_model_commits": ["eef950a2ac7b3808a9456dcf48742ce08e52366a", "90fb16eb1e2d5aa8e619b5a951b93760fa803985", "939228aa048563c8498382a79d207c8b03fbda57"],
+          "solprofil_model_commits_betyder": "De modelversioner, hvor filen i solprofil_sti er SAMME git-blob (6cb3c59, målt 2026-11-23) og dermed har hashen i solprofil_sha256 i normaliseret form. Appen bruger det til at genkende casens egen profilfil og samme fil frosset som tidsserie som én kilde (analyser/repoprofiler.ts). Tilføj en version, når filen er målt ved den.",
           "scenarie": {
             "navn": "Andeby helår, uden balancering",
             "periode_start": null,

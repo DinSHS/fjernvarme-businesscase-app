@@ -8,7 +8,10 @@
 //
 //   * kørslens EGNE rækker (kilde `scenarie`/`aendring`): periode, pins, tidsserier, varmelastfil, solverens gab;
 //   * værkets tidsblok (`time.start`, `time.end`, `time.resolution`; kilde `vaerk`) — den akse, kørslen regnes på, når
-//     scenariet ingen datoer har.
+//     scenariet ingen datoer har;
+//   * enhedernes profilsti (`units.<enhed>.production_profile_path`; tredje rettelsesrunde, P2-4): den fil, en
+//     solvarmeenhed læser, når kørslen ingen solprofil-tidsserie har frosset. Uden den ville oversigten dømme et par
+//     anderledes end Analyser, som har hele det frosne input (beregn.ts › profil, repoprofiler.ts).
 //
 // Det er netop det, `effektivPeriode`, `frossetFlag` og `tidsseriekilde` læser. Hentes i bidder (DAB: 100 rækker pr.
 // side; `læs` paginerer).
@@ -21,6 +24,10 @@ import { læs } from "./laes";
 /** De af værkets blade, sammenligningsprofilen læser. */
 export const PROFIL_VAERKSSTIER = ["time.start", "time.end", "time.resolution"] as const;
 
+/** Endelsen på en enheds profilsti. Filteret bruger `endsWith` (som `startsWith` i lib/arkiv/markering.ts). */
+const PROFILSTI_ENDELSE = ".production_profile_path";
+const PROFILSTI = /^units\.[^.]+\.production_profile_path$/;
+
 const BID = 50;
 
 /** Filteret for én bid kørsler: deres egne rækker og værkets tidsblok. */
@@ -28,14 +35,14 @@ export function kortProfilFilter(ids: readonly string[]) {
     return {
         and: [
             { or: ids.map((id) => ({ koersel_id: { eq: id } })) },
-            { or: [{ kilde: { eq: "aendring" } }, { kilde: { eq: "scenarie" } }, ...PROFIL_VAERKSSTIER.map((sti) => ({ sti: { eq: sti } }))] },
+            { or: [{ kilde: { eq: "aendring" } }, { kilde: { eq: "scenarie" } }, ...PROFIL_VAERKSSTIER.map((sti) => ({ sti: { eq: sti } })), { sti: { endsWith: PROFILSTI_ENDELSE } }] },
         ],
     };
 }
 
 /** Hører rækken til den korte profil? (Den falske klient i tests forstår ikke alle filtre; tjek igen.) */
 export function iKortProfil(r: { kilde: string; sti: string }): boolean {
-    return r.kilde !== "vaerk" || (PROFIL_VAERKSSTIER as readonly string[]).includes(r.sti);
+    return r.kilde !== "vaerk" || (PROFIL_VAERKSSTIER as readonly string[]).includes(r.sti) || PROFILSTI.test(r.sti);
 }
 
 export async function hentKortFrossenProfil(ids: readonly string[]): Promise<Map<string, InputRække[]>> {

@@ -200,6 +200,17 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **Ubrugte solprofiler kunne gøre et gyldigt par ukendt** (tredje rettelsesrunde, P2-4). To kørsler med samme værk,
+  revision, pins, gab og periode kunne have hver sin frosne solprofil, selv om ingen af dem brugte en (værkets aktive
+  profilfil var skiftet, og værket har ingen aktiv solvarmeenhed) — og dommen blev *kan ikke afgøres*. En serie, som
+  begge kørslers manifest dokumenterer som ubrugt (regnemotorens registrering), indgår ikke længere i dommen;
+  tabellen skriver "(bruges ikke)". Kun på begge sider: er serien brugt eller udokumenteret på den ene, er dommen som
+  før. Desuden er modelrepoets egen profilfil og den samme fil frosset som tidsserie nu samme kilde, når den frosne
+  profilsti og modelversionen beviser det — i dag Andebys `data/solar_andeby_dmi_karup.csv` ved `eef950a`, `90fb16e`
+  og `939228a` (`viden/referencetal.json` › `solprofil_sti`, `solprofil_model_commits`). Den korte frosne profil,
+  oversigten og kandidatlisten henter, tager derfor også enhedernes profilsti med (filter `endsWith`; ikke kørt mod
+  DAB i Fabric). Sammenligningskortet siger nu, HVORFOR en forskel ikke spærrer: valgt i scenariet, ubrugt i begge,
+  eller samme fil — før hed alle tre "valgt i scenariet".
 - **Analysers kopi af README-referencerne var forældet** (fundet i tredje rettelsesrunde). De to Andeby-referencer
   fik i anden rettelsesrunde deres egen solprofil (`solprofil_sha256`), men den genererede kopi, Analysers
   kørselsliste læser (`sammensaetning.data.ts`), blev ikke bygget igen. En Andeby-kørsel med casens egen solprofil

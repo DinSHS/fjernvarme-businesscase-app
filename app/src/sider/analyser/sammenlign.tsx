@@ -16,7 +16,7 @@ import { tal, tidspunkt } from "@/lib/format";
 import type { OmraadeProps } from "../typer";
 import {
     absolutGab, aendringTekst, balanceDelta, balanceForskel, balanceMetode, balanceKolonner, co2Etiket, co2Opgoerelse, difference, differenceTekst, feltInfo, intervalTekst, sammenlignelighedStatus, toleranceKlasse, farvepladser, gabTekst, inputDiff, kendtDelta, produktionsvarians, varianseOrden,
-    ikkeEtResultat, relativAfvigelse, sammenlignelighed, sammenlignelighedsDom, sammenligningsBudskab, spor, tidsseriekildeTekst, toleranceKr, type Profil,
+    ikkeEtResultat, relativAfvigelse, sammenlignelighed, sammenlignelighedsDom, sammenligningsBudskab, spor, tidsserieforhold, tidsseriekildeTekst, toleranceKr, type Profil,
 } from "./beregn";
 import { sideRoller, tilSide, usePakke, type Pakke } from "./data";
 import { historie, ordnPar, vurder } from "./anbefaling";
@@ -209,8 +209,13 @@ export function Sammenlignelighed({ a, b }: { a: Pakke; b: Pakke }) {
     // En afvigelse med sin egen `grund` (varmelast, solprofil) siges som en hel sætning; resten opremses.
     const liste = (xs: typeof af) => xs.filter((x) => !x.grund).map((x) => x.navn.toLowerCase()).join(", ");
     const grunde = (xs: typeof af) => xs.flatMap((x) => (x.grund ? [` ${x.grund}`] : [])).join("");
-    // Varmelast eller solprofil, der er forskellig UDEN at være en afvigelse, er scenariets eget valg (fund D).
-    const eget = (["varmelast", "solprofil"] as const).filter((f) => !afv.has(f) && tidsseriekildeTekst(f, a.profil[f]) !== tidsseriekildeTekst(f, b.profil[f]));
+    // Varmelast eller solprofil, der er forskellig UDEN at være en afvigelse (fund D) — og hvorfor (tredje
+    // rettelsesrunde, P2-4): scenariets eget valg, en serie ingen af kørslerne brugte, eller samme fil i to former.
+    // Før hed alle tre "valgt i scenariet".
+    const forhold = (f: "varmelast" | "solprofil") => (afv.has(f) ? "afviger" : tidsserieforhold(a.profil[f], b.profil[f]));
+    const felter = ["varmelast", "solprofil"] as const;
+    const navnAf = (fs: readonly ("varmelast" | "solprofil")[]) => fs.map((f) => (f === "varmelast" ? "Varmelasten" : "Solprofilen")).join(" og ");
+    const eget = felter.filter((f) => forhold(f) === "valg"), ubrugte = felter.filter((f) => forhold(f) === "ubrugt"), sammeFil = felter.filter((f) => forhold(f) === "samme_fil");
     // Gennemgangens fund 4: en ukendt værksrevision er (stadig) kun en note — men så må teksten ikke påstå "samme
     // værksrevision". Den siges for sig, også når den er ukendt på BEGGE sider (da er der ingen note at vise).
     const revUkendt = a.profil.vaerk_revision == null || b.profil.vaerk_revision == null;
@@ -218,7 +223,9 @@ export function Sammenlignelighed({ a, b }: { a: Pakke; b: Pakke }) {
     const budskab = status === "ja"
         ? `Direkte sammenlignelige: samme værk${revUkendt ? "" : " og værksrevision"}, periode, opløsning, data, modelversion og ønsket gab${andreNoter.length ? ` (forskelle: ${liste(andreNoter)})` : ""}.`
             + (revUkendt ? " Værkets revision kendes ikke for begge kørsler, så det er ikke bekræftet, at værket var det samme." : "")
-            + (eget.length ? ` ${eget.map((f) => (f === "varmelast" ? "Varmelasten" : "Solprofilen")).join(" og ")} er forskellig, men valgt i scenariet — det er parrets ændring.` : "")
+            + (eget.length ? ` ${navnAf(eget)} er forskellig, men valgt i scenariet — det er parrets ændring.` : "")
+            + (ubrugte.length ? ` ${navnAf(ubrugte)} er forskellig, men ingen af kørslerne bruger den (regnemotorens registrering), så den indgår ikke i dommen.` : "")
+            + (sammeFil.length ? ` ${navnAf(sammeFil)} er samme fil i begge kørsler: modelrepoets egen fil og den samme fil gemt som tidsserie.` : "")
         : status === "nej"
             ? `Ikke direkte sammenlignelige${liste(adv) ? ` — ${liste(adv)} afviger` : ""}.${grunde(adv)} Differensen blander flere effekter.`
             : `Kan ikke afgøres${liste(ukendt) ? ` — ${liste(ukendt)} kendes ikke for begge kørsler` : ""}.${grunde(ukendt)}`;

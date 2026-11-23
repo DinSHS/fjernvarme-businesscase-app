@@ -211,7 +211,10 @@ grundlaget uden at værkets revision gør det; kan det frosne input ikke vise, o
 scenariet eller arvet fra værket, er dommen *kan ikke afgøres*. Vælger et scenarie udtrykkeligt den
 syntetiske varmelast, fryses valget med kørslen, så *målt mod syntetisk varmelast* kan sammenlignes,
 også når den målte last er en af værkets egne tidsserier. Kørsler bestilt før runde 15's tredje
-rettelsesrunde bærer ikke det bevis og forbliver *kan ikke afgøres* over for en tidsserie.
+rettelsesrunde bærer ikke det bevis og forbliver *kan ikke afgøres* over for en tidsserie. En
+tidsserie, som regnemotoren har registreret som ubrugt i begge kørsler (fx en solprofil på et værk
+uden aktiv solvarme), indgår ikke i dommen, og modelrepoets egen profilfil regnes for samme kilde
+som den samme fil gemt som tidsserie.
 (Kilde: KONTRAKT §6b; doc/TROFASTHED.md §5)
 
 **Solvergab.** Solveren stopper, når den har bevist, at løsningen ligger inden for et gab af det
