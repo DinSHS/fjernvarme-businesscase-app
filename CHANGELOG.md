@@ -63,10 +63,11 @@ kørsler (demo-scenarierne D01–D11, budstrategiens kontroltal, Spor A, Spor B 
   kørsel, der stoppede på tidsgrænsen, får mærket *Stoppet på tidsgrænsen* i kørselslisten, i Scenarier-oversigten og
   på scenariets side, som også viser usikkerheden.
 - **Rækken *Alle lagre*** i lagertabellen i en sammenligning, og et forbehold i kortene *Lager* og *Intervaldispatch*:
-  med flere lagre er fordelingen mellem dem ikke entydig. `bevis_app_vej.py` sammenligner timefiler på summen over
-  lagre, når de ikke er byte-ens, og melder casen som `ENS*` (`viden/vaerktoej/lagersum.py`, modprøver i
-  `test_trofasthed.py`). Målt 23. november 2026: beviset er byte-ens for Andeby i begge januarvinduer; ingen målt
-  case har udløst `ENS*`.
+  med flere lagre er fordelingen mellem dem ikke entydig. `bevis_app_vej.py` kræver fortsat byte-lighed (objektiv,
+  `_hourly.csv`, `_kpi.csv`); er timefilerne ikke byte-ens, er casen en `FORSKEL`, og beviset skriver en diagnose af,
+  om kun fordelingen mellem lagrene afviger — summen over lagre af niveau, netto, opladning og afladning, med endelige
+  tal og komplette serier (`viden/vaerktoej/lagersum.py`, modprøver i `test_trofasthed.py`). Diagnosen giver ikke en
+  bestået case. Målt 23. november 2026: beviset er byte-ens for Andeby i begge januarvinduer.
 - Kørslens side advarer, når modelkoden eller df-data ikke er hentet som zip af regnemotoren (tomt
   `model_zip_sha256`/`data_zip_sha256`). En adresse, der ikke findes (`#/findes/ikke`), giver en besked i stedet for
   stille at vise Konfiguration.

@@ -10,11 +10,13 @@ tabel; uden kommando: appens egen antagelse, uden balancemarked og med syntetisk
 
 og der sammenlignes: manifestets objektiv, ``_hourly.csv`` og ``_kpi.csv`` byte for byte. Én kørsel ad gangen.
 
-A er modelrepoets EGEN casefil, B appens (skrevet fra bladene). Med to eller flere lagre er fordelingen mellem dem
-ikke entydig (runde 15, den uafhængige test 18. november 2026): i nogle vinduer vælger solveren en anden fordeling
-for de to filer, med samme objektiv, produktion og samlede lager. Er timefilerne ikke byte-ens, sammenlignes de derfor
-på summen over lagre (``lagersum.py``): alt uden for lagerkolonnerne skal stadig være tegn for tegn ens, objektivet
-og ``_kpi.csv`` ligeså. En sådan case meldes som ``ENS*`` med den største forskel pr. lager — ikke som byte-ens.
+En case BESTÅR, når — og kun når — alle tre er ens (``bestaaet``). A er modelrepoets EGEN casefil, B appens (skrevet
+fra bladene). Med to eller flere lagre er fordelingen mellem dem ikke entydig (runde 15, den uafhængige test
+18. november 2026): solveren kan vælge en anden fordeling for de to filer med samme objektiv og samlede lager. Afviger
+timefilerne, er casen en ``FORSKEL`` — og beviset skriver en DIAGNOSE ved siden af (``lagersum.py``): om det kun er
+fordelingen mellem lagrene, og om samlet niveau, netto, opladning og afladning er ens. Diagnosen giver aldrig en
+bestået case. (Runde 15 lod en sådan case bestå som ``ENS*``; kodegennemgangen, fund 7, viste, at reglen kunne skjule
+ændrede resultater. Ingen målt case har udløst den.)
 
     python viden/vaerktoej/bevis_app_vej.py --model <modelrepo> [--ud <mappe>] [case.yaml …]
 
@@ -55,6 +57,13 @@ def _resultat(ud: Path) -> dict:
     m = json.loads(next(ud.glob("*_manifest.json")).read_text(encoding="utf-8"))
     return {"objektiv": m["noegletal"]["objektiv_dkk"], "hourly": _sha(next(ud.glob("*_hourly.csv"))),
             "kpi": _sha(next(ud.glob("*_kpi.csv")))}
+
+
+def bestaaet(a: dict, b: dict) -> bool:
+    """Beståelseskravet for én case: manifestets objektiv, ``_hourly.csv`` og ``_kpi.csv`` er ens byte for byte
+    (``_resultat``). Intet andet består — heller ikke en timefil, der "kun" afviger i fordelingen mellem lagre
+    (kodegennemgangen af runde 15, fund 7; diagnosen står i ``lagersum.py``)."""
+    return a == b
 
 
 def _git_head(mappe: Path) -> str | None:
@@ -145,34 +154,31 @@ def main(argv: list[str]) -> int:
                 "argv_direkte": argv_a[2:-2], "argv_app": plan.cli, "sek": [round(ta), round(tb)]}
         if ra.returncode == 0 and rb.returncode == 0:
             A, B = _resultat(a_ud), _resultat(b_ud)
-            post.update(direkte=A, app=B, ens=A == B, maade="byte" if A == B else None)
-            if A != B and A["objektiv"] == B["objektiv"] and A["kpi"] == B["kpi"]:
-                # Kun timefilen afviger: er det fordelingen mellem flere lagre (samme sum), er kørslen den samme.
+            post.update(direkte=A, app=B, ens=bestaaet(A, B))
+            if A["hourly"] != B["hourly"]:
+                # Diagnose, ikke dom: hvad består forskellen i timefilerne af? Casen er en FORSKEL uanset svaret.
                 ls = lagersum.sammenlign(next(a_ud.glob("*_hourly.csv")).read_text(encoding="utf-8"),
                                          next(b_ud.glob("*_hourly.csv")).read_text(encoding="utf-8"))
-                post.update(lagersum={k: ls[k] for k in ("ens_paa_sum", "lagre", "maks_pr_lager_mwh", "forskelle")})
-                if ls["ens_paa_sum"]:
-                    post.update(ens=True, maade="sum_over_lagre")
+                post.update(diagnose={**{k: ls[k] for k in ("ens_paa_sum", "sum", "lagre", "maks_pr_lager_mwh", "forskelle")},
+                                      "tekst": lagersum.diagnose(ls)})
         else:
             post.update(ens=False, fejl=[(ra.stderr or ra.stdout)[-600:], (rb.stderr or rb.stdout)[-600:]])
         alle.append(post)
         kr = lambda x: f"{x:>12,.0f}".replace(",", ".")  # noqa: E731  (dansk tusindtalsskilletegn)
         obj = f"{kr(post['direkte']['objektiv'])} / {kr(post['app']['objektiv'])}" if "direkte" in post else "fejl".rjust(27)
-        maerke = "ENS*" if post.get("maade") == "sum_over_lagre" else "ENS " if post["ens"] else "FORSKEL"
+        maerke = "ENS " if post["ens"] else "FORSKEL"
         print(f"{maerke} {fil:<34} {obj} kr.  ({post['kommando']}; {post['sek'][0]}+{post['sek'][1]} s)",
               flush=True)
-        if post.get("maade") == "sum_over_lagre":
-            print(f"     * timefilen er ens på summen over lagre ({', '.join(post['lagersum']['lagre'])}); fordelingen mellem dem "
-                  f"afviger med højst {post['lagersum']['maks_pr_lager_mwh']:.1f} MWh pr. lager. Objektiv og _kpi.csv er ens.")
-        elif post.get("lagersum"):
-            print("     timefilen afviger også på summen over lagre:", post["lagersum"]["forskelle"][:1])
+        if post.get("diagnose"):
+            print(f"     diagnose (ikke bestået): {post['diagnose']['tekst']}")
         if "fejl" in post:
             print("   ", post["fejl"][0].strip().splitlines()[-1:] or "", post["fejl"][1].strip().splitlines()[-1:] or "")
     (o.ud / "resultat.json").write_text(json.dumps(alle, ensure_ascii=False, indent=1), encoding="utf-8")
     n = sum(1 for p in alle if p["ens"])
-    paa_sum = sum(1 for p in alle if p.get("maade") == "sum_over_lagre")
-    print(f"{n} af {len(alle)} cases ens (objektiv, _hourly.csv og _kpi.csv byte for byte"
-          + (f"; {paa_sum} af dem kun på summen over lagre, mærket ENS*" if paa_sum else "") + f") · detaljer: {o.ud / 'resultat.json'}")
+    kun_fordeling = sum(1 for p in alle if not p["ens"] and (p.get("diagnose") or {}).get("ens_paa_sum"))
+    print(f"{n} af {len(alle)} cases ens (objektiv, _hourly.csv og _kpi.csv byte for byte)"
+          + (f"; {kun_fordeling} af forskellene er ifølge diagnosen kun fordelingen mellem lagre — de består ikke" if kun_fordeling else "")
+          + f" · detaljer: {o.ud / 'resultat.json'}")
     return 0 if n == len(alle) else 1
 
 

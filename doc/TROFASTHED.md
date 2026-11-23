@@ -170,14 +170,21 @@ januarvinduer (5.–6. og 5.–16. januar 2026): 866.568 og 3.441.004 kr. Også 
 ad appens vej mod `--mip-gap 0.0002` direkte var de byte-ens. Testen blev kørt ved `90fb16e` gennem den kørende app;
 forskellen er altså hverken casefilens skrivemåde alene eller gabet alene.
 
-Derfor: **sammenlign summen over lagre, ikke hvert lager for sig.** Appen gør det samme, hvor et tal står pr. lager:
+Derfor: **læs summen over lagre, ikke hvert lager for sig.** Appen gør det, hvor et tal står pr. lager:
 lagertabellen i en sammenligning har rækken *Alle lagre*, og kortene *Lager* og *Intervaldispatch* siger, at
 fordelingen ikke er entydig, når kørslen har mere end ét lager (`app/src/sider/analyser/tekster.ts` ›
-`FLERE_LAGRE_FORBEHOLD`). Beviset gør det samme: er timefilerne ikke byte-ens, sammenligner `bevis_app_vej.py` dem
-på summen over lagre (`viden/vaerktoej/lagersum.py`: samlet lagerindhold og samlet nettoeffekt pr. time) og melder
-casen som `ENS*` med den største forskel pr. lager. Alt uden for lagerkolonnerne, objektivet og `_kpi.csv` skal
-stadig være tegn for tegn ens; modprøverne står i `test_trofasthed.py` (`Lagersum`). Ingen af de målte cases har
-endnu udløst det. Det samme gælder enheder med unit commitment (start/stop): to kørsler af samme input kan
+`FLERE_LAGRE_FORBEHOLD`).
+
+**Beviset kræver stadig byte-lighed.** En case består i `bevis_app_vej.py`, når — og kun når — objektivet,
+`_hourly.csv` og `_kpi.csv` er ens byte for byte (`bestaaet`). Er timefilerne ikke byte-ens, er casen en `FORSKEL`,
+og beviset skriver en *diagnose* ved siden af (`viden/vaerktoej/lagersum.py`): om alt uden for lagerkolonnerne er
+tegn for tegn ens, og om summen over lagrene er den samme time for time for hver af de fire størrelser — niveau,
+netto, opladning og afladning. Diagnosen kræver endelige tal og komplette serier og er til at forstå en forskel med;
+den gør den ikke til en bestået case. Runde 15 lod en sådan case bestå som `ENS*` på niveau og netto alene. Det er
+taget ud igen efter kodegennemgangen: nettoen kan skjule en ændret bruttoafladning, som appens række *Alle lagre*
+viser (i testens egne to løsninger aflader lagrene tilsammen 25,0 mod 4,3 MW i samme time, med samme netto), og et
+`NaN` eller en manglende nettokolonne gik igennem. Modprøverne står i `test_trofasthed.py` (`Lagersum`). Ingen af de
+målte cases har udløst en forskel. Det samme gælder enheder med unit commitment (start/stop): to kørsler af samme input kan
 ende i forskellige løsninger med samme objektiv inden for gabet — målt samme dag på Billund Spor B, hvor appen og den
 direkte kørsel gav samme objektiv, men en anden fordeling mellem flis- og halmkedel.
 
