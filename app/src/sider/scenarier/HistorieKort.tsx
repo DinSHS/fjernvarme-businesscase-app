@@ -7,7 +7,8 @@
 import { useState } from "react";
 import { Knap, Kort, Maerke } from "@/components/layout";
 import { tidspunkt } from "@/lib/format";
-import { useKoerselInput, useNoegletal, useScenarie, useScenarieAendringer } from "@/lib/data/hooks";
+import type { InputRække } from "@/lib/data/afflad";
+import { useNoegletal, useScenarie, useScenarieAendringer } from "@/lib/data/hooks";
 import type { Koersel } from "../../../rayfin/data/Koersel";
 import type { Scenarie } from "../../../rayfin/data/Scenarie";
 import { historieEfterKørsel, saetningFørKørsel } from "./historie";
@@ -62,7 +63,9 @@ export function HistorieKort({ saetninger, fase, kategori, sammenlignHref, fod }
  * VIL få frosset (kladden, gemt eller ej). Efter kørsel med en færdig reference:
  * hele historien og vurderingen af de to faktiske kørsler, med link.
  */
-export function ScenarieHistorie({ s, ændringer, felter, blade, vaerkNavn, bekraeft, seneste, reference, refId, serier }: {
+export function ScenarieHistorie({ s, ændringer, felter, blade, vaerkNavn, bekraeft, seneste, reference, refId, serier, frosset }: {
+    /** De to kørslers frosne input, hentet af siden (ScenarieSide) — de samme rækker, som kørselskortets dom læser. */
+    frosset: { reference?: readonly InputRække[]; k?: readonly InputRække[] };
     s: Scenarie;
     ændringer: readonly Ændring[];
     felter: Scenariefelter;
@@ -77,9 +80,9 @@ export function ScenarieHistorie({ s, ændringer, felter, blade, vaerkNavn, bekr
     const refScen = useScenarie(refId);
     const refÆnd = useScenarieAendringer(refId);
     const færdigt = seneste?.status === "faerdig" && reference?.status === "faerdig" && reference.id !== seneste.id;
-    const sInput = useKoerselInput(færdigt ? seneste!.id : undefined);
+    const sInput = { data: færdigt ? frosset.k : undefined };
     const sTal = useNoegletal(færdigt ? seneste!.id : undefined);
-    const rInput = useKoerselInput(færdigt ? reference!.id : undefined);
+    const rInput = { data: færdigt ? frosset.reference : undefined };
     const rTal = useNoegletal(færdigt ? reference!.id : undefined);
 
     // Før kørsel (eller mens kørslernes data hentes): sætning 1.

@@ -18,11 +18,14 @@ import { GRAENSER } from "../../../rayfin/data/fjv.constants";
 import { absolutGab, differenceTekst, gabTekst, tidsgraenseForslag } from "../analyser/beregn";
 import { TidsgraenseMaerke } from "../analyser/dele";
 import { NoegletalKort, TKR } from "../analyser/ibcs-grafer";
+import type { InputRække } from "@/lib/data/afflad";
 import { modReference, sammenlignHref } from "./koersel-logik";
 import { varighedTekst } from "./logik";
 import { rådFor, type Rådkontekst } from "./raad";
 
-export function KoerselDetaljer({ k, varighed, reference, rådkontekst, tidsgraense_s }: {
+export function KoerselDetaljer({ k, varighed, reference, rådkontekst, tidsgraense_s, frosset }: {
+    /** De to kørslers frosne input, hentet af siden (fund D): dommen mod referencen læses af dem. */
+    frosset?: { reference?: readonly InputRække[]; k?: readonly InputRække[] };
     /** Scenariets gældende tidsgrænse i sekunder — den, en ny kørsel vil få (til forslaget om en længere). */
     tidsgraense_s?: number;
     k: Koersel;
@@ -39,7 +42,7 @@ export function KoerselDetaljer({ k, varighed, reference, rådkontekst, tidsgrae
     const råd = k.status === "fejl" ? rådFor(k.fejlbesked, rådkontekst) : undefined;
     // Runde 15 (mail 1): differensen findes kun mod en færdig, direkte sammenlignelig reference (koersel-logik.ts).
     // Gennemgangens fund 4: dommen er Analysers; et ukendt grundlag er hverken et resultat eller en afvisning.
-    const { diff, afviger: afvig, ukendt } = modReference(reference, k);
+    const { diff, afviger: afvig, ukendt } = modReference(reference, k, frosset);
     // Testrapportens afsnit 2a + mail 1: en kørsel, der stoppede på tidsgrænsen, vises som det — og er usikkerheden en
     // væsentlig del af forskellen mod referencen, foreslås en ny kørsel med længere tidsgrænse.
     const forslag = diff && reference ? tidsgraenseForslag(reference, k, { graenser: [null, tidsgraense_s ?? null], maks: GRAENSER.maksTidsgraenseS }) : null;

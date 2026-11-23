@@ -27,6 +27,13 @@ vi.mock("@/lib/data/hooks", () => ({
     useKoerselStatus: (k: Koersel[] | undefined) => k ?? [],
 }));
 
+// Efterprøvningen af rettelserne i runde 15 (fund D): oversigten henter kørslernes korte frosne profil og dømmer på den.
+vi.mock("@/lib/data/frossen-profil", () => ({
+    useKortFrossenProfil: () => hentet(new Map(["k-s1", "k-s2"].map((id) => [id, [
+        { kilde: "scenarie", sti: "_koersel.start", vaerdi_json: '"2026-01-05"' }, { kilde: "scenarie", sti: "_koersel.slut", vaerdi_json: '"2026-01-16"' },
+    ]]))),
+}));
+
 beforeEach(() => { localStorage.clear(); glemVisning(); saetVisning("delta", "heatmap"); saetFarvesaet("roedgroen"); });
 afterEach(cleanup);
 

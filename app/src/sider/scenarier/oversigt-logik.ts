@@ -2,6 +2,7 @@
 // Oversigtens beregninger: reference pr. scenarie, køens rækkefølge, budskabet.
 //-----------------------------------------------------------------------
 
+import type { InputRække } from "@/lib/data/afflad";
 import type { Koersel } from "../../../rayfin/data/Koersel";
 import type { Scenarie } from "../../../rayfin/data/Scenarie";
 import { domNavne, koerselsDom } from "../analyser/beregn";
@@ -43,8 +44,12 @@ const nyeste = (ks: readonly Koersel[]) => [...ks].sort((a, b) => tid(b.afslutte
  * `scenarier` er de AKTIVE (ikke-arkiverede) scenarier. Kørsler af arkiverede scenarier er aldrig en reference —
  * det var dem, der før blev til "kan sammenlignes med ukendt scenarie" (22 færdige kørsler af arkiverede
  * testscenarier, målt 2026-10-19).
+ *
+ * `frosset` er kørslernes KORTE frosne profil pr. kørsels-id (`@/lib/data/frossen-profil`; efterprøvningen af
+ * rettelserne, fund D): dommen læser periode, pins og varmelast/solprofil af den. En kørsel uden profil her dømmes
+ * "ukendt" — aldrig grønt på rækken alene.
  */
-export function findReference(s: Scenarie, scenarier: readonly Scenarie[], koersler: readonly Koersel[]): Reference | undefined {
+export function findReference(s: Scenarie, scenarier: readonly Scenarie[], koersler: readonly Koersel[], frosset: ReadonlyMap<string, readonly InputRække[]> = new Map()): Reference | undefined {
     const aktive = new Map(scenarier.map((x) => [x.id, x]));
     const navn = (id: string) => (aktive.get(id)?.navn ?? "").trim();
     const færdige = koersler.filter((k) => k.status === "faerdig");
@@ -59,7 +64,7 @@ export function findReference(s: Scenarie, scenarier: readonly Scenarie[], koers
         const sidste = [...koersler].filter((k) => k.scenarie_id === s.id).sort((a, b) => tid(b.bestilt) - tid(a.bestilt))[0];
         if (sidste && sidste.status !== "faerdig") return { art: "seneste_ikke_faerdig", navn: navn(refId), status: sidste.status };
         if (!egen) return undefined;
-        const dom = koerselsDom(ref, egen);
+        const dom = koerselsDom(ref, egen, frosset.get(ref.id), frosset.get(egen.id));
         const direkte = dom.status === "ja";
         // Runde 15 (mail 1): ΔRef kun for et direkte sammenligneligt par (før: også mod en reference med en anden periode).
         const delta = direkte && egen.objektiv_dkk != null && ref.objektiv_dkk != null ? egen.objektiv_dkk - ref.objektiv_dkk : null;
@@ -74,7 +79,7 @@ export function findReference(s: Scenarie, scenarier: readonly Scenarie[], koers
 
     if (!egen) return undefined;
     const kandidater = færdige.filter((k) => k.scenarie_id !== s.id && k.vaerk_id === s.vaerk_id && aktive.has(k.scenarie_id)
-        && koerselsDom(k, egen).status === "ja");
+        && koerselsDom(k, egen, frosset.get(k.id), frosset.get(egen.id)).status === "ja");
     const direkte = nyeste(kandidater);
     return direkte ? { art: "sammenlignelig", navn: navn(direkte.scenarie_id) } : { art: "ingen" };
 }

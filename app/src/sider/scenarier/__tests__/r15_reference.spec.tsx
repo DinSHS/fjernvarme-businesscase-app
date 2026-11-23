@@ -12,6 +12,13 @@ import { KoerselDetaljer } from "../KoerselKort";
 import { modReference } from "../koersel-logik";
 import { findReference } from "../oversigt-logik";
 import { ReferenceCelle } from "../Oversigt";
+import { frossetFor, frossetPar } from "./frosset.testdata";
+
+// Efterprøvningen af rettelserne i runde 15, fund D: dommen udleder perioden af kørslens FROSNE input (manifestets rene
+// datoer er kun kontrollen). Kørslerne her får den periode frosset, som deres manifest siger (frosset.testdata.ts).
+const mod = (r: Koersel, k: Koersel) => modReference(r, k, frossetPar(r, k));
+const find = (ks: Koersel[]) => findReference(scen, [ref, scen], ks, frossetFor(ks));
+const Kort = ({ k, reference }: { k: Koersel; reference: Koersel }) => <KoerselDetaljer k={k} reference={reference} frosset={frossetPar(reference, k)} />;
 
 vi.mock("@/lib/data/skriv", () => ({ annullerKoersel: async () => ({ besked: "" }) }));
 afterEach(cleanup);
@@ -32,35 +39,35 @@ function koersel(s: Scenarie, objektiv_dkk: number | undefined, manifest_json: s
 
 describe("mail 1: differensen mod en reference, der ikke kan sammenlignes, findes ikke", () => {
     it("anden periode: ingen differens, og grunden er navngivet", () => {
-        const m = modReference(koersel(ref, 3_441_004.22, TOLV), koersel(scen, 867_219.55, TO));
+        const m = mod(koersel(ref, 3_441_004.22, TOLV), koersel(scen, 867_219.55, TO));
         expect(m.diff).toBeNull();
         expect(m.afviger).toEqual(["periode"]);
     });
     it("anden værksrevision er en afvigelse (før: ikke nævnt)", () => {
         // Fra rettelserne efter kodegennemgangen (fund 4) er reglen Analysers egen dom; navnet er dens.
-        expect(modReference(koersel(ref, 1, TOLV), koersel(scen, 2, TOLV, { vaerk_revision: 2 })).afviger).toEqual(["værkets revision"]);
+        expect(mod(koersel(ref, 1, TOLV), koersel(scen, 2, TOLV, { vaerk_revision: 2 })).afviger).toEqual(["værkets revision"]);
     });
     it("kontrol: samme periode, samme alt → differensen findes", () => {
-        const m = modReference(koersel(ref, 3_441_004.22, TOLV), koersel(scen, 3_464_520.18, TOLV));
+        const m = mod(koersel(ref, 3_441_004.22, TOLV), koersel(scen, 3_464_520.18, TOLV));
         expect(m.afviger).toEqual([]);
         expect(m.diff?.delta).toBeCloseTo(23_515.96, 2);
     });
     it("en fejlet kørsel eller en fejlet reference giver ingen differens", () => {
-        expect(modReference(koersel(ref, 3_441_004.22, TOLV), koersel(scen, undefined, TOLV, { status: "fejl" })).diff).toBeNull();
-        expect(modReference(koersel(ref, undefined, TOLV, { status: "fejl" }), koersel(scen, 3_464_520.18, TOLV)).diff).toBeNull();
+        expect(mod(koersel(ref, 3_441_004.22, TOLV), koersel(scen, undefined, TOLV, { status: "fejl" })).diff).toBeNull();
+        expect(mod(koersel(ref, undefined, TOLV, { status: "fejl" }), koersel(scen, 3_464_520.18, TOLV)).diff).toBeNull();
     });
 });
 
 describe("mail 1: kørselskortet på scenariets side", () => {
     it("reference med en anden periode: intet ΔRef i farve, ingen 'koster … mindre', men en tydelig besked", () => {
-        const { container } = render(<KoerselDetaljer k={koersel(scen, 867_219.55, TO)} reference={koersel(ref, 3_441_004.22, TOLV)} />);
+        const { container } = render(<Kort k={koersel(scen, 867_219.55, TO)} reference={koersel(ref, 3_441_004.22, TOLV)} />);
         expect(container.querySelectorAll("[data-impact='good'], [data-impact='bad']")).toHaveLength(0);
         expect(container.textContent).not.toMatch(/mindre end referencen|mere end referencen/);
         expect(container.querySelector("[role='alert'], .fjv-maerke[data-tone='advarsel']")?.textContent ?? "").toMatch(/sammenlign/i);
         expect(container.textContent).toMatch(/periode afviger/);
     });
     it("kontrol: sammenlignelig reference → ΔRef i virkningsfarve (dyrere uden tank = rød)", () => {
-        const { container } = render(<KoerselDetaljer k={koersel(scen, 3_464_520.18, TOLV)} reference={koersel(ref, 3_441_004.22, TOLV)} />);
+        const { container } = render(<Kort k={koersel(scen, 3_464_520.18, TOLV)} reference={koersel(ref, 3_441_004.22, TOLV)} />);
         expect(container.querySelectorAll("[data-impact='bad']").length).toBeGreaterThan(0);
         expect(container.textContent).toMatch(/mere end referencen/);
     });
@@ -68,19 +75,19 @@ describe("mail 1: kørselskortet på scenariets side", () => {
 
 describe("mail 1: oversigtens ΔRef", () => {
     it("parrets reference har en anden periode: intet ΔRef (før: −2.573,8 t.kr.)", () => {
-        const r = findReference(scen, [ref, scen], [koersel(scen, 867_219.55, TO), koersel(ref, 3_441_004.22, TOLV)]);
+        const r = find([koersel(scen, 867_219.55, TO), koersel(ref, 3_441_004.22, TOLV)]);
         expect(r).toEqual({ art: "par", navn: ref.navn, direkte: false, dom: "nej", afviger: ["periode"], ukendt: [] });
     });
     it("seneste kørsel fejlede, en ældre er færdig: intet ΔRef og intet grønt mærke — rækken handler om den seneste", () => {
         const gammel = koersel(scen, 3_464_520.18, TOLV), r0 = koersel(ref, 3_441_004.22, TOLV), fejlet = koersel(scen, undefined, TOLV, { status: "fejl", afsluttet: undefined });
-        const r = findReference(scen, [ref, scen], [fejlet, r0, gammel]);
+        const r = find([fejlet, r0, gammel]);
         expect(r).toEqual({ art: "seneste_ikke_faerdig", navn: ref.navn, status: "fejl" });
         const { container } = render(<ReferenceCelle r={r} />);
         expect(container.querySelector(".fjv-maerke[data-tone='ok']")).toBeNull();
         expect(container.textContent).toMatch(/seneste kørsel/i);
     });
     it("kontrol: sammenligneligt par → ΔRef = scenarie − reference", () => {
-        const r = findReference(scen, [ref, scen], [koersel(scen, 3_464_520.18, TOLV), koersel(ref, 3_441_004.22, TOLV)]);
+        const r = find([koersel(scen, 3_464_520.18, TOLV), koersel(ref, 3_441_004.22, TOLV)]);
         expect(r?.art).toBe("par");
         expect(r && "delta" in r ? r.delta : undefined).toBeCloseTo(23_515.96, 2);
     });

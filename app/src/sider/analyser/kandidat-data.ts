@@ -1,7 +1,9 @@
 //-----------------------------------------------------------------------
 // Data til kandidatlisten (brief 14): alle kørsler, deres scenarier og værker,
-// og hver kørsels EGNE frosne inputrækker (kilde aendring/scenarie — ikke
-// værkets blade, så det er få rækker pr. kørsel).
+// og hver kørsels KORTE frosne profil: dens egne inputrækker (kilde aendring/scenarie)
+// og værkets tidsblok — ikke resten af værkets blade, så det er få rækker pr. kørsel.
+// (Efterprøvningen af rettelserne i runde 15, fund D: uden værkets `time.start`/`time.end`
+// kan perioden ikke udledes for en kørsel uden scenariedatoer, og dommen blev da ukendt.)
 //
 // Bygget på fundamentets `useHent` + `læs` (pagineret og normaliseret), ikke på
 // klienten direkte. Der findes ingen hook for input til mange kørsler; ønsket
@@ -12,6 +14,7 @@ import { useMemo } from "react";
 import { useHent, useKoersler, useScenarier, useVaerker, type Hentet } from "@/lib/data/hooks";
 import { læs } from "@/lib/data/laes";
 import type { InputRække } from "@/lib/data/afflad";
+import { iKortProfil, kortProfilFilter } from "@/lib/data/frossen-profil";
 import type { KoerselInfo } from "./kandidater";
 
 const BID = 50;
@@ -32,9 +35,7 @@ export function useKandidatInfo(): Hentet<KoerselInfo[]> {
         const ud: EgenRække[] = [];
         for (let i = 0; i < ids.length; i += BID) {
             const bid = ids.slice(i, i + BID);
-            const rækker = await læs("KoerselInput", {
-                filter: { and: [{ or: bid.map((id) => ({ koersel_id: { eq: id } })) }, { or: [{ kilde: { eq: "aendring" } }, { kilde: { eq: "scenarie" } }] }] },
-            });
+            const rækker = await læs("KoerselInput", { filter: kortProfilFilter(bid) });
             ud.push(...rækker);
         }
         return ud;
@@ -45,7 +46,7 @@ export function useKandidatInfo(): Hentet<KoerselInfo[]> {
         const vk = new Map(vaerker.data.map((v) => [v.id, v.navn]));
         const pr = new Map<string, InputRække[]>();
         for (const r of input.data) {
-            if (r.kilde === "vaerk") continue;   // den falske klient forstår ikke alle filtre; tjek igen
+            if (!iKortProfil(r)) continue;       // den falske klient forstår ikke alle filtre; tjek igen
             if (!pr.has(r.koersel_id)) pr.set(r.koersel_id, []);
             pr.get(r.koersel_id)!.push({ kilde: r.kilde, sti: r.sti, vaerdi_json: r.vaerdi_json });
         }

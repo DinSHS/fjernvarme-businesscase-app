@@ -25,6 +25,14 @@ function kørsel(over: Partial<Koersel> = {}): Koersel {
     } as Koersel;
 }
 const ind = (kilde: InputRække["kilde"], sti: string, vaerdi_json: string): InputRække => ({ kilde, sti, vaerdi_json });
+/**
+ * Kørslens frosne periode, som `startBestilling` fryser scenariets datoer. Efterprøvningen af rettelserne i runde 15
+ * (fund D): dommen udleder perioden af det frosne input — manifestets rene datoer er kun kontrollen.
+ */
+const frosset = (k: Koersel): InputRække[] => {
+    const p = (JSON.parse(k.manifest_json ?? "{}") as { periode?: { start?: string; slut?: string } }).periode;
+    return p?.start && p.slut ? [ind("scenarie", "_koersel.start", JSON.stringify(p.start)), ind("scenarie", "_koersel.slut", JSON.stringify(p.slut))] : [];
+};
 
 // ---------------------------------------------------------------- fuldlasttimer
 
@@ -122,7 +130,7 @@ describe("difference og toleranceregel", () => {
 // ---------------------------------------------------------------- sammenlignelighed
 
 describe("sammenlignelighed (KONTRAKT §6b)", () => {
-    const p = (over: Partial<Koersel> = {}, navn = "Andeby") => profil(kørsel(over), navn);
+    const p = (over: Partial<Koersel> = {}, navn = "Andeby") => { const k = kørsel(over); return profil(k, navn, null, frosset(k)); };
     it("ens profiler = ingen advarsler", () => {
         expect(sammenlignelighed(p(), p()).filter((x) => x.alvor === "advarsel")).toEqual([]);
     });
@@ -142,14 +150,14 @@ describe("sammenlignelighed (KONTRAKT §6b)", () => {
     // Runde 15 (mail 1, den uafhængige test 18. november 2026): to kendte, forskellige værksrevisioner bryder
     // sammenligneligheden (før: en note). Balancering og miljø er fortsat noter.
     it("balancering og miljø er noter; en anden værksrevision er en advarsel", () => {
-        const a = profil(kørsel({ miljoe_json: JSON.stringify({ python: "3.12.12" }) }), "A", null, [ind("scenarie", "_koersel.med_balancering", "false")]);
-        const b = profil(kørsel({ vaerk_revision: 2, miljoe_json: JSON.stringify({ python: "3.13.14" }) }), "A", null, [ind("scenarie", "_koersel.med_balancering", "true")]);
+        const a = profil(kørsel({ miljoe_json: JSON.stringify({ python: "3.12.12" }) }), "A", null, [...frosset(kørsel()), ind("scenarie", "_koersel.med_balancering", "false")]);
+        const b = profil(kørsel({ vaerk_revision: 2, miljoe_json: JSON.stringify({ python: "3.13.14" }) }), "A", null, [...frosset(kørsel()), ind("scenarie", "_koersel.med_balancering", "true")]);
         const af = sammenlignelighed(a, b);
         expect(af.map((x) => [x.navn, x.alvor])).toEqual([["Værkets revision", "advarsel"], ["Balancemarked", "note"], ["Beregningsmiljø", "note"]]);
         expect(af[0]).toMatchObject({ a: "r1", b: "r2" });
     });
     it("en ukendt værksrevision på den ene side er fortsat en note (ældre kørsler)", () => {
-        const af = sammenlignelighed(profil(kørsel({ vaerk_revision: undefined }), "A"), profil(kørsel({ vaerk_revision: 2 }), "A"));
+        const af = sammenlignelighed(p({ vaerk_revision: undefined }, "A"), p({ vaerk_revision: 2 }, "A"));
         expect(af.map((x) => [x.navn, x.alvor])).toEqual([["Værkets revision", "note"]]);
     });
     it("en ukendt værdi mod en kendt er en afvigelse", () => {
@@ -363,7 +371,7 @@ describe("review A2: balance-Δ når kun den ene kørsel har balancemarked", () 
     });
     it("værdien er objektiv(uden) − objektiv(med), ikke indtægten", () => {
         const side = (k: Koersel, samlet: typeof uden, bal: boolean) => {
-            const input = [ind("scenarie", "_koersel.med_balancering", String(bal))];
+            const input = [...frosset(k), ind("scenarie", "_koersel.med_balancering", String(bal))];
             return { k, samlet, input, profil: profil(k, "A", null, input) };
         };
         const a = side(kørsel({ objektiv_dkk: 3424407.96 }), uden, false);

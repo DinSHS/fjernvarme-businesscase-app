@@ -428,14 +428,19 @@ export interface Profil {
     periode_start: string | null;
     periode_slut: string | null;
     /**
-     * Præcis periode til SAMMENLIGNING (KONTRAKT §6b, Codex K3-N2): første og sidste
-     * intervals start som ISO-UTC. En ren dato er inklusiv hele døgnet: start = kl. 00,
-     * slut = døgnets sidste interval (1h → kl. 23). Kilde: frosset `_koersel.start/slut`,
-     * ellers `time.start/end`, ellers manifest. ALDRIG scenariets levende felter: de kan være
-     * rettet, efter at kørslen blev bestilt (kodegennemgangen af runde 15, fund 4).
+     * Præcis periode til SAMMENLIGNING (KONTRAKT §6b, Codex K3-N2): første og sidste intervals start som ISO-UTC —
+     * kørslens EFFEKTIVE akse, udledt af det frosne input med modellens egen regel (`effektivPeriode`; samme regel som
+     * `fabric/fjv/byg_case.py › _effektiv_tid`). Kan den ikke udledes af det frosne, er den `null`, og dommen er
+     * ukendt. ALDRIG scenariets levende felter: de kan være rettet, efter at kørslen blev bestilt.
      */
     periode_fra: string | null;
     periode_til: string | null;
+    /**
+     * Kørslens effektive varmelast og solprofil, som de står i det frosne input (efterprøvningen af rettelserne i
+     * runde 15, fund D). `null` = det frosne input kendes ikke her.
+     */
+    varmelast: Tidsseriekilde | null;
+    solprofil: Tidsseriekilde | null;
     oploesning: string | null;
     data_commit: string | null;
     model_commit: string | null;
@@ -450,6 +455,8 @@ export interface Afvigelse {
     navn: string;
     a: string;
     b: string;
+    /** En hel sætning, når "X afviger" / "X kendes ikke for begge" ikke siger, hvad der er galt. */
+    grund?: string;
     /**
      * advarsel = bryder direkte sammenlignelighed (§6b); ukendt = et nødvendigt felt
      * mangler på mindst én side, så det kan ikke afgøres; note = værd at vide.
@@ -464,23 +471,123 @@ export function sammenlignelighedStatus(af: readonly Afvigelse[]): "ja" | "nej" 
     return "ja";
 }
 
-const INTERVAL_MIN: Record<string, number> = { "1h": 60, "15min": 15 };
+const TIME_MS = 3_600_000;
 
 /**
- * Et tidspunkt som ISO-UTC til sammenligning. En ren dato er døgnets første
- * interval (`slut = false`) eller sidste interval (`slut = true`, inklusiv slutdato).
- * Uden zone læses tiden som UTC (modellens akse). Ugyldig tekst returneres uændret.
+ * Et tidsstempel, som modellen læser det (`fabric/fjv/byg_case.py › _modeltid`, og den betroede logiks `modeltid` i
+ * `rayfin/functions/src/logik.ts`): naivt = UTC, en bar dato = MIDNAT — ikke hele døgnet. En anden zone end UTC og et
+ * tidspunkt uden for hele timer afviser modellen; her er svaret da `null` (perioden kan ikke udledes).
  */
-export function normTid(v: string | null | undefined, slut: boolean, oploesning: string | null): string | null {
-    if (!v) return null;
-    const s = v.trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-        const min = INTERVAL_MIN[oploesning ?? "1h"] ?? 60;
-        const t = Date.parse(`${s}T00:00:00Z`) + (slut ? 86_400_000 - min * 60_000 : 0);
-        return Number.isFinite(t) ? new Date(t).toISOString() : s;
+function modeltid(s: string): number | null {
+    const x = s.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(x)) { const t = Date.parse(`${x}T00:00:00Z`); return Number.isFinite(t) ? t : null; }
+    const zone = /(Z|[+-]\d{2}:?\d{2})$/i.exec(x)?.[1];
+    if (zone && !/^(Z|[+-]00:?00)$/i.test(zone)) return null;
+    const t = Date.parse(zone ? x : `${x}Z`);
+    return Number.isFinite(t) && t % TIME_MS === 0 ? t : null;
+}
+
+/**
+ * Kørslens EFFEKTIVE periode — første og sidste time, begge med — udledt af det frosne input med præcis den regel,
+ * arbejderen bygger casen med (`fabric/fjv/byg_case.py › _effektiv_tid`; den betroede logiks `effektivAkse`, bundet af
+ * `skema/vektorer/effektiv_akse.json`, som `scenarier/__tests__/r15_periode_grundlag.spec.tsx` også holder denne
+ * funktion op mod):
+ *
+ *  * med scenariets frosne datoer (`_koersel.start/slut`): fra startdatoens kl. 00 til slutdatoens kl. 23 UTC
+ *    (`run_case._apply_time_override` udvider en bar slutdato til døgnets sidste skridt);
+ *  * uden dem: værkets frosne `time.start`/`time.end` PRÆCIS, som de står — en bar dato er midnat, og intet udvides.
+ *
+ * De to regler er forskellige (efterprøvningen af rettelserne i runde 15, fund D): et værk med `time.end: 2026-01-06`
+ * slutter kl. 00, et scenarie med slutdato 6. januar kl. 23. Før udvidede sammenligningen BEGGE til kl. 23 og sagde,
+ * at de to perioder var ens. Kun timeopløsning (version 1); alt andet giver `null`: perioden kan ikke udledes af det
+ * frosne, og dommen over et par er da ukendt.
+ */
+export function effektivPeriode(input: readonly InputRække[]): { fra: string; til: string } | null {
+    const e = effektivtInput(input);
+    const str = (j: string | undefined) => { if (j === undefined) return null; try { const v = JSON.parse(j) as unknown; return typeof v === "string" ? v : null; } catch { return null; } };
+    const opl = e.blade.get("time.resolution");
+    if (opl && str(opl.vaerdi_json) !== "1h") return null;
+    const iso = (fra: number | null, til: number | null) => (fra === null || til === null || til < fra ? null : { fra: new Date(fra).toISOString(), til: new Date(til).toISOString() });
+    if (e.flag.has("start") || e.flag.has("slut")) {
+        const ps = str(e.flag.get("start")), pe = str(e.flag.get("slut"));
+        // Kun rene datoer: arbejderen afviser alt andet (`byg_case._dato`), så en kørsel med et tidspunkt her findes ikke.
+        const DATO = /^\d{4}-\d{2}-\d{2}$/;
+        if (!ps || !pe || !DATO.test(ps) || !DATO.test(pe)) return null;
+        const fra = Date.parse(`${ps}T00:00:00Z`), til = Date.parse(`${pe}T23:00:00Z`);
+        return iso(Number.isFinite(fra) ? fra : null, Number.isFinite(til) ? til : null);
     }
-    const t = Date.parse(/[zZ]|[+-]\d{2}:\d{2}$/.test(s) ? s : `${s}Z`);
-    return Number.isFinite(t) ? new Date(t).toISOString() : s;
+    const ts = str(e.blade.get("time.start")?.vaerdi_json), te = str(e.blade.get("time.end")?.vaerdi_json);
+    if (ts === null || te === null) return null;
+    return iso(modeltid(ts), modeltid(te));
+}
+
+/**
+ * Hvor en kørsels varmelast eller solprofil kommer fra, læst af det FROSNE input (fund D). `valg` siger, om det frosne
+ * BEVISER, at scenariet har valgt kilden udtrykkeligt, eller at den er arvet fra værket:
+ *
+ *  * en af modelrepoets varmelastfiler (`_koersel.heat_csv`) er et scenariefelt — altid et udtrykkeligt valg;
+ *  * `_koersel.tidsserie.varmelast = "syntetisk"` (den manuelle vej, `fjv.db.oploes_tidsserier`) er udtrykkeligt;
+ *  * en frossen serie `{id, sha256}` fryses ENS, hvad enten scenariet valgte den, eller den var værkets aktive —
+ *    oprindelsen er ukendt;
+ *  * ingen række for varmelasten er enten et udtrykkeligt "syntetisk" bestilt i appen (som ikke fryser en række)
+ *    eller et værk uden aktiv serie — ukendt;
+ *  * ingen række for solprofilen er værkets egen profilsti: den kan ikke vælges fra i et scenarie — arvet.
+ */
+export type Serievalg = "udtrykkeligt" | "arvet" | "ukendt";
+export type Tidsseriekilde =
+    | { art: "serie"; id: string | null; sha256: string | null; valg: Serievalg }
+    | { art: "fil"; fil: string; valg: "udtrykkeligt" }
+    /** Varmelast: syntesen. Solprofil: værkets egen profilsti. */
+    | { art: "standard"; valg: Serievalg };
+
+export function tidsseriekilde(input: readonly InputRække[], rolle: "varmelast" | "solprofil"): Tidsseriekilde {
+    const e = effektivtInput(input);
+    const læs = (j: string | undefined): unknown => { if (j === undefined) return undefined; try { return JSON.parse(j) as unknown; } catch { return undefined; } };
+    const har = e.flag.has(`tidsserie.${rolle}`);
+    const v = læs(e.flag.get(`tidsserie.${rolle}`));
+    if (v && typeof v === "object") {
+        const o = v as { id?: unknown; sha256?: unknown };
+        return { art: "serie", id: typeof o.id === "string" ? o.id.toLowerCase() : null, sha256: typeof o.sha256 === "string" ? o.sha256.toLowerCase() : null, valg: "ukendt" };
+    }
+    if (rolle === "varmelast") {
+        if (har && (v === "syntetisk" || v === null)) return { art: "standard", valg: "udtrykkeligt" };
+        const fil = læs(e.flag.get("heat_csv"));
+        if (typeof fil === "string" && fil) return { art: "fil", fil, valg: "udtrykkeligt" };
+        return { art: "standard", valg: "ukendt" };
+    }
+    return { art: "standard", valg: "arvet" };
+}
+
+const serieNøgle = (k: Tidsseriekilde): string => (k.art === "serie" ? `serie:${k.sha256 ?? `id:${k.id ?? "?"}`}` : k.art === "fil" ? `fil:${k.fil}` : "standard");
+const serieTekst = (k: Tidsseriekilde, standard: string): string => (k.art === "serie" ? `tidsserie ${k.sha256 ? k.sha256.slice(0, 12) : "uden sha256"}` : k.art === "fil" ? k.fil : standard);
+
+/**
+ * Dommen over to kørslers varmelast eller solprofil (fund D, leads afgørelse):
+ *
+ *  * samme kilde (samme sha256, samme fil, begge standarden): ingen afvigelse;
+ *  * forskellig, og mindst én af kørslerne har BEVISLIGT valgt sin udtrykkeligt: det er parrets ændring — den spærrer
+ *    ikke (og står i inputforskellen og i *Scenariet fortalt*);
+ *  * forskellig, og begge er bevisligt arvet fra værket: værkets grundlag er ændret mellem de to kørsler (en anden
+ *    serie er gjort aktiv — uden at værksrevisionen skifter) → ikke direkte sammenlignelige;
+ *  * ellers kan det ikke afgøres af det frosne → ukendt.
+ *
+ * Det frosne input beviser i dag aldrig "arvet" for en frossen serie (se `Tidsseriekilde`), så grenen "grundlaget er
+ * ændret" nås først, når frysningen bærer valgets oprindelse; indtil da ender et skift af værkets aktive serie som
+ * ukendt — aldrig som et grønt resultat, som før.
+ */
+export function tidsserieafvigelse(felt: "varmelast" | "solprofil", a: Tidsseriekilde | null | undefined, b: Tidsseriekilde | null | undefined): Afvigelse | null {
+    const [navn, standard] = felt === "varmelast" ? ["Varmelast", "syntesen"] : ["Solprofil", "værkets egen profil"];
+    if (!a || !b) return { felt, navn, a: a ? serieTekst(a, standard) : "ukendt", b: b ? serieTekst(b, standard) : "ukendt", alvor: "ukendt" };
+    if (serieNøgle(a) === serieNøgle(b)) return null;
+    if (a.valg === "udtrykkeligt" || b.valg === "udtrykkeligt") return null;
+    const [ta, tb] = [serieTekst(a, standard), serieTekst(b, standard)];
+    const lille = navn.toLowerCase();
+    if (a.valg === "arvet" && b.valg === "arvet") {
+        return { felt, navn: `Værkets ${lille}`, a: ta, b: tb, alvor: "advarsel",
+            grund: `Værkets ${lille} er ikke den samme i de to kørsler (${ta} mod ${tb}), og ingen af dem har valgt den i scenariet: grundlaget er ændret mellem kørslerne.` };
+    }
+    return { felt, navn: `${navn}ens oprindelse`, a: ta, b: tb, alvor: "ukendt",
+        grund: `De to kørsler har ikke samme ${lille} (${ta} mod ${tb}), og det frosne input viser ikke, om den er valgt i scenariet eller arvet fra værket.` };
 }
 
 function manifestPeriode(k: Koersel): { start: string | null; slut: string | null; oploesning: string | null } {
@@ -525,6 +632,10 @@ export function kodeOprindelse(miljoe_json: string | null | undefined): { model:
  * modelversion, ønsket gab), læses KUN af det, der blev frosset eller målt for kørslen: rækkens egne felter,
  * manifestet og det frosne input. Scenariets levende felter bruges kun til VISNING af en periode for en kørsel, der
  * endnu intet manifest har (`periode_start`/`periode_slut`), og til noten om balancemarked.
+ *
+ * `input` må være kørslens KORTE frosne profil (`@/lib/data/frossen-profil`: kørslens egne rækker og værkets
+ * tidsblok) — det er alt, profilen læser. Uden input kendes hverken den præcise periode eller varmelast og solprofil,
+ * og en dom over profilen er da ukendt (efterprøvningen af rettelserne, fund D).
  */
 export function profil(k: Koersel, vaerkNavn: string, scenarie?: Scenarie | null, input?: readonly InputRække[]): Profil {
     const mp = manifestPeriode(k);
@@ -534,16 +645,23 @@ export function profil(k: Koersel, vaerkNavn: string, scenarie?: Scenarie | null
         if (r) medBal = r.vaerdi_json === "true";
     }
     const oploesning = k.oploesning ?? mp.oploesning ?? null;
-    // Præcis periode: det frosne input vinder (det er det, notebooken kørte), så manifest og scenarie.
-    const e = input ? effektivtInput(input) : null;
-    const str = (j: string | undefined) => { if (j === undefined) return null; try { const v = JSON.parse(j) as unknown; return typeof v === "string" ? v : null; } catch { return null; } };
-    const fra = str(e?.flag.get("start")) ?? str(e?.blade.get("time.start")?.vaerdi_json) ?? mp.start ?? null;
-    const til = str(e?.flag.get("slut")) ?? str(e?.blade.get("time.end")?.vaerdi_json) ?? mp.slut ?? null;
+    // Præcis periode (fund D, leads afgørelse): første kilde er den effektive periode udledt af det FROSNE input.
+    // Manifestet bruges kun, hvor det selv bærer tidspunkter — modellen skriver rene datoer (src/manifest.py ›
+    // _date10), og en dato siger ikke, om kørslen sluttede kl. 00 eller kl. 23 — og ellers som KONTROL: siger dets
+    // datoer noget andet end det frosne input, kendes perioden ikke.
+    const udledt = input ? effektivPeriode(input) : null;
+    const tidspunkt = (v: string | null) => (v && !/^\d{4}-\d{2}-\d{2}$/.test(v.trim()) ? modeltid(v) : null);
+    const [mf, mt] = [tidspunkt(mp.start), tidspunkt(mp.slut)];
+    const maalt = mf !== null && mt !== null ? { fra: new Date(mf).toISOString(), til: new Date(mt).toISOString() } : null;
+    let periode = udledt ?? maalt;
+    if (udledt && maalt && (udledt.fra !== maalt.fra || udledt.til !== maalt.til)) periode = null;
+    if (udledt && !maalt && mp.start && mp.slut && (mp.start.trim().slice(0, 10) !== udledt.fra.slice(0, 10) || mp.slut.trim().slice(0, 10) !== udledt.til.slice(0, 10))) periode = null;
     return {
         vaerk_id: k.vaerk_id, vaerk_navn: vaerkNavn, vaerk_revision: k.vaerk_revision ?? null,
-        periode_start: mp.start ?? scenarie?.periode_start ?? fra?.slice(0, 10) ?? null,
-        periode_slut: mp.slut ?? scenarie?.periode_slut ?? til?.slice(0, 10) ?? null,
-        periode_fra: normTid(fra, false, oploesning), periode_til: normTid(til, true, oploesning),
+        periode_start: mp.start?.slice(0, 10) ?? scenarie?.periode_start ?? udledt?.fra.slice(0, 10) ?? null,
+        periode_slut: mp.slut?.slice(0, 10) ?? scenarie?.periode_slut ?? udledt?.til.slice(0, 10) ?? null,
+        periode_fra: periode?.fra ?? null, periode_til: periode?.til ?? null,
+        varmelast: input ? tidsseriekilde(input, "varmelast") : null, solprofil: input ? tidsseriekilde(input, "solprofil") : null,
         oploesning,
         data_commit: k.data_commit ?? frossetFlag(input, "data_commit"), model_commit: k.model_commit ?? frossetFlag(input, "model_commit"),
         rel_gap: k.oensket_rel_gap ?? null, abs_gap: k.oensket_abs_gap ?? null,
@@ -599,6 +717,11 @@ export function sammenlignelighed(a: Profil, b: Profil): Afvigelse[] {
     nødvendig("model_commit", "Modelversion", sha(a.model_commit), sha(b.model_commit), kort, id);
     nødvendig("rel_gap", "Ønsket relativt gab", a.rel_gap, b.rel_gap, gabPct, (x) => `${fuldtTal(x * 100)} %`);
     nødvendig("abs_gap", "Ønsket absolut gab", a.abs_gap, b.abs_gap, (x) => `${tal(x)} kr.`, (x) => `${fuldtTal(x)} kr.`);
+    // Fund D: samme effektive varmelast og solprofil — eller et bevisligt scenarievalg (tidsserieafvigelse).
+    for (const felt of ["varmelast", "solprofil"] as const) {
+        const af = tidsserieafvigelse(felt, a[felt], b[felt]);
+        if (af) ud.push(af);
+    }
     // Runde 15 (mail 1, den uafhængige test 18. november 2026): to kørsler ved hver sin værksrevision har hver sit værk
     // under sig — værket er rettet imellem dem — så differensen blander værksrettelsen med scenariets ændring. Kendes
     // begge revisioner, og er de forskellige, er parret IKKE direkte sammenligneligt (før: en note, og parret blev vist
@@ -629,21 +752,29 @@ export interface Dom { status: "ja" | "nej" | "ukendt"; tekst: string | null; af
 export function sammenlignelighedsDom(a: Profil, b: Profil): Dom {
     const afvigelser = sammenlignelighed(a, b);
     const status = sammenlignelighedStatus(afvigelser);
-    const navne = (alvor: Afvigelse["alvor"]) => afvigelser.filter((x) => x.alvor === alvor).map((x) => x.navn.toLowerCase());
+    // En afvigelse med sin egen `grund` (fund D: varmelast og solprofil) siges som en hel sætning; resten opremses.
+    const med = (alvor: Afvigelse["alvor"]) => afvigelser.filter((x) => x.alvor === alvor);
+    const navne = (alvor: Afvigelse["alvor"]) => med(alvor).filter((x) => !x.grund).map((x) => x.navn.toLowerCase());
+    const grunde = (alvor: Afvigelse["alvor"]) => med(alvor).flatMap((x) => (x.grund ? [x.grund] : []));
+    const saml = (indledning: string, alvor: "advarsel" | "ukendt", hale: string) =>
+        [navne(alvor).length ? `${indledning}: ${opremsning(navne(alvor))} ${hale}.` : `${indledning}.`, ...grunde(alvor)].join(" ");
     const tekst = status === "ja" ? null
-        : status === "nej" ? `Kørslerne kan ikke sammenlignes direkte: ${opremsning(navne("advarsel"))} afviger.`
-            : `Det kan ikke afgøres, om kørslerne kan sammenlignes: ${opremsning(navne("ukendt"))} kendes ikke for begge.`;
+        : status === "nej" ? saml("Kørslerne kan ikke sammenlignes direkte", "advarsel", "afviger")
+            : saml("Det kan ikke afgøres, om kørslerne kan sammenlignes", "ukendt", "kendes ikke for begge");
     return { status, tekst, afvigelser };
 }
 
 /**
- * Dommen over to KØRSLER ud fra deres rækker alene (rækkens felter og manifestet) — til de steder, der ikke har det
- * frosne input ved hånden (Scenarier-oversigten har hundredvis af kørsler). Samme profil og samme dom som resten;
- * uden input kan den kun vide MINDRE, så den eneste mulige forskel til en dom med input er "ukendt" her — aldrig et
- * "ja", som det frosne input ville have modsagt.
+ * Dommen over to KØRSLER til Scenarier: rækkens felter, manifestet og — når de er hentet — kørslernes frosne input
+ * (hele, eller den korte profil fra `@/lib/data/frossen-profil`). Samme profil og samme dom som Analyser.
+ *
+ * Efterprøvningen af rettelserne i runde 15, fund D: første runde lod Scenarier dømme på rækken alene, med
+ * begrundelsen at den da kun kunne vide MINDRE. Det holdt ikke — perioden blev læst af manifestets rene datoer og
+ * kunne give "ja", hvor de frosne input sagde "nej". Uden frosset input kan perioden nu slet ikke udledes, og dommen
+ * er ukendt; med det er den Analysers.
  */
-export function koerselsDom(a: Koersel, b: Koersel): Dom {
-    return sammenlignelighedsDom(profil(a, ""), profil(b, ""));
+export function koerselsDom(a: Koersel, b: Koersel, inputA?: readonly InputRække[], inputB?: readonly InputRække[]): Dom {
+    return sammenlignelighedsDom(profil(a, "", null, inputA), profil(b, "", null, inputB));
 }
 
 /** Navnene (med småt) på de felter, en dom afviser på (`advarsel`) eller ikke kender (`ukendt`). */

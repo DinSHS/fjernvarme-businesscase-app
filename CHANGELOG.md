@@ -197,6 +197,23 @@ præsentationen og i datahåndteringen omkring kørslerne.
   syntesen", og to tidsserier med samme navn som "samme input". Historien bærer nu seriens id og sha256 frem til
   teksten, som formulerer alle retninger: syntese → måling, måling → syntese og serie → anden serie, med seriernes
   navne (og deres sha256, når navnene er ens eller ukendte). Det samme gælder modelrepoets varmelastfiler.
+- **Periode og datagrundlag kunne give en fejlagtig grøn dom** (efterprøvningen af rettelserne, fund D).
+  - *Perioden.* Modellen har to regler: scenariets slutdato er hele døgnet (til kl. 23 UTC), værkets egen `time.end`
+    som bar dato er midnat. Sammenligningen udvidede begge til kl. 23, så et værk med `time.end: 2026-01-06` og et
+    scenarie med slutdato 6. januar (25 mod 48 timer) stod som samme periode. Perioden udledes nu af kørslens frosne
+    input med arbejderens egen regel, ens i Scenarier og Analyser; modellens manifest bærer kun datoer og er kontrollen.
+    Kan perioden ikke udledes af det frosne, er dommen *kan ikke afgøres*.
+  - *Varmelast og solprofil.* Blev en anden tidsserie gjort aktiv på værket mellem to kørsler, skiftede den frosne
+    seriehash uden at værksrevisionen gjorde det, og parret fik grønt mærke og ΔRef. De to kørslers frosne varmelast og
+    solprofil holdes nu op mod hinanden. Et udtrykkeligt scenarievalg, som det frosne input kan bevise (en af
+    modelrepoets varmelastfiler), er parrets ændring og spærrer ikke; ellers er dommen *kan ikke afgøres*.
+    **Følge, man skal kende:** det frosne input viser i dag ikke, om en af værkets egne tidsserier er valgt i scenariet
+    eller arvet fra værket. Et par, hvor scenariet bevidst bruger en anden af værkets egne serier (fx *målt mod
+    syntetisk varmelast* på et værk med uploadet varmelast), står derfor som *kan ikke afgøres* uden ΔRef, indtil
+    frysningen bærer valgets oprindelse. Par med modelrepoets varmelastfiler (Billund) er uændrede.
+  - *Scenarier* dømmer på de frosne input: scenariets side bruger dem, den allerede henter, og oversigten og
+    kandidatlisten henter en kort frossen profil (kørslens egne rækker og værkets tidsblok). Oversigtens fodtekst
+    kalder ikke længere en ukendt værksrevision et krav.
 
 ## [Ikke udgivet] — 0.4.0
 

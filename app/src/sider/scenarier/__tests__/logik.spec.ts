@@ -8,6 +8,7 @@ import {
 import { KNAPPER } from "../viden.data";
 import { domNavne, koerselsDom, type Koersel } from "../../analyser/beregn";
 import { VAERKER } from "./vaerker.testdata";
+import { frossenPeriode } from "./frosset.testdata";
 
 const blade = (kode: string): Blade => new Map(Object.entries(VAERKER[kode]));
 const KODER = Object.keys(VAERKER);
@@ -335,13 +336,16 @@ describe("genbrug af reference (frosset input)", () => {
 describe("sammenlignelighed (KONTRAKT §6b) — Analysers dom, brugt af Scenarier", () => {
     const m = JSON.stringify({ periode: { start: "2026-01-05", slut: "2026-01-16", oploesning: "1h" } });
     const a = { id: "a", vaerk_id: "v", vaerk_revision: 1, oploesning: "1h", data_commit: "d", model_commit: "m", oensket_rel_gap: 0.0002, oensket_abs_gap: 1000, manifest_json: m } as Koersel;
-    const dom = (b: Partial<Koersel>) => { const d = koerselsDom(a, { ...a, ...b } as Koersel); return [d.status, domNavne(d, "advarsel"), domNavne(d, "ukendt")]; };
+    // Efterprøvningen af rettelserne (fund D): perioden udledes af det frosne input, som her er manifestets datoer frosset.
+    const dom = (b: Partial<Koersel>) => { const k = { ...a, ...b } as Koersel; const d = koerselsDom(a, k, frossenPeriode(a), frossenPeriode(k)); return [d.status, domNavne(d, "advarsel"), domNavne(d, "ukendt")]; };
     it("ens kørsler er direkte sammenlignelige", () => expect(dom({})).toEqual(["ja", [], []]));
     it("navngiver det der afviger", () => {
         expect(dom({ data_commit: "x", oensket_rel_gap: 0.005 })).toEqual(["nej", ["datagrundlag (df-data)", "ønsket relativt gab"], []]);
     });
     it("en manglende periode er ukendt — ikke en afvigelse (før: 'periode afviger')", () => {
         expect(dom({ manifest_json: undefined })).toEqual(["ukendt", [], ["periode"]]);
+        // Og uden frosset input for nogen af dem: perioden kan ikke udledes af manifestets rene datoer.
+        expect(koerselsDom(a, a).status).toBe("ukendt");
     });
 });
 

@@ -24,6 +24,10 @@ import { KoerselDetaljer } from "../KoerselKort";
 import { modReference } from "../koersel-logik";
 import { findReference } from "../oversigt-logik";
 import { ReferenceCelle } from "../Oversigt";
+import { frossenPeriode, frossetFor, frossetPar } from "./frosset.testdata";
+
+// Efterprøvningen af rettelserne i runde 15, fund D: dommen udleder perioden af kørslens FROSNE input (manifestets rene
+// datoer er kun kontrollen). Kørslerne her får den periode frosset, som deres manifest siger (frosset.testdata.ts).
 
 vi.mock("@/lib/data/skriv", () => ({ annullerKoersel: async () => ({ besked: "" }) }));
 afterEach(cleanup);
@@ -45,11 +49,11 @@ function koersel(s: Scenarie, objektiv_dkk: number, manifest_json: string | null
 const UDEN = { oploesning: null, data_commit: null, model_commit: null, oensket_rel_gap: null, oensket_abs_gap: null } as unknown as Partial<Koersel>;
 
 /** Analysers dom over de samme to rækker — med og uden scenariet og det frosne input, som siderne nu engang har dem. */
-const analyser = (r: Koersel, k: Koersel) => sammenlignelighedsDom(profil(r, "Andeby", ref), profil(k, "Andeby", scen)).status;
+const analyser = (r: Koersel, k: Koersel) => sammenlignelighedsDom(profil(r, "Andeby", ref, frossenPeriode(r)), profil(k, "Andeby", scen, frossenPeriode(k))).status;
 /** Scenariers dom: scenariets side (modReference) og oversigten (findReference). */
 function scenarier(r: Koersel, k: Koersel) {
-    const m = modReference(r, k);
-    const o = findReference(scen, [ref, scen], [k, r]);
+    const m = modReference(r, k, frossetPar(r, k));
+    const o = findReference(scen, [ref, scen], [k, r], frossetFor([k, r]));
     return { side: m.dom?.status, oversigt: o?.art === "par" ? o.dom : undefined, m, o };
 }
 
@@ -98,7 +102,7 @@ describe("fund 4: de to områder er enige for hvert nødvendigt felt — afvigen
         const levende = { ...scen, periode_start: "2026-01-05", periode_slut: "2026-01-06" } as Scenarie;
         const refLevende = { ...ref, periode_start: "2026-01-05", periode_slut: "2026-01-06" } as Scenarie;
         // Før: "ja" i Analyser (perioden blev læst af det levende scenarie), "periode afviger" i Scenarier.
-        expect(sammenlignelighedsDom(profil(r, "Andeby", refLevende), profil(uden, "Andeby", levende)).status).toBe("ukendt");
+        expect(sammenlignelighedsDom(profil(r, "Andeby", refLevende, frossenPeriode(r)), profil(uden, "Andeby", levende, frossenPeriode(uden))).status).toBe("ukendt");
         expect(scenarier(r, uden).side).toBe("ukendt");
     });
     it("værk og værksrevision: et andet værk og to kendte, forskellige revisioner er 'nej' begge steder", () => {
@@ -114,7 +118,7 @@ describe("fund 4: den ukendte dom i Scenarier — ingen farve og intet 'billiger
 
     it("kørselskortet: intet ΔRef i virkningsfarve, ingen 'koster … mindre', og beskeden siger 'kan ikke afgøres' med felterne", () => {
         const [r, k] = par();
-        const { container } = render(<KoerselDetaljer k={k} reference={r} />);
+        const { container } = render(<KoerselDetaljer k={k} reference={r} frosset={frossetPar(r, k)} />);
         expect(container.querySelectorAll("[data-impact='good'], [data-impact='bad']")).toHaveLength(0);      // før: grøn
         expect(container.textContent).not.toMatch(/mindre end referencen|mere end referencen/);              // før: "koster 23.516 kr. mindre"
         expect(container.textContent).toMatch(/kan ikke afgøres/i);
@@ -124,13 +128,14 @@ describe("fund 4: den ukendte dom i Scenarier — ingen farve og intet 'billiger
     });
     it("oversigtens referencecelle: hverken grønt mærke eller 'afviger' — 'kan ikke afgøres'", () => {
         const [r, k] = par();
-        const { container } = render(<ReferenceCelle r={findReference(scen, [ref, scen], [k, r])} />);
+        const { container } = render(<ReferenceCelle r={findReference(scen, [ref, scen], [k, r], frossetFor([k, r]))} />);
         expect(container.querySelector(".fjv-maerke[data-tone='ok']")).toBeNull();                           // før: grønt mærke
         expect(container.textContent).toMatch(/kan ikke afgøres/i);
         expect(container.textContent).not.toMatch(/afviger/);
     });
     it("kontrol: en kendt afvigelse siger stadig 'kan ikke sammenlignes direkte … afviger'", () => {
-        const { container } = render(<KoerselDetaljer k={koersel(scen, 3_441_004.22, manifest("2026-01-05", "2026-01-16"))} reference={koersel(ref, 866_567.72, TO)} />);
+        const k = koersel(scen, 3_441_004.22, manifest("2026-01-05", "2026-01-16")), r = koersel(ref, 866_567.72, TO);
+        const { container } = render(<KoerselDetaljer k={k} reference={r} frosset={frossetPar(r, k)} />);
         expect(container.textContent).toMatch(/Kan ikke sammenlignes direkte med referencen: periode afviger/);
     });
 });
@@ -143,7 +148,7 @@ function pakke(k: Koersel): Pakke {
     return {
         k, vaerkNavn: "Andeby", vaerkKode: "andeby", scenarie: { id: k.scenarie_id, navn: k.id, med_balancering: false } as Scenarie,
         samlet: samlNoegletal([nt("objektiv", "objektiv_dkk", k.objektiv_dkk!), nt("el", "omkostning_dkk", 600_000), nt("el", "salg_dkk", 170_000)]),
-        maaneder: maanedstabel([]), input: [], profil: profil(k, "Andeby", null, []), objekter: { enheder: [], lagre: [] }, tidsserienavne: new Map(),
+        maaneder: maanedstabel([]), input: frossenPeriode(k), profil: profil(k, "Andeby", null, frossenPeriode(k)), objekter: { enheder: [], lagre: [] }, tidsserienavne: new Map(),
     };
 }
 

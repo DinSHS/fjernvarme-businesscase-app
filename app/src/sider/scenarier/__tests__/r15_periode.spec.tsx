@@ -23,6 +23,8 @@ vi.mock("@/lib/data/hooks", () => ({
     useKoersler: () => hentet([] as Koersel[]),
     useKoerselStatus: (k: Koersel[] | undefined) => k ?? [],
 }));
+// Oversigten henter også kørslernes korte frosne profil (efterprøvningen af runde 15, fund D); her er der ingen kørsler.
+vi.mock("@/lib/data/frossen-profil", () => ({ useKortFrossenProfil: () => hentet(new Map()) }));
 afterEach(cleanup);
 
 describe("3.3: perioden står ved scenariets navn i oversigten", () => {

@@ -198,6 +198,14 @@ direkte sammenligneligt par vises som et resultat; ellers står tallene side om 
 Dommen fældes på det, der blev frosset eller målt for kørslen (ikke på scenariet, som det ser ud nu),
 og den er den samme under Scenarier og Analyser. Kendes et af felterne ikke for begge kørsler, er
 dommen *kan ikke afgøres*: der vises intet resultat, men parret kaldes heller ikke usammenligneligt.
+
+Perioden sammenlignes time for time og udledes af kørslens frosne input med modellens egen regel:
+scenariets slutdato er hele døgnet (til kl. 23 UTC), mens værkets egen tidsblok bruges præcis, som
+den står — en bar dato i `time.end` er midnat. Modellens manifest bærer kun datoer og bruges som
+kontrol. Varmelast og solprofil skal også være de samme, medmindre scenariet selv har valgt en anden
+(det er da parrets ændring). Gøres en anden tidsserie aktiv på værket mellem to kørsler, skifter
+grundlaget uden at værkets revision gør det; kan det frosne input ikke vise, om en serie er valgt i
+scenariet eller arvet fra værket, er dommen *kan ikke afgøres*.
 (Kilde: KONTRAKT §6b; doc/TROFASTHED.md §5)
 
 **Solvergab.** Solveren stopper, når den har bevist, at løsningen ligger inden for et gab af det

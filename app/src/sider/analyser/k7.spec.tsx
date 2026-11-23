@@ -23,6 +23,7 @@ const PROFIL = {
     vaerk_id: "v", vaerk_navn: "Andeby", vaerk_revision: 1, periode_start: "2026-01-05", periode_slut: "2026-01-16",
     periode_fra: "2026-01-05T00:00:00.000Z", periode_til: "2026-01-16T23:00:00.000Z", oploesning: "1h", data_commit: "d", model_commit: "m",
     rel_gap: 0.0002, abs_gap: 100, med_balancering: false, miljoe: null,
+    varmelast: { art: "standard", valg: "ukendt" }, solprofil: { art: "standard", valg: "arvet" },
 } as Profil;
 const pakke = (objektiv: number, s: Samlet = samlet()): Pakke => ({
     k: { id: `k${objektiv}`, objektiv_dkk: objektiv, best_bound: objektiv, opnaaet_gap: 0, solve_status: "optimal" },

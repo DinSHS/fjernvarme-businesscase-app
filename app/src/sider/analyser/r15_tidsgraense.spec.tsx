@@ -26,6 +26,9 @@ function koersel(id: string, objektiv: number, gab: number | null, tid: boolean,
         best_bound: gab === null ? undefined : objektiv - gab, manifest_json: JSON.stringify({ periode: { start: "2026-03-02", slut: "2026-06-30" } }), ...over,
     } as Koersel;
 }
+/** De to kørslers frosne periode — kørselskortets dom læses af det frosne input (efterprøvningen af runde 15, fund D). */
+const PERIODE = [ind("scenarie", "_koersel.start", "\"2026-03-02\""), ind("scenarie", "_koersel.slut", "\"2026-06-30\"")];
+const FROSSET = { reference: PERIODE, k: PERIODE };
 const VAERK = [ind("vaerk", "meta.titel", "\"Testværk\""), ind("vaerk", "storage.tank.enabled", "true"), ind("vaerk", "units.kedel.type", "\"gas_boiler\""), ind("vaerk", "units.kedel.enabled", "true")];
 function side(k: Koersel, uden: boolean, ekstra: InputRække[] = []): Side {
     const input = [...VAERK, ind("scenarie", "_koersel.start", "\"2026-03-02\""), ind("scenarie", "_koersel.slut", "\"2026-06-30\""), ind("scenarie", "_koersel.med_balancering", "false"),
@@ -100,7 +103,7 @@ describe("2a: forslaget står i anbefalingen", () => {
 
 describe("mail 1, tidsgrænsen: scenariets kørselskort viser ikke en tidsstoppet kørsel som blot 'Færdig'", () => {
     it("mærket 'Stoppet på tidsgrænsen' og usikkerheden står på kortet", () => {
-        const { container } = render(<KoerselDetaljer k={koersel("uden", 6_607_703, 3_926, true)} reference={koersel("ref", 4_428_863.74, 88, false)} tidsgraense_s={600} />);
+        const { container } = render(<KoerselDetaljer k={koersel("uden", 6_607_703, 3_926, true)} reference={koersel("ref", 4_428_863.74, 88, false)} frosset={FROSSET} tidsgraense_s={600} />);
         const maerker = [...container.querySelectorAll(".fjv-maerke")].map((m) => [m.getAttribute("data-tone"), m.textContent]);
         expect(maerker).toContainEqual(["advarsel", "Stoppet på tidsgrænsen"]);
         expect(container.textContent).toMatch(/højst 3\.926 kr\. over det bedst mulige/);
@@ -108,11 +111,11 @@ describe("mail 1, tidsgrænsen: scenariets kørselskort viser ikke en tidsstoppe
         expect(container.textContent).not.toMatch(/længere tidsgrænse/);
     });
     it("er usikkerheden en væsentlig del af forskellen, står forslaget på kortet", () => {
-        const { container } = render(<KoerselDetaljer k={koersel("uden", 4_100_000, 30_000, true)} reference={koersel("ref", 4_000_000, 0, false)} tidsgraense_s={600} />);
+        const { container } = render(<KoerselDetaljer k={koersel("uden", 4_100_000, 30_000, true)} reference={koersel("ref", 4_000_000, 0, false)} frosset={FROSSET} tidsgraense_s={600} />);
         expect(container.textContent).toMatch(/Kør scenariet igen med en længere tidsgrænse \(nu 600 s; appen tillader op til 3\.600 s\)/);
     });
     it("kontrol: en optimal kørsel har intet tidsmærke", () => {
-        const { container } = render(<KoerselDetaljer k={koersel("uden", 4_100_000, 0, false)} reference={koersel("ref", 4_000_000, 0, false)} tidsgraense_s={600} />);
+        const { container } = render(<KoerselDetaljer k={koersel("uden", 4_100_000, 0, false)} reference={koersel("ref", 4_000_000, 0, false)} frosset={FROSSET} tidsgraense_s={600} />);
         expect(container.textContent).not.toMatch(/tidsgrænsen/);
     });
 });

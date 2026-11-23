@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------
 
 import { rutehref } from "@/lib/rute";
+import type { InputRække } from "@/lib/data/afflad";
 import type { Koersel } from "../../../rayfin/data/Koersel";
 import { difference, domNavne, koerselsDom, type Difference, type Dom } from "../analyser/beregn";
 
@@ -25,10 +26,14 @@ export function sammenlignHref(refId: string, scenId: string): string {
  */
 export interface ModReference { diff: Difference | null; dom: Dom | null; afviger: string[]; ukendt: string[]; begge_faerdige: boolean }
 
-export function modReference(reference: Koersel | undefined, k: Koersel): ModReference {
+/**
+ * `frosset` er de to kørslers frosne input, når siden har hentet dem (efterprøvningen af rettelserne, fund D): dommen
+ * læser perioden, pins og varmelast/solprofil af dem. Uden dem kan perioden ikke udledes, og dommen er ukendt.
+ */
+export function modReference(reference: Koersel | undefined, k: Koersel, frosset: { reference?: readonly InputRække[]; k?: readonly InputRække[] } = {}): ModReference {
     const begge_faerdige = k.status === "faerdig" && reference?.status === "faerdig";
     if (!reference || !begge_faerdige) return { diff: null, dom: null, afviger: [], ukendt: [], begge_faerdige };
-    const dom = koerselsDom(reference, k);
+    const dom = koerselsDom(reference, k, frosset.reference, frosset.k);
     return {
         diff: dom.status === "ja" ? difference(reference, k) : null, dom,
         afviger: domNavne(dom, "advarsel"), ukendt: dom.status === "ukendt" ? domNavne(dom, "ukendt") : [], begge_faerdige,

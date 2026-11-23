@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from "react";
 import { DataTilstand, Gitter, Kort, Knap, Maerke, Side, StatusMaerke, Tabel } from "@/components/layout";
-import { useKoersler, useKoerselStatus, useScenarie, useScenarieAendringer, useScenarier, useVaerker } from "@/lib/data/hooks";
+import { useKoersler, useKoerselInput, useKoerselStatus, useScenarie, useScenarieAendringer, useScenarier, useVaerker } from "@/lib/data/hooks";
 import { gemScenarieAendringer, opdaterScenarie, type ÆndringUdkast } from "@/lib/data/skriv";
 import { STATUS_TEKST, erAktiv } from "@/lib/data/koersel-status";
 import { opdaterAlt } from "@/lib/data/opdatering";
@@ -197,6 +197,13 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     const refLevende = useKoerselStatus(refId ? refKoersler.data : undefined);
     const seneste = levende[0];
     const reference = refLevende.find((x) => x.status === "faerdig") ?? refLevende[0];
+    // De to kørslers frosne input hentes ÉT sted (efterprøvningen af rettelserne, fund D): *Scenariet fortalt* brugte
+    // dem allerede; nu læser kørselskortet og sidens budskab deres dom af de samme rækker — perioden, pins og
+    // varmelast/solprofil står dér, ikke på Koersel-rækken.
+    const parFaerdigt = seneste?.status === "faerdig" && reference?.status === "faerdig" && reference.id !== seneste.id;
+    const senesteInput = useKoerselInput(parFaerdigt ? seneste!.id : undefined);
+    const referenceInput = useKoerselInput(parFaerdigt ? reference!.id : undefined);
+    const frosset = useMemo(() => ({ reference: referenceInput.data, k: senesteInput.data }), [referenceInput.data, senesteInput.data]);
 
     // Varighed og budskab regnes af det GEMTE scenarie (det er det, en kørsel fryser).
     const gemtPeriode = tjekPeriode(s.periode_start, s.periode_slut, blade, { medBalancering: s.med_balancering });
@@ -243,7 +250,10 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     // Samme periodeform som Analyser (IBCS.md §3, review-fund B8): "5. jan.–16. jan. 2026", ikke "05-01-2026 – 16-01-2026".
     const periodeTekst = gemtPeriode.start ? periodeKort(gemtPeriode.start, gemtPeriode.slut) : "ugyldig periode";
     // Runde 15 (mail 1): budskabet nævner kun en forskel mod en direkte sammenlignelig reference.
-    const mod = seneste ? modReference(reference, seneste) : undefined;
+    // Fund D: dommen fældes først, når begge frosne input er hentet — ellers ville budskabet et øjeblik sige "kan
+    // ikke afgøres" om et par, der kan.
+    const frossetHentet = !parFaerdigt || (frosset.reference !== undefined && frosset.k !== undefined);
+    const mod = seneste && frossetHentet ? modReference(reference, seneste, frosset) : undefined;
     const budskab = `${antal === 0 ? "Ingen ændringer" : `${antal} ændring${antal === 1 ? "" : "er"}`} mod ${vaerk.navn}, ${periodeTekst}, ${s.med_balancering ? "med" : "uden"} balancering; `
         + (!seneste ? "ikke kørt endnu."
             : mod?.diff ? `seneste kørsel er færdig. ${differenceTekst(mod.diff)}`
@@ -268,7 +278,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
             </>}>
             <Gitter>
                 <ScenarieHistorie s={s} ændringer={æSvar.ændringer.filter((x) => x.type !== "set" || x.vaerdi_json)} felter={fSvar.felter}
-                    blade={blade} vaerkNavn={vaerk.navn} bekraeft={bekraeft} seneste={seneste} reference={reference} refId={refId} serier={serier} />
+                    blade={blade} vaerkNavn={vaerk.navn} bekraeft={bekraeft} seneste={seneste} reference={reference} refId={refId} serier={serier} frosset={frosset} />
             </Gitter>
             <Gitter form="8-4">
                 <Kort titel="Indstillinger" afgraensning={`${vaerk.navn} · revision ${vaerk.revision}`}
@@ -336,7 +346,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                     <KoerKnap s={s} bruger={bruger} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
                     <DataTilstand h={koersler}>
                         {() => (seneste
-                            ? <KoerselDetaljer k={seneste} varighed={varighed} reference={reference} tidsgraense_s={tidsgrænse}
+                            ? <KoerselDetaljer k={seneste} varighed={varighed} reference={frossetHentet ? reference : undefined} frosset={frosset} tidsgraense_s={tidsgrænse}
                                 rådkontekst={{ medBalancering: s.med_balancering, start: gemtPeriode.start, slut: gemtPeriode.slut, dmi: læsTekst(blade.get("data.dmi_area")) }} />
                             : <p className="fs-lille">Scenariet er ikke kørt endnu.</p>)}
                     </DataTilstand>
