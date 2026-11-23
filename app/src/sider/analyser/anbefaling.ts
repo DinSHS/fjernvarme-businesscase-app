@@ -169,7 +169,14 @@ export interface Par {
      * af kørslerne bærer ændringen, `valg` = ingen af delene, så rækkefølgen er brugerens (og kan byttes).
      */
     grund: "par" | "aendring" | "valg";
+    /**
+     * Den FAGLIGE forskel mellem de to kørsler (tredje rettelsesrunde, P2-5): input-diffet uden de rækker, der kun er
+     * teknisk forskellige — to tidsserier med hver sit id og samme sha256 er samme varmelast. Den tekniske visning
+     * (alle rækker, også id'erne) er `beregn.ts › inputDiff`.
+     */
     diff: InputForskel[];
+    /** Hvordan den effektive varmelast ændres fra reference til scenarie (`varmelastskift`); null = samme varmelast. */
+    varmelast?: Varmelastskift | null;
     knap: string | null;
     /** Flere ændringer, der ikke tilsammen er én knaps skabelon (trin 2). */
     flere: boolean;
@@ -191,7 +198,12 @@ export interface Par {
  * Kan skabelonen ikke genkendes, er `knap` null (ingen regel, ingen anbefaling), og par og fortegn står ved magt.
  */
 export function ordnPar(a: Side, b: Side, relation: Retning | null = null): Par {
-    const ab = inputDiff(a.input, b.input).filter(relevant), ba = inputDiff(b.input, a.input).filter(relevant);
+    // P2-5: er den effektive varmelast den samme (samme sha256 under to id'er; udtrykkelig syntese over for en ældre
+    // kørsel uden række), er varmelastens rækker ikke en faglig forskel. Før blev de fortalt som et skift og matchet
+    // som knappen *Målt varmelast*.
+    const sammeLast = varmelastskift(a, b) === null;
+    const fagligt = (d: InputForskel[]) => (sammeLast ? d.filter((x) => x.sti !== HEAT_CSV_STI && x.sti !== VARMELASTSERIE_STI) : d);
+    const ab = fagligt(inputDiff(a.input, b.input).filter(relevant)), ba = fagligt(inputDiff(b.input, a.input).filter(relevant));
     const kunA = ab.length > 0 && ab.every((d) => bærer(a, d.sti) && !bærer(b, d.sti));
     const kunB = ab.length > 0 && ab.every((d) => bærer(b, d.sti) && !bærer(a, d.sti));
     const grund: Par["grund"] = relation ? "par" : kunA || kunB ? "aendring" : "valg";
@@ -199,7 +211,7 @@ export function ordnPar(a: Side, b: Side, relation: Retning | null = null): Par 
     const [ref, scen] = byttet ? [b, a] : [a, b];
     const diff = byttet ? ba : ab;
     const knap = matchSkabelon(diff);
-    return { ref, scen, byttet, grund, diff, knap, flere: knap === null && diff.length > 1, ukendt: knap === null && diff.length === 1 };
+    return { ref, scen, byttet, grund, diff, varmelast: varmelastskift(ref, scen), knap, flere: knap === null && diff.length > 1, ukendt: knap === null && diff.length === 1 };
 }
 
 // ================================================================= vurdering
@@ -269,7 +281,7 @@ function sæson(p: Profil): string | null {
     return null;
 }
 
-function blad(s: Side, sti: string): unknown {
+function blad(s: Pick<Side, "input">, sti: string): unknown {
     const e = effektivtInput(s.input);
     const r = e.blade.get(sti);
     if (r) return json(r.vaerdi_json);
@@ -339,19 +351,30 @@ function knapSaetning(p: Par, delta: number, skaleret: string): string {
     const [bestemt, ubestemt] = type && TYPENAVN[type] ? TYPENAVN[type] : ["enheden", "enhed"];
     const a = Number(json(d0?.a)), b = Number(json(d0?.b));
     const brændsel = d0 ? /^prices\.([^.]+)\./.exec(d0.sti)?.[1] : undefined;
+    // P2-5: knappen *Målt varmelast* ændrer ikke en talværdi; dens {pct} er forskellen i forhold til referencens
+    // driftsomkostning. Før stod der en tom parentes: "flytter driftsomkostningen 30.000 kr. () —".
+    const refObjektiv = p.ref.k.objektiv_dkk;
+    const afReference = typeof refObjektiv === "number" && refObjektiv !== 0 ? procentRund((delta / refObjektiv) * 100) : "";
     const v: Record<string, string> = {
         abs, skaleret,
         enhed: p.knap === "ny_enhed" ? `${ubestemt} ${unit ?? ""}`.trim() : `${bestemt} ${unit ?? ""}`.trim(),
         vaerdi: Number.isFinite(b) ? `${tal(b)} m³` : "",
         brændsel: brændsel ? (VISNINGSNAVNE.braendsel?.[brændsel] ?? brændsel) : "",
-        pct: Number.isFinite(a) && Number.isFinite(b) && a !== 0 ? procentRund(((b - a) / a) * 100) : "",
+        pct: p.knap === "maalt_varmelast" ? afReference : Number.isFinite(a) && Number.isFinite(b) && a !== 0 ? procentRund(((b - a) / a) * 100) : "",
         pr_enhed: Number.isFinite(a) && Number.isFinite(b) && b !== a ? tal(Math.abs(delta / (b - a))) : "",
         a: d0 ? visJson(d0.a) : "", b: d0 ? visJson(d0.b) : "",
     };
     let t: string | undefined;
     if (anb?.type === "beslutning") t = (delta < 0 ? anb.hvis_billigere : anb.hvis_dyrere) as string | undefined;
     else if (anb) t = anb.tekst as string | undefined;
+    // P2-5: knappens sætning gælder dens egen retning (syntese → måling). De to andre retninger har hver sin, valgt
+    // af SAMME klassifikation, som sætning 1 fortæller varmelasten efter (`varmelastskift`).
+    if (p.knap === "maalt_varmelast") {
+        const skift = p.varmelast === undefined ? varmelastskift(p.ref, p.scen) : p.varmelast;
+        if (skift === "maaling_til_syntese" || skift === "maaling_til_maaling") t = VARMELAST_SAETNING[skift];
+    }
     if (!t) t = `Scenariet gør driften {abs} ${delta < 0 ? "billigere" : "dyrere"} i perioden{skaleret}.`;
+    if (!v.pct) t = t.replace(" ({pct})", "");
     // Pris- og omkostningsretning hver for sig (Codex K4-F5): skabelonen har "dyrere" fast for begge.
     const omk = delta < 0 ? "billigere" : "dyrere";
     if (Number.isFinite(a) && Number.isFinite(b)) t = t.replace("{pct} dyrere", `{pct} ${b >= a ? "dyrere" : "billigere"}`);
@@ -486,7 +509,39 @@ const VARMELASTSERIE_STI = `${KOERSEL_PRAEFIKS}tidsserie.varmelast`;
 /** En sides varmelast, som den er frosset: værkets tidsserie (id + sha256), en af modelrepoets filer — eller syntesen. */
 type Varmelastkilde = { art: "serie"; id?: string; sha?: string; navn?: string } | { art: "fil"; fil: string } | { art: "syntese" };
 
-function varmelastkilde(s: Side, navne: ReadonlyMap<string, string> | undefined): Varmelastkilde {
+/**
+ * Hvordan den EFFEKTIVE varmelast ændres fra reference til scenarie (tredje rettelsesrunde i runde 15, P2-5) — den ene
+ * klassifikation, som sætning 1 (`varmelastfrase`), anbefalingens sætning (`knapSaetning`) og skabelonvalget (`ordnPar`)
+ * alle læser. `null` = samme varmelast. Faglig lighed afgøres på indholdet: to tidsserier med samme sha256 er samme
+ * varmelast, også med hver sit id og navn (arbejderen henter filen på dens hash); id'et er kun teknisk. En frossen
+ * `"syntetisk"` og en udeladt række er begge syntesen; står der også en repo-fil, er det filen, arbejderen bruger.
+ */
+export type Varmelastskift = "syntese_til_maaling" | "maaling_til_syntese" | "maaling_til_maaling";
+export function varmelastskift(ref: Pick<Side, "input">, scen: Pick<Side, "input">): Varmelastskift | null {
+    const a = varmelastkilde(ref, undefined), b = varmelastkilde(scen, undefined);
+    if (sammeVarmelast(a, b)) return null;
+    return a.art === "syntese" ? "syntese_til_maaling" : b.art === "syntese" ? "maaling_til_syntese" : "maaling_til_maaling";
+}
+function sammeVarmelast(a: Varmelastkilde, b: Varmelastkilde): boolean {
+    if (a.art !== b.art) return false;
+    if (a.art === "syntese") return true;
+    if (a.art === "fil") return b.art === "fil" && a.fil === b.fil;
+    if (b.art !== "serie") return false;
+    // Uden sha256 på begge sider (burde ikke forekomme: arbejderen kræver den) er id'et det eneste, der kan sammenlignes.
+    if (a.sha || b.sha) return !!a.sha && !!b.sha && a.sha.toLowerCase() === b.sha.toLowerCase();
+    return !!a.id && !!b.id && a.id.toLowerCase() === b.id.toLowerCase();
+}
+
+/**
+ * Anbefalingens sætning for knappen *Målt varmelast* i de to retninger, knappens egen tekst ikke dækker
+ * (viden/knapper.json › maalt_varmelast › anbefaling.tekst er syntese → måling). Appens egne formuleringer.
+ */
+const VARMELAST_SAETNING: Record<Exclude<Varmelastskift, "syntese_til_maaling">, string> = {
+    maaling_til_syntese: "Syntesen i stedet for den målte varmelast flytter driftsomkostningen {abs} ({pct}) — et mål for syntesens fejl.",
+    maaling_til_maaling: "En anden målt varmelast flytter driftsomkostningen {abs} ({pct}) — forskellen mellem to målinger, ikke et mål for syntesens fejl.",
+};
+
+function varmelastkilde(s: Pick<Side, "input">, navne: ReadonlyMap<string, string> | undefined): Varmelastkilde {
     const serie = blad(s, VARMELASTSERIE_STI) as { id?: string; sha256?: string } | undefined;
     if (serie && typeof serie === "object") {
         const id = typeof serie.id === "string" ? serie.id : undefined;

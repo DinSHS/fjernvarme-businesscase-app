@@ -200,6 +200,15 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **Historien og anbefalingen kunne sige hver sin retning om varmelasten** (tredje rettelsesrunde, P2-5). *Scenariet
+  fortalt* kendte alle retninger, men anbefalingen brugte knappens ene sætning — "Målt varmelast i stedet for syntesen
+  flytter … et mål for syntesens fejl" — for enhver forskel i varmelast: også med målt reference og syntetisk
+  scenarie, og mellem to målte filer, hvor ingen side brugte syntesen. Den effektive varmelast klassificeres nu ét
+  sted (syntese → måling, måling → syntese, måling → måling), og historien, anbefalingens sætning og valget af
+  knappens skabelon læser alle den. De to nye sætninger er appens egne formuleringer. Parentesen i sætningen er
+  forskellen i procent af referencens driftsomkostning (før stod den tom). Faglig lighed afgøres på indholdet: to
+  uploads med hver sit id og samme sha256 er samme varmelast og fortælles ikke længere som et skift med en virkning;
+  id'erne står fortsat i den tekniske inputvisning.
 - **Ubrugte solprofiler kunne gøre et gyldigt par ukendt** (tredje rettelsesrunde, P2-4). To kørsler med samme værk,
   revision, pins, gab og periode kunne have hver sin frosne solprofil, selv om ingen af dem brugte en (værkets aktive
   profilfil var skiftet, og værket har ingen aktiv solvarmeenhed) — og dommen blev *kan ikke afgøres*. En serie, som
