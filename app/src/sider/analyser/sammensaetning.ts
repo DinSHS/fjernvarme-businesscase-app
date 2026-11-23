@@ -73,26 +73,31 @@ export { frossenOpsaetning, readmePins, type VaerkKilde } from "../information/r
 
 /**
  * Hvor kørslen kommer fra, i den rækkefølge reglerne vinder:
- * 1. En kendt teknisk testkørsel (probe-, Test K<n>) → Røgtest.
- * 2. En MÅLING af et README-referencetal (information/referencer.ts › kvalificer: frossen opsætning, ingen
- *    ændringer, samme eller strammere gab, repo-casen uændret, referencens modelversion, kendt df-data)
- *    → README-reference med tallet.
+ * 1. En MÅLING af et README-referencetal (information/referencer.ts › kvalificer: færdig, frossen opsætning, ingen
+ *    ændringer, samme eller strammere gab, repo-casen uændret, referencens modelversion, kendt df-data, referencens
+ *    varmelast og solprofil) → README-reference med tallet.
+ * 2. En kendt teknisk testkørsel (probe-, Test K<n>) → Røgtest.
  * 3. En af demo-kørslerne (demo_scenarier.json) → Demo.
  * 4. En kontrolkørsel fra opsætningen (F1–F5) → Røgtest.
  * 5. Ellers kørselsvejen: app eller notebook.
  * `vaerk` mangler → README kan ikke verificeres og gives ikke.
+ *
+ * Efterprøvningen af rettelserne i runde 15 (fund F): målingen går FORUD for navnereglerne. Før vandt navnet, så en
+ * kvalificeret kørsel omdøbt til "probe-spora" var en måling under Information › Referencetal og en røgtest her.
+ * Udvælgelsen er nu den samme begge steder: kvalifikationen på kørslens frosne felter — scenariets navn er et levende
+ * felt og kan ikke gøre en måling til noget andet (eller omvendt).
  */
 export function oprindelse(k: Koersel, scenarie: Scenarie | null, vaerkKode: string, input: readonly InputRække[], vaerk?: VaerkKilde): Oprindelse {
     const navn = scenarie?.navn ?? "";
     const demo = demoId(navn, vaerkKode);
     const svar = (type: OprindelseType, detalje: string | null, readme: Reference | null = null): Oprindelse =>
         ({ type, etiket: OPRINDELSE_ETIKET[type], detalje, demoId: demo, readme });
-    if (TESTNAVN.test(navn)) return svar("roegtest", "test af kørselsvejen — ikke en analyse");
-    // En kontrolkørsel, der ikke blev færdig (fx F3's annulleringstest af Spor A-opsætningen), genskaber intet tal.
-    if (KONTROLNAVN.test(navn) && k.status !== "faerdig") return svar("roegtest", "kontrolkørsel fra opsætningen — ikke en analyse");
-    // Én kvalifikation pr. reference, på de frosne felter — den samme, Information › Referencetal bruger.
+    // Én kvalifikation pr. reference, på de frosne felter — den samme, Information › Referencetal bruger. Den kræver
+    // en færdig kørsel, så en kontrolkørsel, der ikke blev færdig (fx F3's annulleringstest), genskaber intet tal.
     const r = readmeReferencer().find((x) => x.kode === vaerkKode && kvalificer(x, k, input, vaerk).maaling);
     if (r) return svar("readme", `README ${tal(r.objektiv)} kr.${demo ? ` · ${demo}` : ""}`, r);
+    if (TESTNAVN.test(navn)) return svar("roegtest", "test af kørselsvejen — ikke en analyse");
+    if (KONTROLNAVN.test(navn) && k.status !== "faerdig") return svar("roegtest", "kontrolkørsel fra opsætningen — ikke en analyse");
     if (demo) return svar("demo", demo);
     if (KONTROLNAVN.test(navn)) return svar("roegtest", "kontrolkørsel fra opsætningen — ikke en analyse");
     return k.kilde === "app" ? svar("app", null) : svar("notebook", null);

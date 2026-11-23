@@ -243,6 +243,8 @@
             "kode": "andeby",
             "kilde_fil": "cases/andeby.yaml"
           },
+          "solprofil_sha256": "35706793bf4dd9c81d88c2b045e39ef9866c17ccfb86e0703067fb42a9e93f29",
+          "solprofil_kilde": "data/solar_andeby_dmi_karup.csv (cases/andeby.yaml:399), i appens normaliserede form (fabric/fjv/tidsserie.py); samme fil ved eef950a, 90fb16e og 939228a. Målt 2026-11-23; holdt op mod modelrepoet af fabric/tests/test_tidsserier.py",
           "scenarie": {
             "navn": "Andeby helår, med balancering",
             "periode_start": null,
@@ -294,6 +296,8 @@
             "kode": "andeby",
             "kilde_fil": "cases/andeby.yaml"
           },
+          "solprofil_sha256": "35706793bf4dd9c81d88c2b045e39ef9866c17ccfb86e0703067fb42a9e93f29",
+          "solprofil_kilde": "data/solar_andeby_dmi_karup.csv (cases/andeby.yaml:399), i appens normaliserede form (fabric/fjv/tidsserie.py); samme fil ved eef950a, 90fb16e og 939228a. Målt 2026-11-23; holdt op mod modelrepoet af fabric/tests/test_tidsserier.py",
           "scenarie": {
             "navn": "Andeby helår, uden balancering",
             "periode_start": null,

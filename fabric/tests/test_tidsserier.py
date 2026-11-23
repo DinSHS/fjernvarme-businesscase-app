@@ -193,6 +193,29 @@ class TestModellensLaeserErBitvisEns(unittest.TestCase):
         self.assertTrue(a.index.equals(b.index))
         self.assertTrue(np.array_equal(a.values.view(np.uint64), b.values.view(np.uint64)))
 
+    def test_referencetallenes_solprofil_er_den_normaliserede_repo_fil(self):
+        """Efterprøvningen af rettelserne i runde 15, fund F: appen holder en kørsels frosne solprofil op mod
+        referencens (``viden/referencetal.json`` › ``solprofil_sha256``), før den måles mod et README-tal. Tallet dér
+        skal være hashen af casens EGEN solprofil, som importen registrerer den (``tidsserie_db`` ›
+        ``registrer_repo_tidsserier``: UTC, timens start, med casen som værk)."""
+        import json
+
+        import yaml
+        ref = json.loads((HER.parent.parent / "viden" / "referencetal.json").read_text(encoding="utf-8"))
+        readme = next(g for g in ref["grupper"] if g["id"] == "readme")["referencer"]
+        med = [r for r in readme if r.get("solprofil_sha256")]
+        self.assertEqual(sorted(r["id"] for r in med), ["andeby_helaar_bal", "andeby_helaar_spot"])
+        case = yaml.safe_load((MODELREPO / "cases" / "andeby.yaml").read_text(encoding="utf-8"))
+        r = DK.valider((MODELREPO / "data" / "solar_andeby_dmi_karup.csv").read_text(encoding="utf-8"), "solprofil",
+                       tidszone="UTC", tidsstempel="start", vaerk=case)
+        self.assertEqual(r.status, "gyldig")
+        for x in med:
+            self.assertEqual(x["solprofil_sha256"], r.sha256, x["id"])
+        # Og kun de cases, der HAR en solprofil, bærer en hash: Billund-casene har ingen production_profile_path.
+        for x in readme:
+            tekst = (MODELREPO / x["vaerk"]["kilde_fil"]).read_text(encoding="utf-8")
+            self.assertEqual("production_profile_path" in tekst, bool(x.get("solprofil_sha256")), x["id"])
+
 
 # ------------------------------------------------------------------ frysning -> case + argv
 

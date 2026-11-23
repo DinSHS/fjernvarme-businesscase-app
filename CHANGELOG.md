@@ -222,6 +222,14 @@ præsentationen og i datahåndteringen omkring kørslerne.
   side om side med hver sin periode — uden afledt Δ, uden retningsfarve, uden prisord og uden vandfald — og
   balancekortet siger, hvad der mangler. Ved *ikke direkte sammenlignelige* er ΔRef neutralt, og farvevalget er slået
   fra. Kortet *Kan de to kørsler sammenlignes?* viser også varmelast og solprofil.
+- **En kørsel på en anden varmelast kunne blive målt mod README-tallet** (efterprøvningen af rettelserne, fund F).
+  En af værkets tidsserier gjort aktiv fryses i kørslen uden at stå som en scenarieændring, og README-kvalifikationen
+  læste kun scenariets varmelastfil: en Spor A-kørsel på en anden varmelast stod som "uden for tolerancen" under
+  *Information › Referencetal* og med mærket *README-reference* i Analyser. Kvalifikationen holder nu kørslens frosne
+  varmelast og solprofil op mod referencens grundlag, før en afvigelse regnes; ellers står kørslen som *kørt på et
+  andet grundlag* med grunden. De to Andeby-referencer bærer den målte hash af casens egen solprofil
+  (`viden/referencetal.json`). Målingen går desuden forud for navnereglen for røgtests, og kun en færdig kørsel kan
+  være en måling — så *Referencetal* og kørselslisten altid placerer samme kørsel ens.
 
 ## [Ikke udgivet] — 0.4.0
 

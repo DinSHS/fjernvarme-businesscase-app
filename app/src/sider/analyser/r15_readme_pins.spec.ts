@@ -16,7 +16,8 @@ const vaerk = (commit: string): VaerkKilde => ({ kilde: "repo", repo_commit: com
 
 /** En færdig kørsel af repo-casen uændret, med casens eget gab (README's kommando). */
 function koersel(model: string, data: string, rel: number, abs: number): Koersel {
-    return { id: "k", scenarie_id: "s", vaerk_id: "v", vaerk_revision: 1, status: "faerdig", kilde: "app", model_commit: model, data_commit: data,
+    // Med et objektiv: kun en færdig kørsel med et resultat kan være en måling (efterprøvningen af runde 15, fund F).
+    return { id: "k", scenarie_id: "s", vaerk_id: "v", vaerk_revision: 1, status: "faerdig", objektiv_dkk: 1, kilde: "app", model_commit: model, data_commit: data,
         oensket_rel_gap: rel, oensket_abs_gap: abs } as Koersel;
 }
 const scenarie = (navn: string) => ({ id: "s", navn, med_balancering: false } as Scenarie);

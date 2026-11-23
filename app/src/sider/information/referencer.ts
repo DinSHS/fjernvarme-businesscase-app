@@ -15,6 +15,7 @@
 
 import type { FjvSchema } from "../../../rayfin/data/schema";
 import { KOERSEL_PRAEFIKS, effektivtInput, type InputRække } from "@/lib/data/afflad";
+import { tidsseriekilde, tidsseriekildeTekst } from "../analyser/beregn";
 import { README_PINS } from "../analyser/sammensaetning.data";
 
 type Koersel = FjvSchema["Koersel"];
@@ -58,6 +59,13 @@ export interface Reference {
      * er fra før. Med én fælles version ville en gammel kørsel ved eef950a blive dømt "uden for tolerancen" mod det nye tal.
      */
     modelCommits: readonly string[] | null;
+    /**
+     * sha256 af den solprofil (appens normaliserede form), referencens case selv regnes med (referencetal.json →
+     * referencer[].solprofil_sha256; i dag de to Andeby-tal). Udeladt = casen har ingen solprofil (Billund-casene).
+     * Efterprøvningen af rettelserne i runde 15, fund F: en solprofil-tidsserie, kørslen faktisk brugte, skal være
+     * netop den, for at kørslen er en måling af tallet.
+     */
+    solprofilSha256?: string | null;
 }
 
 interface RåReference {
@@ -67,6 +75,7 @@ interface RåReference {
     case_gab?: { mip_rel_gap?: number | null; mip_abs_gap?: number | null } | null;
     forventet: { objektiv_dkk: number; tolerance_dkk?: number | null; opnaaet_gab_pct?: number | null };
     regnet_ved?: { model_commits?: unknown } | null;
+    solprofil_sha256?: string | null;
     loesetid?: string; noter?: string[]; kilde?: string;
 }
 
@@ -97,6 +106,7 @@ export function laesReferencer(json: string): Reference[] {
             gabPct: r.forventet.opnaaet_gab_pct ?? null,
             loesetid: r.loesetid ?? null, noter: r.noter ?? [], kilde: r.kilde ?? "",
             modelCommit: modelCommits?.[0] ?? null, modelCommits,
+            solprofilSha256: typeof r.solprofil_sha256 === "string" ? r.solprofil_sha256 : null,
         };
     });
 }
@@ -178,6 +188,8 @@ export function frossenOpsaetning(input: readonly InputRække[]): Scenarie {
  * README's 5.204.555 kr., og en kørsel med en ændring fremstod som ren, når ændringen siden var fjernet fra scenariet.
  */
 export interface Kvalifikation {
+    /** Kørslen er færdig og har et objektiv. Kun en sådan kan være en måling — samme krav i begge visninger. */
+    faerdig: boolean;
     /** Det frosne input kendes, og opsætningen er referencens (periode, balancering, metode, varmelast, flag). */
     opsaetning: boolean;
     /** Kørslen har ingen frosne scenarieændringer (ingen rækker med kilde `aendring`). */
@@ -190,8 +202,57 @@ export interface Kvalifikation {
     vaerk: boolean;
     /** df-data-commit'en er kendt med målt dato, og datoen ligger efter README's datakrav. */
     data: boolean;
+    /**
+     * Kørslens EFFEKTIVE frosne varmelast og solprofil er referencens (efterprøvningen af rettelserne, fund F):
+     * varmelasten er referencens fil — eller syntesen, når referencen ingen har — og ikke en af værkets tidsserier;
+     * en solprofil-tidsserie, kørslen brugte, er referencens egen. `grundlagAfviger` siger i ord, hvad der ikke passer.
+     */
+    grundlag: boolean;
+    grundlagAfviger: string[];
     /** Alt ovenfor: kørslen er en måling af README-tallet, og en afvigelse må regnes. */
     maaling: boolean;
+}
+
+/**
+ * Bruger kørslen sin frosne solprofil-tidsserie? Arbejderen skriver det i kørslens manifest (`tidsserier.anvendt` /
+ * `tidsserier.ubrugt`, fabric/fjv/koersel.py › tidsserie_brug): en aktiv solprofil fryses, også når ingen tændt enhed
+ * bruger den — og da er modellen uændret. Siger manifestet intet (ældre kørsler), kendes det ikke (`null`).
+ */
+function solprofilBrugt(k: Koersel): boolean | null {
+    try {
+        const t = (k.manifest_json ? JSON.parse(k.manifest_json) as { tidsserier?: { anvendt?: Record<string, unknown>; ubrugt?: Record<string, unknown> } } : null)?.tidsserier;
+        if (!t) return null;
+        if (t.anvendt && "solprofil" in t.anvendt) return true;
+        if (t.ubrugt && "solprofil" in t.ubrugt) return false;
+        return null;
+    } catch { return null; }
+}
+
+/**
+ * Kørslens effektive frosne varmelast og solprofil mod referencens grundlag (fund F). Tom liste = grundlaget er
+ * referencens. Før læste kvalifikationen kun scenariets `heat_csv`: en af værkets tidsserier gjort AKTIV fryses som
+ * `_koersel.tidsserie.varmelast` uden at stå som en ændring (kilde `aendring`), og kørslen blev målt mod README-tallet
+ * på en anden varmelast.
+ */
+function grundlagAfvigelser(r: Reference, k: Koersel, input: readonly InputRække[]): string[] {
+    const ud: string[] = [];
+    const varme = tidsseriekilde(input, "varmelast");
+    const ref = r.scenarie?.heat_csv ?? null;
+    const haves = tidsseriekildeTekst("varmelast", varme);
+    if (varme.art === "serie") ud.push(`varmelasten er en af værkets tidsserier (${haves}), ikke ${ref ? `README's ${ref}` : "syntesen, som README regner med"}`);
+    else if (varme.art === "fil" ? varme.fil !== ref : ref !== null) ud.push(`varmelasten er ${haves}, ikke ${ref ?? "syntesen, som README regner med"}`);
+    const sol = tidsseriekilde(input, "solprofil");
+    const egen = r.solprofilSha256?.toLowerCase() ?? null;
+    if (sol.art === "serie") {
+        const brugt = solprofilBrugt(k);
+        // Referencens EGEN solprofil (samme sha256) er grundlaget, hvad enten manifestet siger "anvendt" eller intet.
+        if (brugt !== false && sol.sha256 !== egen) {
+            ud.push(`solprofilen er en af værkets tidsserier (${tidsseriekildeTekst("solprofil", sol)}), ${brugt === null ? "og kørslen siger ikke, om den blev brugt" : "som kørslen brugte"} — ikke ${egen ? "referencens egen solprofil" : "README's grundlag (casen har ingen solprofil)"}`);
+        }
+    }
+    // Ingen frossen solprofil-tidsserie: enheden læser værkets egen profilsti, og at værket er repo-casen uændret,
+    // er sit eget krav (`vaerk`). Sådan er alle kørsler fra før runde 15 frosset.
+    return ud;
 }
 
 export function kvalificer(r: Reference, k: Koersel, input: readonly InputRække[], vaerk: VaerkKilde | undefined): Kvalifikation {
@@ -204,15 +265,18 @@ export function kvalificer(r: Reference, k: Koersel, input: readonly InputRække
     const versioner = r.modelCommits ?? [README_PINS.model_commit];
     const model = pin("model_commit"), data = pin("data_commit"), importeret = vaerk?.repo_commit?.toLowerCase();
     const dato = data ? README_PINS.df_data_kendt[data] : undefined;
+    const grundlagAfviger = kendt ? grundlagAfvigelser(r, k, input) : [];
     const q = {
+        faerdig: k.status === "faerdig" && typeof k.objektiv_dkk === "number",
         opsaetning: kendt && harReferencensOpsaetning(frossen, r),
         uaendret: !input.some((x) => x.kilde === "aendring"),
         gab,
         version: !!model && versioner.includes(model),
         vaerk: !!vaerk && vaerk.kilde === "repo" && !!importeret && versioner.includes(importeret) && k.vaerk_revision === 1,
         data: !!dato && dato >= README_PINS.df_data_fra,
+        grundlag: kendt && grundlagAfviger.length === 0, grundlagAfviger,
     };
-    return { ...q, maaling: q.opsaetning && q.uaendret && gab.erTilladt && q.version && q.vaerk && q.data };
+    return { ...q, maaling: q.faerdig && q.opsaetning && q.uaendret && gab.erTilladt && q.version && q.vaerk && q.data && q.grundlag };
 }
 
 /**
@@ -320,6 +384,7 @@ export function grundlagTekst(q: Kvalifikation): string {
     const dele = [
         ...(q.vaerk ? [] : ["værket er ikke modelrepoets case uændret (rettet, kopieret eller importeret ved en anden modelversion)"]),
         ...(q.data ? [] : ["kørslens df-data er ikke en af de versioner, hvis dato er målt til at opfylde README's datakrav"]),
+        ...q.grundlagAfviger,
     ];
     return dele.join("; ");
 }
