@@ -480,10 +480,52 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
 
 // ================================================================= historie (A2)
 
+const HEAT_CSV_STI = `${KOERSEL_PRAEFIKS}heat_csv`;
+const VARMELASTSERIE_STI = `${KOERSEL_PRAEFIKS}tidsserie.varmelast`;
+
+/** En sides varmelast, som den er frosset: værkets tidsserie (id + sha256), en af modelrepoets filer — eller syntesen. */
+type Varmelastkilde = { art: "serie"; id?: string; sha?: string; navn?: string } | { art: "fil"; fil: string } | { art: "syntese" };
+
+function varmelastkilde(s: Side, navne: ReadonlyMap<string, string> | undefined): Varmelastkilde {
+    const serie = blad(s, VARMELASTSERIE_STI) as { id?: string; sha256?: string } | undefined;
+    if (serie && typeof serie === "object") {
+        const id = typeof serie.id === "string" ? serie.id : undefined;
+        return { art: "serie", id, sha: typeof serie.sha256 === "string" ? serie.sha256 : undefined, navn: id ? navne?.get(id) ?? navne?.get(id.toLowerCase()) : undefined };
+    }
+    const fil = blad(s, HEAT_CSV_STI);
+    return typeof fil === "string" && fil ? { art: "fil", fil } : { art: "syntese" };
+}
+
+/**
+ * Varmelasten som ÉN ændring, i den retning scenariet går (efterprøvningen af rettelserne i runde 15, fund G).
+ *
+ * Før kendte teksten for `heat_csv` kun retningen syntese → måling: en målt reference mod et syntetisk scenarie blev
+ * "bruger målt varmelast (–) i stedet for syntesen" — det modsatte. Her læses begge siders effektive kilde, og alle
+ * retninger formuleres: syntese → måling, måling → syntese, måling → anden måling. En af værkets tidsserier nævnes
+ * ved navn; kendes navnet ikke, eller har de to serier SAMME navn, står deres sha256 ved — identiteten er id + sha256,
+ * aldrig navnet.
+ */
+function varmelastfrase(p: Par): string | null {
+    const navne = new Map([...(p.ref.tidsserienavne ?? []), ...(p.scen.tidsserienavne ?? [])]);
+    const a = varmelastkilde(p.ref, navne), b = varmelastkilde(p.scen, navne);
+    const ensNavn = a.art === "serie" && b.art === "serie" && a.navn === b.navn;
+    const vis = (k: Varmelastkilde): string => {
+        if (k.art === "fil") return `(${k.fil})`;
+        if (k.art !== "serie") return "syntesen";
+        const sha = `sha256 ${k.sha?.slice(0, 12) ?? "ukendt"}`;
+        if (!k.navn) return `(tidsserie, ${sha})`;
+        return ensNavn ? `'${k.navn}' (${sha})` : `'${k.navn}'`;
+    };
+    if (a.art === "syntese" && b.art === "syntese") return null;
+    if (b.art === "syntese") return `bruger syntesen i stedet for den målte varmelast ${vis(a)}`;
+    return `bruger den målte varmelast ${vis(b)} i stedet for ${vis(a)}`;
+}
+
 /** Sætning 1: hvad scenariet ændrer, i fagsprog. */
 export function aendringsfraser(p: Par): string[] {
     const ud: string[] = [];
     const lagreFra: string[] = [];
+    let varmelastSagt = false;
     for (const d of p.diff) {
         const b = json(d.b), a = json(d.a);
         let m = /^units\.([^.]+)\.enabled$/.exec(d.sti);
@@ -513,17 +555,10 @@ export function aendringsfraser(p: Par): string[] {
         if (d.sti === "balancing.reservation_gate.enabled" && b === true) { ud.push("byder kun, når kapacitetsprisen er over budprisen"); continue; }
         if (d.sti === "balancing.ancillary_caps.total_mw") { ud.push(`${op(a, b)} den samlede prækvalifikation fra ${visJson(d.a)} til ${visJson(d.b)} MW`); continue; }
         if (d.sti === "data.dmi_area") { ud.push(`bruger vejret fra ${visJson(d.b)} i stedet for ${visJson(d.a)}`); continue; }
-        if (d.sti === `${KOERSEL_PRAEFIKS}heat_csv`) { ud.push(`bruger målt varmelast (${visJson(d.b)}) i stedet for syntesen`); continue; }
-        if (d.sti === `${KOERSEL_PRAEFIKS}tidsserie.varmelast`) {
-            const navne = p.scen.tidsserienavne ?? p.ref.tidsserienavne;
-            const serie = (j: string | undefined) => {
-                const v = json(j) as { id?: string; sha256?: string } | undefined;
-                const navn = v?.id ? navne?.get(v.id) : undefined;
-                return `${navn ? `'${navn}'` : "tidsserie"} (sha256 ${v?.sha256?.slice(0, 12) ?? "ukendt"})`;
-            };
-            if (d.a === undefined) ud.push(`bruger den målte varmelast ${serie(d.b)} i stedet for syntesen`);
-            else if (d.b === undefined) ud.push(`bruger syntesen i stedet for den målte varmelast ${serie(d.a)}`);
-            else ud.push(`bruger den målte varmelast ${serie(d.b)} i stedet for ${serie(d.a)}`);
+        if (d.sti === HEAT_CSV_STI || d.sti === VARMELASTSERIE_STI) {
+            // Fund G: de to stier er samme ting — kørslens varmelast — og siges én gang, i scenariets retning.
+            if (!varmelastSagt) { const f = varmelastfrase(p); if (f) ud.push(f); }
+            varmelastSagt = true;
             continue;
         }
         const fi = feltInfo(d.sti);

@@ -192,6 +192,11 @@ præsentationen og i datahåndteringen omkring kørslerne.
   om kørslen blev bestilt — prøv igen" — i stedet for "blev ikke bestilt", og knappen hedder *Prøv igen*. En afvisning,
   hvor bestillingen blev stående (Fabric-udgaven), genoptages ligeledes med samme nøgle. Nøglen huskes, så længe
   appen er åben — ikke hen over en genindlæsning af siden.
+- ***Scenariet fortalt* kunne sige det modsatte om varmelasten** (efterprøvningen af rettelserne, fund G). En
+  reference med målt varmelast og et scenarie med syntesen blev fortalt som "bruger vi målt varmelast (–) i stedet for
+  syntesen", og to tidsserier med samme navn som "samme input". Historien bærer nu seriens id og sha256 frem til
+  teksten, som formulerer alle retninger: syntese → måling, måling → syntese og serie → anden serie, med seriernes
+  navne (og deres sha256, når navnene er ens eller ukendte). Det samme gælder modelrepoets varmelastfiler.
 
 ## [Ikke udgivet] — 0.4.0
 

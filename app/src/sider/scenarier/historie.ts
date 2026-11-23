@@ -13,21 +13,19 @@
 import { historie, ordnPar, vurder, type Side, type Vurdering } from "../analyser/anbefaling";
 import { profil, samlNoegletal, type Koersel, type Noegletal, type Scenarie } from "../analyser/beregn";
 import type { InputRække } from "@/lib/data/afflad";
-import { FROSSET_TIDSSERIE_STI, type TidsserieInfo } from "./varmelast";
+import type { TidsserieInfo } from "./varmelast";
 
 /**
- * Generatoren kender målt varmelast som `_koersel.heat_csv` (repo-filen), endnu ikke den frosne serie
- * `_koersel.tidsserie.varmelast` (§6d). Til TEKSTEN oversættes serien derfor til samme form med seriens
- * navn — kun her, aldrig i det, der gemmes eller sammenlignes. (Ønske til fv-analyse2 i rapporten.)
+ * Seriernes navne til teksten, slået op på id (små bogstaver: DAB og mssql skriver uuid'er forskelligt).
+ *
+ * Efterprøvningen af rettelserne i runde 15, fund G: her blev den frosne serie (`_koersel.tidsserie.varmelast`) før
+ * skrevet om til `_koersel.heat_csv` med seriens NAVN som værdi. Dermed forsvandt id og sha256, før generatoren så
+ * inputtet: en målt reference mod et syntetisk scenarie blev fortalt omvendt ("målt varmelast (–) i stedet for
+ * syntesen"), og to serier med samme navn var "samme input". Nu går inputtet uændret videre, og navnene følger med
+ * ved siden af (`Side.tidsserienavne`) — kun til tekst; identiteten er id + sha256.
  */
-function medSerienavn(input: readonly InputRække[], serier: readonly TidsserieInfo[]): InputRække[] {
-    return input.map((r) => {
-        if (r.sti !== FROSSET_TIDSSERIE_STI) return r;
-        let id: string | undefined;
-        try { id = (JSON.parse(r.vaerdi_json) as { id?: string }).id; } catch { id = undefined; }
-        const navn = serier.find((s) => s.id.toLowerCase() === id?.toLowerCase())?.navn ?? "værkets tidsserie";
-        return { ...r, sti: "_koersel.heat_csv", vaerdi_json: JSON.stringify(navn) };
-    });
+function serienavne(serier: readonly TidsserieInfo[]): ReadonlyMap<string, string> {
+    return new Map(serier.map((s) => [s.id.toLowerCase(), s.navn]));
 }
 
 /**
@@ -35,8 +33,8 @@ function medSerienavn(input: readonly InputRække[], serier: readonly TidsserieI
  * `input` og `navn` for sætning 1; resten er tomme pladsholdere og læses ikke,
  * når der ikke er en Δ (historie returnerer da kun sætning 1).
  */
-function sideUdenKørsel(input: readonly InputRække[], navn: string, vaerkNavn: string): Side {
-    return { k: {} as Koersel, navn, vaerkNavn, input, samlet: {} as Side["samlet"], profil: {} as Side["profil"] };
+function sideUdenKørsel(input: readonly InputRække[], navn: string, vaerkNavn: string, serier: readonly TidsserieInfo[]): Side {
+    return { k: {} as Koersel, navn, vaerkNavn, input, samlet: {} as Side["samlet"], profil: {} as Side["profil"], tidsserienavne: serienavne(serier) };
 }
 
 /**
@@ -45,7 +43,7 @@ function sideUdenKørsel(input: readonly InputRække[], navn: string, vaerkNavn:
  */
 export function saetningFørKørsel(refInput: readonly InputRække[], refNavn: string, scenInput: readonly InputRække[], scenNavn: string, vaerkNavn: string, serier: readonly TidsserieInfo[] = []): string {
     // Rollerne er sidens — dette scenarie mod sin reference (parret): generatoren ordner dem ikke om (gennemgangens fund 5).
-    const p = ordnPar(sideUdenKørsel(medSerienavn(refInput, serier), refNavn, vaerkNavn), sideUdenKørsel(medSerienavn(scenInput, serier), scenNavn, vaerkNavn), "ab");
+    const p = ordnPar(sideUdenKørsel(refInput, refNavn, vaerkNavn, serier), sideUdenKørsel(scenInput, scenNavn, vaerkNavn, serier), "ab");
     // Uden Δ returnerer historie() kun sætning 1 (analyser/anbefaling.ts historie: `if (v.delta === null) return s1`).
     return historie(p, { delta: null } as Vurdering);
 }
@@ -63,7 +61,7 @@ export interface KørselMedData { k: Koersel; navn: string; scenarie?: Scenarie 
  */
 export function historieEfterKørsel(ref: KørselMedData, scen: KørselMedData, vaerkNavn: string, bekraeft: ReadonlySet<string>, serier: readonly TidsserieInfo[] = []): { tekst: string; vurdering: Vurdering } {
     const side = (x: KørselMedData): Side => ({
-        k: x.k, navn: x.navn, vaerkNavn, input: medSerienavn(x.input, serier),
+        k: x.k, navn: x.navn, vaerkNavn, input: x.input, tidsserienavne: serienavne(serier),
         samlet: samlNoegletal(x.noegletal), profil: profil(x.k, vaerkNavn, x.scenarie ?? null, x.input),
     });
     const p = ordnPar(side(ref), side(scen), "ab");
