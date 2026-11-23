@@ -153,6 +153,11 @@ præsentationen og i datahåndteringen omkring kørslerne.
     "Bestillingen er allerede sendt"). En teknisk fejl svares som `teknisk` og arkiverer aldrig noget; før blev
     scenariet arkiveret på enhver fejl, og genforsøget efterlod et nyt, tomt scenarie.
 - Den skjulte datatabel bag *Δ driftsomkostning pr. par* viste "Scen 0,0 · Ref 0,0" for hvert par; grafen var rigtig.
+- **To egne valg stod uklart** (kodegennemgangen af runde 15). Lagerkortene sagde, at fordelingen mellem flere lagre
+  "følger casefilens skrivemåde"; det er ikke målt, og de siger nu, at årsagen ikke er fundet (som
+  `doc/TROFASTHED.md` §4b). *Tilføj enhed* og guiden *Nyt værk* mærker skabelonens tal som appens egne forslag
+  (*egen antagelse*): for oliekedlen 15 MW, virkningsgrad 0,95, D&V 30 kr./MWh og startomkostning 500 kr.; kun
+  CO₂-faktoren er modelrepoets. Tallene står i `doc/TROFASTHED.md` §5.
 - `doc/TROFASTHED.md`: "samme timefil" gælder mod appens egen casefil; solprofilens kolonnenavn `mw` (modellens
   `power_mw`) og den ændrede sha256 står som *egen antagelse*.
 

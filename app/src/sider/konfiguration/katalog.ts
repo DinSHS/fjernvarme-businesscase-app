@@ -45,6 +45,19 @@ export interface Enhedstype {
 
 export { ENHEDSTYPER };
 
+/**
+ * Hvor skabelonens tal kommer fra (kodegennemgangen af runde 15, fund 9). Enhedstypernes skabeloner
+ * (viden/enhedstyper.json) er APPENS EGNE FORSLAG — pladsholdere, ikke værdier fra modelrepoet. Én undtagelse:
+ * CO₂-faktoren for de typer, modelrepoets værksarkskonvertering selv har en faktor for
+ * (scripts/vaerksark_til_yaml.py › CO2_PR_MWH_BRAENDSEL: gaskedel og gasmotor 0,2, oliekedel 0,266 t/MWh brændsel).
+ * Listen er bundet til modelspejlet i r15_egne_antagelser.spec.tsx, og tallene holdes op mod det af tjek_trofasthed [5].
+ */
+export const CO2_FAKTOR_FRA_MODELREPOET: ReadonlySet<string> = new Set(["gas_boiler", "gas_engine_chp", "oil_boiler"]);
+
+export function skabelonKilde(type: string, felt: string): "modelrepoet" | "egen antagelse" {
+    return felt === "co2_emissions_per_mwh_fuel" && CO2_FAKTOR_FRA_MODELREPOET.has(type) ? "modelrepoet" : "egen antagelse";
+}
+
 /** Brændselsnavne på dansk — fra viden/enhedstyper.json → braendselsnavne (fv-ekspert). */
 export const BRAENDSEL: Readonly<Record<string, string>> = BRAENDSELSNAVNE;
 

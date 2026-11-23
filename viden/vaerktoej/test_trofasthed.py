@@ -303,8 +303,8 @@ class Lagersum(unittest.TestCase):
     def setUp(self):
         import lagersum
         self.L = lagersum
-        # Samme sum (209,5 MWh; netto −4,344 MW), fordelt forskelligt — som de to optimale løsninger, testen målte.
-        # Bruttotallene er IKKE ens (a aflader 25 MW og lader 20,656; b aflader 4,344): det er netop det, summen skjulte.
+        # Syntetisk eksempel i modellens form: samme sum (209,5 MWh; netto −4,344 MW), fordelt forskelligt på de to tanke.
+        # Bruttotallene er IKKE ens (a aflader 25 MW og lader 20,656; b aflader 4,344): det er det, summen kunne skjule.
         self.a = self.fil([["2026-01-05T01:00:00", 19.8, 12.0, 91.5, 47.7, 20.656, 0.0, 20.656, 118.0, 48.3, 0.0, 25.0, -25.0],
                            ["2026-01-05T02:00:00", 19.9, 12.0, 100.0, 52.1, 8.5, 0.0, 8.5, 120.0, 49.1, 2.0, 0.0, 2.0]])
         self.b = self.fil([["2026-01-05T01:00:00", 19.8, 12.0, 159.5, 83.1, 0.0, 4.344, -4.344, 50.0, 20.5, 0.0, 0.0, 0.0],

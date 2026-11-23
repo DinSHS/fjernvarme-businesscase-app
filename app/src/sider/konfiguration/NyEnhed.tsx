@@ -7,7 +7,7 @@
 
 import { useMemo, useState } from "react";
 import { Gitter, Knap, Kort, Tabel } from "@/components/layout";
-import { BRAENDSEL, ENHEDSTYPER, findFelt } from "./katalog";
+import { BRAENDSEL, ENHEDSTYPER, findFelt, CO2_FAKTOR_FRA_MODELREPOET, skabelonKilde } from "./katalog";
 import { objektnavne, type Blad } from "./gruppering";
 import { anvend, manglendeBraendselspris, nyEnhed, tjekNavn } from "./redigering";
 import { nyeFejl, type RedigeringsTilstand } from "./useRedigering";
@@ -56,7 +56,8 @@ export function NyEnhed({ kode, blade, rt, gåTil }: { kode: string; blade: read
         <Gitter form="8-4">
             <Kort titel="Ny enhed" afgraensning={t.navn}
                 budskab={plan ? `${plan.ændringer.filter((æ) => æ.sti.startsWith("units.")).length} felter oprettes under units.${navn} i én ændring${plan.ændringer.some((æ) => æ.sti === prisSti) ? `, sammen med ${prisSti}` : ""}.` : "Vælg type og navn; felterne starter med typens skabelonværdier."}
-                fod="Skabelonens tal er pladsholdere (viden/enhedstyper.json) — erstat dem med værkets egne. Øvrige felter kan rettes bagefter under Enheder.">
+                // Gennemgangens fund 9: forslagene er appens egne, ikke modelrepoets — det skal stå, hvor de vælges.
+                fod={`Skabelonens tal er appens egne forslag (egen antagelse; viden/enhedstyper.json), ikke værdier fra modelrepoet${CO2_FAKTOR_FRA_MODELREPOET.has(type) ? " — undtagen CO₂-faktoren, som er modelrepoets (værksarkets konvertering)" : ""}. Erstat dem med værkets egne. Øvrige felter kan rettes bagefter under Enheder.`}>
                 <div className="kf-formular" data-spalter="2">
                     <label>Type
                         <select className="fjv-felt" value={type} onChange={(e) => vælgType(e.target.value)}>
@@ -91,7 +92,7 @@ export function NyEnhed({ kode, blade, rt, gåTil }: { kode: string; blade: read
                             );
                         }
                         return (
-                            <label key={f}>{post?.etiket ?? f}{post?.enhed && <small>{post.enhed}{t.paakraevede.includes(f) ? " · påkrævet" : ""}</small>}
+                            <label key={f}>{post?.etiket ?? f}<small>{post?.enhed ?? ""}{t.paakraevede.includes(f) ? " · påkrævet" : ""}{værdier.has(f) ? "" : ` · forslag: ${skabelonKilde(type, f)}`}</small>
                                 <input className="fjv-felt kf-tal-input" inputMode="decimal" aria-invalid={fejl ? true : undefined}
                                     value={værdier.get(f) ?? redigerbarTekst(gammel)} onChange={(e) => sæt(f, e.target.value)} />
                                 {fejl && <span className="kf-felt-fejl">{fejl}</span>}
@@ -112,6 +113,7 @@ export function NyEnhed({ kode, blade, rt, gåTil }: { kode: string; blade: read
                     kolonner={[
                         { navn: "Fra skabelonen", vis: (s) => findFelt(`units.x.${s.sti}`)?.etiket ?? s.sti },
                         { navn: "Værdi", vis: (s) => <span className="kf-vaerdi" data-lang="true">{visFelt(s.vaerdi_json)}</span>, tal: true },
+                        { navn: "Kilde", vis: (s) => skabelonKilde(type, s.sti) },
                     ]} />
             </Kort>
         </Gitter>
