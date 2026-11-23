@@ -16,6 +16,12 @@
 // scenarie, parflowet oprettede til den i samme handling, og det glemmes i `tilstand` — så en afvisning ikke
 // efterlader et scenarie, der står som "ikke kørt" mellem de rigtige, og "Prøv igen" opretter det på ny. (Sletning
 // er bevidst ikke tilladt for Scenarie, KONTRAKT §3.4.) En genbrugt reference er ikke parflowets og røres aldrig.
+//
+// Kodegennemgangen af runde 15 (fund 3): det gælder KUN, når serveren svarer `ryddet: true` — en endelig afvisning,
+// hvor bestillingen er væk, og ingen kørsel er oprettet. Efter en teknisk fejl (`teknisk: true`) eller en afvisning,
+// hvor bestillingen blev stående (Fabric-udgaven sletter ikke), beholdes scenariet og dets id: "Prøv igen" sender
+// samme klientnøgle, og `bestilKoersel` genoptager den eksisterende bestilling. Før blev scenariet arkiveret på
+// ethvert `ok: false`, og genforsøget oprettede et nyt scenarie, som den gamle bestilling så spærrede for.
 //-----------------------------------------------------------------------
 
 import type { ÆndringUdkast, ScenarieFelter } from "@/lib/data/skriv";
@@ -41,12 +47,12 @@ export interface ParTilstand {
 export interface ParAfhængigheder {
     opretScenarie: (felter: ScenarieFelter, bruger: string | undefined) => Promise<Pick<Scenarie, "id">>;
     gemScenarieAendringer: (id: string, eksisterende: [], nye: readonly ÆndringUdkast[]) => Promise<void>;
-    bestilKoersel: (scenarieId: string, bruger: string | undefined, nøgle: string) => Promise<{ ok: boolean; koersel_id?: string | null; afvist?: string | null }>;
+    bestilKoersel: (scenarieId: string, bruger: string | undefined, nøgle: string) => Promise<{ ok: boolean; koersel_id?: string | null; afvist?: string | null; ryddet?: boolean | null; teknisk?: boolean | null }>;
     /** De pins (model, df-data), startBestilling frøs for en kørsel. */
     frosnePins?: (koerselId: string) => Promise<Pins>;
     /** Peg scenariets `reference_scenarie_id` på en anden reference. */
     sætReference?: (scenarieId: string, refScenarieId: string) => Promise<void>;
-    /** Arkivér et scenarie, parflowet selv oprettede, hvis bestilling blev afvist (fund 3.2). Uden den bliver scenariet stående. */
+    /** Arkivér et scenarie, parflowet selv oprettede, hvis bestilling blev endeligt afvist OG ryddet af serveren (fund 3.2). Uden den bliver scenariet stående. */
     arkivérScenarie?: (scenarieId: string) => Promise<void>;
 }
 
@@ -106,11 +112,13 @@ export async function opretOgBestilPar(
 
     /**
      * Fund 3.2: bestillingen af et scenarie, denne handling selv oprettede, blev afvist — arkivér det og glem det.
+     * Kun når serveren har bekræftet, at bestillingen er ryddet (`ryddet`); ellers står bestillingen med sin
+     * klientnøgle og peger på netop dette scenarie, og næste forsøg skal genoptage den, ikke begynde forfra.
      * Fejler arkiveringen (netværk), beholdes id'et i tilstanden, så "Prøv igen" genbruger rækken i stedet for at lave en til.
      */
-    const rydAfvist = async (hvilket: "ref" | "scen"): Promise<void> => {
+    const rydAfvist = async (hvilket: "ref" | "scen", ryddet: boolean | null | undefined): Promise<void> => {
         const id = hvilket === "ref" ? t.refScenarieId : t.scenScenarieId;
-        if (!id || !deps.arkivérScenarie) return;
+        if (ryddet !== true || !id || !deps.arkivérScenarie) return;
         try { await deps.arkivérScenarie(id); } catch { return; }
         if (hvilket === "ref") { t.refScenarieId = undefined; t.refÆndringerGemt = false; }
         else { t.scenScenarieId = undefined; t.scenÆndringerGemt = false; }
@@ -136,7 +144,7 @@ Reference: ${input.forklaring}`),
             påSkridt?.("Bestiller referencen…");
             const r = await deps.bestilKoersel(t.refScenarieId, bruger, `${nøgle}-r`);
             if (!r.ok || !r.koersel_id) {
-                await rydAfvist("ref");
+                await rydAfvist("ref", r.ryddet);
                 return `Referencen blev ikke bestilt: ${r.afvist ?? "afvist uden forklaring."}`;
             }
             t.refKoerselId = r.koersel_id;
@@ -169,7 +177,7 @@ Reference: ${input.forklaring}`),
         påSkridt?.("Bestiller scenariet…");
         const r = await deps.bestilKoersel(t.scenScenarieId!, bruger, `${nøgle}-s`);
         if (!r.ok || !r.koersel_id) {
-            await rydAfvist("scen");
+            await rydAfvist("scen", r.ryddet);
             return { ok: false, tilstand: t, afvist: `Scenariet blev ikke bestilt: ${r.afvist ?? "afvist uden forklaring."}` };
         }
         t.scenKoerselId = r.koersel_id;

@@ -8,7 +8,9 @@
 // bestilling alligevel afvist, arkiverer parflowet de scenarier, det oprettede i samme handling (sletning er bevidst
 // ikke tilladt for Scenarie, KONTRAKT §3.4); (3) den betroede logik fjerner den afviste Bestilling (begge udgaver;
 // testet i community/fjernvarme_app/logik/tests/test_tjenester.py).
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { bestilKoersel, sætSkriveKilde, type SkriveKilde } from "@/lib/data/skriv";
+import { KildeFejl } from "@/lib/data/kilde";
 import { Afvisning, bygFrossetInput, type TidsserieRad } from "../../../../rayfin/functions/src/logik";
 import type { Blade, Scenariefelter } from "../logik";
 import { opretOgBestilPar, type ParAfhængigheder, type ParInput } from "../par";
@@ -64,21 +66,27 @@ describe("3.2 (1): solprofilens dækning tjekkes, før noget oprettes — med ba
     });
 });
 
-function falske(afvis: (scenarieId: string, nr: number) => string | null) {
+/**
+ * `afvis` giver afvisningens tekst; svaret er en ENDELIG afvisning, hvor serveren har ryddet bestillingen
+ * (`ryddet: true`) — det eneste svar, der må få parflowet til at arkivere (kodegennemgangen af runde 15, fund 3).
+ */
+function falske(afvis: (scenarieId: string, nr: number) => string | null, art: { ryddet?: boolean; teknisk?: boolean } = { ryddet: true }) {
     const scenarier = new Map<string, { navn: string; arkiveret: boolean }>();
     let n = 0, bestillinger = 0;
+    const kald: { scenarieId: string; nøgle: string }[] = [];
     const deps: ParAfhængigheder = {
         opretScenarie: async (f) => { n += 1; const id = `s${n}`; scenarier.set(id, { navn: (f as { navn: string }).navn, arkiveret: false }); return { id }; },
         gemScenarieAendringer: async () => {},
-        bestilKoersel: async (id) => {
+        bestilKoersel: async (id, _bruger, nøgle) => {
             bestillinger += 1;
             const afvist = afvis(id, bestillinger);
-            return afvist ? { ok: false, afvist } : { ok: true, koersel_id: `k${bestillinger}` };
+            kald.push({ scenarieId: id, nøgle });
+            return afvist ? { ok: false, afvist, ...art } : { ok: true, koersel_id: `k${bestillinger}` };
         },
         arkivérScenarie: async (id) => { scenarier.get(id)!.arkiveret = true; },
     };
     const synlige = () => [...scenarier].filter(([, s]) => !s.arkiveret).map(([id]) => id);
-    return { deps, scenarier, synlige };
+    return { deps, scenarier, synlige, kald };
 }
 const input: ParInput = {
     vaerkId: "v1", spørgsmål: "Hvad er tanken værd?", forklaring: "Slå alle lagre fra.",
@@ -125,5 +133,112 @@ describe("3.2 (2): en afvist bestilling efterlader intet synligt scenarie", () =
         expect(svar.ok).toBe(false);
         expect(f.synlige()).toEqual(["ref-gammel"]);
         expect(svar.tilstand.refScenarieId).toBe("ref-gammel");
+    });
+});
+
+// Kodegennemgangen af runde 15, fund 3 (P2): "Et teknisk Fabric-svar kan blokere genforsøg og skabe et nyt tomt
+// scenarie." Fabric svarede også tekniske fejl som `ok: false` med en `afvist`-tekst, og den oprindelige Bestilling
+// blev stående. Parflowet arkiverede alligevel scenariet og glemte det; "Prøv igen" oprettede et NYT scenarie, den
+// samme klientnøgle ramte den gamle bestilling, skrivehjælperen kastede "Bestillingen er allerede sendt", og det nye
+// scenarie stod tilbage som ukørt. Efter rettelsen skelner svaret: kun en endelig afvisning, som serveren har ryddet
+// (`ryddet: true`), arkiverer; ellers beholdes scenariet, og "Prøv igen" genoptager den EKSISTERENDE bestilling.
+describe("gennemgangens fund 3: kun en endelig, ryddet afvisning arkiverer — ellers genoptages bestillingen", () => {
+    it("teknisk fejl: scenariet bliver stående, og 'Prøv igen' bruger samme scenarie og samme klientnøgle", async () => {
+        const f = falske(() => "Teknisk fejl i startBestilling: forbindelsen døde", { teknisk: true });
+        const tilstand = {};
+        const svar = await opretOgBestilPar(input, "a@b.dk", "N", tilstand, f.deps);
+        expect(svar.ok).toBe(false);
+        expect(f.synlige()).toEqual(["s1"]);                 // før: [] — arkiveret på en teknisk fejl
+        expect(svar.tilstand.refScenarieId).toBe("s1");      // før: undefined — glemt, så næste forsøg lavede et nyt
+        await opretOgBestilPar(input, "a@b.dk", "N", tilstand, f.deps);
+        expect([...f.scenarier.keys()]).toEqual(["s1"]);     // før: s1 og s2
+        expect(f.kald).toEqual([{ scenarieId: "s1", nøgle: "N-r" }, { scenarieId: "s1", nøgle: "N-r" }]);
+    });
+    it("endelig afvisning, men bestillingen står (Fabric-udgaven sletter ikke): heller ingen arkivering", async () => {
+        const f = falske(() => "Du har allerede 3 kørsler i kø.", {});
+        const tilstand = {};
+        const svar = await opretOgBestilPar(input, "a@b.dk", "N", tilstand, f.deps);
+        expect(svar.ok).toBe(false);
+        expect(svar.ok === false && svar.afvist).toBe("Referencen blev ikke bestilt: Du har allerede 3 kørsler i kø.");
+        expect(f.synlige()).toEqual(["s1"]);
+        expect(svar.tilstand.refScenarieId).toBe("s1");
+    });
+    it("endelig afvisning, ryddet af serveren: scenariet arkiveres og glemmes (som fund 3.2 ville)", async () => {
+        const f = falske(() => SOLAFVIST, { ryddet: true });
+        const svar = await opretOgBestilPar(input, "a@b.dk", "N", {}, f.deps);
+        expect(f.synlige()).toEqual([]);
+        expect(svar.tilstand.refScenarieId).toBeUndefined();
+    });
+});
+
+/**
+ * Gennemgangens egen genskabelse: den FAKTISKE `opretOgBestilPar` og den faktiske `bestilKoersel` mod et lager,
+ * der — som databasen — bevarer bestillingen og dens unikke klientnøgle, når startBestilling svarer med en fejl.
+ */
+function lager(svar: (nr: number, bestillingId: string) => Record<string, unknown>) {
+    const bestillinger: { id: string; scenarie_id: string; klient_noegle: string; bestilt_af: string }[] = [];
+    const startet: string[] = [];
+    const ingen = async () => ({});
+    const kilde: SkriveKilde = {
+        data: {
+            Bestilling: {
+                create: async (r: { scenarie_id: string; klient_noegle: string; bestilt_af: string }) => {
+                    if (bestillinger.some((b) => b.klient_noegle === r.klient_noegle)) throw new KildeFejl("unik", "Findes allerede (samme nøgle).", 409);
+                    const b = { id: `b${bestillinger.length + 1}`, scenarie_id: r.scenarie_id, klient_noegle: r.klient_noegle, bestilt_af: r.bestilt_af };
+                    bestillinger.push(b);
+                    return b;
+                },
+                update: ingen, delete: ingen,
+                select: () => {
+                    let filter: { klient_noegle?: { eq: string } } = {};
+                    const q = {
+                        where(f: typeof filter) { filter = f; return q; }, orderBy() { return q; }, first() { return q; }, after() { return q; },
+                        async executePaginated() { return { items: bestillinger.filter((b) => b.klient_noegle === filter.klient_noegle?.eq), hasNextPage: false }; },
+                    };
+                    return q;
+                },
+            },
+        },
+        functions: { startBestilling: { invoke: async (i: { bestillingId: string }) => { startet.push(i.bestillingId); return svar(startet.length, i.bestillingId); } } },
+    };
+    sætSkriveKilde(() => kilde);
+    return { bestillinger, startet };
+}
+
+describe("gennemgangens fund 3, med den faktiske bestilKoersel: et genforsøg genoptager den eksisterende bestilling", () => {
+    afterEach(() => sætSkriveKilde(null));
+
+    it("teknisk fejl, så 'Prøv igen': ét scenarie, én bestilling, behandlet to gange — ikke et nyt tomt scenarie", async () => {
+        const l = lager((nr) => (nr === 1 ? { ok: false, afvist: "Teknisk fejl i startBestilling: forbindelsen døde", teknisk: true } : { ok: true, koersel_id: `k${nr}`, ny: true }));
+        const f = falske(() => null);
+        const deps = { ...f.deps, bestilKoersel };
+        const tilstand = {};
+        const første = await opretOgBestilPar(input, "a@b.dk", "N", tilstand, deps);
+        expect(første.ok).toBe(false);
+        expect(f.synlige()).toEqual(["s1"]);
+        // Før rettelsen kastede dette kald "Bestillingen er allerede sendt — se kørselslisten." og efterlod s2 som ukørt.
+        const andet = await opretOgBestilPar(input, "a@b.dk", "N", tilstand, deps);
+        expect(andet.ok).toBe(true);
+        expect(f.synlige()).toEqual(["s1", "s2"]);           // referencen (s1) og scenariet (s2) — ingen efterladte
+        expect(andet.tilstand).toMatchObject({ refScenarieId: "s1", refKoerselId: "k2", scenScenarieId: "s2", scenKoerselId: "k3" });
+        expect(l.bestillinger.map((b) => [b.klient_noegle, b.scenarie_id])).toEqual([["N-r", "s1"], ["N-s", "s2"]]);
+        expect(l.startet).toEqual(["b1", "b1", "b2"]);       // b1 genoptaget, ikke erstattet
+    });
+    it("endelig afvisning uden oprydning (Fabric), så 'Prøv igen', når køen er fri: samme bestilling bliver til kørslen", async () => {
+        const l = lager((nr) => (nr === 1 ? { ok: false, afvist: "Du har allerede 3 kørsler i kø; højst 3 ad gangen. Vent til en er færdig, eller annullér en." } : { ok: true, koersel_id: `k${nr}`, ny: true }));
+        const f = falske(() => null);
+        const deps = { ...f.deps, bestilKoersel };
+        const tilstand = {};
+        expect((await opretOgBestilPar(input, "a@b.dk", "N", tilstand, deps)).ok).toBe(false);
+        expect((await opretOgBestilPar(input, "a@b.dk", "N", tilstand, deps)).ok).toBe(true);
+        expect([...f.scenarier.keys()]).toEqual(["s1", "s2"]);
+        expect(l.startet).toEqual(["b1", "b1", "b2"]);
+    });
+    it("samme nøgle, men bestillingen hører til et ANDET scenarie eller en anden bruger: genoptages ikke", async () => {
+        const l = lager(() => ({ ok: true, koersel_id: "k1" }));
+        await bestilKoersel("s1", "a@b.dk", "N-r");
+        await expect(bestilKoersel("s9", "a@b.dk", "N-r")).rejects.toThrow("Bestillingen er allerede sendt — se kørselslisten.");
+        await expect(bestilKoersel("s1", "kollega@b.dk", "N-r")).rejects.toThrow("Bestillingen er allerede sendt — se kørselslisten.");
+        expect(l.startet).toEqual(["b1"]);
     });
 });

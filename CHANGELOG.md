@@ -30,9 +30,11 @@ kørsler (demo-scenarierne D01–D11, budstrategiens kontroltal, Spor A, Spor B 
   ([`doc/FABRIC.md`](doc/FABRIC.md#opdatér-en-eksisterende-installation)). Casefilerne er uændrede mellem de to
   versioner, så importen melder repoværkerne som `uaendret`. En bestilling, der ligger i køen med de gamle pins,
   afvises; bestil den igen. Ikke afprøvet i Fabric.
-  **Functions skal udrulles** (appens `rayfin-up`): oprydningen efter en afvist bestilling ligger i
-  `startBestilling` (se *Rettet*). Indtil da efterlader en afvist bestilling fortsat sin `Bestilling`-række i
-  Fabric-udgaven; resten af rettelserne ligger i brugerfladen. SQL'en er ikke kørt mod en Fabric-database.
+  **Functions skal udrulles** (appens `rayfin-up`): `startBestilling` tager nu en lås pr. bestilling, før den læses,
+  og svarer `teknisk`, når en fejl er teknisk (se *Rettet*). Brugerfladen tåler en ældre Functions: uden de nye
+  svarfelter arkiverer den intet og genoptager bestillingen ved *Prøv igen*. I Fabric-udgaven bliver en afvist
+  bestilling stående som `Bestilling`-række (funktionen kender ikke kalderen og sletter derfor ikke). Låsens SQL er
+  ikke kørt mod en Fabric-database.
 - **Værksark eksporteret før opgraderingen** kan ikke genuploades som en revision bagefter: arkets indholdshash dækker
   cellernes placering, og Priser-arkets rækker er rykket. Appen siger *eksportér igen*; eksportér værket på ny og før
   rettelserne over, eller upload arket som et nyt værk. (Udledt af koden, `analyse.ts`; ikke afprøvet med et gammelt ark.)
@@ -117,9 +119,15 @@ præsentationen og i datahåndteringen omkring kørslerne.
   som reference (vejen fra kandidatlisten på referencens side), sagde teksten "dyrere" og nøgletallene "mindre end
   referencen" på samme side. På scenariets side kunne referencen blive fortalt som scenariet.
 - **En afvist bestilling efterlod `Scenarie` og `Bestilling`.** Solprofilens dækning tjekkes nu, før noget oprettes
-  (med backendens regel). Bliver en bestilling alligevel afvist, sletter den betroede logik bestillingen — kun hvis
-  ingen kørsel peger på den; ny slettevej i `startBestilling` i begge udgaver — og parflowet arkiverer de scenarier,
-  det selv nåede at oprette. Den efterladte bestilling spærrede også *Prøv igen* (klientnøglen er unik).
+  (med backendens regel). Bliver en bestilling alligevel afvist, afhænger resten af udgaven:
+  - *Lokal udgave:* den betroede logik sletter bestillingen i den samme transaktion, som afviser den — under en lås
+    pr. bestilling, kun når kalderen (sessionens bruger) er bestillingens ejer, og kun hvis ingen kørsel peger på
+    den — og svarer `ryddet`. Først da arkiverer parflowet de scenarier, det selv nåede at oprette.
+  - *Fabric-udgaven:* funktionen kender ikke kalderen (tokenet bærer ingen e-mail) og sletter derfor ikke.
+    Bestillingen og scenariet bliver stående.
+  - *Begge:* *Prøv igen* genoptager den eksisterende bestilling (før spærrede dens unikke klientnøgle med
+    "Bestillingen er allerede sendt"). En teknisk fejl svares som `teknisk` og arkiverer aldrig noget; før blev
+    scenariet arkiveret på enhver fejl, og genforsøget efterlod et nyt, tomt scenarie.
 - Den skjulte datatabel bag *Δ driftsomkostning pr. par* viste "Scen 0,0 · Ref 0,0" for hvert par; grafen var rigtig.
 - `doc/TROFASTHED.md`: "samme timefil" gælder mod appens egen casefil; solprofilens kolonnenavn `mw` (modellens
   `power_mw`) og den ændrede sha256 står som *egen antagelse*.

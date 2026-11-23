@@ -22,7 +22,7 @@ type Ud<F extends keyof AppFunctionsSchema> = AppFunctionsSchema[F]["output"];
 /** Den del af klienten skriv.ts bruger — strukturelt, så den kan erstattes i tests. */
 export interface SkriveKilde {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, { create(input: any): Promise<any>; update(where: any, data: any): Promise<any>; delete(where: any): Promise<any> }>;
+    data: Record<string, { create(input: any): Promise<any>; update(where: any, data: any): Promise<any>; delete(where: any): Promise<any>; select?(felter: readonly string[]): any }>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     functions: Record<string, { invoke(input?: any, opts?: any): Promise<any> }>;
 }
@@ -205,23 +205,47 @@ export async function opretVaerk(
 // ------------------------------------------------------------------ kørsler
 
 /**
+ * Den bestilling, en klientnøgle allerede har givet — hvis den er brugerens egen og gælder samme scenarie.
+ * (Bestillinger kan læses af alle appens brugere; derfor de to tjek.)
+ */
+async function egenBestilling(klientNoegle: string, scenarieId: string, bruger: string): Promise<{ id: string } | null> {
+    const q = kilde().data.Bestilling.select?.(["id", "scenarie_id", "bestilt_af", "klient_noegle"]);
+    if (!q) return null;
+    const side = await q.where({ klient_noegle: { eq: klientNoegle } }).first(1).executePaginated();
+    const b = (side?.items ?? [])[0] as { id: string; scenarie_id: string; bestilt_af: string } | undefined;
+    if (!b || String(b.scenarie_id).toLowerCase() !== scenarieId.toLowerCase() || b.bestilt_af !== bruger) return null;
+    return { id: String(b.id) };
+}
+
+/**
  * Bestiller en kørsel af et scenarie. `klientNoegle` gør det idempotent: et
  * dobbeltklik eller et genforsøg med samme nøgle giver samme bestilling
  * (unik i databasen). Generér én nøgle pr. brugerhandling, ikke pr. forsøg.
+ *
+ * Kodegennemgangen af runde 15, fund 3: findes bestillingen allerede (samme nøgle, samme scenarie, samme bruger),
+ * GENOPTAGES den — startBestilling kaldes igen med dens id. Det er det, "Prøv igen" skal efter en teknisk fejl
+ * eller en afvisning, hvor bestillingen blev stående (Fabric-udgaven sletter ikke en afvist bestilling):
+ * startBestilling er idempotent, så en bestilling, der allerede blev til en kørsel, svarer med kørslen. Før kastede
+ * genforsøget "Bestillingen er allerede sendt", og parflowet havde da allerede oprettet et nyt, tomt scenarie.
+ * Svaret med `ok: false` er ét af tre — se `Bestillingssvar` i rayfin/functions/src/function_app.ts (`ryddet`,
+ * `teknisk`).
  */
 export async function bestilKoersel(
     scenarieId: string, bruger: string | undefined, klientNoegle: string = crypto.randomUUID(),
 ): Promise<Ud<"startBestilling">> {
+    const af = kræv(bruger);
     let b: { id: string };
     try {
         b = await opret<{ id: string }>("Bestilling", {
-            scenarie_id: scenarieId, klient_noegle: klientNoegle, bestilt_af: kræv(bruger), bestilt: new Date(),
+            scenarie_id: scenarieId, klient_noegle: klientNoegle, bestilt_af: af, bestilt: new Date(),
         });
     } catch (e) {
-        if (e instanceof Afvist && /samme nøgle/.test(e.message)) {
-            throw new Afvist("Bestillingen er allerede sendt — se kørselslisten.");
-        }
-        throw e;
+        if (!(e instanceof Afvist && /samme nøgle/.test(e.message))) throw e;
+        // En anden brugers eller et andet scenaries bestilling med samme nøgle genoptages aldrig — og kan den
+        // eksisterende ikke læses, er beskeden den gamle (intet er da sendt to gange).
+        const egen = await egenBestilling(klientNoegle, scenarieId, af).catch(() => null);
+        if (!egen) throw new Afvist("Bestillingen er allerede sendt — se kørselslisten.");
+        b = egen;
     }
     return kald("startBestilling", { bestillingId: b.id });
 }
