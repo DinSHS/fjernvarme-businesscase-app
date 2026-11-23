@@ -32,10 +32,14 @@ function vaerk(faktor: number | null, ekstra: InputRække[] = []): InputRække[]
         ...ekstra,
     ];
 }
-/** Nøgletal: modellens co2_ton og produktionen pr. enhed (MWh). */
+/**
+ * Nøgletal: modellens co2_ton og, pr. enhed, produktionen (MWh) og antallet af driftsintervaller — som arbejderen gemmer
+ * dem af kpi.csv (`production_mwh`, `operating_hours`). 0 MWh står her med 0 driftsintervaller: et dokumenteret nul
+ * (kodegennemgangen af runde 15, fund 8, skelner det fra et afrundet nul og fra manglende tal; se sidst i filen).
+ */
 function tal(co2: number, produktion: Record<string, number>): NT[] {
     return [nt("objektiv", "objektiv_dkk", 4_428_863.74), nt("miljoe", "co2_ton", co2), nt("el", "forbrug_mwh", 400),
-        ...Object.entries(produktion).map(([u, mwh]) => nt("enhed", "produktion_mwh", mwh, u))];
+        ...Object.entries(produktion).flatMap(([u, mwh]) => [nt("enhed", "produktion_mwh", mwh, u), nt("enhed", "driftsintervaller", mwh > 0 ? 100 : 0, u)])];
 }
 function pakke(id: string, input: InputRække[], noegletal: NT[], objektiv = 4_428_863.74): Pakke {
     const k = {
@@ -148,5 +152,75 @@ describe("4E og oliekedlen (oil_boiler / fuel_oil ved 939228a)", () => {
     it("feltet mangler på oliekedlen (modellens standard 0,0): ikke opgjort", () => {
         const p = pakke("olie uden faktor", olie(null), tal(0, PROD_OLIE));
         expect(co2Opgoerelse(p.input, p.samlet).opgjort).toBe(false);
+    });
+});
+
+// Kodegennemgangen af runde 15, fund 8 (P3): "En oliekedel i drift kan blive læst som uden produktion."
+// Modellen afrunder enhedens produktion til 0,1 MWh, før nøgletallet gemmes (modelrepoets src/reporting.py:79:
+// `round(prod, 1)`), men tæller driftsintervallerne på den uafrundede (`> 1e-6`, :75). En oliekedel med 0,04 MWh og én
+// driftstime kom derfor ind i reglen med 0 MWh, og advarslen udeblev. Og manglede enhedens nøgletal helt, blev det
+// læst som bevis på, at kedlen ikke deltog. Genskabt FØR rettelsen: samme tændte oliekedel med faktor 0 gav
+// `opgjort=false` med positiv produktion og `opgjort=true` både med afrundet nul og uden enhedens nøgletal.
+// Efter rettelsen skelnes DOKUMENTERET nul (0 MWh og 0 driftsintervaller) fra ufuldstændige tal: mindst ét
+// driftsinterval udløser reglen trods et afrundet nul, og mangler tallene, er status UKENDT med sin egen forklaring.
+describe("fund 8: dokumenteret nul, afrundet nul og manglende tal", () => {
+    const olie = (ekstra: InputRække[] = []): InputRække[] => [
+        ind("vaerk", "units.oliekedel.type", "\"oil_boiler\""), ind("vaerk", "units.oliekedel.fuel", "\"fuel_oil\""), ind("vaerk", "units.oliekedel.enabled", "true"),
+        ind("vaerk", "units.oliekedel.co2_emissions_per_mwh_fuel", "0.0"),
+        ind("vaerk", "units.fliskedel.type", "\"biomass_boiler\""), ind("vaerk", "units.fliskedel.fuel", "\"flis\""), ind("vaerk", "units.fliskedel.enabled", "true"),
+        ind("scenarie", "_koersel.start", "\"2026-01-05\""), ind("scenarie", "_koersel.slut", "\"2026-01-06\""), ind("scenarie", "_koersel.med_balancering", "false"),
+        ...ekstra,
+    ];
+    /** Nøgletal for oliekedlen, som arbejderen gemmer dem: produktionen afrundet til 0,1 MWh og antallet af driftsintervaller. */
+    const enhed = (mwh: number | null, intervaller: number | null): NT[] => [
+        nt("objektiv", "objektiv_dkk", 1_000_000), nt("miljoe", "co2_ton", 0), nt("enhed", "produktion_mwh", 300, "fliskedel"), nt("enhed", "driftsintervaller", 48, "fliskedel"),
+        ...(mwh === null ? [] : [nt("enhed", "produktion_mwh", mwh, "oliekedel")]), ...(intervaller === null ? [] : [nt("enhed", "driftsintervaller", intervaller, "oliekedel")]),
+    ];
+    const opg = (noegletal: NT[], input = olie()) => { const p = pakke("olie", input, noegletal); return co2Opgoerelse(p.input, p.samlet); };
+
+    it("0,04 MWh afrundet til 0,0 og én driftstime: kedlen KØRTE — ikke opgjort (før: opgjort)", () => {
+        const o = opg(enhed(0, 1));
+        expect([o.status, o.opgjort, o.enheder]).toEqual(["ikke_opgjort", false, ["oliekedel"]]);
+        expect(o.grund).toMatch(/emissionsfaktoren .* er 0 for oliekedel, som producerede varme på fyringsolie/);
+    });
+    it("enhedens nøgletal mangler helt: det er ikke et bevis på, at kedlen stod stille — ukendt (før: opgjort)", () => {
+        const o = opg(enhed(null, null));
+        expect([o.status, o.opgjort, o.enheder]).toEqual(["ukendt", false, ["oliekedel"]]);
+        expect(o.grund).toMatch(/Kan ikke afgøres/);
+        expect(o.grund).toMatch(/resultaterne har ingen nøgletal for oliekedel/);
+        expect(o.grund).not.toMatch(/som producerede varme/);              // det ved vi netop ikke
+    });
+    it("dokumenteret nul: 0 MWh og 0 driftsintervaller — opgjort, også med faktoren 0", () => {
+        expect(opg(enhed(0, 0))).toMatchObject({ status: "opgjort", opgjort: true, enheder: [], grund: null });
+    });
+    it("0,0 MWh uden antallet af driftsintervaller: under afrundingen kan kedlen have kørt — ukendt", () => {
+        const o = opg(enhed(0, null));
+        expect(o.status).toBe("ukendt");
+        expect(o.grund).toMatch(/produktionen er afrundet til 0,0 MWh, og antallet af driftsintervaller mangler for oliekedel/);
+    });
+    it("kontrol: positiv produktion er ikke opgjort, som før — og en sikker mangel går forud for en ukendt", () => {
+        expect(opg(enhed(480.1, 35)).status).toBe("ikke_opgjort");
+        // To fossile enheder med faktor 0: den ene producerede, den anden mangler tal. Udledningen ER ufuldstændig.
+        const to = olie([ind("vaerk", "units.gaskedel.type", "\"gas_boiler\""), ind("vaerk", "units.gaskedel.fuel", "\"natural_gas\""), ind("vaerk", "units.gaskedel.enabled", "true")]);
+        const o = opg(enhed(480.1, 35), to);
+        expect([o.status, o.enheder]).toEqual(["ikke_opgjort", ["oliekedel"]]);
+    });
+    it("kørslens frosne input kendes ikke: det kan ikke ses, om en fossil enhed har faktoren 0 — ukendt", () => {
+        const o = opg(enhed(480.1, 35), []);
+        expect([o.status, o.opgjort]).toEqual(["ukendt", false]);
+        expect(o.grund).toMatch(/kørslens frosne input kendes ikke/);
+    });
+    it("kørslens kort viser 'ukendt' med sin egen forklaring — ikke '0 t' og ikke 'ikke opgjort'", () => {
+        const { container } = render(<VarmeOgMiljoe d={pakke("olie", olie(), enhed(null, null))} />);
+        const t = container.textContent!;
+        expect(t).toMatch(/CO₂-udledning\s*ukendt/);
+        expect(t).not.toMatch(/CO₂-udledning\s*(0 t|ikke opgjort)/);
+        expect(t).toMatch(/resultaterne har ingen nøgletal for oliekedel/);
+    });
+    it("sammenligningens nøgletal: 'kan ikke afgøres' for CO₂, når en af kørslerne er ukendt", () => {
+        const a = pakke("ref", olie(), enhed(0, 0)), b = pakke("scen", olie(), enhed(null, null), 1_100_000);
+        const t = render(<Noegletal a={a} b={b} />).container.textContent!;
+        expect(t).toMatch(/CO₂-udledningen kan ikke afgøres/);
+        expect(t).not.toMatch(/CO₂ [+−]?0 t/);
     });
 });

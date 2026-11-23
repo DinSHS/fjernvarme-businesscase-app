@@ -12,7 +12,7 @@ import { tal, tidspunkt } from "@/lib/format";
 import { rutehref } from "@/lib/rute";
 import type { OmraadeProps } from "../typer";
 import {
-    absolutGab, aendringTekst, balanceKolonner, co2Opgoerelse, enhedstype, profilbundne, farvepladser, gabTekst, koerselsAendringer, koerselsVarighed, loesningTekst,
+    absolutGab, aendringTekst, balanceKolonner, co2Etiket, co2Opgoerelse, enhedstype, profilbundne, farvepladser, gabTekst, koerselsAendringer, koerselsVarighed, loesningTekst,
     spoergsmaal, spor, stoersteEnhed,
 } from "./beregn";
 import { usePakke, type Pakke } from "./data";
@@ -251,13 +251,13 @@ export function VarmeOgMiljoe({ d }: { d: Pakke }) {
     return (
         <Kort titel="Varme og miljø" afgraensning="hele perioden"
             budskab={s.nettab_pct != null ? `Nettabet er ${pctVaerdi(s.nettab_pct)} af varmebehovet.` : s.varmebehov_mwh != null ? `Varmebehovet er ${energi(s.varmebehov_mwh)} (målt last — nettab indgår i målingen).` : undefined}
-            fod={<>{NOEGLETAL_TEKST.samlet_produktion_mwh?.forklaring}{!co2.opgjort && <> CO₂-udledning: {co2.grund} Modellens tal for de øvrige enheder er {ellers(s.co2_ton, (v) => `${tal(v)} t`)}. At appen ikke viser det som udledningen, er appens egen antagelse.</>}</>}>
+            fod={<>{NOEGLETAL_TEKST.samlet_produktion_mwh?.forklaring}{!co2.opgjort && <> CO₂-udledning: {co2.grund} Modellens tal {co2.status === "ukendt" ? "er" : "for de øvrige enheder er"} {ellers(s.co2_ton, (v) => `${tal(v)} t`)}. At appen ikke viser det som udledningen, er appens egen antagelse.</>}</>}>
             <Fakta par={[
                 ["Varmebehov", ellers(s.varmebehov_mwh, en)],
                 ["Samlet produktion", ellers(s.produktion_mwh, en)],
                 lagerNetto != null && ["Produktion − behov", `${formatDelta(lagerNetto, E.skala)} ${E.enhed}`],
                 ["Nettab", ellers(s.nettab_mwh, en)],
-                ["CO₂-udledning", co2.opgjort ? ellers(s.co2_ton, (v) => `${tal(v)} t`) : "ikke opgjort"],
+                ["CO₂-udledning", co2.opgjort ? ellers(s.co2_ton, (v) => `${tal(v)} t`) : co2Etiket(co2)],
             ]} />
         </Kort>
     );

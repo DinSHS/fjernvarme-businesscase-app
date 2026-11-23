@@ -89,6 +89,9 @@ kørsler (demo-scenarierne D01–D11, budstrategiens kontroltal, Spor A, Spor B 
 - **CO₂-udledningen vises som *ikke opgjort***, når en tændt enhed med fossilt brændsel (naturgas, fyringsolie) har
   produceret varme med emissionsfaktor 0 — som Billund-casene, hvor CO₂-omkostningen ligger i gasprisen. Før stod
   der "0 t". Appen gætter ingen faktor; økonomien er uændret (egen antagelse, `doc/TROFASTHED.md` §5).
+  En enhed har produceret, når produktionen er over 0 *eller* den har mindst ét driftsinterval (modellen afrunder
+  produktionen til 0,1 MWh, så en oliekedel med 0,04 MWh og én driftstime står med 0,0 MWh). Mangler tallene —
+  ingen nøgletal for enheden, eller kørslens frosne input kendes ikke — står der *ukendt* med sin egen forklaring.
 - **README-mærket i kørselslisten** følger referencens egne modelversioner: en Spor A-kørsel ved `90fb16e` eller
   `939228a` genkendes nu som README-referencen 5.204.555, og en gammel ved `eef950a` gør det ikke længere. Pinnens
   df-data (`106b9fc`, 26. oktober 2026) er en kendt commit.

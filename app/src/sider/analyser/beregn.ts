@@ -1037,12 +1037,23 @@ const FOSSIL_TYPE = /^(gas_boiler|gas_engine_chp|oil_boiler)$/;
 const braendselsnavn = (fuel: string): string => VISNINGSNAVNE.braendsel?.[fuel]?.toLowerCase() ?? fuel;
 
 export interface Co2Opgoerelse {
-    /** false: modellens `co2_ton` dækker ikke alle fossile enheder, der producerede — tallet må ikke vises som udledningen. */
+    /**
+     * `opgjort`: modellens `co2_ton` dækker alle fossile enheder, der producerede. `ikke_opgjort`: mindst én fossil enhed
+     * med emissionsfaktor 0 PRODUCEREDE — tallet mangler dens udledning. `ukendt`: det kan ikke afgøres, fordi input
+     * eller resultatdata mangler (kodegennemgangen af runde 15, fund 8).
+     */
+    status: "opgjort" | "ikke_opgjort" | "ukendt";
+    /** Kun sand ved status `opgjort`: kun da må modellens tal vises som udledningen. */
     opgjort: boolean;
-    /** De enheder, der producerede varme på fossilt brændsel med emissionsfaktor 0, sorteret. */
+    /** De enheder, grunden handler om (producerede med faktor 0, eller kan ikke afgøres), sorteret. */
     enheder: string[];
     /** Grunden i klartekst (null når opgjort). */
     grund: string | null;
+}
+
+/** Ordet, visningerne skriver i stedet for et CO₂-tal: "ikke opgjort" eller "ukendt" ("" når opgjort). */
+export function co2Etiket(o: Co2Opgoerelse): string {
+    return o.status === "ikke_opgjort" ? "ikke opgjort" : o.status === "ukendt" ? "ukendt" : "";
 }
 
 /**
@@ -1053,18 +1064,36 @@ export interface Co2Opgoerelse {
  * på gasenhederne, fordi CO₂-omkostningen ligger i gasprisen — rigtigt for økonomien, men så er `co2_ton` 0 for et
  * værk, der brænder naturgas. Appen viste "CO₂-udledning 0 t".
  *
- * Appens regel (EGEN ANTAGELSE, doc/TROFASTHED.md §5): udledningen er IKKE opgjort, når mindst én tændt enhed med
- * fossilt brændsel har produceret varme (eller dens produktion er ukendt) med emissionsfaktor ≤ 0. Biomasse med
- * faktor 0 er modellens egen regel (neutral) og rører ikke opgørelsen; en fossil enhed, der ikke producerede, heller ikke.
- * Appen retter ikke tallet og gætter ingen faktor — den siger, at tallet mangler, og hvorfor.
+ * Appens regel (EGEN ANTAGELSE, doc/TROFASTHED.md §5), for hver tændt enhed med fossilt brændsel og emissionsfaktor ≤ 0:
+ *
+ *  - den PRODUCEREDE (produktion > 0, eller mindst ét driftsinterval) → udledningen er IKKE OPGJORT;
+ *  - DOKUMENTERET nul (produktion 0 og 0 driftsintervaller) → den rører ikke opgørelsen;
+ *  - tallene mangler (ingen nøgletal for enheden, eller 0,0 MWh uden antallet af driftsintervaller) → UKENDT.
+ *
+ * Driftsintervallerne er med, fordi modellen afrunder enhedens produktion til 0,1 MWh, før nøgletallet gemmes
+ * (src/reporting.py:79, `round(prod, 1)`), men tæller intervallerne på den uafrundede (`> 1e-6`, :75): en oliekedel med
+ * 0,04 MWh og én driftstime står med 0,0 MWh. Før (kodegennemgangen af runde 15, fund 8) blev det afrundede nul og en
+ * helt manglende enhedsrække begge læst som "producerede ikke", så advarslen udeblev.
+ *
+ * Kendes kørslens frosne input slet ikke (ingen `units.*`-blade), kan det ikke ses, om en fossil enhed har faktoren 0
+ * — også det er UKENDT. Biomasse med faktor 0 er modellens egen regel (neutral) og rører ikke opgørelsen.
+ * Appen retter ikke tallet og gætter ingen faktor — den siger, at tallet mangler eller ikke kan afgøres, og hvorfor.
  */
 export function co2Opgoerelse(input: readonly InputRække[], samlet: Pick<Samlet, "enheder">): Co2Opgoerelse {
     const e = effektivtInput(input).blade;
     const læs = (sti: string): unknown => { const r = e.get(sti); if (!r) return undefined; try { return JSON.parse(r.vaerdi_json) as unknown; } catch { return undefined; } };
-    const produktion = new Map(samlet.enheder.map((x) => [x.navn, x.produktion_mwh]));
+    const tal_ = new Map(samlet.enheder.map((x) => [x.navn, x]));
     const navne = new Set<string>();
     for (const sti of e.keys()) { const m = /^units\.([^.]+)\./.exec(sti); if (m) navne.add(m[1]); }
+    if (navne.size === 0) {
+        return {
+            status: "ukendt", opgjort: false, enheder: [],
+            grund: "Kan ikke afgøres: kørslens frosne input kendes ikke, så det kan ikke ses, om en enhed på fossilt brændsel har emissionsfaktoren 0. "
+                + "Modellens tal kan mangle dens udledning.",
+        };
+    }
     const ramt: { navn: string; braendsel: string }[] = [];
+    const uafgjort: { navn: string; hvorfor: "ingen_tal" | "afrundet" }[] = [];
     for (const navn of [...navne].sort()) {
         if (læs(`units.${navn}.enabled`) === false) continue;
         const fuel = læs(`units.${navn}.fuel`), type = læs(`units.${navn}.type`);
@@ -1072,20 +1101,36 @@ export function co2Opgoerelse(input: readonly InputRække[], samlet: Pick<Samlet
         if (!fossil) continue;
         const faktor = læs(`units.${navn}.co2_emissions_per_mwh_fuel`);
         if (typeof faktor === "number" && faktor > 0) continue;
-        // Enheden er ikke i resultaterne (ingen nøgletal): den var ikke med i kørslen. 0 MWh: intet at opgøre.
-        if (!produktion.has(navn)) continue;
-        const mwh = produktion.get(navn);
-        if (mwh != null && !(mwh > 0)) continue;
-        ramt.push({ navn, braendsel: typeof fuel === "string" ? braendselsnavn(fuel) : "fossilt brændsel" });
+        const x = tal_.get(navn);
+        const mwh = x?.produktion_mwh, intervaller = x?.driftsintervaller ?? x?.driftstimer;
+        const koerte = (mwh != null && mwh > 0) || (intervaller != null && intervaller > 0);
+        if (koerte) { ramt.push({ navn, braendsel: typeof fuel === "string" ? braendselsnavn(fuel) : "fossilt brændsel" }); continue; }
+        // Dokumenteret nul kræver BEGGE tal: 0,0 MWh alene er afrundet og kan dække over op til 0,05 MWh.
+        if (mwh != null && intervaller != null) continue;
+        uafgjort.push({ navn, hvorfor: mwh == null ? "ingen_tal" : "afrundet" });
     }
-    if (ramt.length === 0) return { opgjort: true, enheder: [], grund: null };
-    const enheder = ramt.map((x) => x.navn);
-    const braendsler = opremsning([...new Set(ramt.map((x) => x.braendsel))]);
-    return {
-        opgjort: false, enheder,
-        grund: `Ikke opgjort: emissionsfaktoren (co2_emissions_per_mwh_fuel) er 0 for ${opremsning(enheder)}, som producerede varme på ${braendsler}. `
-            + "Modellen regner da ingen udledning for dem — typisk fordi CO₂-omkostningen ligger i brændselsprisen. Økonomien er uændret; kun udledningen mangler.",
-    };
+    if (ramt.length > 0) {
+        const enheder = ramt.map((x) => x.navn);
+        const braendsler = opremsning([...new Set(ramt.map((x) => x.braendsel))]);
+        return {
+            status: "ikke_opgjort", opgjort: false, enheder,
+            grund: `Ikke opgjort: emissionsfaktoren (co2_emissions_per_mwh_fuel) er 0 for ${opremsning(enheder)}, som producerede varme på ${braendsler}. `
+                + "Modellen regner da ingen udledning for dem — typisk fordi CO₂-omkostningen ligger i brændselsprisen. Økonomien er uændret; kun udledningen mangler.",
+        };
+    }
+    if (uafgjort.length > 0) {
+        const uden = uafgjort.filter((x) => x.hvorfor === "ingen_tal").map((x) => x.navn), afr = uafgjort.filter((x) => x.hvorfor === "afrundet").map((x) => x.navn);
+        const dele = [
+            ...(uden.length ? [`resultaterne har ingen nøgletal for ${opremsning(uden)}`] : []),
+            ...(afr.length ? [`produktionen er afrundet til 0,0 MWh, og antallet af driftsintervaller mangler for ${opremsning(afr)}`] : []),
+        ];
+        return {
+            status: "ukendt", opgjort: false, enheder: uafgjort.map((x) => x.navn),
+            grund: `Kan ikke afgøres: emissionsfaktoren (co2_emissions_per_mwh_fuel) er 0 for ${opremsning(uafgjort.map((x) => x.navn))} på fossilt brændsel, og ${dele.join("; ")}. `
+                + "Har enheden produceret, mangler dens udledning i modellens tal.",
+        };
+    }
+    return { status: "opgjort", opgjort: true, enheder: [], grund: null };
 }
 
 // ================================================================= sammenligning af produktion
