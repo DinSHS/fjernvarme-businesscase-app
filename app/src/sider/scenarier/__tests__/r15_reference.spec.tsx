@@ -10,7 +10,6 @@ import type { Koersel } from "../../../../rayfin/data/Koersel";
 import type { Scenarie } from "../../../../rayfin/data/Scenarie";
 import { KoerselDetaljer } from "../KoerselKort";
 import { modReference } from "../koersel-logik";
-import { sammenlignelighed } from "../logik";
 import { findReference } from "../oversigt-logik";
 import { ReferenceCelle } from "../Oversigt";
 
@@ -38,7 +37,8 @@ describe("mail 1: differensen mod en reference, der ikke kan sammenlignes, finde
         expect(m.afviger).toEqual(["periode"]);
     });
     it("anden værksrevision er en afvigelse (før: ikke nævnt)", () => {
-        expect(sammenlignelighed(koersel(ref, 1, TOLV), koersel(scen, 2, TOLV, { vaerk_revision: 2 }))).toEqual(["værksrevision"]);
+        // Fra rettelserne efter kodegennemgangen (fund 4) er reglen Analysers egen dom; navnet er dens.
+        expect(modReference(koersel(ref, 1, TOLV), koersel(scen, 2, TOLV, { vaerk_revision: 2 })).afviger).toEqual(["værkets revision"]);
     });
     it("kontrol: samme periode, samme alt → differensen findes", () => {
         const m = modReference(koersel(ref, 3_441_004.22, TOLV), koersel(scen, 3_464_520.18, TOLV));
@@ -69,7 +69,7 @@ describe("mail 1: kørselskortet på scenariets side", () => {
 describe("mail 1: oversigtens ΔRef", () => {
     it("parrets reference har en anden periode: intet ΔRef (før: −2.573,8 t.kr.)", () => {
         const r = findReference(scen, [ref, scen], [koersel(scen, 867_219.55, TO), koersel(ref, 3_441_004.22, TOLV)]);
-        expect(r).toEqual({ art: "par", navn: ref.navn, direkte: false, afviger: ["periode"] });
+        expect(r).toEqual({ art: "par", navn: ref.navn, direkte: false, dom: "nej", afviger: ["periode"], ukendt: [] });
     });
     it("seneste kørsel fejlede, en ældre er færdig: intet ΔRef og intet grønt mærke — rækken handler om den seneste", () => {
         const gammel = koersel(scen, 3_464_520.18, TOLV), r0 = koersel(ref, 3_441_004.22, TOLV), fejlet = koersel(scen, undefined, TOLV, { status: "fejl", afsluttet: undefined });

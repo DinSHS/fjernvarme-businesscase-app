@@ -22,8 +22,11 @@ export function ReferenceCelle({ r }: { r: Reference | undefined }) {
     if (!r) return <span className="fs-lille">ikke kørt endnu</span>;
     switch (r.art) {
         case "par":
+            // Tre udfald (gennemgangens fund 4): grønt kun for et direkte sammenligneligt par; en kendt afvigelse er en
+            // advarsel; et ukendt grundlag er ingen af delene.
             return r.direkte ? <Maerke tone="ok">{r.navn}</Maerke>
-                : <Maerke tone="advarsel">{`${r.navn} (${r.afviger.join(", ")} afviger)`}</Maerke>;
+                : r.dom === "ukendt" ? <Maerke>{`${r.navn} (kan ikke afgøres: ${r.ukendt.join(", ")} kendes ikke for begge)`}</Maerke>
+                    : <Maerke tone="advarsel">{`${r.navn} (${r.afviger.join(", ")} afviger)`}</Maerke>;
         case "par_ikke_koert":
             return <span className="fs-lille">{`referencen «${r.navn}» er ikke kørt`}</span>;
         case "seneste_ikke_faerdig":
@@ -78,7 +81,7 @@ export default function Oversigt({ gåTil, bruger }: OmraadeProps) {
             <Gitter form="8-4">
                 <Kort titel="Scenarier" afgraensning="pr. værk, nyeste først"
                     budskab={rækker ? (rækker.length ? `${rækker.filter((r) => r.seneste).length} af ${rækker.length} er kørt; vælg et for at redigere, køre og sammenligne.` : "Stil et spørgsmål for at få et reference/scenarie-par.") : undefined}
-                    fod="Reference: parrets reference (grøn), eller en anden kørsel, der kan sammenlignes direkte. Direkte sammenlignelig = samme værk og værksrevision, periode, opløsning, df-data, modelversion og gab (differensmetoden). ΔRef = scenarie − reference i t.kr., kun for et direkte sammenligneligt par og kun for scenariets seneste kørsel; hvert par har sin egen periode.">
+                    fod="Reference: parrets reference (grøn), eller en anden kørsel, der kan sammenlignes direkte. Direkte sammenlignelig = samme værk og værksrevision, periode, opløsning, df-data, modelversion og gab (differensmetoden). Kendes et af felterne ikke for begge kørsler, kan det ikke afgøres (neutralt mærke). ΔRef = scenarie − reference i t.kr., kun for et direkte sammenligneligt par og kun for scenariets seneste kørsel; hvert par har sin egen periode.">
                     <DataTilstand h={samlet} højde={260}>
                         {(r) => (
                             <Tabel rækker={r} nøgle={(x) => x.s.id} onVælg={(x) => gåTil(`scenarier/${x.s.id}`)}

@@ -174,15 +174,20 @@ const PROFILFELTER: readonly [string, (p: Profil) => React.ReactNode, string][] 
     ["Beregningsmiljø", (p) => <span className="fjv-a-svag">{p.miljoe ?? "ukendt"}</span>, "miljoe"],
 ];
 
-function Sammenlignelighed({ a, b }: { a: Pakke; b: Pakke }) {
+export function Sammenlignelighed({ a, b }: { a: Pakke; b: Pakke }) {
     const af = sammenlignelighed(a.profil, b.profil);
     const status = sammenlignelighedStatus(af);
     const adv = af.filter((x) => x.alvor === "advarsel"), ukendt = af.filter((x) => x.alvor === "ukendt");
     const noter = af.filter((x) => x.alvor === "note");
     const afv = new Map(af.map((x) => [x.felt as string, x]));
     const liste = (xs: typeof af) => xs.map((x) => x.navn.toLowerCase()).join(", ");
+    // Gennemgangens fund 4: en ukendt værksrevision er (stadig) kun en note — men så må teksten ikke påstå "samme
+    // værksrevision". Den siges for sig, også når den er ukendt på BEGGE sider (da er der ingen note at vise).
+    const revUkendt = a.profil.vaerk_revision == null || b.profil.vaerk_revision == null;
+    const andreNoter = noter.filter((x) => !(revUkendt && x.felt === "vaerk_revision"));
     const budskab = status === "ja"
-        ? `Direkte sammenlignelige: samme værk og værksrevision, periode, opløsning, data, modelversion og ønsket gab${noter.length ? ` (forskelle: ${liste(noter)})` : ""}.`
+        ? `Direkte sammenlignelige: samme værk${revUkendt ? "" : " og værksrevision"}, periode, opløsning, data, modelversion og ønsket gab${andreNoter.length ? ` (forskelle: ${liste(andreNoter)})` : ""}.`
+            + (revUkendt ? " Værkets revision kendes ikke for begge kørsler, så det er ikke bekræftet, at værket var det samme." : "")
         : status === "nej"
             ? `Ikke direkte sammenlignelige — ${liste(adv)} afviger. Differensen blander flere effekter.`
             : `Kan ikke afgøres — ${liste(ukendt)} kendes ikke for begge kørsler.`;
@@ -315,7 +320,8 @@ export function Vandfald({ a, b }: { a: Pakke; b: Pakke }) {
             : `Største post: ${største.label.charAt(0).toLowerCase()}${største.label.slice(1)} ${medFortegn(største.delta / 1000, (v) => dec(v, 1))} t.kr.`;
     return (
         <Kort titel="Hvad forklarer Δ driftsomkostning" afgraensning={`${bro ? vandfaldSkala(bro).enhed : "t.kr."}, Ref → Scen`} budskab={budskab}
-            fod="Trinene er i omkostningsfortegn (op = dyrere = rød). Elsalg og balanceindtægt er indtægter, så mindre salg tæller som en omkostning. 'Brændsel, CO₂-kvoter, D&V, start m.m.' er resten: ΔRef minus de poster, kørslerne gemmer hver for sig — brændsel og CO₂-kvoter gemmes ikke pr. kørsel (de indgår i modellens objektiv, src/model.py:93-110). Ved balanceringsmetoden legacy er modellens brutto = netto; den sparede tarif og afgift står da i resten. Mangler en post i den ene kørsel, fordeles den ikke: den står i resten med navn og '(ukendt)'.">
+            // Gennemgangens fund 4: fodnoten følger dommen — "rød" kun, når trinene faktisk er farvet.
+            fod={`${dom.status === "ja" ? "Trinene er i omkostningsfortegn (op = dyrere = rød)." : `Trinene er i omkostningsfortegn (op = dyrere) og neutrale: ${dom.status === "nej" ? "kørslerne er ikke direkte sammenlignelige" : "det kan ikke afgøres, om kørslerne kan sammenlignes"}, så et trin er hverken godt eller dårligt.`} Elsalg og balanceindtægt er indtægter, så mindre salg tæller som en omkostning. 'Brændsel, CO₂-kvoter, D&V, start m.m.' er resten: ΔRef minus de poster, kørslerne gemmer hver for sig — brændsel og CO₂-kvoter gemmes ikke pr. kørsel (de indgår i modellens objektiv, src/model.py:93-110). Ved balanceringsmetoden legacy er modellens brutto = netto; den sparede tarif og afgift står da i resten. Mangler en post i den ene kørsel, fordeles den ikke: den står i resten med navn og '(ukendt)'.`}>
             {bro && <OmkostningsVandfald bro={bro} neutral={dom.status !== "ja"} />}
         </Kort>
     );

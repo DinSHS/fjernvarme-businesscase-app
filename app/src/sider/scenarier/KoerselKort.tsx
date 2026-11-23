@@ -38,7 +38,8 @@ export function KoerselDetaljer({ k, varighed, reference, rådkontekst, tidsgrae
     const aktiv = erAktiv(k.status);
     const råd = k.status === "fejl" ? rådFor(k.fejlbesked, rådkontekst) : undefined;
     // Runde 15 (mail 1): differensen findes kun mod en færdig, direkte sammenlignelig reference (koersel-logik.ts).
-    const { diff, afviger: afvig } = modReference(reference, k);
+    // Gennemgangens fund 4: dommen er Analysers; et ukendt grundlag er hverken et resultat eller en afvisning.
+    const { diff, afviger: afvig, ukendt } = modReference(reference, k);
     // Testrapportens afsnit 2a + mail 1: en kørsel, der stoppede på tidsgrænsen, vises som det — og er usikkerheden en
     // væsentlig del af forskellen mod referencen, foreslås en ny kørsel med længere tidsgrænse.
     const forslag = diff && reference ? tidsgraenseForslag(reference, k, { graenser: [null, tidsgraense_s ?? null], maks: GRAENSER.maksTidsgraenseS }) : null;
@@ -96,6 +97,11 @@ export function KoerselDetaljer({ k, varighed, reference, rådkontekst, tidsgrae
             {afvig.length > 0 && (
                 <p className="fjv-tilstand" data-tone="advarsel" role="alert">
                     Kan ikke sammenlignes direkte med referencen: {afvig.join(", ")} afviger. Der vises derfor ingen ΔRef — kør referencen igen med samme {afvig.join(", ")}.
+                </p>
+            )}
+            {afvig.length === 0 && ukendt.length > 0 && (
+                <p className="fjv-tilstand" role="status">
+                    Det kan ikke afgøres, om kørslen kan sammenlignes med referencen: {ukendt.join(", ")} kendes ikke for begge kørsler. Der vises derfor ingen ΔRef.
                 </p>
             )}
             <div className="fs-raekke">

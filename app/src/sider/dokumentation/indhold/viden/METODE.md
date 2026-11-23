@@ -195,6 +195,9 @@ datakilde i begge kørsler.
 modelversion og ønsket gab er ens (KONTRAKT §6b) — og, som appens egen antagelse, værkets revision:
 er værket rettet mellem de to kørsler, blander differensen rettelsen med scenariets ændring. Kun et
 direkte sammenligneligt par vises som et resultat; ellers står tallene side om side med grunden.
+Dommen fældes på det, der blev frosset eller målt for kørslen (ikke på scenariet, som det ser ud nu),
+og den er den samme under Scenarier og Analyser. Kendes et af felterne ikke for begge kørsler, er
+dommen *kan ikke afgøres*: der vises intet resultat, men parret kaldes heller ikke usammenligneligt.
 (Kilde: KONTRAKT §6b; doc/TROFASTHED.md §5)
 
 **Solvergab.** Solveren stopper, når den har bevist, at løsningen ligger inden for et gab af det

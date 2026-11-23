@@ -431,7 +431,8 @@ export interface Profil {
      * Præcis periode til SAMMENLIGNING (KONTRAKT §6b, Codex K3-N2): første og sidste
      * intervals start som ISO-UTC. En ren dato er inklusiv hele døgnet: start = kl. 00,
      * slut = døgnets sidste interval (1h → kl. 23). Kilde: frosset `_koersel.start/slut`,
-     * ellers `time.start/end`, ellers manifest, ellers scenarie.
+     * ellers `time.start/end`, ellers manifest. ALDRIG scenariets levende felter: de kan være
+     * rettet, efter at kørslen blev bestilt (kodegennemgangen af runde 15, fund 4).
      */
     periode_fra: string | null;
     periode_til: string | null;
@@ -517,7 +518,14 @@ export function kodeOprindelse(miljoe_json: string | null | undefined): { model:
     return { model: sha("model_zip_sha256"), data: sha("data_zip_sha256"), advarsler };
 }
 
-/** En kørsels sammenligningsprofil. Perioden tages af manifestet, ellers af scenariet. */
+/**
+ * En kørsels FROSNE sammenligningsprofil — den ene profil, både Analyser og Scenarier dømmer et par på
+ * (kodegennemgangen af runde 15, fund 4; før havde Scenarier sin egen regel, og de to områder kunne sige grønt og
+ * "kan ikke afgøres" om samme par). De felter, der afgør dommen (værk og revision, periode, opløsning, df-data,
+ * modelversion, ønsket gab), læses KUN af det, der blev frosset eller målt for kørslen: rækkens egne felter,
+ * manifestet og det frosne input. Scenariets levende felter bruges kun til VISNING af en periode for en kørsel, der
+ * endnu intet manifest har (`periode_start`/`periode_slut`), og til noten om balancemarked.
+ */
 export function profil(k: Koersel, vaerkNavn: string, scenarie?: Scenarie | null, input?: readonly InputRække[]): Profil {
     const mp = manifestPeriode(k);
     let medBal: boolean | null = scenarie ? scenarie.med_balancering : null;
@@ -529,8 +537,8 @@ export function profil(k: Koersel, vaerkNavn: string, scenarie?: Scenarie | null
     // Præcis periode: det frosne input vinder (det er det, notebooken kørte), så manifest og scenarie.
     const e = input ? effektivtInput(input) : null;
     const str = (j: string | undefined) => { if (j === undefined) return null; try { const v = JSON.parse(j) as unknown; return typeof v === "string" ? v : null; } catch { return null; } };
-    const fra = str(e?.flag.get("start")) ?? str(e?.blade.get("time.start")?.vaerdi_json) ?? mp.start ?? scenarie?.periode_start ?? null;
-    const til = str(e?.flag.get("slut")) ?? str(e?.blade.get("time.end")?.vaerdi_json) ?? mp.slut ?? scenarie?.periode_slut ?? null;
+    const fra = str(e?.flag.get("start")) ?? str(e?.blade.get("time.start")?.vaerdi_json) ?? mp.start ?? null;
+    const til = str(e?.flag.get("slut")) ?? str(e?.blade.get("time.end")?.vaerdi_json) ?? mp.slut ?? null;
     return {
         vaerk_id: k.vaerk_id, vaerk_navn: vaerkNavn, vaerk_revision: k.vaerk_revision ?? null,
         periode_start: mp.start ?? scenarie?.periode_start ?? fra?.slice(0, 10) ?? null,
@@ -626,6 +634,21 @@ export function sammenlignelighedsDom(a: Profil, b: Profil): Dom {
         : status === "nej" ? `Kørslerne kan ikke sammenlignes direkte: ${opremsning(navne("advarsel"))} afviger.`
             : `Det kan ikke afgøres, om kørslerne kan sammenlignes: ${opremsning(navne("ukendt"))} kendes ikke for begge.`;
     return { status, tekst, afvigelser };
+}
+
+/**
+ * Dommen over to KØRSLER ud fra deres rækker alene (rækkens felter og manifestet) — til de steder, der ikke har det
+ * frosne input ved hånden (Scenarier-oversigten har hundredvis af kørsler). Samme profil og samme dom som resten;
+ * uden input kan den kun vide MINDRE, så den eneste mulige forskel til en dom med input er "ukendt" her — aldrig et
+ * "ja", som det frosne input ville have modsagt.
+ */
+export function koerselsDom(a: Koersel, b: Koersel): Dom {
+    return sammenlignelighedsDom(profil(a, ""), profil(b, ""));
+}
+
+/** Navnene (med småt) på de felter, en dom afviser på (`advarsel`) eller ikke kender (`ukendt`). */
+export function domNavne(dom: Dom, alvor: "advarsel" | "ukendt"): string[] {
+    return dom.afvigelser.filter((x) => x.alvor === alvor).map((x) => x.navn.toLowerCase());
 }
 
 /** Sætningen, der står i stedet for et resultat, når parret ikke er direkte sammenligneligt. */

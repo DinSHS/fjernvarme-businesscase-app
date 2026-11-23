@@ -54,7 +54,7 @@ describe("parrets egen reference (demo_scenarier.json)", () => {
     it("hvert demo-par får sin egen reference, ikke den nyeste kørsel", () => {
         for (const p of DEMO_PAR) {
             const s = demo.get(p.scenarie)!, r = demo.get(p.reference)!;
-            expect(ref(s)).toEqual({ art: "par", navn: r.navn, direkte: true, afviger: [] });
+            expect(ref(s)).toEqual({ art: "par", navn: r.navn, direkte: true, dom: "ja", afviger: [], ukendt: [] });
         }
     });
     it("referencen selv peger ikke på en anden kørsel, men siger, hvem den er reference for", () => {
@@ -78,8 +78,8 @@ describe("aldrig 'ukendt scenarie'", () => {
     it("kørsler af arkiverede scenarier er ikke kandidater", () => {
         for (const s of aktive) {
             const r = ref(s);
-            expect(JSON.stringify(r ?? {})).not.toContain("ukendt");
-            if (r && "navn" in r) expect(r.navn).not.toBe("");
+            // Navnet er aldrig "ukendt scenarie" (feltet `ukendt` i et par er noget andet: dommens ukendte felter).
+            if (r && "navn" in r) { expect(r.navn).not.toMatch(/ukendt/i); expect(r.navn).not.toBe(""); }
         }
     });
     it("F5-scenarierne uden sammenlignelig kørsel får 'ingen sammenlignelig kørsel'", () => {

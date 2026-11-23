@@ -7,7 +7,7 @@
 //   tjekPeriode     periodevalidering (fejl afvises, advarsler vises)
 //   forventetVarighed  ud fra referencetal.json/README
 //   forventetFrosset   de ikke-værks-rækker startBestilling fryser — til genbrug af reference
-//   sammenlignelighed  KONTRAKT §6b
+//   (sammenlignelighed: analyser/beregn.ts › koerselsDom — én dom for begge områder)
 //
 // Reglerne spejler backendens (rayfin/functions/src/logik.ts) så brugeren får
 // svaret før bestilling; backenden er stadig den, der afgør (AGENTS.md).
@@ -577,42 +577,10 @@ export function sammeKort(a: ReadonlyMap<string, string>, b: ReadonlyMap<string,
     return true;
 }
 
-// ------------------------------------------------------------------ sammenlignelighed (KONTRAKT §6b)
-
-export interface KørselsNøgle {
-    vaerk_id: string;
-    vaerk_revision?: number | null;
-    oploesning?: string | null;
-    data_commit?: string | null;
-    model_commit?: string | null;
-    oensket_rel_gap?: number | null;
-    oensket_abs_gap?: number | null;
-    manifest_json?: string | null;
-}
-
-export function manifestPeriode(m: string | null | undefined): string | undefined {
-    if (!m) return undefined;
-    try {
-        const p = (JSON.parse(m) as { periode?: { start?: string; slut?: string } }).periode;
-        return p?.start && p?.slut ? `${p.start}–${p.slut}` : undefined;
-    } catch { return undefined; }
-}
-
-/** Hvad afviger mellem to kørsler (tom liste = direkte sammenlignelige). */
-export function sammenlignelighed(a: KørselsNøgle, b: KørselsNøgle): string[] {
-    const afv: string[] = [];
-    if (a.vaerk_id !== b.vaerk_id) afv.push("værk");
-    // Runde 15 (mail 1): samme regel som analyser/beregn.ts — to kendte, forskellige værksrevisioner er hver sit værk.
-    else if (a.vaerk_revision != null && b.vaerk_revision != null && a.vaerk_revision !== b.vaerk_revision) afv.push("værksrevision");
-    const pa = manifestPeriode(a.manifest_json), pb = manifestPeriode(b.manifest_json);
-    if (!pa || !pb || pa !== pb) afv.push("periode");
-    if ((a.oploesning ?? "") !== (b.oploesning ?? "")) afv.push("opløsning");
-    if ((a.data_commit ?? "") !== (b.data_commit ?? "")) afv.push("df-data");
-    if ((a.model_commit ?? "") !== (b.model_commit ?? "")) afv.push("modelversion");
-    if (a.oensket_rel_gap !== b.oensket_rel_gap) afv.push("relativt gab");
-    if (a.oensket_abs_gap !== b.oensket_abs_gap) afv.push("absolut gab");
-    return afv;
-}
+// Sammenligneligheden (KONTRAKT §6b) afgøres IKKE her: Scenarier spørger Analysers ene dom over kørslernes frosne
+// profil (analyser/beregn.ts › koerselsDom). Den regel, der stod her til og med runde 15, regnede to ukendte felter
+// for ens og sammenlignede periodens tekst — og kunne derfor sige grønt, hvor Analyser sagde "kan ikke afgøres"
+// (kodegennemgangen af runde 15, fund 4).
 
 // ------------------------------------------------------------------ scenarieparret (henvisning i beskrivelsen)
 

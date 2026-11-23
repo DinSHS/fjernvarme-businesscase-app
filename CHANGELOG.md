@@ -115,6 +115,13 @@ præsentationen og i datahåndteringen omkring kørslerne.
   opløsning, df-data, modelversion eller sit gab; advarslen stod i sjette kort. Samme fejl i kandidatlisten ("X kr.
   billigere end denne"), på scenariets kørselskort og i Scenarier-oversigten, som også viste et ΔRef fra en ældre
   kørsel ved siden af status "Fejl".
+- **Scenarier og Analyser kunne dømme samme par forskelligt** (kodegennemgangen af runde 15). Scenarier havde sin
+  egen regel: to ukendte felter talte som ens, og perioden blev sammenlignet som tekst, så et par uden kendt
+  opløsning, pins og gab fik grønt mærke dér og "Kan ikke afgøres" i Analyser. Begge områder spørger nu den samme
+  dom over kørslens frosne profil (rækkens egne felter, manifestet og det frosne input — aldrig scenariets levende
+  felter). Kendes et nødvendigt felt ikke for begge kørsler, er dommen *kan ikke afgøres*: ingen farve og intet
+  "billigere/dyrere", men heller ikke "kan ikke sammenlignes". Sammenlignelighedskortet påstår ikke "samme
+  værksrevision", når revisionen ikke kendes, og vandfaldets fodnote nævner kun rød, når trinene er farvet.
 - ***Scenariet fortalt* kunne fortælle den anden kørsel end nøgletallene.** Var kørslen, der bærer ændringen, valgt
   som reference (vejen fra kandidatlisten på referencens side), sagde teksten "dyrere" og nøgletallene "mindre end
   referencen" på samme side. På scenariets side kunne referencen blive fortalt som scenariet.

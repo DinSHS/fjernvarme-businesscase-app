@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import { Inputfejl } from "@/lib/data/vaerdi";
 import {
     bygPar, datoTilFelt, feltTilDato, forventetFrosset, pinsAf, utilgængeligTekst, visningsnavn, forventetVarighed, frosset, knapStatus, medReference, referenceAf, referenceId, sammeKort,
-    sammenlignelighed, tjekPeriode, tjekÆndringer, varighedTekst, visBeskrivelse, værdifelter, værksperiode,
+    tjekPeriode, tjekÆndringer, varighedTekst, visBeskrivelse, værdifelter, værksperiode,
     STRAMT_GAB, type Blade, type Scenariefelter,
 } from "../logik";
 import { KNAPPER } from "../viden.data";
+import { domNavne, koerselsDom, type Koersel } from "../../analyser/beregn";
 import { VAERKER } from "./vaerker.testdata";
 
 const blade = (kode: string): Blade => new Map(Object.entries(VAERKER[kode]));
@@ -329,13 +330,18 @@ describe("genbrug af reference (frosset input)", () => {
     });
 });
 
-describe("sammenlignelighed (KONTRAKT §6b)", () => {
+// Scenarier har ikke længere sin egen regel (kodegennemgangen af runde 15, fund 4): den spørger Analysers dom over
+// kørslernes frosne profil. De to gamle tests her står med den nye form; resten er i r15_endom.spec.tsx.
+describe("sammenlignelighed (KONTRAKT §6b) — Analysers dom, brugt af Scenarier", () => {
     const m = JSON.stringify({ periode: { start: "2026-01-05", slut: "2026-01-16", oploesning: "1h" } });
-    const a = { vaerk_id: "v", oploesning: "1h", data_commit: "d", model_commit: "m", oensket_rel_gap: 0.0002, oensket_abs_gap: 1000, manifest_json: m };
-    it("ens kørsler er direkte sammenlignelige", () => expect(sammenlignelighed(a, { ...a })).toEqual([]));
+    const a = { id: "a", vaerk_id: "v", vaerk_revision: 1, oploesning: "1h", data_commit: "d", model_commit: "m", oensket_rel_gap: 0.0002, oensket_abs_gap: 1000, manifest_json: m } as Koersel;
+    const dom = (b: Partial<Koersel>) => { const d = koerselsDom(a, { ...a, ...b } as Koersel); return [d.status, domNavne(d, "advarsel"), domNavne(d, "ukendt")]; };
+    it("ens kørsler er direkte sammenlignelige", () => expect(dom({})).toEqual(["ja", [], []]));
     it("navngiver det der afviger", () => {
-        expect(sammenlignelighed(a, { ...a, data_commit: "x", oensket_rel_gap: 0.005 })).toEqual(["df-data", "relativt gab"]);
-        expect(sammenlignelighed(a, { ...a, manifest_json: null })).toEqual(["periode"]);
+        expect(dom({ data_commit: "x", oensket_rel_gap: 0.005 })).toEqual(["nej", ["datagrundlag (df-data)", "ønsket relativt gab"], []]);
+    });
+    it("en manglende periode er ukendt — ikke en afvigelse (før: 'periode afviger')", () => {
+        expect(dom({ manifest_json: undefined })).toEqual(["ukendt", [], ["periode"]]);
     });
 });
 

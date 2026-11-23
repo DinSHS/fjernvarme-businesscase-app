@@ -247,6 +247,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
         + (!seneste ? "ikke kørt endnu."
             : mod?.diff ? `seneste kørsel er færdig. ${differenceTekst(mod.diff)}`
                 : mod?.afviger.length ? `seneste kørsel er færdig, men kan ikke sammenlignes direkte med referencen (${mod.afviger.join(", ")} afviger).`
+                    : mod?.ukendt.length ? `seneste kørsel er færdig; det kan ikke afgøres, om den kan sammenlignes med referencen (${mod.ukendt.join(", ")} kendes ikke for begge).`
                     : `seneste kørsel: ${STATUS_TEKST[seneste.status].toLowerCase()}.`);
 
     return (
