@@ -53,6 +53,21 @@ def _git_head(mappe: Path) -> str | None:
     return r.stdout.strip() if r.returncode == 0 else None
 
 
+def _df_data_sha(mappe: Path) -> str | None:
+    """df-data-mappens commit: arbejderens markør (en udpakket zip ved en SHA), ellers klonens HEAD.
+
+    Runde 15: for en udpakket zip inde i en modelklon svarede ``git rev-parse HEAD`` med MODELrepoets HEAD (git går op
+    til nærmeste repo), og beviset skrev "df-data 939228a" om en mappe ved 106b9fc. En mappe uden egen ``.git/HEAD`` er
+    ikke en klon og spørges ikke."""
+    markoer = mappe / K.KOMPLET_MARKOER
+    if markoer.is_file():
+        try:
+            return json.loads(markoer.read_text(encoding="utf-8"))["sha"]
+        except (ValueError, KeyError):
+            return None
+    return _git_head(mappe) if (mappe / ".git" / "HEAD").is_file() else None
+
+
 def main(argv: list[str]) -> int:
     a = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     a.add_argument("--model", type=Path, default=os.environ.get("FJV_MODELMAPPE") or ROD.parent / "fjernvarme-businesscase",
@@ -76,7 +91,7 @@ def main(argv: list[str]) -> int:
         print(f"FEJL: modelrepoet står på {(head or 'ingen git-commit')[:16]}, appen er pinnet til {K.MODEL_COMMIT[:7]}: "
               f"git -C {M} checkout {K.MODEL_COMMIT[:7]}  (eller --uden-committjek for en udpakket zip)")
         return 2
-    df = _git_head(M / "data" / "df-data")
+    df = _df_data_sha(M / "data" / "df-data")
     print(f"modelrepo {M} @ {(head or 'ukendt (ikke git)')[:7]} · df-data "
           f"{(df or 'hentes af første kørsel')[:7]} (appens pin {K.DF_DATA_SHA[:7]}) · vindue {o.start}..{o.slut}")
     if df and df != K.DF_DATA_SHA:

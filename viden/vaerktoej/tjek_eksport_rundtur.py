@@ -37,7 +37,8 @@ For hvert værk i appens katalog (modelspejlets 7 cases, Andeby med) ved den pin
                 lægges som arbejderen gør det, i en lokal kopi af modelkoden ved pinnen (modelrepoet røres ikke).
 
 Ud over katalogets værker prøves tre varianter (K11): ``andeby_navne`` (halmkedlen hedder ``halm__kedel``, som
-scriptet normaliserer), ``andeby_hul`` (solprofilen med et dagtimehul og to tomme nattetimer i vinduets ende) og
+scriptet normaliserer), ``andeby_hul`` (solprofilen med et dagtimehul og to tomme nattetimer i vinduets ende),
+``andeby_olie`` (runde 15: en oliekedel i stedet for gaskedlen, med oliepris og CO2-faktor 0,28) og
 ``billund_idag_maalt_hul`` (den målte varmelast med et hul).
 
     python viden/vaerktoej/tjek_eksport_rundtur.py [--koer] [--ud <mappe>] [kode ...]
@@ -189,6 +190,26 @@ def forbered(kilde: "BM.Kilde", ud: Path, koder: list[str]) -> dict:
             if (not koder or hkode in koder) and "solprofil" in normaliseret:
                 hul = _uden_timer(normaliseret["solprofil"], {"2025-10-24T10:00:00Z", "2026-06-30T22:00:00Z", "2026-06-30T23:00:00Z"})
                 alle[hkode] = variant(ud, hkode, inp, alle[kode], "solprofil", hul)
+            # Runde 15: Andeby med en oliekedel i stedet for gaskedlen (modelrepoets 939228a: oil_boiler, fuel_oil).
+            # Intet katalogværk har en oliekedel, så uden varianten prøver beviset aldrig fyringsoliens række i Priser,
+            # typen i Anlaeg eller scriptets krav om oliepris og CO2-pris. CO2-faktoren er 0,28 (tung fuelolie), ikke
+            # scriptets 0,266: den skal komme tilbage gennem appens fane Start og drift, ikke gå tabt i scriptet.
+            okode = "andeby_olie"
+            if not koder or okode in koder:
+                olie = {"enabled": "true", "type": '"oil_boiler"', "p_max_heat": "20.0", "p_min_heat": "0.0", "alpha": "0.0",
+                        "fuel": '"fuel_oil"', "eta_fuel_to_heat": "0.92", "var_om": "40.0", "start_cost": "500.0",
+                        "min_uptime": "1", "min_downtime": "1", "uc_enabled": "false", "co2_emissions_per_mwh_fuel": "0.28",
+                        "ancillary.afrr_qualified": "false", "ancillary.mfrr_qualified": "false", "ancillary.fcr_qualified": "false"}
+                nye = {**{f"units.oliekedel.{f}": j for f, j in olie.items()},
+                       "prices.fuel_oil.value": "900.0", "prices.fuel_oil.unit": '"DKK/MWh_fuel"'}
+                sidst = max(b["raekkefoelge"] for b in inp["blade"])
+                oblade = [{**b, "vaerdi_json": "false"} if b["sti"] == "units.gaskedel_agg.enabled" else b for b in inp["blade"]]
+                oblade += [{"sti": s_, "vaerdi_json": j, "raekkefoelge": sidst + 1 + i} for i, (s_, j) in enumerate(nye.items())]
+                if sum(b["sti"] == "units.gaskedel_agg.enabled" for b in oblade) != 1:
+                    raise SystemExit("rundturens oliekedel-variant: Andeby har ikke længere units.gaskedel_agg.enabled")
+                oinp = {**inp, "vaerk": {**inp["vaerk"], "id": vaerks_id(okode), "kode": okode}, "blade": oblade}
+                _skriv(ud, okode, oinp)
+                alle[okode] = {**alle[kode], "blade": {b["sti"]: b["vaerdi_json"] for b in oblade}}
     return alle
 
 
