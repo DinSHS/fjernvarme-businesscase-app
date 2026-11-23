@@ -44,7 +44,8 @@ function sideUdenKørsel(input: readonly InputRække[], navn: string, vaerkNavn:
  * `refInput` = referencens forventede input (eller værket, som det er).
  */
 export function saetningFørKørsel(refInput: readonly InputRække[], refNavn: string, scenInput: readonly InputRække[], scenNavn: string, vaerkNavn: string, serier: readonly TidsserieInfo[] = []): string {
-    const p = ordnPar(sideUdenKørsel(medSerienavn(refInput, serier), refNavn, vaerkNavn), sideUdenKørsel(medSerienavn(scenInput, serier), scenNavn, vaerkNavn));
+    // Rollerne er sidens — dette scenarie mod sin reference (parret): generatoren ordner dem ikke om (gennemgangens fund 5).
+    const p = ordnPar(sideUdenKørsel(medSerienavn(refInput, serier), refNavn, vaerkNavn), sideUdenKørsel(medSerienavn(scenInput, serier), scenNavn, vaerkNavn), "ab");
     // Uden Δ returnerer historie() kun sætning 1 (analyser/anbefaling.ts historie: `if (v.delta === null) return s1`).
     return historie(p, { delta: null } as Vurdering);
 }
@@ -54,25 +55,18 @@ export interface KørselMedData { k: Koersel; navn: string; scenarie?: Scenarie 
 /**
  * Hele historien og vurderingen for et færdigt reference/scenarie-par.
  *
- * Runde 15 (mail 2, den uafhængige test 18. november 2026): på scenariets side er rollerne givet af siden — dette
- * scenarie mod sin reference — og nøgletallet i kortet "Kørsel" læser dem sådan. Generatoren (ordnPar) fortæller
- * derimod den kørsel, der BÆRER ændringen, som scenariet. Er det referencen (`byttet`), ville historien handle om
- * den anden kørsel end nøgletallet, med modsat fortegn. Så fortælles den ikke her: teksten siger, hvem der bærer
- * ændringen, og henviser til sammenligningen, hvor hele siden har de roller.
+ * På scenariets side er rollerne givet af siden — dette scenarie mod sin reference — og nøgletallet i kortet "Kørsel"
+ * læser dem sådan. Historien fortælles i de SAMME roller (kodegennemgangen af runde 15, fund 5: parrelationen
+ * fastlægger rollerne, også når det er referencen, der bærer ændringen i forhold til værket; forskellen fortælles da
+ * fra referencen til scenariet, fx "slår vi lageret tank til"). Runde 15 (mail 2) lod i stedet historien udeblive i
+ * det tilfælde og henviste til sammenligningen, hvor rollerne dengang blev byttet.
  */
-export function historieEfterKørsel(ref: KørselMedData, scen: KørselMedData, vaerkNavn: string, bekraeft: ReadonlySet<string>, serier: readonly TidsserieInfo[] = []): { tekst: string; vurdering: Vurdering; byttet: boolean } {
+export function historieEfterKørsel(ref: KørselMedData, scen: KørselMedData, vaerkNavn: string, bekraeft: ReadonlySet<string>, serier: readonly TidsserieInfo[] = []): { tekst: string; vurdering: Vurdering } {
     const side = (x: KørselMedData): Side => ({
         k: x.k, navn: x.navn, vaerkNavn, input: medSerienavn(x.input, serier),
         samlet: samlNoegletal(x.noegletal), profil: profil(x.k, vaerkNavn, x.scenarie ?? null, x.input),
     });
-    const p = ordnPar(side(ref), side(scen));
+    const p = ordnPar(side(ref), side(scen), "ab");
     const v = vurder(p, bekraeft);
-    if (p.byttet) {
-        return {
-            byttet: true, vurdering: v,
-            tekst: `Her er det referencen «${ref.navn}», der bærer ændringen i forhold til værket; dette scenarie er uden den. `
-                + "Historien og anbefalingen handler om ændringen og står derfor i sammenligningen, hvor referencen her er scenariet.",
-        };
-    }
-    return { tekst: historie(p, v), vurdering: v, byttet: false };
+    return { tekst: historie(p, v), vurdering: v };
 }

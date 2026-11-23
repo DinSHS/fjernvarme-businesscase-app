@@ -148,8 +148,12 @@ indgik (spot altid; aFRR, mFRR og ubalance kun med balancemarked), DMI-område o
 er svaret på spørgsmålet. Appen viser, om kørslerne er sammenlignelige (samme værk og
 værksrevision, periode, opløsning, data, modelversion og gab), og om differensen er mindre end
 solverens tolerance — så kan den ikke skelnes fra nul. Er de ikke sammenlignelige, vises forskellen
-uden farve og uden "billigere" eller "dyrere". Scenariet er den kørsel, der bærer ændringen i
-forhold til værket, uanset hvilken rækkefølge de blev valgt i. (Kilde: KONTRAKT §6b)
+uden farve og uden "billigere" eller "dyrere"; kendes et af felterne ikke for begge kørsler, står
+der "kan ikke afgøres". Rollerne er parrets: er scenariet oprettet med den anden kørsels scenarie
+som reference, er det referencen. Ellers er scenariet den kørsel, der alene bærer ændringen i
+forhold til værket — uanset hvilken rækkefølge de blev valgt i. Peger ingen af delene en af dem
+ud, gælder den rækkefølge, I valgte, og siden har knappen *Byt reference og scenarie*.
+(Kilde: KONTRAKT §6b)
 
 Tjek altid, om resultatet giver mening: kører enhederne i den rækkefølge, I kender? Er tanken tom
 eller fuld hele tiden? "Det kan ikke passe" er det rigtige svar at give — find så ud af, om det

@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------
 // #/analyser/sammenlign/<a>/<b> — differensen er produktet.
 // Rollerne følger ÆNDRINGEN, ikke ruten (runde 15, mail 2): scenariet er den kørsel, der bærer ændringen i forhold
-// til værket (data.ts › sideRoller). Kun når ingen af dem peges ud, er a = reference og b = scenarie. Hele siden —
+// til værket — eller, først, parrets egen reference (data.ts › sideRoller). Kun når ingen af dem peges ud, er a = reference og b = scenarie. Hele siden —
 // titel, nøgletal, Δ, vandfald, historie og anbefaling — læser de samme to kørsler i de samme roller.
 // Δ = scenarie − reference. Sammenlignelighed (KONTRAKT §6b),
 // Δ objektiv med toleranceregel, hvad der ændrede sig (input, produktion,
@@ -58,7 +58,7 @@ export default function Sammenlign({ a, b, gåTil }: { a: string; b: string; gå
             titelblok={roller ? titelblok(roller.ref, roller.scen) : undefined}
             handlinger={<>
                 <Knap sekundaer onClick={() => gåTil("analyser")}>Alle kørsler</Knap>
-                {/* Følger rollerne ændringen (én kørsel bærer den), ville et bytte vise præcis samme side: knappen findes kun, når rækkefølgen er brugerens. */}
+                {/* Følger rollerne parret eller ændringen, ville et bytte vise præcis samme side: knappen findes kun, når rækkefølgen er brugerens. */}
                 {(!roller || roller.fri) && <Knap sekundaer onClick={() => gåTil(`analyser/sammenlign/${b}/${a}`)} title="Gør scenariet til reference og omvendt">Byt reference og scenarie</Knap>}
             </>}>
             <DataTilstand h={h} højde={300}>
@@ -66,7 +66,7 @@ export default function Sammenlign({ a, b, gåTil }: { a: string; b: string; gå
                     ? <Kort titel="Kørslen findes ikke" budskab={`${!da ? "Den første" : "Den anden"} kørsel i linket findes ikke — linket kan være forkert.`} />
                     : da.k.status !== "faerdig" || db.k.status !== "faerdig" || !roller
                         ? <IkkeKlar a={da} b={db} />
-                        : <Indhold a={roller.ref} b={roller.scen} byttet={roller.byttet} />}
+                        : <Indhold a={roller.ref} b={roller.scen} byttet={roller.byttet} grund={roller.grund} />}
             </DataTilstand>
         </Side>
     );
@@ -104,14 +104,15 @@ function IkkeKlar({ a, b }: { a: Pakke; b: Pakke }) {
 const koerselNavn = (p: Pakke) => `«${p.scenarie?.navn ?? `Kørsel ${p.k.id.slice(0, 8)}`}» (${periodeTekst(p.profil.periode_start, p.profil.periode_slut)}, kørsel bestilt ${tidspunkt(p.k.bestilt)})`;
 
 /** `a` = referencen, `b` = scenariet — allerede i sidens roller (sideRoller); `byttet` = omvendt af linkets rækkefølge. */
-function Indhold({ a, b, byttet }: { a: Pakke; b: Pakke; byttet: boolean }) {
+function Indhold({ a, b, byttet, grund }: { a: Pakke; b: Pakke; byttet: boolean; grund: "par" | "aendring" | "valg" }) {
     const pladser = useMemo(() => farvepladser([...a.objekter.enheder, ...b.objekter.enheder, ...a.samlet.enheder.map((e) => e.navn), ...b.samlet.enheder.map((e) => e.navn)]),
         [a.objekter.enheder, b.objekter.enheder, a.samlet.enheder, b.samlet.enheder]);
     const vp = useVaerkParametre(a.k.vaerk_id);
     const anbefaling = useMemo(() => {
         if (!vp.data) return null;
         const bekraeft = new Set(vp.data.filter((x) => x.bekraeft).map((x) => x.sti));
-        const par = ordnPar(tilSide(a), tilSide(b));
+        // Rollerne er sidens (a = reference): generatoren må ikke ordne dem om, kun genkende knappen i den retning.
+        const par = ordnPar(tilSide(a), tilSide(b), "ab");
         const v = vurder(par, bekraeft);
         const h = historie(par, v);
         const kopi = [h, "", `Anbefaling: ${v.maerke}. ${v.saetning}`, `Begrundelse: ${v.begrundelse}`,
@@ -126,9 +127,12 @@ function Indhold({ a, b, byttet }: { a: Pakke; b: Pakke; byttet: boolean }) {
         <HeatSkalaProvider>
             {byttet && (
                 <Gitter>
-                    <Kort titel="Reference og scenarie" afgraensning="rollerne følger ændringen, ikke rækkefølgen i valget"
-                        budskab={`«${navn(b)}» bærer ændringen i forhold til værket og vises derfor som scenariet; «${navn(a)}» er referencen — omvendt af den rækkefølge, de blev valgt i.`}
-                        fod="Differensmetoden: ΔRef = scenarie − reference, hvor scenariet er den kørsel, der har ændringen. Alle tal og tekster på siden læser de to kørsler i disse roller." />
+                    {/* Gennemgangens fund 5: kortet siger, HVAD der fastlagde rollerne — parret går forud for, hvem der bærer ændringen. */}
+                    <Kort titel="Reference og scenarie" afgraensning={grund === "par" ? "rollerne følger parret, ikke rækkefølgen i valget" : "rollerne følger ændringen, ikke rækkefølgen i valget"}
+                        budskab={grund === "par"
+                            ? `«${navn(b)}» er oprettet som scenarie med «${navn(a)}» som reference og vises derfor i de roller — omvendt af den rækkefølge, de blev valgt i.`
+                            : `«${navn(b)}» bærer ændringen i forhold til værket og vises derfor som scenariet; «${navn(a)}» er referencen — omvendt af den rækkefølge, de blev valgt i.`}
+                        fod={`Differensmetoden: ΔRef = scenarie − reference. ${grund === "par" ? "Referencen er den, scenariet blev oprettet med under Scenarier" : "Scenariet er den kørsel, der har ændringen"}. Alle tal og tekster på siden læser de to kørsler i disse roller.`} />
                 </Gitter>
             )}
             {!sammenlignelige && <Gitter><Sammenlignelighed a={a} b={b} /></Gitter>}

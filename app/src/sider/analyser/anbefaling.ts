@@ -156,11 +156,19 @@ function bærer(s: Side, sti: string): boolean {
     return true;
 }
 
+/** Rækkefølgen af et pars to kørsler: "ab" = a er referencen og b scenariet; "ba" = omvendt. */
+export type Retning = "ab" | "ba";
+
 export interface Par {
     ref: Side;
     scen: Side;
-    /** Rollerne er byttet ift. brugerens a/b (a bar ændringen). */
+    /** Rollerne er byttet ift. brugerens a/b. */
     byttet: boolean;
+    /**
+     * Hvad der fastlagde rollerne: `par` = parrelationen (scenariets reference under Scenarier), `aendring` = netop én
+     * af kørslerne bærer ændringen, `valg` = ingen af delene, så rækkefølgen er brugerens (og kan byttes).
+     */
+    grund: "par" | "aendring" | "valg";
     diff: InputForskel[];
     knap: string | null;
     /** Flere ændringer, der ikke tilsammen er én knaps skabelon (trin 2). */
@@ -170,21 +178,28 @@ export interface Par {
 }
 
 /**
- * Ordner et par: scenariet er den kørsel, der bærer ændringen. Δ = scenarie − reference.
- * Retningen afgøres først af, hvem der bærer ændringerne; matcher knappens skabelon
- * kun i den modsatte retning (fx tankstørrelse: "ingen tank" er referencen), byttes.
+ * Ordner et par. Δ = scenarie − reference. Rollerne fastlægges i denne orden (kodegennemgangen af runde 15, fund 5):
+ *
+ *  1. `relation`: PARRELATIONEN — scenariet er oprettet med den anden som sin reference (Scenarie.reference_scenarie_id;
+ *     data.ts › parRelation). Det er brugerens eget valg af reference og går forud for alt andet.
+ *  2. Den ENTYDIGT ændrede kørsel: bærer netop én af kørslerne hele forskellen, er den scenariet.
+ *  3. Ellers (begge bærer en ændring, eller ingen gør) er rækkefølgen brugerens: a er referencen.
+ *
+ * Knappens skabelon genkendes DEREFTER, og kun i den valgte retning. Før byttede en skabelon, der kun passede i den
+ * modsatte retning, rollerne: i et værk med tanken slået fra blev scenariet "slå tanken til" læst som "Hvad er tanken
+ * værd?" vendt om — kørslen med ændringen blev reference, og ΔRef fik modsat fortegn af parrets valgte reference.
+ * Kan skabelonen ikke genkendes, er `knap` null (ingen regel, ingen anbefaling), og par og fortegn står ved magt.
  */
-export function ordnPar(a: Side, b: Side): Par {
+export function ordnPar(a: Side, b: Side, relation: Retning | null = null): Par {
     const ab = inputDiff(a.input, b.input).filter(relevant), ba = inputDiff(b.input, a.input).filter(relevant);
-    let byttet = ab.length > 0 && ab.every((d) => bærer(a, d.sti) && !bærer(b, d.sti));
-    let knap = matchSkabelon(byttet ? ba : ab);
-    if (knap === null) {
-        const alt = matchSkabelon(byttet ? ab : ba);
-        if (alt !== null) { byttet = !byttet; knap = alt; }
-    }
+    const kunA = ab.length > 0 && ab.every((d) => bærer(a, d.sti) && !bærer(b, d.sti));
+    const kunB = ab.length > 0 && ab.every((d) => bærer(b, d.sti) && !bærer(a, d.sti));
+    const grund: Par["grund"] = relation ? "par" : kunA || kunB ? "aendring" : "valg";
+    const byttet = relation ? relation === "ba" : kunA;
     const [ref, scen] = byttet ? [b, a] : [a, b];
     const diff = byttet ? ba : ab;
-    return { ref, scen, byttet, diff, knap, flere: knap === null && diff.length > 1, ukendt: knap === null && diff.length === 1 };
+    const knap = matchSkabelon(diff);
+    return { ref, scen, byttet, grund, diff, knap, flere: knap === null && diff.length > 1, ukendt: knap === null && diff.length === 1 };
 }
 
 // ================================================================= vurdering
@@ -612,11 +627,16 @@ export function findPar(sider: readonly Side[], referenceScenarie: (scenarieId: 
     const kørsler = [...seneste.values()];
     const egne = (s: Side) => aendringsResume(s.input.filter((x) => x.kilde !== "vaerk")).length;
     const ud: Par[] = [];
+    /** Parrelationen mellem to kørslers scenarier (gennemgangens fund 5): den går forud for, hvem der bærer ændringen. */
+    const relation = (a: Side, b: Side): Retning | null => {
+        const ab = referenceScenarie(b.k.scenarie_id) === a.k.scenarie_id, ba = referenceScenarie(a.k.scenarie_id) === b.k.scenarie_id;
+        return ab === ba ? null : ab ? "ab" : "ba";
+    };
     for (const b of kørsler) {
         const ref = referenceScenarie(b.k.scenarie_id);
         const kandidater = kørsler
             .filter((a) => a.k.id !== b.k.id && sammenlignelighedStatus(sammenlignelighed(a.profil, b.profil)) === "ja")
-            .map((a) => ({ a, p: ordnPar(a, b) }))
+            .map((a) => ({ a, p: ordnPar(a, b, relation(a, b)) }))
             .filter(({ p }) => !p.byttet && p.diff.length > 0 && !p.flere)
             .sort((x, y) => Number(y.a.k.scenarie_id === ref) - Number(x.a.k.scenarie_id === ref)
                 || egne(x.a) - egne(y.a) || modtaget(y.a.k).getTime() - modtaget(x.a.k).getTime());

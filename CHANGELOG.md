@@ -125,6 +125,12 @@ præsentationen og i datahåndteringen omkring kørslerne.
 - ***Scenariet fortalt* kunne fortælle den anden kørsel end nøgletallene.** Var kørslen, der bærer ændringen, valgt
   som reference (vejen fra kandidatlisten på referencens side), sagde teksten "dyrere" og nøgletallene "mindre end
   referencen" på samme side. På scenariets side kunne referencen blive fortalt som scenariet.
+- **En knaps skabelon kunne vende brugerens reference og fortegnet** (kodegennemgangen af runde 15). I et værk med
+  tanken slået fra blev scenariet "slå tanken til" læst som *Hvad er tanken værd?* vendt om: kørslen med ændringen
+  blev reference, og ΔRef fik modsat fortegn. Rollerne fastlægges nu af parret (scenariets egen reference), ellers af
+  den kørsel, der alene bærer ændringen, ellers af valgets rækkefølge; en skabelon genkendes kun i den retning.
+  Kan den ikke genkendes, gives ingen anbefaling, men tal og fortegn følger det valgte par. På scenariets side
+  fortælles historien i sidens roller, også når det er referencen, der bærer ændringen.
 - **En afvist bestilling efterlod `Scenarie` og `Bestilling`.** Solprofilens dækning tjekkes nu, før noget oprettes
   (med backendens regel). Bliver en bestilling alligevel afvist, afhænger resten af udgaven:
   - *Lokal udgave:* den betroede logik sletter bestillingen i den samme transaktion, som afviser den — under en lås

@@ -105,11 +105,10 @@ export function ScenarieHistorie({ s, ændringer, felter, blade, vaerkNavn, bekr
             vaerkNavn, bekraeft, serier,
         );
         // Runde 15 (mail 2): kortet siger, hvilke to kørsler det er regnet af — de samme som nøgletallet i kortet "Kørsel".
-        // Anbefalingens mærke vises ikke, når rollerne er byttet: det gælder ændringen, som referencen bærer.
         const koersler = `Scenariet: kørslen bestilt ${tidspunkt(seneste!.bestilt)}; referencen «${r?.navn ?? "referencen"}»: kørslen bestilt ${tidspunkt(reference!.bestilt)} — de samme to kørsler som nøgletallet i kortet "Kørsel".`;
         return (
             <HistorieKort fase="efter" saetninger={[h.tekst]}
-                kategori={h.byttet ? undefined : { tekst: h.vurdering.maerke, tone: h.vurdering.tone }}
+                kategori={{ tekst: h.vurdering.maerke, tone: h.vurdering.tone }}
                 sammenlignHref={sammenlignHref(reference!.id, seneste!.id)}
                 fod={`${koersler} Regnet af de to kørslers frosne input og nøgletal med Analysers generator; vurderingen følger appens anbefalingsregler.`} />
         );

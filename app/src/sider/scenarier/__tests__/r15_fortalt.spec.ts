@@ -23,18 +23,19 @@ function kørsel(navn: string, objektiv: number, egne: InputRække[]): KørselMe
 }
 const UDEN_TANK = [ind("aendring", "storage.tank.enabled", "false")];
 
-describe("mail 2: historien på scenariets side fortæller scenariet — eller siger, at den ikke gør", () => {
-    it("referencen bærer ændringen: historien fortælles ikke med byttede roller på scenariets side", () => {
+// Kodegennemgangen af runde 15, fund 5: rollerne er parrets. Runde 15 lod historien udeblive, når referencen bar
+// ændringen (og henviste til sammenligningen, hvor rollerne blev byttet). Nu fortælles forskellen i sidens egne roller
+// — fra referencen til dette scenarie — og fortegnet er nøgletallets.
+describe("mail 2: historien på scenariets side fortæller scenariet i sidens roller", () => {
+    it("referencen bærer ændringen: historien fortælles fra referencen til scenariet, med nøgletallets fortegn", () => {
         // Scenariet her er værket som det er (3.441.004,22 kr.); dets reference er kørslen uden tank (3.464.520,18 kr.).
         const h = historieEfterKørsel(kørsel("Uden tank", 3_464_520.18, UDEN_TANK), kørsel("Med tank", 3_441_004.22, []), "Andeby", new Set());
-        expect(h.tekst).not.toMatch(/gør driften|dyrere|billigere/);
-        expect(h.byttet).toBe(true);
-        expect(h.tekst).toMatch(/referencen «Uden tank», der bærer ændringen/);
-        expect(h.tekst).toMatch(/sammenligningen/);
+        expect(h.tekst).toMatch(/slår vi lageret tank til — ellers som Uden tank/);
+        expect(h.tekst).toMatch(/ca\. 24\.000 kr\. billigere/);      // nøgletallet: dette scenarie er 23,5 t.kr. billigere end referencen
+        expect(h.tekst).not.toMatch(/dyrere|slår vi tanken fra/);       // før runde 15: referencen fortalt som scenariet
     });
-    it("kontrol: scenariet bærer ændringen → hele historien, ikke byttet", () => {
+    it("kontrol: scenariet bærer ændringen → samme regel, modsat fortegn", () => {
         const h = historieEfterKørsel(kørsel("Med tank", 3_441_004.22, []), kørsel("Uden tank", 3_464_520.18, UDEN_TANK), "Andeby", new Set());
-        expect(h.byttet).toBe(false);
         expect(h.tekst).toMatch(/slår vi tanken fra/);
         expect(h.tekst).toMatch(/ca\. 24\.000 kr\. dyrere/);
     });
