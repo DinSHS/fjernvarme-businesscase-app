@@ -13,11 +13,13 @@
 
 import { effektivtInput, KOERSEL_PRAEFIKS, type InputRække } from "@/lib/data/afflad";
 import { tal } from "@/lib/format";
+import { GRAENSER } from "../../../rayfin/data/fjv.constants";
 import {
-    absolutGab, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, visJson,
-    type InputForskel, type Koersel, type Profil, type Samlet,
+    absolutGab, co2Opgoerelse, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, MODELLENS_TIDSGRAENSE_S, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor,
+    tidsgraenseForslag, toleranceKr, visJson,
+    type InputForskel, type Koersel, type Profil, type Samlet, type TidsgraenseForslag,
 } from "./beregn";
-import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, SKALERING_TEKST, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
+import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
 import { dec, periodeTekst } from "./fmt";
 import { aendringsResume } from "./kandidater";
 
@@ -41,7 +43,7 @@ export type Kategori = "anbefalet" | "fraraades" | "kan_ikke_afgoeres" | "unders
  * < 10.000: nærmeste 100 kr.; < 1 mio.: nærmeste 1.000 kr.; ≥ 1 mio.: én decimal og "mio. kr.". Uden fortegn.
  * Codex K9 F4: er det afrundede beløb ikke beløbet i hele kroner, står "ca." foran ("ca. 200 kr." for 170,18 kr.), så
  * fortællingen ikke ser uenig ud med overskriftens præcise "170 kr."; et beløb, der afrundes til 0, er "under 100 kr.".
- * `ca = false`, hvor teksten selv siger "ca." (skaleringen), og til nultjekket (`krNul`).
+ * `ca = false` til nultjekket (`krNul`).
  */
 export function krRund(v: number, ca = true): string {
     const a = Math.abs(v);
@@ -201,7 +203,11 @@ export interface Vurdering {
     naesteSkridt: string[];
     /** Investeringsforbeholdet for knapper, der er investeringer. */
     investering: string | null;
-    skalering: string | null;
+    /**
+     * Årets beløb i kr. — KUN når perioden selv er mindst 365 døgn, og så er det periodens Δ uændret. Ellers null:
+     * appen skalerer ikke en kortere periode til et år (runde 15, fund 3.1).
+     */
+    aarligt: number | null;
     delta: number | null;
     tolerance: number | null;
     vaesentlighed: number | null;
@@ -209,9 +215,27 @@ export interface Vurdering {
     n: number | null;
     doegn: number | null;
     knap: string | null;
+    /**
+     * Er de to kørsler færdige og direkte sammenlignelige (trin 1)? Kun da er `delta` scenariets virkning. Er de ikke
+     * det, må hverken sætningen eller historien sige "billigere"/"dyrere" (runde 15, mail 1).
+     */
+    sammenlignelig: boolean;
+    /**
+     * Forslaget om en længere tidsgrænse (testrapportens afsnit 2a): en af kørslerne stoppede på tidsgrænsen, og
+     * usikkerheden er en væsentlig del af Δ. Teksten står også først i `naesteSkridt`. `scenarieIder`: hvor grænsen sættes.
+     */
+    tidsgraense: (TidsgraenseForslag & { scenarieIder: string[] }) | null;
 }
 
 const DØGN = 86_400_000;
+/**
+ * Fra denne længde er periodens tal et årstal (runde 15, fund 3.1 fra den uafhængige test 18. november 2026). Før
+ * blev Δ × 365 / døgn vist for alle perioder på 7–364 døgn: 12 januardøgn i Andeby (tankværdi 23.516 kr.) blev til
+ * "ca. 715.000 kr." om året, og Billund Spor B's 121 forårsdøgn (ca. 2,18 mio. kr.) til ca. 6,6 mio. kr. En sæson
+ * kan ikke ganges op — tanken tjener på elprisens udsving, og varmebehov og priser er anderledes resten af året.
+ * Appen opfinder derfor intet årstal: under 365 døgn vises kun periodens beløb.
+ */
+export const HELAAR_DOEGN = 365;
 /** Periodens længde i døgn fra den præcise periode (inkl. sidste interval). */
 export function doegn(p: Profil): number | null {
     if (!p.periode_fra || !p.periode_til) return null;
@@ -334,6 +358,23 @@ export function neutralSaetning(delta: number, indenTolerance: boolean): string 
 }
 
 /**
+ * Trin 5's begrundelse: HVILKEN af de to regler binder (runde 15, fund 3.4 fra den uafhængige test 18. november 2026).
+ * Reglerne er uændrede — |Δ| ≤ 2 × T (T = summen af de to kørslers gab) eller |Δ| ≤ V (V = den største af 1.000 kr. og
+ * 0,1 % af referencens driftsomkostning; egen antagelse, anbefalingsregler.json) — men før stod de som ét "inden for
+ * tolerancen (0 kr.) eller under væsentlighedsgrænsen (1.000 kr.)", ved siden af mærket "over 100 × tolerancen".
+ * Tolerancen skrives med `toleranceKr`, så et gab under en krone ikke bliver til "0 kr.".
+ */
+function trin5Begrundelse(delta: number, T: number, V: number | null): string {
+    const indenTolerance = Math.abs(delta) <= 2 * T, underV = V !== null && Math.abs(delta) <= V;
+    const forskel = `Forskellen på ${krRund(delta)}`;
+    const vTekst = V === null ? "" : `væsentlighedsgrænsen på ${krRund(V)} (den største af 1.000 kr. og 0,1 % af referencens driftsomkostning)`;
+    const tolRegel = `2 × summen af de to kørslers gab (${toleranceKr(T)})`;
+    if (indenTolerance && underV) return `${forskel} er både inden for solverens tolerance — højst ${tolRegel} — og under ${vTekst}. Den kan ikke skelnes fra nul.`;
+    if (indenTolerance) return `${forskel} er inden for solverens tolerance: den er højst ${tolRegel}, og det er den regel, der binder. Den kan ikke skelnes fra nul.`;
+    return `${forskel} er større end solverens tolerance (${toleranceKr(T)}), men under ${vTekst} — det er den regel, der binder. Forskellen er for lille til at bære en anbefaling.`;
+}
+
+/**
  * Den 9-trins beslutningsrækkefølge (anbefalingsregler.json). `bekraeft` er de
  * værksstier, der er markeret [BEKRÆFT] (VaerkParameter.bekraeft).
  */
@@ -352,26 +393,39 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     const T = ga === null || gb === null ? null : ga + gb;
     const V = ref.k.objektiv_dkk != null ? Math.max(1000, 0.001 * Math.abs(ref.k.objektiv_dkk)) : null;
     const n = delta !== null && T !== null && T > 0 ? Math.floor(Math.abs(delta) / T) : null;
-    const aarligt = delta !== null && d !== null && d >= 7 && d < 365 ? (delta * 365) / d : null;
-    const skaleret = aarligt !== null ? ` (skaleret til et år ca. ${krRund(aarligt, false)})` : "";
+    // Fund 3.1: intet Δ × 365 / døgn. Et årstal findes kun, når perioden selv er et år — og er da periodens tal.
+    const aarligt = delta !== null && d !== null && d >= HELAAR_DOEGN ? delta : null;
+    // Knappernes pladsholder {skaleret} (knapper.json) udfyldes kun for et helår, og da uden omregning.
+    const skaleret = aarligt !== null ? " (et helt år)" : "";
     const investering = p.knap && INVESTERING.knapper.includes(p.knap) ? INVESTERING.tekst : null;
     const indenTol = delta !== null && T !== null && (Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V));
-    const svar = (kategori: Kategori, begrundelse: string, saetning?: string): Vurdering => ({
+    // Testrapportens afsnit 2a: stoppede en kørsel på tidsgrænsen, og er usikkerheden en væsentlig del af Δ, er første
+    // næste skridt en ny kørsel med længere tidsgrænse. Kørslens grænse læses af det frosne input (ellers modellens 600 s).
+    const graense = (s: Side) => { const g = blad(s, "solver.time_limit"); return typeof g === "number" && Number.isFinite(g) ? g : MODELLENS_TIDSGRAENSE_S; };
+    const tg0 = ref.k.status === "faerdig" && scen.k.status === "faerdig"
+        ? tidsgraenseForslag(ref.k, scen.k, { graenser: [graense(ref), graense(scen)], maks: GRAENSER.maksTidsgraenseS }) : null;
+    const tg = tg0 ? { ...tg0, scenarieIder: tg0.roller.map((r) => (r === "referencen" ? ref : scen).k.scenarie_id) } : null;
+    const svar = (kategori: Kategori, begrundelse: string, saetning?: string, sammenlignelig = true): Vurdering => ({
         kategori, maerke: KATEGORIER[kategori]?.maerke ?? kategori, tone: (KATEGORIER[kategori]?.tone ?? "neutral") as Vurdering["tone"],
         saetning: saetning ?? (delta === null ? "Mindst én af kørslerne har ingen driftsomkostning."
             : kategori === "kan_ikke_afgoeres" || (kategori === "foelsomhed" && indenTol) ? neutralSaetning(delta, indenTol)
                 : knapSaetning(p, delta, skaleret)),
-        begrundelse, forbehold: nedgrader, noter, naesteSkridt: næste, investering,
-        skalering: aarligt !== null ? udfyld(SKALERING_TEKST, { aarligt: krRund(aarligt, false) }) : null,
-        delta, tolerance: T, vaesentlighed: V, n, doegn: d, knap: p.knap,
+        begrundelse, forbehold: nedgrader, noter, naesteSkridt: tg && sammenlignelig ? [tg.tekst, ...næste] : næste, investering, aarligt,
+        tidsgraense: sammenlignelig ? tg : null,
+        delta, tolerance: T, vaesentlighed: V, n, doegn: d, knap: p.knap, sammenlignelig,
     });
 
-    // 1. Ikke færdige eller ikke sammenlignelige
+    // 1. Ikke færdige eller ikke sammenlignelige. Sætningen nævner da ikke forskellen som "billigere"/"dyrere for
+    // scenariet": tallet er to forskellige regnestykker trukket fra hinanden (runde 15, mail 1).
     const af = sammenlignelighed(ref.profil, scen.profil);
-    if (ref.k.status !== "faerdig" || scen.k.status !== "faerdig") return svar("kan_ikke_afgoeres", "Begge kørsler skal være færdige.");
+    const IKKE = "Kørslerne kan ikke sammenlignes direkte, så forskellen i driftsomkostning er ikke scenariets virkning.";
+    if (ref.k.status !== "faerdig" || scen.k.status !== "faerdig") return svar("kan_ikke_afgoeres", "Begge kørsler skal være færdige.", "Mindst én af kørslerne er ikke færdig.", false);
     if (sammenlignelighedStatus(af) !== "ja") {
         const felter = af.filter((x) => x.alvor !== "note").map((x) => lille(x.navn));
-        return svar("kan_ikke_afgoeres", udfyld(TRIN["1"], { felter: liste(felter) }));
+        const ukendt = sammenlignelighedStatus(af) === "ukendt";
+        return svar("kan_ikke_afgoeres", ukendt
+            ? `Det kan ikke afgøres, om kørslerne er sammenlignelige: ${liste(felter)} kendes ikke for begge.`
+            : udfyld(TRIN["1"], { felter: liste(felter) }), IKKE, false);
     }
     if (delta === null) return svar("kan_ikke_afgoeres", "Mindst én af kørslerne har ingen driftsomkostning.");
     // 2. Flere ændringer på én gang (eller ingen)
@@ -392,11 +446,11 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     // Følsomheder og metoder får ingen beslutningskategori (anbefalingsregler.json → ikke_beslutning).
     if (type === "foelsomhed" || type === "metode") {
         const inden = Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V);
-        return svar("foelsomhed", inden ? udfyld(TRIN["5"], { delta: krRund(delta), T: krRund(T), V: krRund(V ?? 0) }) : "En følsomhed eller et metodevalg — ikke noget værket selv beslutter.");
+        return svar("foelsomhed", inden ? trin5Begrundelse(delta, T, V) : "En følsomhed eller et metodevalg — ikke noget værket selv beslutter.");
     }
     // 5. Inden for tolerance eller under væsentlighed
     if (Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V)) {
-        return svar("kan_ikke_afgoeres", udfyld(TRIN["5"], { delta: krRund(delta), T: krRund(T), V: krRund(V ?? 0) }));
+        return svar("kan_ikke_afgoeres", trin5Begrundelse(delta, T, V));
     }
     const nTekst = n === null ? "begge kørsler er løst til optimum" : n > 100 ? "mere end 100" : String(n);
     // 6. Forbehold, der nedgraderer begge retninger
@@ -497,7 +551,9 @@ export function konsekvenser(p: Par, delta: number): string[] {
         }
     }
     const ca = ref.samlet.co2_ton, cb = scen.samlet.co2_ton;
-    if (ud.length < 2 && ca != null && cb != null && Math.abs(cb - ca) >= Math.max(1, 0.01 * Math.abs(ca))) {
+    // Fund 4E: en CO₂-ændring fortælles kun, når udledningen er opgjort i begge kørsler (ingen fossil enhed med faktor 0).
+    const co2Opgjort = co2Opgoerelse(ref.input, ref.samlet).opgjort && co2Opgoerelse(scen.input, scen.samlet).opgjort;
+    if (ud.length < 2 && co2Opgjort && ca != null && cb != null && Math.abs(cb - ca) >= Math.max(1, 0.01 * Math.abs(ca))) {
         ud.push(`${cb > ca ? "øger" : "sænker"} CO₂-udledningen med ${tal(Math.abs(cb - ca))} t`);
     }
     const ea = ref.samlet.el_forbrug_mwh, eb = scen.samlet.el_forbrug_mwh;
@@ -521,6 +577,9 @@ export function historie(p: Par, v: Vurdering): string {
         ? `I dette scenarie ${medVi(fraser.length > 3 ? `${vis.slice(0, 3).join(", ")} ${vis[3]}` : liste(vis))} — ellers som ${p.ref.navn}.`
         : `Scenariet har samme input som ${p.ref.navn}.`;
     if (v.delta === null) return s1;
+    // Runde 15 (mail 1): et par, der ikke er direkte sammenligneligt, fortælles ikke som en virkning ("gør driften
+    // X kr. billigere"). `=== false`: sætning 1 før kørsel kaldes med en tom vurdering.
+    if (v.sammenlignelig === false) return [s1, v.begrundelse].map((x) => x.trim()).join(" ");
     const s2 = `Det ${liste(konsekvenser(p, v.delta))}.`;
     const nT = v.tolerance === 0 ? "Begge kørsler er løst til optimum" : v.n !== null && v.n > 100 ? "Forskellen er mere end 100 gange solverens tolerance" : v.n !== null && v.n >= 2 ? `Forskellen er ${v.n} gange solverens tolerance` : null;
     const første = v.naesteSkridt[0] ? lille(v.naesteSkridt[0]) : "";

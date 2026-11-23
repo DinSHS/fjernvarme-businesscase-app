@@ -100,6 +100,21 @@ function afvisningstekst(e: unknown): string | null {
     return e instanceof Afvisning ? e.message : null;
 }
 
+/**
+ * Runde 15, fund 3.2 (den uafhængige test 18. november 2026): en AFVIST bestilling efterlader ingen Bestilling-række.
+ * Klienten må kun oprette og læse den, så kun den betroede logik kan rydde op. Rækken var også i vejen: klientnøglen
+ * er unik, så et genforsøg med samme nøgle ramte den afviste række ("Bestillingen er allerede sendt"). Slettes efter
+ * rollback af bestillingen og kun, hvis ingen kørsel peger på den; fejler oprydningen, er afvisningen stadig svaret.
+ * En teknisk fejl er ikke en afvisning og rydder ikke. Samme regel i community/fjernvarme_app/logik/tjenester.py
+ * (_fjern_afvist_bestilling), testet i test_tjenester.py.
+ */
+async function fjernAfvistBestilling(pool: sql.ConnectionPool, bestillingId: string): Promise<void> {
+    try {
+        await pool.request().input('b', sql.UniqueIdentifier, bestillingId)
+            .query('DELETE FROM dbo.Bestillings WHERE id = @b AND NOT EXISTS (SELECT 1 FROM dbo.Koersels WHERE bestilling_id = @b)');
+    } catch { /* oprydning må aldrig skjule afvisningen */ }
+}
+
 function erUnikBrud(e: unknown): boolean {
     const n = (e as { number?: number; originalError?: { info?: { number?: number } } })?.number
         ?? (e as { originalError?: { info?: { number?: number } } })?.originalError?.info?.number;
@@ -206,7 +221,10 @@ udf.func(
                 });
             } catch (e) {
                 const tekst = afvisningstekst(e);
-                if (tekst) return { ok: false, afvist: tekst };
+                if (tekst) {
+                    await fjernAfvistBestilling(pool, bestillingId);
+                    return { ok: false, afvist: tekst };
+                }
                 if (erUnikBrud(e)) {
                     // To samtidige kald med samme bestilling: den anden taber på den unikke bestilling_id.
                     const efter = await findes();

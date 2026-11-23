@@ -277,19 +277,30 @@ export function listeRaekker(g: ListeGrundlag, visRoegtest = false): ListeRaekke
     const somRef = new Map<string, Par[]>();
     for (const p of par) somRef.set(id(p.ref), [...(somRef.get(id(p.ref)) ?? []), p]);
 
-    // "Samme scenarie" = samme værk og samme scenarienavn: et scenarie, der er arkiveret og oprettet igen (fx et
-    // fejlet helårsforsøg), er stadig samme spørgsmål. Primær kørsel: den parrede, ellers den nyeste færdige, ellers
-    // den nyeste. De andre er gentagelser af den.
-    const sNøgle = (s: Side) => `${s.k.vaerk_id}|${scen(s)?.navn ?? s.k.scenarie_id}`;
+    // "Samme scenarie" = samme værk, samme scenarienavn OG samme periode: et scenarie, der er arkiveret og oprettet igen
+    // (fx et fejlet helårsforsøg), er stadig samme spørgsmål. Primær kørsel: den nyeste parrede, ellers den nyeste
+    // færdige, ellers den nyeste. De andre er gentagelser af den.
+    //
+    // Runde 15 (fund 3.3, den uafhængige test 18. november 2026): perioden hører med. Parflowet giver alle par af samme
+    // spørgsmål samme navne ("Hvad er tanken værd? · reference"), så uden perioden blev et 12-døgnspar til "gentagelser"
+    // af 2-døgnsparret — eller omvendt, alt efter hvilket der var kørt sidst. Den primære vælges nu også af de SORTEREDE
+    // kørsler (nyeste først), ikke af datasættets tilfældige orden, så mærket ikke afhænger af rækkefølgen.
+    const pNøgle = (s: Side) => `${s.profil.periode_fra ?? "?"}|${s.profil.periode_til ?? "?"}`;
+    const sNøgle = (s: Side) => `${s.k.vaerk_id}|${scen(s)?.navn ?? s.k.scenarie_id}|${pNøgle(s)}`;
     const prScenarie = new Map<string, Side[]>();
     for (const s of ægte) prScenarie.set(sNøgle(s), [...(prScenarie.get(sNøgle(s)) ?? []), s]);
     const primærPrNøgle = new Map<string, Side>();
     for (const [n, xs] of prScenarie) {
         const sorteret = [...xs].sort(nyest);
-        primærPrNøgle.set(n, xs.find((x) => somScen.has(id(x)) || somRef.has(id(x))) ?? sorteret.find((x) => x.k.status === "faerdig") ?? sorteret[0]);
+        primærPrNøgle.set(n, sorteret.find((x) => somScen.has(id(x)) || somRef.has(id(x))) ?? sorteret.find((x) => x.k.status === "faerdig") ?? sorteret[0]);
     }
-    const primær = new Map<string, Side>();
-    for (const s of ægte) primær.set(s.k.scenarie_id, primærPrNøgle.get(sNøgle(s))!);
+    /** Kørslens primære: den, dens egen (værk, navn, periode) samles om. */
+    const primærAf = (s: Side) => primærPrNøgle.get(sNøgle(s)) ?? s;
+    /** Et scenaries primære kørsel set fra `fra`: helst i samme periode, ellers scenariets nyeste primære. */
+    const primærForScenarie = (scenarieId: string, fra: Side): Side | undefined => {
+        const kandidater = [...primærPrNøgle.values()].filter((x) => x.k.scenarie_id === scenarieId).sort(nyest);
+        return kandidater.find((x) => pNøgle(x) === pNøgle(fra)) ?? kandidater[0];
+    };
 
     // Scenarier uden par, der er oprettet med en reference (reference_scenarie_id), hænges på referencens primære kørsel.
     const forældre = new Map<string, Side>();
@@ -297,7 +308,7 @@ export function listeRaekker(g: ListeGrundlag, visRoegtest = false): ListeRaekke
     for (const s of primærPrNøgle.values()) {
         if (forældre.has(id(s)) || somRef.has(id(s))) continue;
         const ref = scen(s)?.reference_scenarie_id;
-        const r = ref ? primær.get(ref) : undefined;
+        const r = ref ? primærForScenarie(ref, s) : undefined;
         if (r && r !== s) forældre.set(id(s), r);
     }
 
@@ -329,7 +340,7 @@ export function listeRaekker(g: ListeGrundlag, visRoegtest = false): ListeRaekke
         if (o.type === "roegtest" && !visRoegtest) continue;
         const sc = scen(s);
         const p = somScen.get(id(s)) ?? null;
-        const prim = o.type === "roegtest" ? s : primær.get(s.k.scenarie_id) ?? s;
+        const prim = o.type === "roegtest" ? s : primærAf(s);
         const erGentagelse = prim !== s;
         const egenP = erGentagelse ? somScen.get(id(prim)) ?? null : p;
         const refFor = somRef.get(id(prim))?.length ?? 0;
@@ -337,7 +348,7 @@ export function listeRaekker(g: ListeGrundlag, visRoegtest = false): ListeRaekke
         const farNavn = far ? scen(far)?.navn ?? far.navn : null;
 
         let rolle: Rolle;
-        if (erGentagelse) rolle = { type: "gentagelse", tekst: "Gentagelse af samme scenarie", mod: prim.navn, modId: id(prim), referenceFor: 0 };
+        if (erGentagelse) rolle = { type: "gentagelse", tekst: "Gentagelse af samme scenarie og periode", mod: prim.navn, modId: id(prim), referenceFor: 0 };
         else if (far) rolle = {
             type: "scenarie", mod: farNavn, modId: id(far), referenceFor: refFor,
             tekst: `Scenarie mod «${farNavn}»${p ? "" : " (ikke parret endnu)"}${refFor ? ` · selv reference for ${refFor}` : ""}`,

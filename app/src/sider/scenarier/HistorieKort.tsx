@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { Knap, Kort, Maerke } from "@/components/layout";
+import { tidspunkt } from "@/lib/format";
 import { useKoerselInput, useNoegletal, useScenarie, useScenarieAendringer } from "@/lib/data/hooks";
 import type { Koersel } from "../../../rayfin/data/Koersel";
 import type { Scenarie } from "../../../rayfin/data/Scenarie";
@@ -103,11 +104,14 @@ export function ScenarieHistorie({ s, ændringer, felter, blade, vaerkNavn, bekr
             { k: seneste!, navn: s.navn, scenarie: s, input: sInput.data, noegletal: sTal.data },
             vaerkNavn, bekraeft, serier,
         );
+        // Runde 15 (mail 2): kortet siger, hvilke to kørsler det er regnet af — de samme som nøgletallet i kortet "Kørsel".
+        // Anbefalingens mærke vises ikke, når rollerne er byttet: det gælder ændringen, som referencen bærer.
+        const koersler = `Scenariet: kørslen bestilt ${tidspunkt(seneste!.bestilt)}; referencen «${r?.navn ?? "referencen"}»: kørslen bestilt ${tidspunkt(reference!.bestilt)} — de samme to kørsler som nøgletallet i kortet "Kørsel".`;
         return (
             <HistorieKort fase="efter" saetninger={[h.tekst]}
-                kategori={{ tekst: h.vurdering.maerke, tone: h.vurdering.tone }}
+                kategori={h.byttet ? undefined : { tekst: h.vurdering.maerke, tone: h.vurdering.tone }}
                 sammenlignHref={sammenlignHref(reference!.id, seneste!.id)}
-                fod="Regnet af de to kørslers frosne input og nøgletal med Analysers generator; vurderingen følger appens anbefalingsregler." />
+                fod={`${koersler} Regnet af de to kørslers frosne input og nøgletal med Analysers generator; vurderingen følger appens anbefalingsregler.`} />
         );
     }
     return (

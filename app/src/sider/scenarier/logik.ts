@@ -581,6 +581,7 @@ export function sammeKort(a: ReadonlyMap<string, string>, b: ReadonlyMap<string,
 
 export interface KørselsNøgle {
     vaerk_id: string;
+    vaerk_revision?: number | null;
     oploesning?: string | null;
     data_commit?: string | null;
     model_commit?: string | null;
@@ -601,6 +602,8 @@ export function manifestPeriode(m: string | null | undefined): string | undefine
 export function sammenlignelighed(a: KørselsNøgle, b: KørselsNøgle): string[] {
     const afv: string[] = [];
     if (a.vaerk_id !== b.vaerk_id) afv.push("værk");
+    // Runde 15 (mail 1): samme regel som analyser/beregn.ts — to kendte, forskellige værksrevisioner er hver sit værk.
+    else if (a.vaerk_revision != null && b.vaerk_revision != null && a.vaerk_revision !== b.vaerk_revision) afv.push("værksrevision");
     const pa = manifestPeriode(a.manifest_json), pb = manifestPeriode(b.manifest_json);
     if (!pa || !pb || pa !== pb) afv.push("periode");
     if ((a.oploesning ?? "") !== (b.oploesning ?? "")) afv.push("opløsning");

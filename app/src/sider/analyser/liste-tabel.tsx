@@ -18,6 +18,7 @@ import { ANKRE, KOLONNE_FORKLARING, ordHref } from "./liste-tekster";
 import { KOLONNER, type Kol } from "./liste-visning";
 import { deltaOrd, type Gruppe, type ListeRaekke, type Sortering } from "./sammensaetning";
 import { DeltaTal, TKR, tkr } from "./ibcs-grafer";
+import { TidsgraenseMaerke } from "./dele";
 
 
 const stop = (e: React.MouseEvent) => e.stopPropagation();
@@ -29,7 +30,8 @@ function Navn({ r, indryk }: { r: ListeRaekke; indryk: boolean }) {
         <div className="fjv-a-kl-navn" data-dybde={d || undefined} style={{ marginLeft: d ? `${(d - 1) * 12}px` : undefined }}>
             <span className="fjv-a-kl-titel">{r.scenarie?.navn ?? r.side.navn}</span>
             {r.spoergsmaal && <span className="fjv-a-kl-spm">{r.spoergsmaal}</span>}
-            <span className="fjv-a-kl-lille fjv-a-svag">{r.side.vaerkNavn}</span>
+            {/* Fund 3.3: parflowet giver alle par af samme spørgsmål samme navn — perioden skelner dem, lige ved navnet. */}
+            <span className="fjv-a-kl-lille fjv-a-svag">{r.side.vaerkNavn} · {r.periode.datoer}</span>
         </div>
     );
 }
@@ -84,7 +86,7 @@ const VIS: Record<string, (r: ListeRaekke, k: Koersel, indryk: boolean) => React
     objektiv: (_r, k) => <span title={k.objektiv_dkk == null ? undefined : `${tal(k.objektiv_dkk)} kr.`}>{tkr(k.objektiv_dkk)}</span>,
     delta: (r) => <Delta r={r} />,
     anbefaling: (r) => (r.vurdering ? <Maerke tone={r.vurdering.tone}>{r.vurdering.maerke}</Maerke> : <span className="fjv-a-svag">–</span>),
-    status: (_r, k) => <StatusMaerke status={k.status} />,
+    status: (_r, k) => <div className="fjv-a-kl-stak"><StatusMaerke status={k.status} /><TidsgraenseMaerke k={k} /></div>,
     vaerk: (r) => r.side.vaerkNavn,
     modtaget: (_r, k) => tidspunkt(modtaget(k)),
     gab: (_r, k) => { const g = absolutGab(k); return k.opnaaet_gap != null ? gabPct(k.opnaaet_gap) : g.rel != null ? `≤ ${gabPct(g.rel)}` : "–"; },
@@ -152,6 +154,7 @@ export function KoerselTabel({ grupper, raekker, flere, sortering, onSorter, val
                     <Oprindelse r={r} />
                     {r.vurdering && <Maerke tone={r.vurdering.tone}>{r.vurdering.maerke}</Maerke>}
                     <StatusMaerke status={k.status} />
+                    <TidsgraenseMaerke k={k} />
                 </div>
                 <dl className="fjv-a-fakta fjv-a-kl-kort-fakta">
                     <dt>Ændringer</dt><dd>{r.aendringer}</dd>

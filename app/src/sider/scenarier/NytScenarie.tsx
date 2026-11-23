@@ -24,7 +24,7 @@ import type { OmraadeProps } from "../typer";
 import { Felt, Fundliste } from "./faelles";
 import { enhedAf, gabProcent, rodKode, stiEtiket, useBlade, useVaerketsTidsserier } from "./hjaelp";
 import {
-    aktivSerie, anvendVarmelast, læsVarmelast, maalteMuligheder, standardVarmelastvalg, maaltVarmelastMulig, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst,
+    aktivSerie, anvendVarmelast, læsVarmelast, maalteMuligheder, standardVarmelastvalg, maaltVarmelastMulig, tjekSolprofil, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst,
     type TidsserieInfo, type Varmelastvalg,
 } from "./varmelast";
 import {
@@ -34,7 +34,7 @@ import {
 } from "./logik";
 import { saetningFørKørsel } from "./historie";
 import { periodeFelter, periodeFraRute, type Periodevalg } from "./nyt-rute";
-import { opretOgBestilPar, type ParTilstand } from "./par";
+import { opretOgBestilPar, parTekster, type ParTilstand } from "./par";
 import type { Knap as KnapT } from "./viden";
 import { ANBEFALET_GAB, FASTE_VINDUER, KNAPPER } from "./viden.data";
 
@@ -187,7 +187,9 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
     if (par.par && blade) {
         const tjekket = new Set<string>();
         for (const side of [par.par.reference, par.par.scenarie]) {
-            for (const f of tjekVarmelast(læsVarmelast(side.aendringer, side.felter.heat_csv, serier), serier, { start: pf.start, slut: pf.slut }, blade)) {
+            // Fund 3.2: også solprofilens dækning tjekkes her — før et scenarie eller en bestilling er oprettet.
+            for (const f of [...tjekVarmelast(læsVarmelast(side.aendringer, side.felter.heat_csv, serier), serier, { start: pf.start, slut: pf.slut }, blade),
+                ...tjekSolprofil(side.aendringer, side.felter.heat_csv, serier, { start: pf.start, slut: pf.slut }, blade)]) {
                 if (!tjekket.has(f.tekst)) { tjekket.add(f.tekst); fund.push(f); }
             }
         }
@@ -233,6 +235,8 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
                 // Efter bestilling: hvilke pins fik scenariet faktisk frosset (startBestilling skriver dem på Koersel)?
                 frosnePins: async (id) => { const k = await læsÉn("Koersel", id); return { model: k?.model_commit, data: k?.data_commit }; },
                 sætReference: async (id, ref) => { await opdaterScenarie(id, { reference_scenarie_id: ref }); },
+                // Fund 3.2: et scenarie, parret selv oprettede, og hvis bestilling blev afvist, skal ikke stå tilbage som "ikke kørt".
+                arkivérScenarie: async (id) => { await opdaterScenarie(id, { arkiveret: true }); },
             }, setSkridt);
             if (svar.ok) { setFærdig({ ...svar.tilstand }); nøgle.current = null; tilstand.current = {}; }
             else setFejl(svar.afvist);
@@ -247,6 +251,8 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
     };
 
     const mulige = statusser?.filter((x) => x.st.mulig).length ?? 0;
+    // Fund 3.6: teksterne siger, hvad der faktisk bestilles — også efter bestillingen (da kendes det af tilstanden).
+    const tekster = parTekster(færdig ? !!færdig.refGenbrugt : !!genbrug.fundet);
     const budskab = !vaerk ? undefined
         : !knap ? `${mulige} af ${KNAPPER.length} spørgsmål kan stilles til ${vaerk.navn}. Vælg et — appen foreslår både reference og scenarie.`
             : `${knap.spoergsmaal} ${vaerk.navn}, ${periodeTekst(periodeSvar?.start, periodeSvar?.slut, periodeSvar?.doegn)}: reference og scenarie regnes med samme periode og gab, så kun knappen er forskellig.`;
@@ -356,8 +362,8 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
                             </div>
                         ) : null}
                     </Kort>
-                    <Kort titel="4 · Bekræft og kør" afgraensning="to kørsler"
-                        budskab={færdig ? "Begge er bestilt — følg dem på scenariets side."
+                    <Kort titel="4 · Bekræft og kør" afgraensning={tekster.afgraensning}
+                        budskab={færdig ? tekster.bestilt
                             : genbrug.fundet ? "Referencen er allerede regnet; kun scenariet bestilles."
                                 : genbrug.søger ? "Leder efter en referencekørsel, der kan genbruges…" : "Både reference og scenarie bestilles."}
                         fod="Referencen bestilles først, så køen regner den først. Status opdateres på scenariets side.">
@@ -375,7 +381,7 @@ export default function NytScenarie({ sti, gåTil, bruger }: OmraadeProps) {
                             <div className="fs-raekke">
                                 <Knap onClick={bekræft} disabled={sender || blokeret || !par.par || !bruger || genbrug.søger || serierHentes}
                                     title={serierHentes ? "Henter værkets tidsserier — varmelasten afhænger af dem" : undefined}>
-                                    {sender ? (skridt ?? "Arbejder…") : fejl && påbegyndt ? "Prøv igen" : "Bekræft og kør begge"}
+                                    {sender ? (skridt ?? "Arbejder…") : fejl && påbegyndt ? "Prøv igen" : tekster.knap}
                                 </Knap>
                             </div>
                         )}

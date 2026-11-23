@@ -105,6 +105,11 @@ class _MinneTx:
     def laas_kvote(self, email):
         pass                                             # den globale lås serialiserer allerede
 
+    def slet_bestilling(self, id):
+        if any(_k(k.get("bestilling_id")) == _k(id) for k in self.l.t["Koersels"].values()):
+            return 0
+        return 1 if self.l.t["Bestillings"].pop(_k(id), None) is not None else 0
+
     def scenarie(self, id, laas):
         return self._kopi(self.l._levende("Scenaries", id))
 

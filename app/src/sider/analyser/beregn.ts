@@ -8,8 +8,9 @@
 //    driftsintervaller og bruges ikke.
 //  * Et objektiv har en usikkerhed: det absolutte gab. To kørsler kan kun
 //    skelnes, når |Δ| er større end summen af de to gab.
-//  * To kørsler er direkte sammenlignelige, når værk, periode, opløsning,
-//    data-/modelcommit og ønsket gab er ens.
+//  * To kørsler er direkte sammenlignelige, når værk, værksrevision, periode,
+//    opløsning, data-/modelcommit og ønsket gab er ens. Kun et sådant par må
+//    vises som et resultat (sammenlignelighedsDom; runde 15).
 //-----------------------------------------------------------------------
 
 import type { FjvSchema } from "../../../rayfin/data/schema";
@@ -321,6 +322,16 @@ export function loesningTekst(s: string | null | undefined): string {
 }
 
 /**
+ * Et gab eller en tolerance i kr. — uden at runde et lille gab ned til "0 kr." (runde 15, fund 3.4 fra den uafhængige
+ * test 18. november 2026: to kørsler med gab på få øre gav "solverens tolerance (0 kr.)", som læses som "løst uden
+ * gab"). Præcis 0 er "0 kr."; over 0 og under 1 kr. er "< 1 kr."; ellers beløbet i hele kroner.
+ */
+export function toleranceKr(kr: number): string {
+    if (kr > 0 && kr < 1) return "< 1 kr.";
+    return `${tal(kr)} kr.`;
+}
+
+/**
  * Usikkerheden er ENSIDET: ved minimering ligger det sande optimum mellem best
  * bound og objektivet, så objektivet kan kun være for højt. "højst 2.355 kr.
  * over det bedst mulige (0,050 %)" — eller forklaringen på, hvorfor det ikke kendes.
@@ -329,7 +340,9 @@ export function gabTekst(g: Gab): string {
     if (g.kr === null) return "ukendt (solverens log kunne ikke læses)";
     const rel = g.rel === null ? "" : ` (${gabPct(g.rel)})`;
     const loft = g.kilde === "oensket_loft" ? "; loft ud fra det ønskede gab" : "";
-    return `højst ${tal(g.kr)} kr. over det bedst mulige${rel}${loft}`;
+    // Fund 3.4: et gab under en krone er ikke "højst 0 kr.".
+    const hvor = g.kr > 0 && g.kr < 1 ? "under 1 kr." : `højst ${tal(g.kr)} kr.`;
+    return `${hvor} over det bedst mulige${rel}${loft}`;
 }
 
 export interface Difference {
@@ -382,7 +395,7 @@ export function differenceTekst(d: Difference): string {
     const kerne = kl === "nul" || tal(Math.abs(d.delta)) === "0"
         ? "Scenariet og referencen koster det samme"
         : d.retning === "dyrere" ? `Scenariet koster ${beløb} mere end referencen` : `Scenariet koster ${beløb} mindre end referencen`;
-    const tol = d.tolerance === null ? "" : `${tal(d.tolerance)} kr.`;
+    const tol = d.tolerance === null ? "" : toleranceKr(d.tolerance);
     switch (kl) {
         case "nul":
             if (d.tolerance === null) return `${kerne}; solverens tolerance kendes ikke for begge kørsler.`;
@@ -484,6 +497,25 @@ function miljoeNoegle(json: string | null | undefined): string | null {
     } catch { return json; }
 }
 
+/**
+ * Hvor kørslens modelkode og df-data kom fra (runde 15, fund 3.6 fra den uafhængige test 18. november 2026).
+ * Arbejderen henter begge som zip fra GitHub ved den pinnede commit og gemmer zippens sha256 i kørslens miljø
+ * (`model_zip_sha256`, `data_zip_sha256`; fabric/fjv/runtime.py › sikr_repo, koersel.py). Står feltet der som `null`,
+ * er mappen lagt i cachen på anden vis (testen brugte `git archive`): kørslen kan være helt rigtig, men appen har
+ * ikke selv hentet koden og kan ikke stå inde for, at den er pinnens. En kørsel UDEN felterne (ældre motor, eller
+ * intet miljø) har aldrig målt det — dér siges intet.
+ */
+export function kodeOprindelse(miljoe_json: string | null | undefined): { model: string | null; data: string | null; advarsler: string[] } {
+    let m: Record<string, unknown> = {};
+    try { const v = miljoe_json ? JSON.parse(miljoe_json) as unknown : null; if (v && typeof v === "object") m = v as Record<string, unknown>; } catch { /* intet miljø at læse */ }
+    const sha = (k: string) => (typeof m[k] === "string" && m[k] ? m[k] as string : null);
+    const tom = (k: string) => k in m && !sha(k);
+    const advarsler: string[] = [];
+    if (tom("model_zip_sha256")) advarsler.push("Modelkoden blev ikke hentet som zip fra GitHub af regnemotoren (kørslen har intet zip-fingeraftryk): mappen med koden er lagt i cachen på anden vis, så appen kan ikke selv stå inde for, at den er den pinnede commit.");
+    if (tom("data_zip_sha256")) advarsler.push("df-data blev ikke hentet som zip fra GitHub af regnemotoren (kørslen har intet zip-fingeraftryk): appen kan ikke selv stå inde for, at datagrundlaget er den pinnede commit.");
+    return { model: sha("model_zip_sha256"), data: sha("data_zip_sha256"), advarsler };
+}
+
 /** En kørsels sammenligningsprofil. Perioden tages af manifestet, ellers af scenariet. */
 export function profil(k: Koersel, vaerkNavn: string, scenarie?: Scenarie | null, input?: readonly InputRække[]): Profil {
     const mp = manifestPeriode(k);
@@ -518,9 +550,10 @@ function vis<T>(v: T | null | undefined, f: (x: T) => string = String): string {
 
 /**
  * KONTRAKT §6b: direkte sammenlignelige, når værk, periode, opløsning,
- * data_commit, model_commit, mip_rel_gap og mip_abs_gap er ens. Tom liste
- * af advarsler = direkte sammenlignelige. Noter (værksrevision, balancering,
- * miljø) bryder ikke reglen, men skal kunne ses.
+ * data_commit, model_commit, mip_rel_gap og mip_abs_gap er ens — og, fra
+ * runde 15, værkets revision (egen antagelse: §6b nævner den ikke). Tom liste
+ * af advarsler = direkte sammenlignelige. Noter (balancering, miljø, en
+ * ukendt revision) bryder ikke reglen, men skal kunne ses.
  */
 export function sammenlignelighed(a: Profil, b: Profil): Afvigelse[] {
     const ud: Afvigelse[] = [];
@@ -557,11 +590,45 @@ export function sammenlignelighed(a: Profil, b: Profil): Afvigelse[] {
     nødvendig("model_commit", "Modelversion", sha(a.model_commit), sha(b.model_commit), kort, id);
     nødvendig("rel_gap", "Ønsket relativt gab", a.rel_gap, b.rel_gap, gabPct, (x) => `${fuldtTal(x * 100)} %`);
     nødvendig("abs_gap", "Ønsket absolut gab", a.abs_gap, b.abs_gap, (x) => `${tal(x)} kr.`, (x) => `${fuldtTal(x)} kr.`);
-    if (a.vaerk_id === b.vaerk_id) tjek("vaerk_revision", "Værkets revision", vis(a.vaerk_revision, (x: number) => `r${x}`), vis(b.vaerk_revision, (x: number) => `r${x}`), "note");
+    // Runde 15 (mail 1, den uafhængige test 18. november 2026): to kørsler ved hver sin værksrevision har hver sit værk
+    // under sig — værket er rettet imellem dem — så differensen blander værksrettelsen med scenariets ændring. Kendes
+    // begge revisioner, og er de forskellige, er parret IKKE direkte sammenligneligt (før: en note, og parret blev vist
+    // som "Sammenlignelige" med grønt mærke). Kendes en af dem ikke (ældre kørsler), er det fortsat en note.
+    if (a.vaerk_id === b.vaerk_id) {
+        const rv = (x: number) => `r${x}`;
+        if (!tom(a.vaerk_revision) && !tom(b.vaerk_revision) && a.vaerk_revision !== b.vaerk_revision) {
+            ud.push({ felt: "vaerk_revision", navn: "Værkets revision", a: rv(a.vaerk_revision), b: rv(b.vaerk_revision), alvor: "advarsel" });
+        } else tjek("vaerk_revision", "Værkets revision", vis(a.vaerk_revision, rv), vis(b.vaerk_revision, rv), "note");
+    }
     tjek("med_balancering", "Balancemarked", vis(a.med_balancering, (x: boolean) => (x ? "med" : "uden")), vis(b.med_balancering, (x: boolean) => (x ? "med" : "uden")), "note");
     tjek("miljoe", "Beregningsmiljø", vis(a.miljoe), vis(b.miljoe), "note");
     return ud;
 }
+
+/** "a", "a og b", "a, b og c". */
+function opremsning(xs: readonly string[]): string {
+    return xs.length <= 1 ? xs[0] ?? "" : `${xs.slice(0, -1).join(", ")} og ${xs[xs.length - 1]}`;
+}
+
+/**
+ * Dommen over et par, som HVERT sted, der viser en differens, skal spørge (runde 15, mail 1): kun et par med
+ * `status: "ja"` må vises som et godt eller dårligt resultat — med virkningsfarve, et grønt mærke eller ordene
+ * "billigere"/"dyrere end referencen". Ellers er `tekst` grunden i klartekst, og tallet er to kørsler side om side.
+ */
+export interface Dom { status: "ja" | "nej" | "ukendt"; tekst: string | null; afvigelser: Afvigelse[] }
+
+export function sammenlignelighedsDom(a: Profil, b: Profil): Dom {
+    const afvigelser = sammenlignelighed(a, b);
+    const status = sammenlignelighedStatus(afvigelser);
+    const navne = (alvor: Afvigelse["alvor"]) => afvigelser.filter((x) => x.alvor === alvor).map((x) => x.navn.toLowerCase());
+    const tekst = status === "ja" ? null
+        : status === "nej" ? `Kørslerne kan ikke sammenlignes direkte: ${opremsning(navne("advarsel"))} afviger.`
+            : `Det kan ikke afgøres, om kørslerne kan sammenlignes: ${opremsning(navne("ukendt"))} kendes ikke for begge.`;
+    return { status, tekst, afvigelser };
+}
+
+/** Sætningen, der står i stedet for et resultat, når parret ikke er direkte sammenligneligt. */
+export const IKKE_ET_RESULTAT = "Forskellen i driftsomkostning er derfor ikke scenariets virkning.";
 
 // ================================================================= måneder
 
@@ -867,6 +934,124 @@ export function farvepladser(navne: Iterable<string>): Map<string, number> {
 /** Sidens/kortets budskab om enhedsfordelingen: "halmkedel leverer 48 % af varmen". */
 export function stoersteEnhed(enheder: readonly EnhedTal[]): EnhedTal | null {
     return enheder.filter((e) => (e.produktion_mwh ?? 0) > 0)[0] ?? null;
+}
+
+// ================================================================= tidsgrænsen: forslag om en længere
+
+/** Stoppede solveren på tidsgrænsen? HiGHS' status er "time_limit"; alt med "time" tæller (som `loesningTekst`). */
+export function stoppetPaaTid(s: string | null | undefined): boolean {
+    return !!s && s.toLowerCase().includes("time");
+}
+
+/** Modellens tidsgrænse, når hverken værket eller scenariet sætter en (src/config.py › SolverConfig.time_limit). */
+export const MODELLENS_TIDSGRAENSE_S = 600;
+
+/**
+ * Hvornår er usikkerheden "en væsentlig del" af differensen? EGEN ANTAGELSE (doc/TROFASTHED.md §5): når den er mindst
+ * 10 % af |ΔRef|. Testrapportens målte tilfælde (Billund Spor B: 3.926 kr. af ca. 2,18 mio. kr. = 0,2 %) ligger langt
+ * under, og dér holdt konklusionen; ved 10 % kan forskellens størrelse flytte sig mærkbart, selv om fortegnet holder.
+ */
+export const TIDSGRAENSE_VAESENTLIG_ANDEL = 0.1;
+
+export interface TidsgraenseForslag {
+    /** De kørsler, der stoppede på tidsgrænsen. */
+    roller: ("referencen" | "scenariet")[];
+    /** Summen af deres usikkerhed (højst så meget for højt); null hvis en af dem ikke kendes. */
+    usikkerhed_kr: number | null;
+    /** usikkerhed / |ΔRef|; null når usikkerheden er ukendt, Infinity når ΔRef er 0. */
+    andel: number | null;
+    tekst: string;
+}
+
+/**
+ * Forslaget fra den uafhængige test 18. november 2026 (testrapportens afsnit 2a): stoppede en af et pars kørsler på
+ * tidsgrænsen, og er usikkerheden en væsentlig del af ΔRef, så foreslå en ny kørsel med længere tidsgrænse. `graenser`
+ * er de to kørslers tidsgrænse i sekunder [reference, scenarie] (null = ukendt), `maks` appens loft. Er usikkerheden
+ * ukendt, foreslås det altid: forskellen kan da slet ikke vurderes. Null = intet at foreslå.
+ */
+export function tidsgraenseForslag(ref: Koersel, scen: Koersel, o: { graenser: readonly [number | null, number | null]; maks: number }): TidsgraenseForslag | null {
+    if (tom(ref.objektiv_dkk) || tom(scen.objektiv_dkk)) return null;
+    const ramt = ([["referencen", ref, o.graenser[0]], ["scenariet", scen, o.graenser[1]]] as const).filter(([, k]) => stoppetPaaTid(k.solve_status));
+    if (ramt.length === 0) return null;
+    const gab = ramt.map(([, k]) => absolutGab(k).kr);
+    const usikkerhed_kr = gab.some((g) => g === null) ? null : gab.reduce<number>((a, g) => a + (g ?? 0), 0);
+    const delta = Math.abs(scen.objektiv_dkk - ref.objektiv_dkk);
+    const andel = usikkerhed_kr === null ? null : delta > 0 ? usikkerhed_kr / delta : Infinity;
+    if (andel !== null && andel < TIDSGRAENSE_VAESENTLIG_ANDEL) return null;
+    const roller = ramt.map(([r]) => r);
+    const hvem = opremsning(roller);
+    const grund = usikkerhed_kr === null ? "usikkerheden kendes ikke, så forskellen kan ikke vurderes"
+        : !Number.isFinite(andel) ? `usikkerheden (højst ${tal(usikkerhed_kr)} kr.) er større end forskellen`
+            : `usikkerheden (højst ${tal(usikkerhed_kr)} kr.) er ${tal((andel ?? 0) * 100)} % af forskellen på ${tal(delta)} kr.`;
+    const kendte = ramt.map(([, , g]) => g).filter((g): g is number => g !== null);
+    if (kendte.length === ramt.length && kendte.every((g) => g >= o.maks)) {
+        return { roller, usikkerhed_kr, andel, tekst: `${hvem.charAt(0).toUpperCase()}${hvem.slice(1)} stoppede på tidsgrænsen, som allerede er appens højeste (${tal(o.maks)} s), og ${grund}. Del perioden i kortere vinduer, eller læs forskellen med den usikkerhed.` };
+    }
+    const nu = kendte.length ? `nu ${opremsning([...new Set(kendte)].map((g) => `${tal(g)} s`))}; ` : "";
+    return { roller, usikkerhed_kr, andel, tekst: `Kør ${hvem} igen med en længere tidsgrænse (${nu}appen tillader op til ${tal(o.maks)} s): ${hvem} stoppede på tidsgrænsen, og ${grund}.` };
+}
+
+// ================================================================= CO₂: er udledningen opgjort?
+
+/**
+ * Brændsler, hvis forbrænding udleder fossil CO₂. Ved modelversion 90fb16e bruger casene kun `natural_gas`; olie og
+ * kul står her, så en ny enhedstype ikke stille bliver regnet som CO₂-fri (egen antagelse — modellen har ingen liste).
+ */
+const FOSSILT_BRAENDSEL = /^(natural_gas|naturgas|gas|oil|fuel_oil|gas_oil|gasoil|olie|fyringsolie|diesel|lpg|coal|kul)$/i;
+/** Enhedstyper, der brænder fossilt, også hvis `fuel` mangler. */
+const FOSSIL_TYPE = /^(gas_boiler|gas_engine_chp|oil_boiler)$/;
+const BRAENDSELSNAVN: Record<string, string> = { natural_gas: "naturgas", oil: "olie", fuel_oil: "olie", gas_oil: "olie", coal: "kul" };
+
+export interface Co2Opgoerelse {
+    /** false: modellens `co2_ton` dækker ikke alle fossile enheder, der producerede — tallet må ikke vises som udledningen. */
+    opgjort: boolean;
+    /** De enheder, der producerede varme på fossilt brændsel med emissionsfaktor 0, sorteret. */
+    enheder: string[];
+    /** Grunden i klartekst (null når opgjort). */
+    grund: string | null;
+}
+
+/**
+ * Er kørslens CO₂-udledning opgjort? (Runde 15, fund 4E fra den uafhængige test 18. november 2026.)
+ *
+ * Modellens `co2_ton` er Σ varme / eta_fuel_to_heat × `co2_emissions_per_mwh_fuel` over enhederne og springer en
+ * enhed med faktoren 0 over (src/manifest.py:130-147; standarden er 0,0, src/config.py:504). Billund-casene har 0,0
+ * på gasenhederne, fordi CO₂-omkostningen ligger i gasprisen — rigtigt for økonomien, men så er `co2_ton` 0 for et
+ * værk, der brænder naturgas. Appen viste "CO₂-udledning 0 t".
+ *
+ * Appens regel (EGEN ANTAGELSE, doc/TROFASTHED.md §5): udledningen er IKKE opgjort, når mindst én tændt enhed med
+ * fossilt brændsel har produceret varme (eller dens produktion er ukendt) med emissionsfaktor ≤ 0. Biomasse med
+ * faktor 0 er modellens egen regel (neutral) og rører ikke opgørelsen; en fossil enhed, der ikke producerede, heller ikke.
+ * Appen retter ikke tallet og gætter ingen faktor — den siger, at tallet mangler, og hvorfor.
+ */
+export function co2Opgoerelse(input: readonly InputRække[], samlet: Pick<Samlet, "enheder">): Co2Opgoerelse {
+    const e = effektivtInput(input).blade;
+    const læs = (sti: string): unknown => { const r = e.get(sti); if (!r) return undefined; try { return JSON.parse(r.vaerdi_json) as unknown; } catch { return undefined; } };
+    const produktion = new Map(samlet.enheder.map((x) => [x.navn, x.produktion_mwh]));
+    const navne = new Set<string>();
+    for (const sti of e.keys()) { const m = /^units\.([^.]+)\./.exec(sti); if (m) navne.add(m[1]); }
+    const ramt: { navn: string; braendsel: string }[] = [];
+    for (const navn of [...navne].sort()) {
+        if (læs(`units.${navn}.enabled`) === false) continue;
+        const fuel = læs(`units.${navn}.fuel`), type = læs(`units.${navn}.type`);
+        const fossil = (typeof fuel === "string" && FOSSILT_BRAENDSEL.test(fuel)) || (typeof type === "string" && FOSSIL_TYPE.test(type));
+        if (!fossil) continue;
+        const faktor = læs(`units.${navn}.co2_emissions_per_mwh_fuel`);
+        if (typeof faktor === "number" && faktor > 0) continue;
+        // Enheden er ikke i resultaterne (ingen nøgletal): den var ikke med i kørslen. 0 MWh: intet at opgøre.
+        if (!produktion.has(navn)) continue;
+        const mwh = produktion.get(navn);
+        if (mwh != null && !(mwh > 0)) continue;
+        ramt.push({ navn, braendsel: typeof fuel === "string" ? BRAENDSELSNAVN[fuel] ?? fuel : "fossilt brændsel" });
+    }
+    if (ramt.length === 0) return { opgjort: true, enheder: [], grund: null };
+    const enheder = ramt.map((x) => x.navn);
+    const braendsler = opremsning([...new Set(ramt.map((x) => x.braendsel))]);
+    return {
+        opgjort: false, enheder,
+        grund: `Ikke opgjort: emissionsfaktoren (co2_emissions_per_mwh_fuel) er 0 for ${opremsning(enheder)}, som producerede varme på ${braendsler}. `
+            + "Modellen regner da ingen udledning for dem — typisk fordi CO₂-omkostningen ligger i brændselsprisen. Økonomien er uændret; kun udledningen mangler.",
+    };
 }
 
 // ================================================================= sammenligning af produktion

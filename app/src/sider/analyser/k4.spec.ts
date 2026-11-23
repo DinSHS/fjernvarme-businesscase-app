@@ -120,10 +120,14 @@ describe("K4 F7: 'samme input' afgøres af hele det frosne input (input_hash), i
         } as Koersel;
         return { k, scenarie: { id: navn, navn, med_balancering: false } as Scenarie, vaerkNavn: "Testværk", input };
     };
-    it("revision 1 (25 MW) mod revision 2 (35 MW), begge uden ændringer: IKKE samme input, ikke nedprioriteret", () => {
-        const { anbefalet } = kandidater(kør("rev2", 2, "b".repeat(64)), [kør("rev2", 2, "b".repeat(64)), kør("rev1", 1, "a".repeat(64))]);
-        expect(anbefalet[0].sammeInput).toBe(false);
-        expect(anbefalet[0].aendringer.join(" ")).toMatch(/værksrevision r1 \(denne kørsel: r2\)/);
+    // Runde 15 (mail 1): en anden værksrevision er ikke længere direkte sammenlignelig, så kandidaten står under
+    // "kan ikke sammenlignes direkte" med grunden — stadig ikke som "samme input".
+    it("revision 1 (25 MW) mod revision 2 (35 MW), begge uden ændringer: IKKE samme input, og ikke direkte sammenlignelig", () => {
+        const { anbefalet, andre } = kandidater(kør("rev2", 2, "b".repeat(64)), [kør("rev2", 2, "b".repeat(64)), kør("rev1", 1, "a".repeat(64))]);
+        expect(anbefalet).toEqual([]);
+        expect(andre[0].sammeInput).toBe(false);
+        expect(andre[0].aendringer.join(" ")).toMatch(/værksrevision r1 \(denne kørsel: r2\)/);
+        expect(andre[0].afviger).toEqual(["anden værksrevision"]);
     });
     it("samme hash = samme input (en gentagelse)", () => {
         const { anbefalet } = kandidater(kør("x", 1, "c".repeat(64)), [kør("x", 1, "c".repeat(64)), kør("y", 1, "c".repeat(64))]);

@@ -139,12 +139,18 @@ describe("sammenlignelighed (KONTRAKT §6b)", () => {
         const [x] = sammenlignelighed(p(), p({ oensket_rel_gap: 0.0002 }));
         expect(x).toMatchObject({ navn: "Ønsket relativt gab", a: "0,10 %", b: "0,020 %" });
     });
-    it("værksrevision, balancering og miljø er noter, ikke advarsler", () => {
+    // Runde 15 (mail 1, den uafhængige test 18. november 2026): to kendte, forskellige værksrevisioner bryder
+    // sammenligneligheden (før: en note). Balancering og miljø er fortsat noter.
+    it("balancering og miljø er noter; en anden værksrevision er en advarsel", () => {
         const a = profil(kørsel({ miljoe_json: JSON.stringify({ python: "3.12.12" }) }), "A", null, [ind("scenarie", "_koersel.med_balancering", "false")]);
         const b = profil(kørsel({ vaerk_revision: 2, miljoe_json: JSON.stringify({ python: "3.13.14" }) }), "A", null, [ind("scenarie", "_koersel.med_balancering", "true")]);
         const af = sammenlignelighed(a, b);
-        expect(af.every((x) => x.alvor === "note")).toBe(true);
-        expect(af.map((x) => x.navn)).toEqual(["Værkets revision", "Balancemarked", "Beregningsmiljø"]);
+        expect(af.map((x) => [x.navn, x.alvor])).toEqual([["Værkets revision", "advarsel"], ["Balancemarked", "note"], ["Beregningsmiljø", "note"]]);
+        expect(af[0]).toMatchObject({ a: "r1", b: "r2" });
+    });
+    it("en ukendt værksrevision på den ene side er fortsat en note (ældre kørsler)", () => {
+        const af = sammenlignelighed(profil(kørsel({ vaerk_revision: undefined }), "A"), profil(kørsel({ vaerk_revision: 2 }), "A"));
+        expect(af.map((x) => [x.navn, x.alvor])).toEqual([["Værkets revision", "note"]]);
     });
     it("en ukendt værdi mod en kendt er en afvigelse", () => {
         const af = sammenlignelighed(p(), p({ data_commit: undefined }));

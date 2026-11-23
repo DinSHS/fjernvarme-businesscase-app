@@ -69,6 +69,12 @@ class SqlTransaktion:
         b = self.t("Bestilling")
         return self._en(select(b.c.id, b.c.scenarie_id, b.c.bestilt_af, b.c.bestilt).where(b.c.id == id.lower()))
 
+    def slet_bestilling(self, id: str) -> int:
+        """Fund 3.2: kun en bestilling, der ikke blev til en kørsel (samme betingelse som Fabric-udgavens SQL)."""
+        b, k = self.t("Bestilling"), self.t("Koersel")
+        har_koersel = select(k.c.id).where(k.c.bestilling_id == id.lower()).exists()
+        return self.cn.execute(b.delete().where(and_(b.c.id == id.lower(), ~har_koersel))).rowcount
+
     def laas_kvote(self, email: str) -> None:
         d = self.db.dialekt
         if d == "postgresql":

@@ -101,6 +101,19 @@ def _dt(iso_tekst):
 # ================================================================== startBestilling
 
 
+def _fjern_afvist_bestilling(lager, bestilling_id: str) -> None:
+    """Runde 15, fund 3.2 (den uafhængige test 18. november 2026): en AFVIST bestilling efterlader ingen
+    Bestilling-række. Klienten må kun oprette og læse den, så kun den betroede logik kan rydde op. Rækken var også i
+    vejen: klientnøglen er unik, så et genforsøg med samme nøgle ramte den afviste række ("Bestillingen er allerede
+    sendt"). Slettes i sin egen transaktion efter rollback af bestillingen; fejler oprydningen, er afvisningen stadig
+    svaret. En teknisk fejl er ikke en afvisning og rydder ikke. Samme regel i function_app.ts (fjernAfvistBestilling)."""
+    try:
+        with lager.transaktion() as tx:
+            tx.slet_bestilling(bestilling_id)
+    except Exception:                                          # noqa: BLE001 — oprydning må aldrig skjule afvisningen
+        pass
+
+
 def start_bestilling(lager, bestilling_id: str, start_arbejder) -> dict:
     """Bestilling -> Koersel(``koe``) + KoerselInput (+ frosne pins), og start en arbejder. Idempotent på
     bestillingen. Returnerer TS' ``Bestillingssvar``: ``{ok, koersel_id?, status?, ny?, afvist?, arbejder?}``."""
@@ -164,6 +177,7 @@ def start_bestilling(lager, bestilling_id: str, start_arbejder) -> dict:
             })
             tx.indsaet_input(koersel_id, frossen["raekker"])
     except Afvisning as e:
+        _fjern_afvist_bestilling(lager, bestilling_id)
         return {"ok": False, "afvist": str(e)}
     except UnikBrud:
         # To samtidige kald med samme bestilling: den anden taber på den unikke bestilling_id.

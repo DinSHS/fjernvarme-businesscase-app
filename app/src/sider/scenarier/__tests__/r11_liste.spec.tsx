@@ -15,7 +15,9 @@ const ref = { id: "s1", vaerk_id: "v1", navn: "Reference", arkiveret: false, opr
 const scen = { ...ref, id: "s2", navn: "Scenarie", reference_scenarie_id: "s1", oprettet: new Date(Date.UTC(2026, 9, 2)) } as Scenarie;
 const koersel = (s: Scenarie, objektiv_dkk: number) => ({
     id: `k-${s.id}`, scenarie_id: s.id, vaerk_id: "v1", status: "faerdig", objektiv_dkk, oploesning: "1h", data_commit: "d", model_commit: "m",
-    oensket_rel_gap: 0.0002, oensket_abs_gap: 100, manifest_json: "{}", bestilt: new Date(Date.UTC(2026, 9, 3)), bestilt_af: "a@example.org",
+    // Perioden skal kendes: uden den er parret ikke direkte sammenligneligt, og oversigten viser intet ΔRef (runde 15, mail 1).
+    oensket_rel_gap: 0.0002, oensket_abs_gap: 100, manifest_json: JSON.stringify({ periode: { start: "2026-01-05", slut: "2026-01-16" } }),
+    bestilt: new Date(Date.UTC(2026, 9, 3)), bestilt_af: "a@example.org",
 }) as unknown as Koersel;
 
 vi.mock("@/lib/data/hooks", () => ({

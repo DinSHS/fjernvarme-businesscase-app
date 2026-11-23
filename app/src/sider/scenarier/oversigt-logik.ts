@@ -17,13 +17,17 @@ export interface ScenarieRække {
  * Kolonnen Reference i oversigten. Hvert udfald har sin egen tekst — aldrig "ukendt scenarie":
  * - `par`: parrets reference (feltet, beskrivelsen eller demo-parret) har en færdig kørsel; `direkte` = sammenlignelig.
  * - `par_ikke_koert`: scenariet har en parret reference, men den er ikke kørt færdig.
+ * - `seneste_ikke_faerdig`: parret findes, men scenariets seneste kørsel er ikke færdig (runde 15, mail 1: før viste
+ *   rækken status "Fejl" ved siden af et ΔRef og et grønt mærke fra en ÆLDRE kørsel).
  * - `er_reference`: scenariet er selv reference for `antal` andre scenarier (og har ingen reference selv).
  * - `sammenlignelig`: ikke parret, men en anden aktiv kørsel på værket kan sammenlignes direkte.
  * - `ingen`: scenariet er kørt, men intet kan sammenlignes direkte med det.
  */
 export type Reference =
-    | { art: "par"; navn: string; direkte: boolean; afviger: string[]; /** ΔRef = scenarie − reference (kr.), kun når begge objektiver kendes. */ delta?: number }
+    | { art: "par"; navn: string; direkte: boolean; afviger: string[]; /** ΔRef = scenarie − reference (kr.), kun når parret er direkte sammenligneligt og begge objektiver kendes. */ delta?: number }
     | { art: "par_ikke_koert"; navn: string }
+    /** Scenariets SENESTE kørsel er ikke færdig (fejlet, annulleret eller i gang): rækken viser den, så der er intet ΔRef. */
+    | { art: "seneste_ikke_faerdig"; navn: string; status: string }
     | { art: "er_reference"; antal: number }
     | { art: "sammenlignelig"; navn: string }
     | { art: "ingen" };
@@ -46,9 +50,14 @@ export function findReference(s: Scenarie, scenarier: readonly Scenarie[], koers
     if (refId && aktive.has(refId)) {
         const ref = nyeste(færdige.filter((k) => k.scenarie_id === refId));
         if (!ref) return { art: "par_ikke_koert", navn: navn(refId) };
+        // Rækken i oversigten er scenariets seneste kørsel (status og driftsomkostning). Er den ikke færdig, hører et
+        // ΔRef fra en ældre kørsel ikke hjemme ved siden af.
+        const sidste = [...koersler].filter((k) => k.scenarie_id === s.id).sort((a, b) => tid(b.bestilt) - tid(a.bestilt))[0];
+        if (sidste && sidste.status !== "faerdig") return { art: "seneste_ikke_faerdig", navn: navn(refId), status: sidste.status };
         if (!egen) return undefined;
         const afv = sammenlignelighed(ref, egen);
-        const delta = egen.objektiv_dkk != null && ref.objektiv_dkk != null ? egen.objektiv_dkk - ref.objektiv_dkk : null;
+        // Runde 15 (mail 1): ΔRef kun for et direkte sammenligneligt par (før: også mod en reference med en anden periode).
+        const delta = afv.length === 0 && egen.objektiv_dkk != null && ref.objektiv_dkk != null ? egen.objektiv_dkk - ref.objektiv_dkk : null;
         return { art: "par", navn: navn(refId), direkte: afv.length === 0, afviger: afv, ...(delta !== null ? { delta } : {}) };
     }
 

@@ -24,11 +24,12 @@ import type { Vaerk } from "../../../rayfin/data/Vaerk";
 import type { OmraadeProps } from "../typer";
 import { Felt, Fundliste } from "./faelles";
 import { enhedAf, gabProcent, katalogpost, læsTal, rodKode, stiEtiket, sætbareStier, talTilFelt, tekstTal, useBlade, useVaerketsTidsserier } from "./hjaelp";
-import { kodVarmelast, læsVarmelast, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst, type TidsserieInfo } from "./varmelast";
+import { kodVarmelast, læsVarmelast, tjekSolprofil, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst, type TidsserieInfo } from "./varmelast";
 import { ScenarieHistorie } from "./HistorieKort";
 import { KoerselDetaljer } from "./KoerselKort";
-import { difference, differenceTekst } from "../analyser/beregn";
-import { sammenlignHref } from "./koersel-logik";
+import { differenceTekst } from "../analyser/beregn";
+import { modReference, sammenlignHref } from "./koersel-logik";
+import { TidsgraenseMaerke } from "../analyser/dele";
 import { importTekst, useArkivimporter } from "@/lib/arkiv/markering";
 import {
     datoTilFelt, effektivTidsgraense, erTil, feltTilDato, forventetVarighed, objekter, parretsReference, tjekPeriode, tjekÆndringer, visBeskrivelse,
@@ -175,7 +176,9 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     const varmelastMul = varmelastMuligheder(serier, rod);
     const periode = tjekPeriode(fSvar.felter.periode_start, fSvar.felter.periode_slut, blade, { medBalancering: k.medBal });
     const fund: Fund[] = [...fSvar.fund, ...periode.fund, ...æSvar.fund, ...tjekÆndringer(æSvar.ændringer.filter((x) => x.type !== "set" || x.vaerdi_json), blade),
-        ...tjekVarmelast(varmelastValg, serier, { start: fSvar.felter.periode_start, slut: fSvar.felter.periode_slut }, blade)];
+        ...tjekVarmelast(varmelastValg, serier, { start: fSvar.felter.periode_start, slut: fSvar.felter.periode_slut }, blade),
+        // Fund 3.2: solprofilens dækning kendes før bestilling; backenden afviser ellers først, når bestillingen er oprettet.
+        ...tjekSolprofil(æSvar.ændringer, fSvar.felter.heat_csv, serier, { start: fSvar.felter.periode_start, slut: fSvar.felter.periode_slut }, blade)];
     if (serierFejl) fund.push({ niveau: "advarsel", tekst: `Værkets tidsserier kunne ikke hentes (${serierFejl.message}); varmelast kan kun være syntetisk eller en af repoets filer.` });
     if (k.metode === "activation_value" && !blade.has("balancing.bid_strategy.up_markup_dkk_mwh")) {
         fund.push({ niveau: "fejl", tekst: "Metoden activation_value kræver balancing.bid_strategy i værket." });
@@ -238,11 +241,13 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     const antal = aendringer.length;
     // Samme periodeform som Analyser (IBCS.md §3, review-fund B8): "5. jan.–16. jan. 2026", ikke "05-01-2026 – 16-01-2026".
     const periodeTekst = gemtPeriode.start ? periodeKort(gemtPeriode.start, gemtPeriode.slut) : "ugyldig periode";
-    const diff = seneste?.status === "faerdig" && reference?.status === "faerdig" ? difference(reference, seneste) : null;
+    // Runde 15 (mail 1): budskabet nævner kun en forskel mod en direkte sammenlignelig reference.
+    const mod = seneste ? modReference(reference, seneste) : undefined;
     const budskab = `${antal === 0 ? "Ingen ændringer" : `${antal} ændring${antal === 1 ? "" : "er"}`} mod ${vaerk.navn}, ${periodeTekst}, ${s.med_balancering ? "med" : "uden"} balancering; `
         + (!seneste ? "ikke kørt endnu."
-            : diff ? `seneste kørsel er færdig. ${differenceTekst(diff)}`
-                : `seneste kørsel: ${STATUS_TEKST[seneste.status].toLowerCase()}.`);
+            : mod?.diff ? `seneste kørsel er færdig. ${differenceTekst(mod.diff)}`
+                : mod?.afviger.length ? `seneste kørsel er færdig, men kan ikke sammenlignes direkte med referencen (${mod.afviger.join(", ")} afviger).`
+                    : `seneste kørsel: ${STATUS_TEKST[seneste.status].toLowerCase()}.`);
 
     return (
         <Side omraade="Scenarier" titel={s.navn} budskab={budskab}
@@ -329,7 +334,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                     <KørKnap s={s} bruger={bruger} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
                     <DataTilstand h={koersler}>
                         {() => (seneste
-                            ? <KoerselDetaljer k={seneste} varighed={varighed} reference={reference}
+                            ? <KoerselDetaljer k={seneste} varighed={varighed} reference={reference} tidsgraense_s={tidsgrænse}
                                 rådkontekst={{ medBalancering: s.med_balancering, start: gemtPeriode.start, slut: gemtPeriode.slut, dmi: læsTekst(blade.get("data.dmi_area")) }} />
                             : <p className="fs-lille">Scenariet er ikke kørt endnu.</p>)}
                     </DataTilstand>
@@ -391,7 +396,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                             <Tabel rækker={levende} nøgle={(x) => x.id} tom="Scenariet er ikke kørt endnu."
                                 kolonner={[
                                     { navn: "Bestilt", vis: (x) => tidspunkt(x.bestilt) },
-                                    { navn: "Status", vis: (x) => { const i = importer.data?.get(x.id); return <><StatusMaerke status={x.status} />{i && <> <Maerke>{importTekst(i)}</Maerke></>}</>; } },
+                                    { navn: "Status", vis: (x) => { const i = importer.data?.get(x.id); return <><StatusMaerke status={x.status} /> <TidsgraenseMaerke k={x} />{i && <> <Maerke>{importTekst(i)}</Maerke></>}</>; } },
                                     { navn: "Revision", tal: true, vis: (x) => x.vaerk_revision },
                                     { navn: "Driftsomkostning (t.kr.)", tal: true, vis: (x) => tkr(x.objektiv_dkk) },
                                     { navn: "Opnået gab", tal: true, vis: (x) => (x.opnaaet_gap != null ? `${(x.opnaaet_gap * 100).toLocaleString("da-DK", { maximumFractionDigits: 3 })} %` : "–") },
