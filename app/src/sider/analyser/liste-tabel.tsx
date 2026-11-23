@@ -29,7 +29,8 @@ function Navn({ r, indryk }: { r: ListeRaekke; indryk: boolean }) {
         <div className="fjv-a-kl-navn" data-dybde={d || undefined} style={{ marginLeft: d ? `${(d - 1) * 12}px` : undefined }}>
             <span className="fjv-a-kl-titel">{r.scenarie?.navn ?? r.side.navn}</span>
             {r.spoergsmaal && <span className="fjv-a-kl-spm">{r.spoergsmaal}</span>}
-            <span className="fjv-a-kl-lille fjv-a-svag">{r.side.vaerkNavn}</span>
+            {/* Fund 3.3: parflowet giver alle par af samme spørgsmål samme navn — perioden skelner dem, lige ved navnet. */}
+            <span className="fjv-a-kl-lille fjv-a-svag">{r.side.vaerkNavn} · {r.periode.datoer}</span>
         </div>
     );
 }

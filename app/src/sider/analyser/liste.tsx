@@ -94,7 +94,7 @@ export default function Liste({ gåTil, kronologisk = false, sortering = null }:
                         : kronologisk ? "Sortér efter spørgsmål for at samle reference, scenarier og gentagelser; klik på en række for at åbne kørslen."
                             : `${familier} ${familier === 1 ? "gruppe" : "grupper"} med reference og scenarier; sortér med en overskrift eller "Sortér efter", og klik på en række for at åbne kørslen.`}
                     fod={<>Δ er scenariet minus parrets reference. Parrene er de samme som under Anbefalinger: to direkte sammenlignelige kørsler, der kun
-                        adskiller sig ved én knap. En gentagelse er en kørsel af samme scenarie (samme værk og navn). ⓘ ved en overskrift forklarer kolonnen
+                        adskiller sig ved én knap. En gentagelse er en kørsel af samme scenarie i samme periode (samme værk, navn og periode). ⓘ ved en overskrift forklarer kolonnen
                         og linker til ordlisten. Status opdateres automatisk hvert 20. sekund, så længe en kørsel er i gang og fanen er synlig.</>}>
                     <div className="fjv-a-filtre">
                         <div className="fjv-a-kl-visning" role="group" aria-label="Visning">
