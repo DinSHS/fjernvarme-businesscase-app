@@ -472,8 +472,6 @@ export function sammenlignelighedStatus(af: readonly Afvigelse[]): "ja" | "nej" 
     return "ja";
 }
 
-const TIME_MS = 3_600_000;
-
 /**
  * Et tidsstempel, som modellen læser det (`fabric/fjv/byg_case.py › _modeltid`, og den betroede logiks `modeltid` i
  * `rayfin/functions/src/logik.ts`): naivt = UTC, en bar dato = MIDNAT — ikke hele døgnet. En anden zone end UTC og et
