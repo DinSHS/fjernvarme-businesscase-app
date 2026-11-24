@@ -51,6 +51,12 @@ const UGYLDIGE: [string, Rækker][] = [
     ["annulleret", [{ rc: -2 }]],
     ["deadlock-offer", [{ rc: -3 }]],
     ["fejl", [{ rc: -999 }]],
+    // Tredje rettelsesrunde, P3-4: en uventet POSITIV kode er heller ikke en lås. Før gik 2 igennem her (tjekket var
+    // "helt og ikke-negativt"), mens den lokale udgave kastede (`betroet_lager.applock`: kun 0 og 1) — de to porte
+    // tolkede samme svar forskelligt. Ingen dokumenteret vej giver 2; netop derfor er det ikke en tildelt lås.
+    ["en uventet positiv kode", [{ rc: 2 }]],
+    ["en stor positiv kode", [{ rc: 999 }]],
+    ["rc er sand", [{ rc: true }]],
 ];
 
 describe("fund I: ét tjek af sp_getapplock's svar", () => {
@@ -78,8 +84,10 @@ describe("fund I: ét tjek af sp_getapplock's svar", () => {
             const tjek = kode.match(/applockTildelt\(/g) ?? [];
             if (fil === "../src/db.ts") expect(tjek.length - 1).toBe(låse.length);      // minus selve definitionen
             else expect(tjek.length).toBe(låse.length);
-            // Sammenligningen med 0 står ét sted: i hjælperen selv.
-            expect((kode.match(/rc\)?\s*<\s*0/g) ?? []).length).toBe(fil === "../src/db.ts" ? 1 : 0);
+            // Tolkningen af svaret står ét sted: i hjælperen selv — og dér som de to gyldige værdier (P3-4), ikke som
+            // "ikke-negativt": ingen `rc < 0` nogen steder.
+            expect((kode.match(/rc\)?\s*<\s*0/g) ?? []).length).toBe(0);
+            expect((kode.match(/rc !== 0 && rc !== 1/g) ?? []).length).toBe(fil === "../src/db.ts" ? 1 : 0);
         }
     });
 });

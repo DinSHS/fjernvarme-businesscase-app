@@ -200,6 +200,10 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **Fabric og den lokale udgave tolkede en uventet låsekode forskelligt** (tredje rettelsesrunde, P3-4). Svarede
+  `sp_getapplock` med en positiv kode ud over de dokumenterede (fx 2), tog Fabric-udgaven det som en tildelt lås
+  ("helt og ikke-negativt"), mens den lokale udgave kastede. Begge kræver nu netop 0 (tildelt) eller 1 (tildelt efter
+  ventetid); alt andet — også en manglende række — ruller transaktionen tilbage. Ingen kendt vej giver koden 2.
 - **Lagerdiagnosen kunne afbryde hele bevisrapporten** (tredje rettelsesrunde, P3-3). Afveg to timefiler, læste
   `bevis_app_vej.py` dem som tekst for at diagnosticere forskellen — uden for fejlgrenen. En timefil med en ugyldig
   UTF-8-byte stoppede derfor programmet før de næste cases og før `resultat.json`. Diagnosen kaster ikke længere:

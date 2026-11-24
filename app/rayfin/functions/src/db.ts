@@ -47,13 +47,15 @@ export async function iTransaktion<T>(
  * ÉT tjek af `sp_getapplock`'s svar, for alle transaktionsejede låse (kvote, bestilling, arkivets kørselslås).
  * Proceduren melder en lås, den ikke fik, i sin returværdi (-1 timeout, -2 annulleret, -3 deadlock-offer, -999 fejl),
  * ikke som en SQL-fejl. Efterprøvningen af runde 15 (fund I): `Number(recordset[0]?.rc) < 0` læste en MANGLENDE række
- * som `NaN`, og `NaN < 0` er falsk — en lås uden svar talte som tildelt. Her kræves en række med et helt,
- * ikke-negativt tal (0 = tildelt, 1 = tildelt efter ventetid); alt andet kaster inde i transaktionen (rollback).
+ * som `NaN`, og `NaN < 0` er falsk — en lås uden svar talte som tildelt. Her kræves en række med netop 0 (tildelt)
+ * eller 1 (tildelt efter ventetid); alt andet kaster inde i transaktionen (rollback). Også en uventet POSITIV kode
+ * (tredje rettelsesrunde, P3-4): før gik `rc = 2` igennem her ("helt og ikke-negativt"), mens den lokale udgave
+ * kastede (`community/fjernvarme_app/betroet_lager.py › APPLOCK_TILDELT`) — samme svar, to tolkninger.
  */
 export function applockTildelt(recordset: readonly Record<string, unknown>[] | undefined, hvad: string): void {
     const række = recordset?.[0];
     const rc = række?.rc;
-    if (typeof rc !== 'number' || !Number.isInteger(rc) || rc < 0) {
+    if (rc !== 0 && rc !== 1) {
         throw new Error(`Kunne ikke få ${hvad} (sp_getapplock = ${række === undefined ? 'intet svar' : String(rc)}).`);
     }
 }
