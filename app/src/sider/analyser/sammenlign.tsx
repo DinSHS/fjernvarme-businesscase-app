@@ -141,7 +141,8 @@ function Indhold({ a, b, byttet, grund }: { a: Pakke; b: Pakke; byttet: boolean;
     }, [vp.data, a, b]);
     const navn = (p: Pakke) => p.scenarie?.navn ?? `Kørsel ${p.k.id.slice(0, 8)}`;
     // Runde 15 (mail 1): kan parret ikke sammenlignes direkte, står grunden FØRST — ikke som sjette kort under grønne tal.
-    const sammenlignelige = sammenlignelighedsDom(a.profil, b.profil).status === "ja";
+    const status = sammenlignelighedsDom(a.profil, b.profil).status;
+    const sammenlignelige = status === "ja";
     return (
         <HeatSkalaProvider>
             {byttet && (
@@ -151,7 +152,8 @@ function Indhold({ a, b, byttet, grund }: { a: Pakke; b: Pakke; byttet: boolean;
                         budskab={grund === "par"
                             ? `«${navn(b)}» er oprettet som scenarie med «${navn(a)}» som reference og vises derfor i de roller — omvendt af den rækkefølge, de blev valgt i.`
                             : `«${navn(b)}» bærer ændringen i forhold til værket og vises derfor som scenariet; «${navn(a)}» er referencen — omvendt af den rækkefølge, de blev valgt i.`}
-                        fod={`Differensmetoden: ΔRef = scenarie − reference. ${grund === "par" ? "Referencen er den, scenariet blev oprettet med under Scenarier" : "Scenariet er den kørsel, der har ændringen"}. Alle tal og tekster på siden læser de to kørsler i disse roller.`} />
+                        // P3-2 (tredje rettelsesrunde i runde 15): ved en ukendt dom viser siden intet ΔRef — så står formlen her heller ikke.
+                        fod={`${status === "ukendt" ? "" : "Differensmetoden: ΔRef = scenarie − reference. "}${grund === "par" ? "Referencen er den, scenariet blev oprettet med under Scenarier" : "Scenariet er den kørsel, der har ændringen"}. Alle tal og tekster på siden læser de to kørsler i disse roller.`} />
                 </Gitter>
             )}
             {!sammenlignelige && <Gitter><Sammenlignelighed a={a} b={b} /></Gitter>}
@@ -475,11 +477,12 @@ export function Produktion({ a, b }: { a: Pakke; b: Pakke }) {
         return (
             <Kort titel="Varmeproduktion pr. enhed" afgraensning={`hele perioden · Ref og Scen, ${E.enhed}`}
                 budskab={`${dom.tekst} Produktionen i de to kørsler står side om side.`}
-                fod={`${UDEN_DELTA} Andel er enhedens del af kørslens egen varmeproduktion.`}>
+                fod={`${UDEN_DELTA} Andel er enhedens del af kørslens egen varmeproduktion. Andel og driftstimer hører til samme kørsel og periode som kolonnen med samme rolle.`}>
                 <Tabel rækker={rækker} nøgle={(x) => x.navn} kolonner={[
                     { navn: "Enhed", vis: (x) => x.navn },
-                    { navn: `Ref (${E.enhed})`, vis: (x) => ellers(x.a, (z) => formatValue(z, E.skala)), tal: true },
-                    { navn: `Scen (${E.enhed})`, vis: (x) => ellers(x.b, (z) => formatValue(z, E.skala)), tal: true },
+                    // P3-2: niveaukolonnerne bærer kørslens EGEN periode — "Ref" og "Scen" alene siger ikke, at de kan være to perioder.
+                    { navn: `${medPeriode("Ref", a)} (${E.enhed})`, vis: (x) => ellers(x.a, (z) => formatValue(z, E.skala)), tal: true },
+                    { navn: `${medPeriode("Scen", b)} (${E.enhed})`, vis: (x) => ellers(x.b, (z) => formatValue(z, E.skala)), tal: true },
                     { navn: "Andel Ref", vis: (x) => ellers(ea.get(x.navn)?.andel_pct, (z) => `${dec(z, 1)} %`), tal: true },
                     { navn: "Andel Scen", vis: (x) => ellers(eb.get(x.navn)?.andel_pct, (z) => `${dec(z, 1)} %`), tal: true },
                     { navn: "Driftstimer Ref", vis: (x) => ellers(ea.get(x.navn)?.driftstimer, tal), tal: true },
@@ -615,8 +618,8 @@ export function BalanceDelta({ a, b }: { a: Pakke; b: Pakke }) {
                 <Tabel rækker={rk} nøgle={(r) => `${r.marked}|${r.felt}`} kolonner={[
                     { navn: "Marked", vis: (r) => (r.marked === "I alt" ? <strong>I alt</strong> : r.marked) },
                     { navn: "Produkt", vis: (r) => r.etiket },
-                    { navn: "Ref (t.kr.)", vis: (r) => tkr(r.a), tal: true },
-                    { navn: "Scen (t.kr.)", vis: (r) => tkr(r.b), tal: true },
+                    { navn: `${medPeriode("Ref", a)} (t.kr.)`, vis: (r) => tkr(r.a), tal: true },      // P3-2: hver sin periode
+                    { navn: `${medPeriode("Scen", b)} (t.kr.)`, vis: (r) => tkr(r.b), tal: true },
                 ]} />
             </Kort>
         );
@@ -689,8 +692,9 @@ export function LagerDelta({ a, b }: { a: Pakke; b: Pakke }) {
             fod={`${dom.status === "ukendt" ? `${UDEN_DELTA} ` : dom.status === "nej" ? `${NEUTRAL_NEJ} ` : ""}${kunA.length || kunB.length ? forbehold("ved sammenligning med og uden tank") : "Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance)."}${flere ? ` ${FLERE_LAGRE_FORBEHOLD}` : ""}${legende ? ` ΔRef: ${legende.charAt(0).toLowerCase()}${legende.slice(1)}` : ""}`}>
             <Tabel rækker={rækker} nøgle={(n) => n} tom="Ingen lagre." kolonner={[
                 { navn: "Lager", vis: (n) => (n === ALLE ? <strong>Alle lagre</strong> : n) },
-                { navn: `Ref (${E.enhed})`, vis: (n) => (n === ALLE ? <strong>{ellers(sa, en)}</strong> : la.has(n) ? ellers(la.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
-                { navn: `Scen (${E.enhed})`, vis: (n) => (n === ALLE ? <strong>{ellers(sb, en)}</strong> : lb.has(n) ? ellers(lb.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
+                // P3-2: ved en ukendt dom bærer niveaukolonnerne kørslens egen periode.
+                { navn: `${dom.status === "ukendt" ? medPeriode("Ref", a) : "Ref"} (${E.enhed})`, vis: (n) => (n === ALLE ? <strong>{ellers(sa, en)}</strong> : la.has(n) ? ellers(la.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
+                { navn: `${dom.status === "ukendt" ? medPeriode("Scen", b) : "Scen"} (${E.enhed})`, vis: (n) => (n === ALLE ? <strong>{ellers(sb, en)}</strong> : lb.has(n) ? ellers(lb.get(n)!.afladet_mwh, en) : "slået fra"), tal: true },
                 // Fund E: intet ΔRef ved en ukendt dom — kun de to kørslers egne tal.
                 ...(dom.status === "ukendt" ? [] : [{
                     navn: "ΔRef", tal: true, farve: (n: string) => farvning(vis, n === ALLE ? null : dl(n), art, maks, E.skala),

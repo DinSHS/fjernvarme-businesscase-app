@@ -131,7 +131,7 @@ describe("fund E: ved ukendt dom står begge værdier med hver sin periode", () 
     it("Lager: afladet energi i begge kørsler, og hvilket lager scenariet er uden — uden ΔRef", () => {
         const { container } = render(<LagerDelta a={ref()} b={scen()} />);
         expect(container.textContent).toMatch(/Scenariet kører uden tank_lav/);
-        expect([...container.querySelectorAll("th")].map((th) => th.textContent)).toEqual(["Lager", "Ref (MWh)", "Scen (MWh)"]);
+        expect([...container.querySelectorAll("th")].map((th) => th.textContent)).toEqual(["Lager", "Ref · 5. jan.–6. jan. 2026 (MWh)", "Scen · 5. jan.–6. jan. 2026 (MWh)"]);   // P3-2: hver sin periode
     });
     it("Måned for måned: henviser til sammensætningen ovenfor i stedet for et ΔRef pr. måned", () => {
         const { container } = render(<MaanedDelta a={ref()} b={scen()} />);
@@ -149,7 +149,7 @@ describe("fund E: balancekortet har sin egen tekst for manglende grundlag", () =
         expect(tekst).toMatch(/Kun scenariet er regnet med balancemarked/);
         expect(tekst).toMatch(/modelversion kendes ikke for begge/);
         expect(tekst).toMatch(/Balancetallene står side om side/);
-        expect([...container.querySelectorAll("th")].map((th) => th.textContent)).toEqual(["Marked", "Produkt", "Ref (t.kr.)", "Scen (t.kr.)"]);
+        expect([...container.querySelectorAll("th")].map((th) => th.textContent)).toEqual(["Marked", "Produkt", "Ref · 5. jan.–6. jan. 2026 (t.kr.)", "Scen · 5. jan.–6. jan. 2026 (t.kr.)"]);   // P3-2: hver sin periode
     });
     it("kontrol: med kendt modelversion og balancen som eneste forskel siges balancemarkedets værdi som før", () => {
         const { container } = render(<BalanceDelta a={pakke("ref", { objektiv: 866_567.72, halm: 600, gas: 400 })} b={pakke("scen", { objektiv: 843_051.76, halm: 600, gas: 400, balance: 150_000 })} />);

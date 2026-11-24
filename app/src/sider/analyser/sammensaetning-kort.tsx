@@ -10,10 +10,10 @@
 import { ScaleProvider, formatValue } from "@/ibcs";
 import { FarveValg, Kort, MaalValg, Tabel, useHeatMaks, useMaal, useVisning } from "@/components/layout";
 import { farvning, forklaring, skalaMaks } from "@/lib/tabelfarve";
-import type { Maanedstabel } from "./beregn";
+import { sammenlignelighedsDom, type Maanedstabel } from "./beregn";
 import type { Pakke } from "./data";
 import { PERIODE, andel, behov, celleTekst, enhedsorden, mwh, pct1, soejler, visteAndele } from "./andele";
-import { dec, maanedKort } from "./fmt";
+import { dec, maanedKort, periodeTekst } from "./fmt";
 import { Forklaring, StablededeSoejler } from "./grafer";
 import { ENERGI_TABEL, energiSkala } from "./ibcs-grafer";
 
@@ -51,7 +51,14 @@ export function SammensaetningMaaned({ a, b, pladser }: { a: Pakke; b: Pakke; pl
         // En enhed, kørslen ikke har, har andelen 0; en ukendt andel indgår ikke (K9 F1).
         return [e, x === null || y === null ? null : (y ?? 0) - (x ?? 0), x ?? 0, y ?? 0] as const;
     }).filter((r): r is readonly [string, number, number, number] => r[1] !== null).sort((x, y) => Math.abs(y[1]) - Math.abs(x[1]));
+    // Tredje rettelsesrunde i runde 15, P3-2: kortet spørger dommen som resten af siden. Ved en UKENDT dom udpeger
+    // budskabet ingen forskydning ("går fra 40 % til 60 %") og erklærer heller ikke andelene ens — begge dele er en
+    // sammenligning, grundlaget ikke bærer. Niveauerne står der stadig, hver med sin kørsels periode. Farvevalget
+    // bliver: det koder de enkelte værdier (niveau), ikke en virkning.
+    const dom = sammenlignelighedsDom(a.profil, b.profil);
+    const ukendt = dom.status === "ukendt";
     const budskab = måneder.length === 0 ? "Ingen månedstal."
+        : ukendt ? `${dom.tekst} Sammensætningen i de to kørsler står side om side, hver for sin egen periode — uden at en forskydning udpeges.`
         : flyt.length === 0 ? "Sammensætningen kan ikke sammenlignes: andelene er ukendte."
             : Math.abs(flyt[0][1]) < 0.05 ? "Enhedernes andel af periodens produktion er den samme i begge kørsler."
                 : `${flyt[0][0]}s andel af periodens produktion går fra ${pct1(flyt[0][2])} i referencen til ${pct1(flyt[0][3])} i scenariet.`;
@@ -92,7 +99,7 @@ export function SammensaetningMaaned({ a, b, pladser }: { a: Pakke; b: Pakke; pl
                     {([["Ref", "Reference", a, sa], ["Scen", "Scenarie", b, sb]] as const).map(([kode, std, p, s]) => (
                         <div key={kode} data-scenarie={kode}>
                             <div className="fjv-a-panel-titel">
-                                <i className={kode === "Ref" ? "fjv-a-hul" : "fjv-a-prik fjv-a-fyldt"} aria-hidden="true" /> <strong>{kode}</strong> · {navn(p, std)}
+                                <i className={kode === "Ref" ? "fjv-a-hul" : "fjv-a-prik fjv-a-fyldt"} aria-hidden="true" /> <strong>{kode}</strong> · {navn(p, std)}{ukendt ? ` · ${periodeTekst(p.profil.periode_start, p.profil.periode_slut)}` : ""}
                             </div>
                             <StablededeSoejler søjler={s} maks={top} markørNavn={maal === "mwh" ? "Varmebehov" : undefined}
                                 enhed={maal === "andel" ? "%" : G.enhed}

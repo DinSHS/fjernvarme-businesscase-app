@@ -200,6 +200,12 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **Sammenligningssiden fortalte stadig om en differens ved ukendt dom** (tredje rettelsesrunde, P3-2). Tre steder
+  spurgte ikke dommen: rollekortet *Reference og scenarie* viste formlen "ΔRef = scenarie − reference", selv om siden
+  intet ΔRef viste; *Sammensætning måned for måned* udpegede den største forskydning i andele ("går fra 40 % til
+  60 %") eller erklærede andelene ens; og *Varmeproduktion*, *Balancemarked* og *Lager* havde kolonnerne *Ref* og
+  *Scen* uden kørslens egen periode. Ved en ukendt dom er formlen nu væk, sammensætningskortet beskriver de to
+  niveauer side om side uden at udpege en ændring, og niveaukolonnerne og de to paneler bærer hver sin periode.
 - **Sammenligningen læste værkets tid med en anden grammatik end arbejderen** (tredje rettelsesrunde, P3-1). Står
   værkets `time.start` som `2026-01-05T00:00:00+00` (kort nul-offset), læser arbejderen og modellen det som midnat
   UTC; browseren kunne ikke, så to kørsler på værkets egen tidsblok — en manuel kørsel, et importeret arkiv — fik
