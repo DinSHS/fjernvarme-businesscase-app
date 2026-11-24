@@ -24,7 +24,8 @@ Resten af timen står nu i den nye tabel `KoerselTimeDel`, og intet tal ændres 
 4.000 tegn kunne bære 40 enheder, og `NVARCHAR(MAX)` kan DAB ikke bruge (`noter/maaling_timebredde_r14b.md`). Kørsler og
 arkiver fra før læses uændret. **Lokal udgave:** `python -m fjernvarme_app migrer --data <mappe>` én gang (SQLite-filen
 kopieres først). **Fabric:** `rayfin-db-apply`. I en installation med skemaafvigelsen (409) virker det først, når
-afvigelsen er løst; indtil da kan koden udrulles med deltrinene. Så afvises kun brede værker, og beskeden siger
+afvigelsen er løst (fremgangsmåden står i [`doc/FABRIC.md`](doc/FABRIC.md#skemaafvigelse-409-schema-drift-detected));
+indtil da kan koden udrulles med deltrinene. Så afvises kun brede værker, og beskeden siger
 hvorfor ([`doc/FABRIC.md`](doc/FABRIC.md#opdatér-en-eksisterende-installation)).
 
 ### Tilføjet
