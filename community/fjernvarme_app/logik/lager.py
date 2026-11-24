@@ -71,6 +71,9 @@ class Transaktion(Protocol):
     def laas_bestilling(self, id: str) -> None: ...
     """En lås pr. bestilling til transaktionens slutning; tages FØR bestillingen læses (kodegennemgangen af runde 15,
     fund 1), så læsning, afvisning og oprydning — eller indsættelse — ikke kan blandes med et andet kald om samme id."""
+    def laas_bestillinger(self, ider) -> None: ...
+    """Flere bestillingers låse på én gang (arkivimportens kørselsdel), givet i sorteret orden. Lageret må ordne dem
+    på sine faktiske låsenøgler (PostgreSQL: tredje rettelsesrunde i runde 15, P3-6)."""
     def slet_bestilling(self, id: str, bestilt_af: str) -> int: ...
     """Slet Bestilling-rækken, hvis den er ``bestilt_af``'s, og INGEN Koersel peger på den (runde 15, fund 3.2: en
     afvist bestilling efterlader ingen række). Returnerer antal slettede rækker (0 eller 1)."""

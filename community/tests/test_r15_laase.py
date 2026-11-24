@@ -276,6 +276,10 @@ class FundAArkivimportModOprydning(unittest.TestCase):
             def laas_bestilling(self, id):
                 self.kald.append(("laas_bestilling", id))
 
+            def laas_bestillinger(self, ider):           # P3-6: importen giver dem samlet, i sorteret orden
+                for id in ider:
+                    self.laas_bestilling(id)
+
             def arkiv_hent(self, tabel, ider):
                 raise Stop
 
@@ -302,8 +306,8 @@ class FundAArkivimportModOprydning(unittest.TestCase):
             def arkiv_laas_koersler(self, ider):
                 pass
 
-            def laas_bestilling(self, id):
-                kald.append(id)
+            def laas_bestillinger(self, ider):
+                kald.extend(ider)
 
             def arkiv_hent(self, tabel, ider):
                 raise Stop

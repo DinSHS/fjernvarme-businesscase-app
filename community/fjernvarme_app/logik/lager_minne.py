@@ -108,6 +108,10 @@ class _MinneTx:
     def laas_bestilling(self, id):
         pass                                             # den globale lås serialiserer allerede
 
+    def laas_bestillinger(self, ider):
+        for id in ider:
+            self.laas_bestilling(id)
+
     def slet_bestilling(self, id, bestilt_af):
         if any(_k(k.get("bestilling_id")) == _k(id) for k in self.l.t["Koersels"].values()):
             return 0

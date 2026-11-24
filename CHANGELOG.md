@@ -200,6 +200,13 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **PostgreSQL brugte samme 32-bit låsenøgler på tværs af tre låsetyper** (tredje rettelsesrunde, P3-6; kun den
+  lokale udgave på PostgreSQL). Kvotelåsen, bestillingens lås og arkivets kørselslås blev alle taget som
+  `pg_advisory_xact_lock(hashtext(navn))` — ét fælles rum, hvor præfikset ikke skiller typerne efter hashing. Ramte
+  en brugers kvotenøgle en kørsels nøgle, kunne en arkivimport og en bestilling låse hinanden fast (statisk fundet;
+  sjældent). Hver låsetype har nu sit eget låserum (to-nøgle-formen), og hvor flere låse tages på én gang, tages de
+  faktiske nøgler sorteret og uden dubletter. Ikke kørt mod en PostgreSQL-server: prøvet mod en optagende forbindelse.
+  SQL Server (hele ressourcenavne) og SQLite (`BEGIN IMMEDIATE`) er uændrede.
 - **Trofasthedstabellen kaldte værksrevisionen et ubetinget krav** (tredje rettelsesrunde, P3-5). Rækken *Hvornår en
   differens er et resultat* i `doc/TROFASTHED.md` §5 sagde "samme værk og værksrevision" og senere, at en ukendt
   revision kun er en note. Koden følger det sidste. Kravsætningen siger nu, at to forskellige **kendte**

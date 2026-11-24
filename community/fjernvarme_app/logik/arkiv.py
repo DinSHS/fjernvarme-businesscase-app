@@ -623,8 +623,8 @@ def _skriv_del(tx, d: dict) -> tuple[int, int]:
         # ``start_bestilling``; ingen vej tager dem modsat. Kun den lokale udgave: Fabric-udgaven sletter ingen
         # bestillinger (``bestilling.ts``), så ``arkiv.ts`` har ikke trinnet. sqlite: BEGIN IMMEDIATE har allerede
         # serialiseret alle skrivere; kapløbet er SQL Servers og PostgreSQLs (``community/tests/test_r15_laase.py``).
-        for bestilling_id in sorted({_kol(tabel, r, "bestilling_id") for r in d["raekker"]}):
-            tx.laas_bestilling(bestilling_id)
+        # P3-6 (tredje rettelsesrunde): låsene gives SAMLET, så lageret kan tage dem på sine faktiske nøgler i orden.
+        tx.laas_bestillinger(sorted({_kol(tabel, r, "bestilling_id") for r in d["raekker"]}))
     elif tabel in KOERSEL_BOERN:
         tx.arkiv_laas_koersler(sorted({_kol(tabel, r, "koersel_id") for r in d["raekker"]}))
     nye = _nye_raekker(tx, tabel, d["raekker"])
