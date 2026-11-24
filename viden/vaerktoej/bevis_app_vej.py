@@ -110,6 +110,30 @@ def _df_data_sha(mappe: Path) -> str | None:
     return _git_head(mappe) if (mappe / ".git" / "HEAD").is_file() else None
 
 
+def diagnosticer(a_ud: Path, b_ud: Path) -> dict:
+    """Diagnosen af to FORSKELLIGE timefiler (``lagersum.py``) — eller, hvis den ikke kan laves, hvorfor.
+
+    Tredje rettelsesrunde i runde 15, P3-3: diagnosen kaster aldrig. Casen er allerede en FORSKEL, når den kaldes
+    (``bestaaet`` sammenligner filernes bytes); diagnosen læser dem som TEKST, og en timefil med fx en ugyldig
+    UTF-8-byte gav ``UnicodeDecodeError`` uden for fejlgrenen — programmet stoppede før de næste cases og før
+    ``resultat.json``. Nu står fejlen i casens række (``fejl`` med navnet på den side, hvis fil ikke kunne læses), og
+    ``ens_paa_sum`` findes ikke: en fejlet diagnose tæller aldrig som "kun fordelingen mellem lagre"."""
+    tekster = []
+    for side, ud in (("den direkte kørsels timefil", a_ud), ("appens timefil", b_ud)):
+        try:
+            tekster.append(next(ud.glob("*_hourly.csv")).read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, StopIteration) as e:
+            fejl = f"{side} kunne ikke læses som tekst: {type(e).__name__}: {e}"[:600]
+            return {"fejl": fejl, "tekst": f"diagnosen kunne ikke laves: {fejl}"}
+    try:
+        ls = lagersum.sammenlign(*tekster)
+        return {**{k: ls[k] for k in ("ens_paa_sum", "sum", "lagre", "maks_pr_lager_mwh", "forskelle")},
+                "tekst": lagersum.diagnose(ls)}
+    except Exception as e:                                        # noqa: BLE001 — diagnosen er ikke dommen; den må ikke vælte rapporten
+        fejl = f"{type(e).__name__}: {e}"[:600]
+        return {"fejl": fejl, "tekst": f"diagnosen kunne ikke laves: {fejl}"}
+
+
 def main(argv: list[str]) -> int:
     a = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     a.add_argument("--model", type=Path, default=os.environ.get("FJV_MODELMAPPE") or ROD.parent / "fjernvarme-businesscase",
@@ -186,10 +210,7 @@ def main(argv: list[str]) -> int:
             post.update(direkte=A, app=B, ens=bestaaet(A, B))
             if A["hourly"] != B["hourly"]:
                 # Diagnose, ikke dom: hvad består forskellen i timefilerne af? Casen er en FORSKEL uanset svaret.
-                ls = lagersum.sammenlign(next(a_ud.glob("*_hourly.csv")).read_text(encoding="utf-8"),
-                                         next(b_ud.glob("*_hourly.csv")).read_text(encoding="utf-8"))
-                post.update(diagnose={**{k: ls[k] for k in ("ens_paa_sum", "sum", "lagre", "maks_pr_lager_mwh", "forskelle")},
-                                      "tekst": lagersum.diagnose(ls)})
+                post.update(diagnose=diagnosticer(a_ud, b_ud))
         elif "fejl" not in post:
             post.update(ens=False, fejl=[(ra.stderr or ra.stdout)[-600:], (rb.stderr or rb.stdout)[-600:]])
         alle.append(post)

@@ -389,6 +389,46 @@ class Lagersum(unittest.TestCase):
         halv = {"objektiv": 5, "hourly": "aa", "kpi": "bb"}                           # den gamle form, uden det fulde tal
         self.assertFalse(B.bestaaet(halv, dict(halv)))
 
+    # ---- tredje rettelsesrunde, P3-3: diagnosen må ikke afbryde rapporten ------------------------------------
+
+    def _timefiler(self, t: Path, a: bytes, b: bytes) -> tuple[Path, Path]:
+        for navn, indhold in (("direkte", a), ("app", b)):
+            (t / navn).mkdir()
+            (t / navn / "x_hourly.csv").write_bytes(indhold)
+        return t / "direkte", t / "app"
+
+    def test_P3_3_ulaeselig_timefil_giver_en_diagnosefejl_ikke_et_stop(self):
+        """Efterprøvningens tilfælde: to timefiler med forskellige hash — casen er allerede en FORSKEL — hvor den ene
+        har en ugyldig UTF-8-byte. ``_resultat`` læser bytes og slipper den igennem; diagnosen læste tekst uden for
+        fejlgrenen, så ``UnicodeDecodeError`` stoppede programmet før de næste cases og før ``resultat.json``."""
+        import bevis_app_vej as B
+        with tempfile.TemporaryDirectory() as t:
+            a_ud, b_ud = self._timefiler(Path(t), self.a.encode("utf-8"), self.b.encode("utf-8")[:-3] + b"\xff\n")
+            d = B.diagnosticer(a_ud, b_ud)                     # før: UnicodeDecodeError (læsningen stod inline i main)
+            self.assertIn("fejl", d)
+            self.assertIn("appens timefil", d["fejl"])         # siden med den ulæselige fil er navngivet
+            self.assertNotIn("den direkte kørsels timefil", d["fejl"])
+            self.assertIn("UnicodeDecodeError", d["fejl"])
+            self.assertIn("diagnosen kunne ikke laves", d["tekst"])
+            self.assertFalse(d.get("ens_paa_sum"))             # en fejlet diagnose tæller aldrig som "kun fordelingen"
+        with tempfile.TemporaryDirectory() as t:               # … og den anden side navngives lige så
+            a_ud, b_ud = self._timefiler(Path(t), b"\xff", self.b.encode("utf-8"))
+            self.assertIn("den direkte kørsels timefil", B.diagnosticer(a_ud, b_ud)["fejl"])
+        with tempfile.TemporaryDirectory() as t:               # en manglende timefil er også kun en diagnosefejl
+            a_ud, b_ud = self._timefiler(Path(t), self.a.encode("utf-8"), self.b.encode("utf-8"))
+            (b_ud / "x_hourly.csv").unlink()
+            self.assertIn("appens timefil", B.diagnosticer(a_ud, b_ud)["fejl"])
+
+    def test_P3_3_laeselige_timefiler_diagnosticeres_som_foer(self):
+        import bevis_app_vej as B
+        with tempfile.TemporaryDirectory() as t:
+            d = B.diagnosticer(*self._timefiler(Path(t), self.c.encode("utf-8"), self.d.encode("utf-8")))
+            self.assertNotIn("fejl", d)
+            self.assertTrue(d["ens_paa_sum"])
+            self.assertEqual(d["tekst"], self.L.diagnose(self.L.sammenlign(self.c, self.d)))
+        kilde = Path(B.__file__).read_text(encoding="utf-8")
+        self.assertIn("post.update(diagnose=diagnosticer(a_ud, b_ud))", kilde)   # main bruger den — ingen læsning inline
+
     def test_fund7_modeksempel_1_brutto_skjult_af_netto(self):
         """Gennemgangens første modeksempel: 5/5 MWh uden drift mod 6/4 MWh, hvor det ene lager lader 1 MW, mens det
         andet aflader 1 MW. Niveau og netto summerer ens — men *Alle lagre* i appen viser bruttoafladningen (0 mod 1 MW)."""

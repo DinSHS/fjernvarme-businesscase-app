@@ -200,6 +200,11 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **Lagerdiagnosen kunne afbryde hele bevisrapporten** (tredje rettelsesrunde, P3-3). Afveg to timefiler, læste
+  `bevis_app_vej.py` dem som tekst for at diagnosticere forskellen — uden for fejlgrenen. En timefil med en ugyldig
+  UTF-8-byte stoppede derfor programmet før de næste cases og før `resultat.json`. Diagnosen kaster ikke længere:
+  casen står som *FORSKEL* (det var den allerede), og rækken får `diagnose.fejl` med navnet på den side, hvis fil
+  ikke kunne læses. En fejlet diagnose tæller aldrig som "kun fordelingen mellem lagre".
 - **Sammenligningssiden fortalte stadig om en differens ved ukendt dom** (tredje rettelsesrunde, P3-2). Tre steder
   spurgte ikke dommen: rollekortet *Reference og scenarie* viste formlen "ΔRef = scenarie − reference", selv om siden
   intet ΔRef viste; *Sammensætning måned for måned* udpegede den største forskydning i andele ("går fra 40 % til
