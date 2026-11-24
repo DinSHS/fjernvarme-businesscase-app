@@ -200,6 +200,10 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **Et sent svar kunne slette et nyere bestillingsforsøg** (fjerde rettelsesrunde, punkt 1). Var svaret på en
+  bestilling stadig undervejs, da man rettede scenariet og bestilte igen (ny nøgle), slettede det sene svar det nyere
+  forsøg — også det gemte. Gik svaret på den nye bestilling så tabt, gav næste klik efter en genindlæsning en tredje
+  kørsel. Et svar afslutter nu kun det forsøg, der bærer samme klientnøgle som kaldet.
 - **PostgreSQL brugte samme 32-bit låsenøgler på tværs af tre låsetyper** (tredje rettelsesrunde, P3-6; kun den
   lokale udgave på PostgreSQL). Kvotelåsen, bestillingens lås og arkivets kørselslås blev alle taget som
   `pg_advisory_xact_lock(hashtext(navn))` — ét fælles rum, hvor præfikset ikke skiller typerne efter hashing. Ramte

@@ -38,6 +38,9 @@
 // kaldet sendes: en genindlæsning midt i kaldet efterlader et åbent forsøg, ikke et glemt. sessionStorage er en
 // bekvemmelighed: alle læsninger og skrivninger er i try/catch, og uden den huskes forsøget som før i hukommelsen.
 // Fanen er grænsen — en anden fane eller en lukket browser kender ikke forsøget.
+//
+// Fjerde rettelsesrunde, punkt 1: et svar afslutter kun det forsøg, der bærer SAMME klientnøgle som kaldet. Pladsen
+// (bruger + mål) kan have fået et nyere forsøg, mens svaret var undervejs.
 //-----------------------------------------------------------------------
 
 import { Afvist, bestillingensKoersel } from "./skriv";
@@ -260,9 +263,15 @@ export async function bestilHusket(
     h.genoptages = true;
     gem();
     const u = await bestilMedUdfald(() => bestil(scenarieId, nøgle));
-    if (u.art === "bestilt") alle.delete(k);
-    else if (u.art === "ryddet") { h.nøgle = crypto.randomUUID(); h.genoptages = false; }    // bestillingen er væk; scenariet beholdes
-    else h.genoptages = skalGenoptages(u);
-    gem();
+    // Svaret hører til NØGLEN, ikke til pladsen. Mens kaldet var undervejs, kan et nyere forsøg (ændret indhold, ny
+    // nøgle) have overtaget pladsen — også i en genindlæst hukommelse. Et sent svar må da hverken slette eller ændre
+    // det: før slettede A's sene succes forsøget på B, og et tabt svar på B gav en tredje kørsel (r15d_sent_svar.spec).
+    const nu = forsøg().get(k);
+    if (nu?.nøgle === nøgle) {
+        if (u.art === "bestilt") forsøg().delete(k);
+        else if (u.art === "ryddet") { nu.nøgle = crypto.randomUUID(); nu.genoptages = false; }    // bestillingen er væk; scenariet beholdes
+        else nu.genoptages = skalGenoptages(u);
+        gem();
+    }
     return { ...u, scenarieId, ...(forrige ? { forrige } : {}) };
 }
