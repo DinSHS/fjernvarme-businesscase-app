@@ -587,6 +587,16 @@ const tilfældig = prng(20261016);
     sæt2('brændsel uden pris', { [`units.${u0}.fuel`]: '"kul"' });
     sæt2('brændsel uden pris men slået fra', { [`units.${u0}.fuel`]: '"kul"', [`units.${u0}.enabled`]: 'false', 'units.ekstra.type': '"boiler"', 'units.ekstra.fuel': '"electricity"', 'units.ekstra.p_max_heat': '1', 'units.ekstra.p_min_heat': '0', 'units.ekstra.alpha': '0' });
     sæt2('el som brændsel kræver ingen pris', { [`units.${u0}.fuel`]: '"electricity"' });
+    // Runde 15 (modelrepoets 939228a): oliekedlen. Modelscriptet og load_case kræver olieprisen og en CO2-pris; reglen
+    // her er generel (hvert købt brændsel kræver prices.<brændsel>.value), og vektorerne binder begge udgaver til den.
+    const OLIE = { 'units.oliekedel.type': '"oil_boiler"', 'units.oliekedel.fuel': '"fuel_oil"', 'units.oliekedel.p_max_heat': '15.0', 'units.oliekedel.p_min_heat': '0.0',
+        'units.oliekedel.alpha': '0.0', 'units.oliekedel.eta_fuel_to_heat': '0.95', 'units.oliekedel.co2_emissions_per_mwh_fuel': '0.266' };
+    sæt2('oliekedel med oliepris', { ...OLIE, 'prices.fuel_oil.value': '900.0' });
+    sæt2('oliekedel uden oliepris', OLIE);
+    sæt2('oliekedel med oliepris som tekst', { ...OLIE, 'prices.fuel_oil.value': '"900"' });
+    sæt2('oliekedel uden oliepris, men slået fra', { ...OLIE, 'units.oliekedel.enabled': 'false' });
+    sæt2('oliekedel uden virkningsgrad', Object.fromEntries(Object.entries({ ...OLIE, 'prices.fuel_oil.value': '900.0' }).filter(([s]) => !s.endsWith('.eta_fuel_to_heat'))));
+    krav.push(['oliekedel uden CO2-pris', [...B.filter((x) => x.sti !== 'prices.co2_eua.value'), ...Object.entries({ ...OLIE, 'prices.fuel_oil.value': '900.0' }).map(([sti, vaerdi_json]) => ({ sti, vaerdi_json }))]]);
     sæt2('ikke-endeligt tal', { 'meta.x': '1e400', 'meta.y': '[1,-1e400]' });
     sæt2('ikke-endeligt i objekt (JS-nøgleorden)', { 'meta.x': '{"b":1e400,"1":-1e400}' });
     sæt2('lager med negativt volumen', { 'storage.t.volume_m3': '-1', 'storage.t.delta_t_k': '30', 'storage.t.e_initial_mwh': '0', 'storage.t.p_max_charge_mw': '1', 'storage.t.p_max_discharge_mw': '1', 'storage.t.self_discharge_per_hour': '0' });

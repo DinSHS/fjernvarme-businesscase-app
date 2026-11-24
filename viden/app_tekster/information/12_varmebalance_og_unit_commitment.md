@@ -39,7 +39,7 @@ last i hver time. (Kilde: src/config.py:514-520)
 
 Start/stop gør problemet til et heltalsproblem (MILP). Det er det, der gør et helår tungt: fra et halvt
 minut til over et kvarter, afhængigt af hvor mange enheder der har start/stop og hvor lange
-minimumstiderne er. (Kilde: doc/EGET_VAERK.md:124-129)
+minimumstiderne er. (Kilde: doc/EGET_VAERK.md:131-136)
 
 **Pas på starttilstanden.** Kedler, der er tændt ved periodens start og har minimumslast, kan om
 sommeren give mere varme, end nettet aftager. Med en tank går det; uden tank bliver modellen

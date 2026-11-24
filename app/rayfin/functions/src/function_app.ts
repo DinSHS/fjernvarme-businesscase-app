@@ -29,6 +29,11 @@
 // klienten oprettede rækken. Målt: en Bestilling med en fremmed e-mail
 // afvises af DAB.
 //
+// Følge (kodegennemgangen af runde 15, fund 2): startBestilling SLETTER ALDRIG en Bestilling. Bestillings-id'et
+// kommer fra kalderen, og uden en verificeret e-mail kan funktionen ikke afgøre, om kalderen er bestillingens ejer.
+// En afvist bestilling bliver derfor stående her; den lokale udgave, som kender sessionens bruger, rydder ejerens
+// egen (community/fjernvarme_app/logik/tjenester.py). Se bestilling.ts.
+//
 // Workspace, database og notebook er konstanter (konfig.ts) — de må aldrig
 // komme fra kalderen.
 //-----------------------------------------------------------------------
@@ -39,7 +44,8 @@ import {
     AudienceType,
     type RayfinContext,
 } from '@microsoft/fabric-user-data-functions';
-import { forbind, iTransaktion, låsKvote, sql } from './db.js';
+import { behandlBestilling, type Bestillingsudfald } from './bestilling.js';
+import { applockTildelt, forbind, iTransaktion, sql } from './db.js';
 import { IMPORTER_NOTEBOOK_ID, LAKEHOUSE_ID, MOTOR_ID, ONELAKE_DFS, WORKSPACE_ID } from './konfig.js';
 import { startNotebook } from './jobs.js';
 import { læsTekst, skrivFil } from './onelake.js';
@@ -47,9 +53,9 @@ import { behandlVaerksark, type VaerksarkDeps } from './vaerksark.js';
 import { ForLangRække, MAKS_UPLOAD_BYTES, sha256Bytes, sha256Hex, tætRække, vaerkTrae, validerUpload, valideringJson } from './tidsserie.js';
 import { markérDøde, startJobHvisFri, type Arbejderstart } from './motor.js';
 import {
-    Afvisning, bygFrossetInput, GRAENSER, læsAnmodning, planlægParametre, samlNytVaerk,
-    type AktiverTidsserie, type InputRad, type NytBlad, type OpretVaerk, type OpretVaerkDel, type ScenarieAendringRad, type ScenarieRad,
-    type TidsserieRad, type UploadTidsserie, type UploadVaerksark,
+    Afvisning, læsAnmodning, planlægParametre, samlNytVaerk,
+    type AktiverTidsserie, type NytBlad, type OpretVaerk, type OpretVaerkDel,
+    type UploadTidsserie, type UploadVaerksark,
 } from './logik.js';
 import {
     ArkivAfvisning, decimalTekst, importerDel, kolonner as arkivKolonner, TIMEDELE_MANGLER_ARKIV, type ArkivLager, type ArkivTx, type ImportTabel, type Importsvar, type InputRad as ArkivInputRad,
@@ -72,6 +78,15 @@ export interface Bestillingssvar {
     status?: string;
     ny?: boolean;
     afvist?: string;
+    /**
+     * Kun med `ok: false` (kodegennemgangen af runde 15, fund 3). `ryddet`: en ENDELIG afvisning, og bestillingen er
+     * væk (ingen Bestilling-række, ingen kørsel) — kun da må klienten arkivere det scenarie, den oprettede til den.
+     * Fabric-udgaven sætter den aldrig (den sletter ikke, se filens hoved); den lokale udgave gør, for ejerens egen.
+     * `teknisk`: en teknisk fejl — intet er afgjort, bestillingen står og kan behandles igen. Ingen af delene: en
+     * endelig afvisning, men bestillingen står; et nyt forsøg genoptager den.
+     */
+    ryddet?: boolean;
+    teknisk?: boolean;
     arbejder?: Arbejderstart;
 }
 
@@ -117,130 +132,35 @@ udf.func(
             const findes = async () => (await pool.request().input('b', sql.UniqueIdentifier, bestillingId)
                 .query('SELECT id, status FROM dbo.Koersels WHERE bestilling_id = @b')).recordset[0] as { id: string; status: string } | undefined;
 
-            const før = await findes();
-            if (før) return { ok: true, koersel_id: lc(før.id), status: før.status, ny: false, arbejder: await startJobHvisFri(pool, ctx.Tokens.Fabric) };
-
-            let koerselId: string;
+            // Hele forløbet står i bestilling.ts: bestillingens lås tages FØR bestillingen læses (fund 1), og en
+            // afvisning skriver intet og sletter intet (fund 2).
+            let udfald: Bestillingsudfald;
             try {
-                koerselId = await iTransaktion(pool, async (req) => {
-                    const b = (await req().input('b', sql.UniqueIdentifier, bestillingId)
-                        .query('SELECT id, scenarie_id, bestilt_af, bestilt FROM dbo.Bestillings WHERE id = @b')).recordset[0];
-                    if (!b) throw new Afvisning('Bestillingen findes ikke.');
-                    // K2-F9: kvoten tælles og forbruges under en lås pr. bruger (på tværs af værker).
-                    await låsKvote(req, b.bestilt_af);
-
-                    const s = (await req().input('s', sql.UniqueIdentifier, b.scenarie_id).query(`
-                        SELECT id, vaerk_id, arkiveret, periode_start, periode_slut, med_balancering, balancing_method,
-                               mip_rel_gap, mip_abs_gap, tidsgraense_s, ekstra_flag, heat_csv
-                        FROM dbo.Scenaries WITH (UPDLOCK, HOLDLOCK) WHERE id = @s`)).recordset[0];
-                    if (!s) throw new Afvisning('Scenariet findes ikke.');
-                    if (s.arkiveret) throw new Afvisning('Scenariet er arkiveret.');
-
-                    // UPDLOCK på værket: serialiserer mod udfoerAendring, så revision og blade hører sammen.
-                    const v = (await req().input('v', sql.UniqueIdentifier, s.vaerk_id)
-                        .query('SELECT id, revision, arkiveret FROM dbo.Vaerks WITH (UPDLOCK, HOLDLOCK) WHERE id = @v')).recordset[0];
-                    if (!v) throw new Afvisning('Værket findes ikke.');
-                    if (v.arkiveret) throw new Afvisning('Værket er arkiveret.');
-
-                    const ventende = (await req().input('af', sql.NVarChar(200), b.bestilt_af)
-                        .query(`SELECT COUNT(*) AS n FROM dbo.Koersels WHERE bestilt_af = @af AND status = 'koe'`)).recordset[0].n;
-                    if (Number(ventende) >= GRAENSER.ventendePrBruger) {
-                        throw new Afvisning(`Du har allerede ${ventende} kørsler i kø; højst ${GRAENSER.ventendePrBruger} ad gangen. Vent til en er færdig, eller annullér en.`);
-                    }
-
-                    const params = (await req().input('v', sql.UniqueIdentifier, v.id)
-                        .query('SELECT sti, vaerdi_json FROM dbo.VaerkParameters WHERE vaerk_id = @v')).recordset as { sti: string; vaerdi_json: string }[];
-                    const aendr = (await req().input('s', sql.UniqueIdentifier, s.id)
-                        .query('SELECT type, sti, vaerdi_json, raekkefoelge FROM dbo.ScenarieAendrings WITH (UPDLOCK, HOLDLOCK) WHERE scenarie_id = @s')).recordset as ScenarieAendringRad[];
-                    // K2-F8: scenarie og ændringer er låst til transaktionens slutning (UPDLOCK/HOLDLOCK), så en
-                    // samtidig redigering i UI'et venter og ikke kan blandes ind i det frosne input.
-
-                    // K2-F8: model- og data-revision fryses i det hashbeskyttede input. Arbejderen bruger netop dem.
-                    const motor = (await req().input('m', sql.UniqueIdentifier, MOTOR_ID)
-                        .query('SELECT model_commit, data_commit FROM dbo.Motors WHERE id = @m')).recordset[0];
-                    if (!motor?.model_commit || !motor?.data_commit) {
-                        throw new Afvisning('Regnemotoren har endnu ikke registreret sin model- og dataversion. Prøv igen om lidt.');
-                    }
-
-                    const scenarie: ScenarieRad = {
-                        periode_start: s.periode_start, periode_slut: s.periode_slut,
-                        med_balancering: Boolean(s.med_balancering), balancing_method: s.balancing_method,
-                        mip_rel_gap: s.mip_rel_gap == null ? null : Number(s.mip_rel_gap),
-                        mip_abs_gap: s.mip_abs_gap == null ? null : Number(s.mip_abs_gap),
-                        tidsgraense_s: s.tidsgraense_s == null ? null : Number(s.tidsgraense_s),
-                        ekstra_flag: s.ekstra_flag, heat_csv: s.heat_csv,
-                    };
-                    // KONTRAKT §6d: værkets gyldige tidsserier, låst som resten af snapshottet, så en samtidig
-                    // aktivering ikke kan blandes ind i det frosne input.
-                    const tidsserier = ((await req().input('v', sql.UniqueIdentifier, v.id).query(`
-                        SELECT id, rolle, navn, sha256, sti, oploesning, start, slut, aktiv, validering_json
-                        FROM dbo.Tidsseries WITH (UPDLOCK, HOLDLOCK) WHERE vaerk_id = @v AND status = 'gyldig'`)).recordset as
-                        { id: string; rolle: 'varmelast' | 'solprofil'; navn: string; sha256: string; sti: string; oploesning: string; start: Date; slut: Date; aktiv: boolean; validering_json: string | null }[])
-                        .map((t): TidsserieRad => ({ ...t, id: lc(t.id), aktiv: Boolean(t.aktiv), start: new Date(t.start).toISOString(), slut: new Date(t.slut).toISOString() }));
-                    const frossen = bygFrossetInput(params, aendr, scenarie,
-                        { model_commit: motor.model_commit, data_commit: motor.data_commit }, tidsserier);
-
-                    const id = randomUUID();
-                    await req()
-                        .input('id', sql.UniqueIdentifier, id)
-                        .input('b', sql.UniqueIdentifier, b.id)
-                        .input('s', sql.UniqueIdentifier, s.id)
-                        .input('v', sql.UniqueIdentifier, v.id)
-                        .input('rev', sql.Int, v.revision)
-                        .input('hash', sql.NVarChar(64), frossen.hash)
-                        .input('af', sql.NVarChar(200), b.bestilt_af)
-                        .input('bestilt', sql.DateTime2, b.bestilt)
-                        .input('mc', sql.NVarChar(40), motor.model_commit)
-                        .input('dc', sql.NVarChar(40), motor.data_commit)
-                        .input('rel', sql.Decimal(18, 10), frossen.effektiv.mip_rel_gap)
-                        .input('abs', sql.Decimal(28, 4), frossen.effektiv.mip_abs_gap)
-                        .query(`
-                            INSERT INTO dbo.Koersels (id, bestilling_id, scenarie_id, vaerk_id, vaerk_revision, input_hash, status, fase,
-                                                      bestilt_af, bestilt, modtaget, forsoeg, kilde, oensket_rel_gap, oensket_abs_gap,
-                                                      model_commit, data_commit)
-                            VALUES (@id, @b, @s, @v, @rev, @hash, 'koe', N'I kø', @af, @bestilt, SYSUTCDATETIME(), 0, 'app', @rel, @abs,
-                                    @mc, @dc)`);
-                    // K2-F9: `modtaget` (servertid) er køens sorteringsnøgle; `bestilt` er klientens og kun diagnostik.
-                    await indsætInput(req, id, frossen.rækker);
-                    return id;
-                });
+                udfald = await iTransaktion(pool, (req) => behandlBestilling(req, bestillingId));
             } catch (e) {
-                const tekst = afvisningstekst(e);
-                if (tekst) return { ok: false, afvist: tekst };
                 if (erUnikBrud(e)) {
-                    // To samtidige kald med samme bestilling: den anden taber på den unikke bestilling_id.
+                    // Værn: med bestillingens lås kan to kald ikke længere nå hertil samtidig, men den unikke
+                    // bestilling_id er stadig databasens sidste ord.
                     const efter = await findes();
                     if (efter) return { ok: true, koersel_id: lc(efter.id), status: efter.status, ny: false };
                 }
-                return { ok: false, afvist: tekniskFejl('startBestilling', e) };
+                // Fund 3: en teknisk fejl er ikke en afvisning — klienten beholder scenariet og prøver samme bestilling igen.
+                return { ok: false, afvist: tekniskFejl('startBestilling', e), teknisk: true };
+            }
+            if (udfald.art === 'afvist') return { ok: false, afvist: udfald.tekst };
+            if (udfald.art === 'findes') {
+                return { ok: true, koersel_id: udfald.koersel_id, status: udfald.status, ny: false, arbejder: await startJobHvisFri(pool, ctx.Tokens.Fabric) };
             }
 
             const arbejder = await startJobHvisFri(pool, ctx.Tokens.Fabric);
             const nu = await findes();
-            return { ok: true, koersel_id: koerselId, status: nu?.status ?? 'koe', ny: true, arbejder };
+            return { ok: true, koersel_id: udfald.koersel_id, status: nu?.status ?? 'koe', ny: true, arbejder };
         } finally {
             await pool.close();
         }
     },
     [],
 );
-
-/** Indsætter det frosne input i bidder (SQL Server tillader højst 2100 parametre pr. kald). */
-async function indsætInput(req: () => sql.Request, koerselId: string, rækker: readonly InputRad[]): Promise<void> {
-    const BID = 400; // 4 parametre pr. række + koersel_id
-    for (let i = 0; i < rækker.length; i += BID) {
-        const del = rækker.slice(i, i + BID);
-        const r = req().input('k', sql.UniqueIdentifier, koerselId);
-        const værdier = del.map((rad, j) => {
-            r.input(`i${j}`, sql.UniqueIdentifier, randomUUID());
-            r.input(`s${j}`, sql.NVarChar(400), rad.sti);
-            r.input(`v${j}`, sql.NVarChar(4000), rad.vaerdi_json);
-            r.input(`q${j}`, sql.NVarChar(20), rad.kilde);
-            return `(@i${j}, @k, @s${j}, @v${j}, @q${j})`;
-        });
-        await r.query(`INSERT INTO dbo.KoerselInputs (id, koersel_id, sti, vaerdi_json, kilde) VALUES ${værdier.join(', ')}`);
-    }
-}
 
 // ------------------------------------------------------------------ nyt værk fra bunden
 
@@ -947,7 +867,7 @@ function sqlArkivLager(pool: sql.ConnectionPool): ArkivLager {
                 const r = await req().input('res', sql.NVarChar(255), `fjv_arkiv:${id.toLowerCase()}`).query(
                     "DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = @res, @LockMode = N'Exclusive', " +
                     "@LockOwner = N'Transaction', @LockTimeout = 60000; SELECT @rc AS rc;");
-                if (Number(r.recordset[0]?.rc) < 0) throw new Error(`Kunne ikke få kørselslåsen for ${id} (sp_getapplock = ${r.recordset[0]?.rc}).`);
+                applockTildelt(r.recordset, `kørselslåsen for ${id}`);
             }
         },
         børneside: async (koerselId, tabel, fra, antal) => {

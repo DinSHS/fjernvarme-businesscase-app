@@ -340,17 +340,22 @@ def vaerk_revisioner(revision: int, blade, log) -> dict[str, list[int]]:
 
 
 def frosne_tidsserier(inp) -> list[dict]:
+    """Tidsserierne, en kørsel er frosset med. ``"syntetisk"`` (varmelast) og ``null`` er det udtrykkelige fravalg:
+    arbejderen læser dem som "ingen tidsserie", og der er ingen serie at kræve (P2-3; arkiv.ts › frosneTidsserier)."""
     ud = []
     for r in inp:
         if not r["sti"].startswith("_koersel.tidsserie."):
             continue
+        rolle = r["sti"][len("_koersel.tidsserie."):]
         try:
             v = J.parse(r["vaerdi_json"])
         except Exception:
             raise ArkivAfvisning(f"{r['sti']} er ikke gyldig JSON.") from None
+        if v is None or (rolle == "varmelast" and isinstance(v, str) and v == "syntetisk"):
+            continue
         if not isinstance(v, dict) or not isinstance(v.get("sha256"), str) or not isinstance(v.get("id"), str):
             raise ArkivAfvisning(f"{r['sti']} mangler id eller sha256.")
-        ud.append({"rolle": r["sti"][len("_koersel.tidsserie."):], "id": v["id"], "sha256": v["sha256"]})
+        ud.append({"rolle": rolle, "id": v["id"], "sha256": v["sha256"]})
     return ud
 
 
@@ -610,6 +615,16 @@ def _skriv_del(tx, d: dict) -> tuple[int, int]:
     # K10-F3: låsen pr. kørsel tages FØR noget læses — af børnedele og afslutningen ens, i fast (sorteret) orden.
     if tabel == "Koersel":
         tx.arkiv_laas_koersler(sorted({r[0] for r in d["raekker"]}))
+        # Efterprøvningen af runde 15, fund A: også bestillingens lås (den samme som ``tjenester.start_bestilling``
+        # tager), FØR Bestilling læses — i fast, sorteret orden, så to importer ikke kan låse hinanden fast. Uden
+        # den kunne ejerens afviste bestilling blive ryddet (``_ryd_afvist``) mellem importens læsning og dens
+        # indsættelse: en Koersel uden sin Bestilling. Rækken læses derfor først herefter (``_tjek_nye``), og den
+        # står, til kørslen er indsat. Låserækkefølgen er kørsel -> bestilling her og bestilling -> kvote i
+        # ``start_bestilling``; ingen vej tager dem modsat. Kun den lokale udgave: Fabric-udgaven sletter ingen
+        # bestillinger (``bestilling.ts``), så ``arkiv.ts`` har ikke trinnet. sqlite: BEGIN IMMEDIATE har allerede
+        # serialiseret alle skrivere; kapløbet er SQL Servers og PostgreSQLs (``community/tests/test_r15_laase.py``).
+        # P3-6 (tredje rettelsesrunde): låsene gives SAMLET, så lageret kan tage dem på sine faktiske nøgler i orden.
+        tx.laas_bestillinger(sorted({_kol(tabel, r, "bestilling_id") for r in d["raekker"]}))
     elif tabel in KOERSEL_BOERN:
         tx.arkiv_laas_koersler(sorted({_kol(tabel, r, "koersel_id") for r in d["raekker"]}))
     nye = _nye_raekker(tx, tabel, d["raekker"])

@@ -41,8 +41,10 @@ function andebyMed(ret: Record<string, string | null>): Eksportkilde {
 function faneXml(bytes: Uint8Array, fane: string): string {
     const z = unzipSync(bytes);
     const wb = strFromU8(z["xl/workbook.xml"]);
-    const rid = new RegExp(`<sheet name="${fane}"[^>]*r:id="([^"]+)"`).exec(wb)![1];
-    const mål = new RegExp(`Id="${rid}"[^>]*Target="([^"]+)"`).exec(strFromU8(z["xl/_rels/workbook.xml.rels"]))![1];
+    // Begge attributrækkefølger: openpyxl skriver xmlns:r før name= og Target før Id (skabelonen fra 939228a).
+    const rid = new RegExp(`<sheet [^>]*?name="${fane}"[^>]*r:id="([^"]+)"`).exec(wb)![1];
+    const rels = strFromU8(z["xl/_rels/workbook.xml.rels"]);
+    const mål = (new RegExp(`<Relationship [^>]*Id="${rid}"[^>]*Target="([^"]+)"`).exec(rels) ?? new RegExp(`<Relationship [^>]*Target="([^"]+)"[^>]*Id="${rid}"`).exec(rels))![1];
     return strFromU8(z[`xl/${mål.replace(/^\/?xl\//, "")}`]);
 }
 
@@ -258,18 +260,20 @@ describe("appens faner bærer det, modelrepoets skabelon ikke kan", () => {
         expect(p.ikkeMed.map((t) => t.sti)).toEqual(["units.solvarme.production_profile_path"]);
     });
 
-    it("en enhed med en type, feltkataloget ikke kender (fx en oliekedel), holdes HELT ude og står på listen med grunden", () => {
+    // Til og med runde 14 var eksemplet en oliekedel (oil_boiler). Fra modelrepoets 939228a ER oliekedlen en type i
+    // skabelonen (oliekedel-testene nedenfor); eksemplet er nu en type, hverken modelscriptet eller kataloget kender.
+    it("en enhed med en type, feltkataloget ikke kender (fx geotermi), holdes HELT ude og står på listen med grunden", () => {
         const p = planlæg(andebyMed({
-            "units.oliekedel.enabled": "true", "units.oliekedel.type": '"oil_boiler"', "units.oliekedel.p_max_heat": "8.0", "units.oliekedel.p_min_heat": "0.0",
-            "units.oliekedel.alpha": "0.0", "units.oliekedel.fuel": '"natural_gas"', "units.oliekedel.eta_fuel_to_heat": "0.9",
-            "balancing.ancillary_caps.per_unit_mw.oliekedel": "2.0",
+            "units.geotermi.enabled": "true", "units.geotermi.type": '"geothermal"', "units.geotermi.p_max_heat": "8.0", "units.geotermi.p_min_heat": "0.0",
+            "units.geotermi.alpha": "0.0", "units.geotermi.fuel": '"natural_gas"', "units.geotermi.eta_fuel_to_heat": "0.9",
+            "balancing.ancillary_caps.per_unit_mw.geotermi": "2.0",
         }));
         expect(p.nægter).toEqual([]);
-        expect([...p.endelig.keys()].filter((s) => s.includes("oliekedel"))).toEqual([]);
-        const olie = p.ikkeMed.filter((t) => t.sti.includes("oliekedel"));
-        expect(olie).toHaveLength(8);
-        expect(olie.find((t) => t.sti === "units.oliekedel.p_max_heat")?.grund).toMatch(/enheden oliekedel kan ikke stå i arket, fordi type ikke kan/);
-        expect(olie.find((t) => t.sti.startsWith("balancing."))?.grund).toMatch(/enheden oliekedel findes ikke i værket/);
+        expect([...p.endelig.keys()].filter((s) => s.includes("geotermi"))).toEqual([]);
+        const geo = p.ikkeMed.filter((t) => t.sti.includes("geotermi"));
+        expect(geo).toHaveLength(8);
+        expect(geo.find((t) => t.sti === "units.geotermi.p_max_heat")?.grund).toMatch(/enheden geotermi kan ikke stå i arket, fordi type ikke kan/);
+        expect(geo.find((t) => t.sti.startsWith("balancing."))?.grund).toMatch(/enheden geotermi findes ikke i værket/);
     });
 
     it("en slået-fra tank står i Anlaeg med 'i drift: nej'; er der ikke plads, tager den aldrig en aktiv tanks række", () => {
@@ -304,13 +308,15 @@ describe("fanerne er appens egne — og siger det på dansk", () => {
         const e = await eksporter(andeby(), skabelon(), NU);
         const z = unzipSync(e.bytes), før = unzipSync(skabelon());
         const wb = strFromU8(z["xl/workbook.xml"]);
-        const navne = [...wb.matchAll(/<sheet name="([^"]+)"[^>]*state="(\w+)"/g)].map((m) => m[1]);
+        // (openpyxl erklærer r-navnerummet før name= på skabelonens egne <sheet>; appens tilføjede har name= først.)
+        const navne = [...wb.matchAll(/<sheet [^>]*?name="([^"]+)"[^>]*state="(\w+)"/g)].map((m) => m[1]);
         expect(navne).toEqual([LAES_FOERST, "Vejledning", "Timedata", "Anlaeg", "Varmepumpe", "Priser", "Solvarme", START_OG_DRIFT, BALANCEMARKED, OEVRIGE, "_app"]);
         expect(wb).toMatch(/activeTab="0"/);
         expect(faneXml(e.bytes, LAES_FOERST)).toMatch(/tabSelected="true"/);
         // Præcis én valgt fane (to valgte faner er en gruppe i Excel, hvor en indtastning rammer begge).
         expect(navne.filter((n) => n !== "_app" && /tabSelected="true"/.test(faneXml(e.bytes, n)))).toEqual([LAES_FOERST]);
-        expect(strFromU8(z["xl/worksheets/sheet1.xml"])).toBe(strFromU8(før["xl/worksheets/sheet1.xml"]).replace('tabSelected="true"', 'tabSelected="false"'));
+        const fravalgt = (x: string) => x.replace(/\btabSelected="(true|1)"/, 'tabSelected="false"');
+        expect(fravalgt(strFromU8(z["xl/worksheets/sheet1.xml"]))).toBe(fravalgt(strFromU8(før["xl/worksheets/sheet1.xml"])));
     });
 
     it("Læs først: værkets navn, kode og revision, farverne, _app — og hvor modellen ikke bruger det, modelrepoets faner viser", async () => {

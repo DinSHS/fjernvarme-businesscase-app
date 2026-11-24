@@ -7,7 +7,7 @@
 //   tjekPeriode     periodevalidering (fejl afvises, advarsler vises)
 //   forventetVarighed  ud fra referencetal.json/README
 //   forventetFrosset   de ikke-værks-rækker startBestilling fryser — til genbrug af reference
-//   sammenlignelighed  KONTRAKT §6b
+//   (sammenlignelighed: analyser/beregn.ts › koerselsDom — én dom for begge områder)
 //
 // Reglerne spejler backendens (rayfin/functions/src/logik.ts) så brugeren får
 // svaret før bestilling; backenden er stadig den, der afgør (AGENTS.md).
@@ -18,6 +18,7 @@ import { GRAENSER, TILLADTE_FLAG } from "../../../rayfin/data/fjv.constants";
 import type { Knap, KnapAendring, KnapSide, KnapValg } from "./viden";
 import { ANBEFALET_GAB, VISNINGSNAVNE } from "./viden.data";
 import { DEMO_KOERSLER, DEMO_PAR } from "../analyser/sammensaetning.data";
+import { FROSSET_SYNTETISK } from "../../../rayfin/functions/src/frysning";
 import { frosneSerier, frossetTidsserie, type TidsserieInfo } from "./varmelast";
 
 /** Værkets blade som opslag sti -> vaerdi_json. */
@@ -522,12 +523,34 @@ export function frossetRækker(ændringer: readonly Ændring[], felter: Scenarie
     if (felter.mip_rel_gap != null) sc("solver.mip_rel_gap", String(felter.mip_rel_gap));
     if (felter.mip_abs_gap != null) sc("solver.mip_abs_gap", String(felter.mip_abs_gap));
     if (felter.tidsgraense_s != null) sc("solver.time_limit", String(felter.tidsgraense_s));
+    // P2-3 (tredje rettelsesrunde i runde 15): det udtrykkelige syntesevalg fryses som `"syntetisk"` — uafhængigt af
+    // værkets serier, men ikke sammen med en af repoets filer (som backenden; `r15c_syntese.spec.ts`).
+    if (!felter.heat_csv && ændringer.some((æ) => æ.type === "set" && æ.sti === "_tidsserie.varmelast" && kanon(æ.vaerdi_json ?? "null") === FROSSET_SYNTETISK)) {
+        sc("_koersel.tidsserie.varmelast", FROSSET_SYNTETISK);
+    }
     // Tidsserierne, startBestilling fryser (begge roller), i dens form `{id, sha256}` (K5-F7; k5.spec.ts sammenligner
     // direkte med bygFrossetInput). Kendes serierne ikke, udelades de (så genbruges en reference bare ikke).
     if (serier) {
         for (const [rolle, serie] of frosneSerier(ændringer, felter.heat_csv, serier)) sc(`_koersel.tidsserie.${rolle}`, frossetTidsserie(serie));
     }
     return ud;
+}
+
+/**
+ * Fingeraftrykket af det, en bestilling af scenariet ville fryse — til at afgøre, om et uafklaret bestillingsforsøg
+ * gælder SAMME indhold som nu (tredje rettelsesrunde i runde 15, P2-1; lib/data/bestillingsforsoeg.ts).
+ *
+ * Det er klientens forudsigelse af det frosne input: scenariets rækker (`frossetRækker`), dets valg af tidsserie
+ * (som fryses som en anden række og derfor ikke står blandt dem) og værkets revision (værkets blade fryses med).
+ * Rækkefølgen af ændringerne og 12 mod 12.0 gør ingen forskel. Værkets AKTIVE tidsserier og Motorens pins er ikke med:
+ * de er ikke scenariets indhold, og tidsserierne er ikke altid hentet, når knappen vises — et aftryk, der skiftede med
+ * indlæsningen, ville få et uændret scenarie til at ligne et ændret og give en ekstra kørsel.
+ */
+export function bestillingsaftryk(vaerk: { id: string; revision: number }, ændringer: readonly Ændring[], felter: Scenariefelter, blade: Blade): string {
+    const rækker = frossetRækker(ændringer, felter, blade).map((r) => [r.kilde, r.sti, kanon(r.vaerdi_json)]);
+    const valg = ændringer.filter((æ) => æ.type === "set" && æ.sti.startsWith("_tidsserie.")).map((æ) => ["valg", æ.sti, kanon(æ.vaerdi_json ?? "null")]);
+    const alle = [...rækker, ...valg].map((r) => JSON.stringify(r)).sort();
+    return JSON.stringify([vaerk.id, vaerk.revision, alle]);
 }
 
 /** Hele det input, en kørsel af scenariet ville få (værkets blade + frosne ændringer), uden pins. */
@@ -577,39 +600,10 @@ export function sammeKort(a: ReadonlyMap<string, string>, b: ReadonlyMap<string,
     return true;
 }
 
-// ------------------------------------------------------------------ sammenlignelighed (KONTRAKT §6b)
-
-export interface KørselsNøgle {
-    vaerk_id: string;
-    oploesning?: string | null;
-    data_commit?: string | null;
-    model_commit?: string | null;
-    oensket_rel_gap?: number | null;
-    oensket_abs_gap?: number | null;
-    manifest_json?: string | null;
-}
-
-export function manifestPeriode(m: string | null | undefined): string | undefined {
-    if (!m) return undefined;
-    try {
-        const p = (JSON.parse(m) as { periode?: { start?: string; slut?: string } }).periode;
-        return p?.start && p?.slut ? `${p.start}–${p.slut}` : undefined;
-    } catch { return undefined; }
-}
-
-/** Hvad afviger mellem to kørsler (tom liste = direkte sammenlignelige). */
-export function sammenlignelighed(a: KørselsNøgle, b: KørselsNøgle): string[] {
-    const afv: string[] = [];
-    if (a.vaerk_id !== b.vaerk_id) afv.push("værk");
-    const pa = manifestPeriode(a.manifest_json), pb = manifestPeriode(b.manifest_json);
-    if (!pa || !pb || pa !== pb) afv.push("periode");
-    if ((a.oploesning ?? "") !== (b.oploesning ?? "")) afv.push("opløsning");
-    if ((a.data_commit ?? "") !== (b.data_commit ?? "")) afv.push("df-data");
-    if ((a.model_commit ?? "") !== (b.model_commit ?? "")) afv.push("modelversion");
-    if (a.oensket_rel_gap !== b.oensket_rel_gap) afv.push("relativt gab");
-    if (a.oensket_abs_gap !== b.oensket_abs_gap) afv.push("absolut gab");
-    return afv;
-}
+// Sammenligneligheden (KONTRAKT §6b) afgøres IKKE her: Scenarier spørger Analysers ene dom over kørslernes frosne
+// profil (analyser/beregn.ts › koerselsDom). Den regel, der stod her til og med runde 15, regnede to ukendte felter
+// for ens og sammenlignede periodens tekst — og kunne derfor sige grønt, hvor Analyser sagde "kan ikke afgøres"
+// (kodegennemgangen af runde 15, fund 4).
 
 // ------------------------------------------------------------------ scenarieparret (henvisning i beskrivelsen)
 

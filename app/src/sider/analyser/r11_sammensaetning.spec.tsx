@@ -15,6 +15,7 @@ import { ProduktionMod } from "./ibcs-grafer";
 import { Maaneder } from "./koersel";
 import { Produktion } from "./sammenlign";
 import { SammensaetningMaaned } from "./sammensaetning-kort";
+import { SAMMENLIGNELIG } from "./profil.testdata";
 
 const KOL = ["2026-01", "2026-02", "periode"];
 /** En månedstabel: objekt → [jan, feb, periode] i GWh; `behov` er varmebehovet pr. kolonne. */
@@ -23,7 +24,7 @@ const tabel = (vs: Record<string, (number | null)[]>, behov?: (number | null)[])
     ...(behov ?? []).map((vaerdi, i) => ({ id: `b${i}`, koersel_id: "k", maaned: KOL[i], objekt: null, noegle: "varmebehov_gwh", vaerdi })),
 ] as unknown as Maaned[]);
 const pakke = (vs: Record<string, (number | null)[]>, behov?: (number | null)[], navn = "x") =>
-    ({ maaneder: tabel(vs, behov), samlet: { lagre: [], enheder: [] }, input: [], scenarie: { navn } }) as unknown as Pakke;
+    ({ maaneder: tabel(vs, behov), samlet: { lagre: [], enheder: [] }, input: [], scenarie: { navn }, profil: SAMMENLIGNELIG }) as unknown as Pakke;
 const sum = (xs: Iterable<number | null | undefined>) => [...xs].reduce<number>((a, x) => a + (x ?? 0), 0);
 
 beforeEach(() => { localStorage.clear(); glemVisning(); glemMaal(); });
@@ -203,7 +204,7 @@ describe("tillæg: kortets farvevalg styrer også variansgraferne", () => {
     // Produktionskortet: enheden 'op' producerer mere i scenariet, 'ned' mindre.
     const enheder = (mwh: Record<string, number>) => Object.entries(mwh).map(([navn, produktion_mwh]) =>
         ({ navn, produktion_mwh, andel_pct: (produktion_mwh / sum(Object.values(mwh))) * 100, driftstimer: 10 })) as EnhedTal[];
-    const kort = (vs: Record<string, number>) => ({ samlet: { enheder: enheder(vs), lagre: [] }, maaneder: tabel({}), input: [] }) as unknown as Pakke;
+    const kort = (vs: Record<string, number>) => ({ samlet: { enheder: enheder(vs), lagre: [] }, maaneder: tabel({}), input: [], profil: SAMMENLIGNELIG }) as unknown as Pakke;
     const A = kort({ op: 1000, ned: 3000 }), B = kort({ op: 2500, ned: 2000 });
     const fyld = (c: HTMLElement, rolle: string) => Object.fromEntries([...c.querySelectorAll(`svg [data-role="${rolle}"]`)].map((m) => [m.getAttribute("data-category"), m.getAttribute("fill")]));
 

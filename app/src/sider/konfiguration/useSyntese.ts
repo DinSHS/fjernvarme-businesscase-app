@@ -34,7 +34,7 @@ export function useSyntese(serie: Serie | null, blade: ReadonlyMap<string, strin
     const params = useMemo(() => (blade ? syntesParametre(blade) : null), [blade]);
     const vindue = useMemo(() => (serie ? sammenligningsvindue(serie) : null), [serie]);
     const omraade = blade ? (() => { try { return JSON.parse(blade.get("data.dmi_area") ?? "null") as string | null; } catch { return null; } })() : null;
-    // Modellen læser cfg.data.dmi_temp_shortname (src/data_loader_github.py:635-648), standard temp_mean_past1h (src/config.py:678).
+    // Modellen læser cfg.data.dmi_temp_shortname (src/data_loader_github.py:635-648), standard temp_mean_past1h (src/config.py:680).
     const kolonne = dmiKolonne(blade);
     const kan = aktiv && !!vindue && !!params?.ok && !!omraade;
     const dmi = useDmiTemperatur(kan ? omraade ?? undefined : undefined, kan ? vindue!.fraMs : undefined, kan ? vindue!.tilMs : undefined, kolonne);

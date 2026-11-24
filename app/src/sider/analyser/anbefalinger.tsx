@@ -47,7 +47,9 @@ export default function Anbefalinger({ gåTil }: Pick<OmraadeProps, "gåTil">) {
                         })()}
                         fod="Rød = dyrere, grøn = billigere end referencen. Blå: forskellen er inden for summen af de to kørslers solvergab og kan ikke skelnes fra nul. Hvert par har sin egen periode — se rækken nedenfor.">
                         <ParVarians par={rækker.filter((x) => x.v.delta !== null).map((x) => ({
-                            navn: x.p.scen.navn, delta: x.v.delta!, indenForTolerance: x.v.tolerance !== null && Math.abs(x.v.delta!) <= x.v.tolerance,
+                            // v.delta !== null betyder, at begge objektiver kendes (anbefaling.ts › vurder).
+                            navn: x.p.scen.navn, ref: x.p.ref.k.objektiv_dkk!, scen: x.p.scen.k.objektiv_dkk!, delta: x.v.delta!,
+                            indenForTolerance: x.v.tolerance !== null && Math.abs(x.v.delta!) <= x.v.tolerance,
                         }))} />
                     </Kort>
                 </Gitter>

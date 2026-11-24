@@ -67,7 +67,7 @@ describe("F11 — målt mod syntetisk bruger værkets egen DMI-temperaturkolonne
         expect(dmi.kald.find((a) => a[0])?.[3]).toBe("temp_dry");
         expect(result.current?.total).toHaveLength(48);
     });
-    it("uden feltet bruges modellens standard temp_mean_past1h (src/config.py:678)", () => {
+    it("uden feltet bruges modellens standard temp_mean_past1h (src/config.py:680)", () => {
         dmi.svarKolonne = "temp_mean_past1h";
         renderHook(() => useSyntese(serie, blade(), true));
         expect(dmi.kald.find((a) => a[0])?.[3]).toBe("temp_mean_past1h");

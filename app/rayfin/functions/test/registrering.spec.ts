@@ -36,8 +36,12 @@ describe("registrerede Functions", () => {
         }
     });
     it("indeholder ingen DELETE mod andre tabeller end resultat-/inputtabeller i betroet kode", () => {
-        // Tilladte DELETE: VaerkParameters (udfoerAendring 'slet'). Alt andet er en ny slettevej og skal begrundes.
-        const deletes = [...kilde.matchAll(/DELETE FROM dbo\.(\w+)/g)].map((m) => m[1]);
+        // Tilladt DELETE: VaerkParameters (udfoerAendring 'slet'). Alt andet er en ny slettevej og skal begrundes.
+        // Runde 15 (fund 3.2) tilføjede Bestillings: startBestilling fjernede en AFVIST bestilling. Kodegennemgangen
+        // (fund 1 og 2) tog den ud igen: funktionen kender ikke kalderen, og enhver registreret funktion kan kaldes
+        // af enhver appbruger med et bestillings-id efter eget valg. Den lokale udgave rydder ejerens egen.
+        const kilder = kilde + readFileSync(new URL("../src/bestilling.ts", import.meta.url), "utf8");
+        const deletes = [...kilder.matchAll(/DELETE FROM dbo\.(\w+)/g)].map((m) => m[1]);
         expect([...new Set(deletes)].sort()).toEqual(["VaerkParameters"]);
     });
 });

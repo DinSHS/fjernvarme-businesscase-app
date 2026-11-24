@@ -49,6 +49,8 @@ class Motor:
         env = dict(os.environ)
         rod = str(Path(__file__).resolve().parent.parent)
         env["PYTHONPATH"] = rod + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
+        # Ikke længere nødvendig for modellen (modelrepoets 0.10.0 læser selv UTF-8, appens pin 939228a), men den
+        # skader ikke, og en kørsel ved en ældre pin (til og med 90fb16e) kræver den på Windows.
         env["PYTHONUTF8"] = "1"
         if self.model_python:
             env["FJV_PYTHON"] = self.model_python

@@ -77,7 +77,8 @@ class Grund(unittest.TestCase):
     def bestil(self, scenarie=None, af=AF):
         b = self.l.indsaet("Bestillings", {"scenarie_id": (scenarie or self.s)["id"], "bestilt_af": af,
                                            "klient_noegle": self.l.ny_id()})
-        return b["id"], S.start_bestilling(self.l, b["id"], self.arbejder)
+        # ``af`` er også kalderen: sådan kalder serveren (funktioner.kald sender sessionens bruger videre).
+        return b["id"], S.start_bestilling(self.l, b["id"], self.arbejder, af)
 
     def anmod(self, aendringer, vaerk_id=None, revision=1, af=AF):
         a = self.l.indsaet("Aendringsanmodnings", {"vaerk_id": vaerk_id or self.v["id"], "forventet_revision": revision,
@@ -120,7 +121,7 @@ class TestStartBestilling(Grund):
         for _ in range(3):
             self.assertTrue(self.bestil()[1]["ok"])
         _, svar = self.bestil()
-        self.assertEqual(svar, {"ok": False, "afvist": "Du har allerede 3 kørsler i kø; højst 3 ad gangen. "
+        self.assertEqual(svar, {"ok": False, "ryddet": True, "afvist": "Du har allerede 3 kørsler i kø; højst 3 ad gangen. "
                                                        "Vent til en er færdig, eller annullér en."})
         self.assertEqual(len(self.l.raekker("Koersels")), 3)
 
@@ -134,7 +135,7 @@ class TestStartBestilling(Grund):
 
     def test_afvisninger(self):
         self.assertEqual(S.start_bestilling(self.l, "x", self.arbejder), {"ok": False, "afvist": "Ugyldigt bestillings-id."})
-        self.assertEqual(S.start_bestilling(self.l, U, self.arbejder), {"ok": False, "afvist": "Bestillingen findes ikke."})
+        self.assertEqual(S.start_bestilling(self.l, U, self.arbejder), {"ok": False, "afvist": "Bestillingen findes ikke.", "ryddet": True})
         self.assertEqual(self.bestil(self.scenarie(arkiveret=True))[1]["afvist"], "Scenariet er arkiveret.")
         self.opdater("Vaerks", self.v["id"], arkiveret=True)
         self.assertEqual(self.bestil()[1]["afvist"], "Værket er arkiveret.")
@@ -152,6 +153,188 @@ class TestStartBestilling(Grund):
         _, svar = self.bestil(s)
         self.assertIn("som ikke findes i værket", svar["afvist"])
         self.assertEqual((self.l.raekker("Koersels"), self.l.raekker("KoerselInputs")), ([], []))
+
+    # Runde 15, fund 3.2 (den uafhængige test 18. november 2026): en afvist bestilling efterlod sin Bestilling-række.
+    # Klienten må kun oprette og læse den (skema.json), så kun den betroede logik kan fjerne den. Rækken var ikke
+    # kun rod: klientnøglen er unik, så et genforsøg med samme nøgle ("Prøv igen") ramte den gamle række.
+    def test_afvist_bestilling_efterlader_ingen_raekke(self):
+        s = self.scenarie()
+        ae = self.l.indsaet("ScenarieAendrings", {"scenarie_id": s["id"], "type": "set", "sti": "prices.olie.value",
+                                                  "vaerdi_json": "1.0", "raekkefoelge": 1})
+        b = self.l.indsaet("Bestillings", {"scenarie_id": s["id"], "bestilt_af": AF, "klient_noegle": "samme-noegle"})
+        svar = S.start_bestilling(self.l, b["id"], self.arbejder, AF)
+        self.assertIn("som ikke findes i værket", svar["afvist"])
+        self.assertIs(svar.get("ryddet"), True)
+        self.assertEqual(self.l.raekker("Bestillings"), [])
+        self.assertEqual(self.l.raekker("Koersels"), [])
+        # Scenariet er brugerens og bliver stående (det kan være et, hun har redigeret længe): kun bestillingen fjernes.
+        self.assertEqual(len(self.l.raekker("Scenaries", id=s["id"])), 1)
+        # Genforsøg med SAMME klientnøgle, nu med en gyldig ændring: bestillingen kan oprettes og køres.
+        self.opdater("ScenarieAendrings", ae["id"], sti="prices.straw.value")
+        b2 = self.l.indsaet("Bestillings", {"scenarie_id": s["id"], "bestilt_af": AF, "klient_noegle": "samme-noegle"})
+        self.assertTrue(S.start_bestilling(self.l, b2["id"], self.arbejder, AF)["ok"])
+        self.assertEqual(len(self.l.raekker("Bestillings")), 1)
+
+    def test_kvoteafvisning_fjerner_bestillingen(self):
+        for _ in range(3):
+            self.assertTrue(self.bestil()[1]["ok"])
+        bid, svar = self.bestil()
+        self.assertFalse(svar["ok"])
+        self.assertEqual(len(self.l.raekker("Bestillings")), 3)             # de tre, der blev til kørsler
+        self.assertEqual(self.l.raekker("Bestillings", id=bid), [])
+
+    # ---- Kodegennemgangen af runde 15, fund 1–3: slettevejen gjort sikker -------------------------------------------
+
+    def _afvist_bestilling(self, af=AF):
+        s = self.scenarie()
+        self.l.indsaet("ScenarieAendrings", {"scenarie_id": s["id"], "type": "set", "sti": "prices.olie.value",
+                                             "vaerdi_json": "1.0", "raekkefoelge": 1})
+        return self.l.indsaet("Bestillings", {"scenarie_id": s["id"], "bestilt_af": af, "klient_noegle": self.l.ny_id()})["id"]
+
+    def _med_spion(self):
+        """Lagerets transaktioner, med en liste over (transaktionsnummer, verbum) i den rækkefølge forløbet kaldte dem."""
+        import contextlib
+        kald, o, nr = [], self.l.transaktion, [0]
+
+        class Spion:
+            def __init__(self, tx, n):
+                self._tx, self._n = tx, n
+
+            def __getattr__(self, navn):
+                v = getattr(self._tx, navn)
+                if not callable(v):
+                    return v
+
+                def f(*a, **k):
+                    kald.append((self._n, navn))
+                    return v(*a, **k)
+                return f
+
+        @contextlib.contextmanager
+        def tx():
+            nr[0] += 1
+            n = nr[0]
+            with o() as t:
+                yield Spion(t, n)
+        self.l.transaktion = tx
+        self.addCleanup(lambda: setattr(self.l, "transaktion", o))
+        return kald
+
+    def test_fund1_laasen_tages_foer_bestillingen_laeses_og_oprydningen_sker_i_samme_transaktion(self):
+        bid = self._afvist_bestilling()
+        kald = self._med_spion()
+        svar = S.start_bestilling(self.l, bid, self.arbejder, AF)
+        self.assertIs(svar.get("ryddet"), True)
+        verber = [v for _, v in kald]
+        # Låsen er det FØRSTE, transaktionen gør — før bestillingen og kørslen læses. (Anden rettelsesrunde, fund C:
+        # bestillingen læses før kørslen, fordi ejeren tjekkes, før noget om kørslen slås op.)
+        self.assertEqual(verber[:3], ["laas_bestilling", "bestilling", "koersel_for_bestilling"])
+        # Før rettelsen: afvisningen i transaktion 2 (rullet tilbage), oprydningen i transaktion 3 — uden lås imellem.
+        self.assertEqual({n for n, v in kald if v in ("laas_bestilling", "bestilling", "slet_bestilling")}, {1})
+        self.assertEqual(len({n for n, _ in kald}), 1, kald)
+
+    def test_fund1_et_gentaget_kald_ser_koerslen_under_laasen(self):
+        bid, svar = self.bestil()
+        kald = self._med_spion()
+        igen = S.start_bestilling(self.l, bid, self.arbejder, AF)
+        self.assertEqual((igen["ok"], igen["koersel_id"], igen["ny"]), (True, svar["koersel_id"], False))
+        # Kørslen findes: reglerne spørges ikke igen (kvoten kunne ellers afvise en bestilling, der allerede kører).
+        self.assertEqual([v for _, v in kald], ["laas_bestilling", "bestilling", "koersel_for_bestilling"])
+
+    def test_fund2_kun_ejeren_kan_udloese_sletning(self):
+        for kalder in (None, "kollega@lokal", AF.upper()):
+            bid = self._afvist_bestilling()
+            svar = S.start_bestilling(self.l, bid, self.arbejder, kalder)
+            self.assertEqual(set(svar), {"ok", "afvist"}, kalder)                   # afvist — men hverken ryddet eller teknisk
+            # Anden rettelsesrunde, fund C: en KENDT anden kalder når ikke til reglerne; en ukendt (None, portens
+            # spejl af Fabric, hvor identiteten ikke findes) får reglernes afvisning som før.
+            if kalder is None:
+                self.assertIn("som ikke findes i værket", svar["afvist"])
+            else:
+                self.assertEqual(svar["afvist"], S.IKKE_EJER)
+            self.assertEqual(len(self.l.raekker("Bestillings", id=bid)), 1, kalder)
+        # Ejeren selv: samme bestilling ryddes.
+        self.assertIs(S.start_bestilling(self.l, bid, self.arbejder, AF).get("ryddet"), True)
+        self.assertEqual(self.l.raekker("Bestillings", id=bid), [])
+
+    def test_fundC_kun_ejeren_kan_faa_bestillingen_behandlet(self):
+        """Efterprøvningen af rettelserne, fund C: en kendt kalder, der ikke er ejeren, afvises FØR kørslen slås op
+        og FØR noget fryses — ingen kvotelås, ingen læsning af scenarie og værk, ingen kørsel."""
+        b = self.l.indsaet("Bestillings", {"scenarie_id": self.s["id"], "bestilt_af": AF, "klient_noegle": "c1"})["id"]
+        kald = self._med_spion()
+        svar = S.start_bestilling(self.l, b, self.arbejder, "kollega@lokal")
+        # Før rettelsen: {"ok": True, "ny": True, ...} — kørslen blev oprettet i ejerens navn.
+        self.assertEqual(svar, {"ok": False, "afvist": S.IKKE_EJER})
+        self.assertEqual([v for _, v in kald], ["laas_bestilling", "bestilling"])
+        self.assertEqual(self.l.raekker("Koersels"), [])
+        self.assertEqual(self.starter, [])                                       # arbejderen startes ikke i en andens navn
+        self.assertEqual(len(self.l.raekker("Bestillings", id=b)), 1)
+
+    def test_fundC_en_anden_faar_ikke_den_eksisterende_koersel(self):
+        bid, svar = self.bestil()
+        self.assertTrue(svar["ok"])
+        self.starter.clear()
+        self.assertEqual(S.start_bestilling(self.l, bid, self.arbejder, "kollega@lokal"), {"ok": False, "afvist": S.IKKE_EJER})
+        self.assertEqual(self.starter, [])
+
+    def test_fundC_ukendt_kalder_er_portens_spejl_af_fabric(self):
+        """``kalder=None`` betyder "identiteten findes ikke" (Fabric: tokenet bærer ingen e-mail). Dér kan ejeren ikke
+        tjekkes, og bestillingen behandles som før — men ryddes aldrig. Den lokale udgaves binding
+        (``betroet_lager.Tjenester``) giver aldrig None videre (community/tests/test_r15_bestilling.py)."""
+        b = self.l.indsaet("Bestillings", {"scenarie_id": self.s["id"], "bestilt_af": AF, "klient_noegle": "c2"})["id"]
+        svar = S.start_bestilling(self.l, b, self.arbejder)
+        self.assertEqual((svar["ok"], svar["ny"]), (True, True))
+
+    def test_fund2_lageret_sletter_kun_ejerens_raekke(self):
+        """Også lagerets eget udsagn er bundet til ejeren (to værn, ikke ét)."""
+        bid = self._afvist_bestilling()
+        with self.l.transaktion() as tx:
+            self.assertEqual(tx.slet_bestilling(bid, "kollega@lokal"), 0)
+        self.assertEqual(len(self.l.raekker("Bestillings", id=bid)), 1)
+        with self.l.transaktion() as tx:
+            self.assertEqual(tx.slet_bestilling(bid, AF), 1)
+
+    def test_fund3_svaret_skelner_mellem_ryddet_afvisning_og_teknisk_fejl(self):
+        # (1) endelig afvisning, ryddet
+        for _ in range(3):
+            self.assertTrue(self.bestil()[1]["ok"])
+        bid, svar = self.bestil()
+        self.assertEqual(svar, {"ok": False, "ryddet": True, "afvist": "Du har allerede 3 kørsler i kø; højst 3 ad gangen. "
+                                "Vent til en er færdig, eller annullér en."})
+        # (2) endelig afvisning, men bestillingen står (ukendt kalder): intet "ryddet" — klienten må ikke arkivere
+        b2 = self.l.indsaet("Bestillings", {"scenarie_id": self.s["id"], "bestilt_af": AF, "klient_noegle": "k2"})["id"]
+        svar2 = S.start_bestilling(self.l, b2, self.arbejder)
+        self.assertEqual(set(svar2), {"ok", "afvist"})
+        self.assertEqual(len(self.l.raekker("Bestillings", id=b2)), 1)
+        # (3) en køplads frigives: SAMME bestilling kan nu behandles igen (det er det, "Prøv igen" gør)
+        self.opdater("Koersels", self.l.raekker("Koersels")[0]["id"], status="faerdig")
+        self.assertTrue(S.start_bestilling(self.l, b2, self.arbejder, AF)["ok"])
+
+    def test_fund3_fejler_oprydningen_er_afvisningen_stadig_svaret_men_ikke_ryddet(self):
+        bid = self._afvist_bestilling()
+        o = self.l.transaktion
+
+        import contextlib
+
+        @contextlib.contextmanager
+        def tx():
+            with o() as t:
+                t.slet_bestilling = lambda *a: (_ for _ in ()).throw(RuntimeError("forbindelsen døde"))
+                yield t
+        self.l.transaktion = tx
+        svar = S.start_bestilling(self.l, bid, self.arbejder, AF)
+        self.l.transaktion = o
+        self.assertEqual(set(svar), {"ok", "afvist"})
+        self.assertIn("som ikke findes i værket", svar["afvist"])
+        self.assertEqual(len(self.l.raekker("Bestillings", id=bid)), 1)
+
+    def test_godkendt_bestilling_bliver_staaende(self):
+        bid, svar = self.bestil()
+        self.assertTrue(svar["ok"])
+        self.assertEqual(len(self.l.raekker("Bestillings", id=bid)), 1)
+        # Et gentaget kald (idempotent) rører den heller ikke.
+        S.start_bestilling(self.l, bid, self.arbejder)
+        self.assertEqual(len(self.l.raekker("Bestillings", id=bid)), 1)
 
     def test_scenariets_decimaler(self):
         from decimal import Decimal
@@ -212,7 +395,10 @@ class TestStartBestilling(Grund):
                 yield t
         self.l.transaktion = tx
         svar = S.start_bestilling(self.l, U, self.arbejder)
-        self.assertEqual(svar, {"ok": False, "afvist": "Teknisk fejl i startBestilling: forbindelsen døde"})
+        self.assertEqual(svar, {"ok": False, "afvist": "Teknisk fejl i startBestilling: forbindelsen døde", "teknisk": True})
+        # En teknisk fejl er ikke en afvisning: bestillingen bliver stående og kan forsøges igen (fund 3.2 fjerner kun afviste).
+        self.l.transaktion = o
+        self.assertEqual(len(self.l.raekker("Bestillings", id=U)), 1)
 
 
 class TestUdfoerAendring(Grund):

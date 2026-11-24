@@ -16,9 +16,9 @@
 // rækkefølge. Røgtests parres ikke og står for sig.
 //-----------------------------------------------------------------------
 
-import { effektivtInput, KOERSEL_PRAEFIKS, type InputRække } from "@/lib/data/afflad";
+import type { InputRække } from "@/lib/data/afflad";
 import { tal } from "@/lib/format";
-import { harReferencensOpsaetning, kørslensGab, laesReferencer, type Reference } from "../information/referencer";
+import { frossenOpsaetning, kvalificer, laesReferencer, type Reference, type VaerkKilde } from "../information/referencer";
 import { KOERSEL_STATUSSER } from "../../../rayfin/data/fjv.constants";
 import { aendringsfraser, doegn, findPar, vurder, type Kategori, type Par, type Side, type Vurdering } from "./anbefaling";
 import { KNAPPER } from "./anbefaling.data";
@@ -26,7 +26,7 @@ import { modtaget, spor, type Koersel, type Scenarie } from "./beregn";
 import { varmelastKilde, type Tidsserienavne } from "./datagrundlag";
 import { periodeTekst } from "./fmt";
 import { aendringsResume } from "./kandidater";
-import { DEMO_KOERSLER, DEMO_PAR, README_PINS, README_REFERENCER_JSON } from "./sammensaetning.data";
+import { DEMO_KOERSLER, DEMO_PAR, README_REFERENCER_JSON } from "./sammensaetning.data";
 
 // ================================================================= oprindelse
 
@@ -44,6 +44,12 @@ export interface Oprindelse {
     /** Demo-id (D01 …) når scenariet er en af demo-kørslerne — også for en README-reference. */
     demoId: string | null;
     readme: Reference | null;
+    /**
+     * Scenariet bærer et teknisk testnavn (`probe-…`, `Test K<n>`). For en README-reference vises det som et røgtestmærke
+     * VED SIDEN AF README-mærket (tredje rettelsesrunde, P2-6): målingen går forud for navnet, men at kørslen var en
+     * teknisk prøve, skal stadig kunne ses.
+     */
+    roegtest: boolean;
 }
 
 let _refs: Reference[] | null = null;
@@ -67,62 +73,41 @@ const TESTNAVN = /^(probe[-_ ]|test k\d+\b)/i;
 /** Kontrolkørsler fra opsætningen (fv-fabrics trin F1–F5), der ikke genskaber et README-tal. */
 const KONTROLNAVN = /^F\d+\s/;
 
-/** Det, README-genkendelsen behøver om værket (Vaerk-rækken). */
-export interface VaerkKilde { kilde: string; repo_commit?: string | null }
-
-/**
- * Scenariefelterne, som kørslen FAKTISK fik dem (det frosne input, Codex K5-F9) — ikke det levende
- * scenarie, som kan være rettet bagefter. Formen er `Scenarie`s, så fv-doku's regel kan bruges uændret.
- */
-export function frossenOpsaetning(input: readonly InputRække[]): Scenarie {
-    const e = effektivtInput(input);
-    const flag = (n: string): unknown => { const j = e.flag.get(n); if (j === undefined) return null; try { return JSON.parse(j); } catch { return j; } };
-    const str = (v: unknown) => (typeof v === "string" ? v : Array.isArray(v) ? v.join(" ") : null);
-    const num = (sti: string) => { const r = input.find((x) => x.kilde !== "vaerk" && x.sti === sti); const v = r ? Number(JSON.parse(r.vaerdi_json)) : NaN; return Number.isFinite(v) ? v : null; };
-    return {
-        periode_start: str(flag("start")), periode_slut: str(flag("slut")), med_balancering: flag("med_balancering") === true,
-        balancing_method: str(flag("balancing_method")), ekstra_flag: str(flag("ekstra_flag")), heat_csv: str(flag("heat_csv")),
-        mip_rel_gap: num("solver.mip_rel_gap"), mip_abs_gap: num("solver.mip_abs_gap"), tidsgraense_s: num("solver.time_limit"),
-    } as Scenarie;
-}
-
-/**
- * README-mærket kræver mere end ens scenariefelter (Codex K5-F9): værket skal være repo-casen uændret
- * (kilde `repo`, revision 1, importeret ved referencetallenes modelcommit), kørslen skal have samme
- * modelcommit og en df-data-commit, hvis dato er målt og ligger efter README's datakrav.
- */
-export function readmePins(k: Koersel, input: readonly InputRække[], vaerk: VaerkKilde | undefined): boolean {
-    const pin = (navn: "model_commit" | "data_commit") => (k[navn] ?? (() => { try { const r = input.find((x) => x.sti === `${KOERSEL_PRAEFIKS}${navn}`); return r ? JSON.parse(r.vaerdi_json) as string : null; } catch { return null; } })())?.toLowerCase() ?? null;
-    const data = pin("data_commit");
-    const dato = data ? README_PINS.df_data_kendt[data] : undefined;
-    return !!vaerk && vaerk.kilde === "repo" && vaerk.repo_commit?.toLowerCase() === README_PINS.model_commit && k.vaerk_revision === 1
-        && pin("model_commit") === README_PINS.model_commit && !!dato && dato >= README_PINS.df_data_fra;
-}
+// README-kvalifikationen står ét sted — information/referencer.ts › kvalificer — og bruges både her og af
+// Information › Referencetal (kodegennemgangen af runde 15, fund 6). Navnene gives videre til dem, der importerer herfra.
+export { frossenOpsaetning, readmePins, type VaerkKilde } from "../information/referencer";
 
 /**
  * Hvor kørslen kommer fra, i den rækkefølge reglerne vinder:
- * 1. En kendt teknisk testkørsel (probe-, Test K<n>) → Røgtest.
- * 2. Samme værk og FROSNE opsætning som et README-referencetal, ingen ændringer, samme eller strammere gab
- *    (information/referencer.ts' regel) og verificerede pins (`readmePins`) → README-reference med tallet.
+ * 1. En MÅLING af et README-referencetal (information/referencer.ts › kvalificer: færdig, frossen opsætning, ingen
+ *    ændringer, samme eller strammere gab, repo-casen uændret, referencens modelversion, kendt df-data, referencens
+ *    varmelast og solprofil) → README-reference med tallet.
+ * 2. En kendt teknisk testkørsel (probe-, Test K<n>) → Røgtest.
  * 3. En af demo-kørslerne (demo_scenarier.json) → Demo.
  * 4. En kontrolkørsel fra opsætningen (F1–F5) → Røgtest.
  * 5. Ellers kørselsvejen: app eller notebook.
  * `vaerk` mangler → README kan ikke verificeres og gives ikke.
+ *
+ * Efterprøvningen af rettelserne i runde 15 (fund F): målingen går FORUD for navnereglerne. Før vandt navnet, så en
+ * kvalificeret kørsel omdøbt til "probe-spora" var en måling under Information › Referencetal og en røgtest her.
+ * Udvælgelsen er nu den samme begge steder: kvalifikationen på kørslens frosne felter — scenariets navn er et levende
+ * felt og kan ikke gøre en måling til noget andet (eller omvendt).
+ *
+ * Tredje rettelsesrunde (P2-6): en måling er en AFSLUTTET løsning inden for casens gab (`kvalificer › loest`); en
+ * tidsstoppet kørsel får ikke README-mærket. Og en måling med et teknisk testnavn bærer `roegtest: true`, så listen
+ * viser røgtestmærket ved siden af README-mærket.
  */
 export function oprindelse(k: Koersel, scenarie: Scenarie | null, vaerkKode: string, input: readonly InputRække[], vaerk?: VaerkKilde): Oprindelse {
     const navn = scenarie?.navn ?? "";
     const demo = demoId(navn, vaerkKode);
     const svar = (type: OprindelseType, detalje: string | null, readme: Reference | null = null): Oprindelse =>
-        ({ type, etiket: OPRINDELSE_ETIKET[type], detalje, demoId: demo, readme });
+        ({ type, etiket: OPRINDELSE_ETIKET[type], detalje, demoId: demo, readme, roegtest: type === "roegtest" || TESTNAVN.test(navn) });
+    // Én kvalifikation pr. reference, på de frosne felter — den samme, Information › Referencetal bruger. Den kræver
+    // en færdig kørsel, så en kontrolkørsel, der ikke blev færdig (fx F3's annulleringstest), genskaber intet tal.
+    const r = readmeReferencer().find((x) => x.kode === vaerkKode && kvalificer(x, k, input, vaerk).maaling);
+    if (r) return svar("readme", `README ${tal(r.objektiv)} kr.${demo ? ` · ${demo}` : ""}`, r);
     if (TESTNAVN.test(navn)) return svar("roegtest", "test af kørselsvejen — ikke en analyse");
-    // En kontrolkørsel, der ikke blev færdig (fx F3's annulleringstest af Spor A-opsætningen), genskaber intet tal.
     if (KONTROLNAVN.test(navn) && k.status !== "faerdig") return svar("roegtest", "kontrolkørsel fra opsætningen — ikke en analyse");
-    const ændret = input.some((r) => r.kilde === "aendring");
-    if (!ændret && readmePins(k, input, vaerk)) {
-        const frossen = frossenOpsaetning(input);
-        const r = readmeReferencer().find((x) => x.kode === vaerkKode && harReferencensOpsaetning(frossen, x) && kørslensGab(k, frossen, x).erTilladt);
-        if (r) return svar("readme", `README ${tal(r.objektiv)} kr.${demo ? ` · ${demo}` : ""}`, r);
-    }
     if (demo) return svar("demo", demo);
     if (KONTROLNAVN.test(navn)) return svar("roegtest", "kontrolkørsel fra opsætningen — ikke en analyse");
     return k.kilde === "app" ? svar("app", null) : svar("notebook", null);
@@ -277,19 +262,30 @@ export function listeRaekker(g: ListeGrundlag, visRoegtest = false): ListeRaekke
     const somRef = new Map<string, Par[]>();
     for (const p of par) somRef.set(id(p.ref), [...(somRef.get(id(p.ref)) ?? []), p]);
 
-    // "Samme scenarie" = samme værk og samme scenarienavn: et scenarie, der er arkiveret og oprettet igen (fx et
-    // fejlet helårsforsøg), er stadig samme spørgsmål. Primær kørsel: den parrede, ellers den nyeste færdige, ellers
-    // den nyeste. De andre er gentagelser af den.
-    const sNøgle = (s: Side) => `${s.k.vaerk_id}|${scen(s)?.navn ?? s.k.scenarie_id}`;
+    // "Samme scenarie" = samme værk, samme scenarienavn OG samme periode: et scenarie, der er arkiveret og oprettet igen
+    // (fx et fejlet helårsforsøg), er stadig samme spørgsmål. Primær kørsel: den nyeste parrede, ellers den nyeste
+    // færdige, ellers den nyeste. De andre er gentagelser af den.
+    //
+    // Runde 15 (fund 3.3, den uafhængige test 18. november 2026): perioden hører med. Parflowet giver alle par af samme
+    // spørgsmål samme navne ("Hvad er tanken værd? · reference"), så uden perioden blev et 12-døgnspar til "gentagelser"
+    // af 2-døgnsparret — eller omvendt, alt efter hvilket der var kørt sidst. Den primære vælges nu også af de SORTEREDE
+    // kørsler (nyeste først), ikke af datasættets tilfældige orden, så mærket ikke afhænger af rækkefølgen.
+    const pNøgle = (s: Side) => `${s.profil.periode_fra ?? "?"}|${s.profil.periode_til ?? "?"}`;
+    const sNøgle = (s: Side) => `${s.k.vaerk_id}|${scen(s)?.navn ?? s.k.scenarie_id}|${pNøgle(s)}`;
     const prScenarie = new Map<string, Side[]>();
     for (const s of ægte) prScenarie.set(sNøgle(s), [...(prScenarie.get(sNøgle(s)) ?? []), s]);
     const primærPrNøgle = new Map<string, Side>();
     for (const [n, xs] of prScenarie) {
         const sorteret = [...xs].sort(nyest);
-        primærPrNøgle.set(n, xs.find((x) => somScen.has(id(x)) || somRef.has(id(x))) ?? sorteret.find((x) => x.k.status === "faerdig") ?? sorteret[0]);
+        primærPrNøgle.set(n, sorteret.find((x) => somScen.has(id(x)) || somRef.has(id(x))) ?? sorteret.find((x) => x.k.status === "faerdig") ?? sorteret[0]);
     }
-    const primær = new Map<string, Side>();
-    for (const s of ægte) primær.set(s.k.scenarie_id, primærPrNøgle.get(sNøgle(s))!);
+    /** Kørslens primære: den, dens egen (værk, navn, periode) samles om. */
+    const primærAf = (s: Side) => primærPrNøgle.get(sNøgle(s)) ?? s;
+    /** Et scenaries primære kørsel set fra `fra`: helst i samme periode, ellers scenariets nyeste primære. */
+    const primærForScenarie = (scenarieId: string, fra: Side): Side | undefined => {
+        const kandidater = [...primærPrNøgle.values()].filter((x) => x.k.scenarie_id === scenarieId).sort(nyest);
+        return kandidater.find((x) => pNøgle(x) === pNøgle(fra)) ?? kandidater[0];
+    };
 
     // Scenarier uden par, der er oprettet med en reference (reference_scenarie_id), hænges på referencens primære kørsel.
     const forældre = new Map<string, Side>();
@@ -297,7 +293,7 @@ export function listeRaekker(g: ListeGrundlag, visRoegtest = false): ListeRaekke
     for (const s of primærPrNøgle.values()) {
         if (forældre.has(id(s)) || somRef.has(id(s))) continue;
         const ref = scen(s)?.reference_scenarie_id;
-        const r = ref ? primær.get(ref) : undefined;
+        const r = ref ? primærForScenarie(ref, s) : undefined;
         if (r && r !== s) forældre.set(id(s), r);
     }
 
@@ -329,7 +325,7 @@ export function listeRaekker(g: ListeGrundlag, visRoegtest = false): ListeRaekke
         if (o.type === "roegtest" && !visRoegtest) continue;
         const sc = scen(s);
         const p = somScen.get(id(s)) ?? null;
-        const prim = o.type === "roegtest" ? s : primær.get(s.k.scenarie_id) ?? s;
+        const prim = o.type === "roegtest" ? s : primærAf(s);
         const erGentagelse = prim !== s;
         const egenP = erGentagelse ? somScen.get(id(prim)) ?? null : p;
         const refFor = somRef.get(id(prim))?.length ?? 0;
@@ -337,7 +333,7 @@ export function listeRaekker(g: ListeGrundlag, visRoegtest = false): ListeRaekke
         const farNavn = far ? scen(far)?.navn ?? far.navn : null;
 
         let rolle: Rolle;
-        if (erGentagelse) rolle = { type: "gentagelse", tekst: "Gentagelse af samme scenarie", mod: prim.navn, modId: id(prim), referenceFor: 0 };
+        if (erGentagelse) rolle = { type: "gentagelse", tekst: "Gentagelse af samme scenarie og periode", mod: prim.navn, modId: id(prim), referenceFor: 0 };
         else if (far) rolle = {
             type: "scenarie", mod: farNavn, modId: id(far), referenceFor: refFor,
             tekst: `Scenarie mod «${farNavn}»${p ? "" : " (ikke parret endnu)"}${refFor ? ` · selv reference for ${refFor}` : ""}`,

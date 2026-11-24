@@ -169,7 +169,8 @@ describe("markérDøde (K2-F4)", () => {
 describe("function_app.ts — §6c-regler i kilden", () => {
     const f = readFileSync(new URL("../src/function_app.ts", import.meta.url), "utf8");
     const del = (fra: string, til: string) => f.slice(f.indexOf(fra), f.indexOf(til, f.indexOf(fra)));
-    const bestil = del("'startBestilling'", "async function indsætInput");
+    // startBestilling's transaktion står i bestilling.ts (flyttet ved rettelserne efter kodegennemgangen af runde 15).
+    const bestil = readFileSync(new URL("../src/bestilling.ts", import.meta.url), "utf8");
     const annuller = del("'annullerKoersel'", "// ------------------------------------------------------------------ kildefil");
 
     it("K2-F9: kvotelåsen tages FØR brugerens kø tælles, og køens tid er servertid", () => {

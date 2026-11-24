@@ -92,8 +92,17 @@ describe("hele historien efter kørsel (demo-par P1: Andeby vinter uden tankene)
         expect(h.vurdering.delta).toBeCloseTo((scen.k.objektiv_dkk ?? 0) - (ref.k.objektiv_dkk ?? 0), 2);
         expect(h.vurdering.delta!).toBeGreaterThan(0);
     });
-    it("byttede roller giver samme historie (generatoren ordner selv parret)", () => {
-        expect(historieEfterKørsel(scen, ref, "Andeby", new Set()).tekst).toBe(h.tekst);
+    // Efterprøvningen af rettelserne i runde 15 (fund G): forventningen var "byttede roller giver samme historie
+    // (generatoren ordner selv parret)". Det strider mod den tilsigtede adfærd siden kodegennemgangens fund 5:
+    // rollerne er sidens, og generatoren bytter dem ikke om. Byttes de, fortælles forskellen den anden vej.
+    // (Filen kræver harnessens fixtures.json og kører ikke på en maskine uden dem; samme regel er prøvet uden
+    // fixtures i r15_fortalt.spec.ts og r15_serieretning.spec.ts.)
+    it("byttede roller fortælles i de byttede roller — fra 'uden tankene' til referencen, med modsat fortegn", () => {
+        const o = historieEfterKørsel(scen, ref, "Andeby", new Set());
+        expect(o.tekst).not.toBe(h.tekst);
+        expect(o.vurdering.delta).toBeCloseTo(-(h.vurdering.delta!), 2);
+        expect(o.tekst).toMatch(/^I dette scenarie slår vi lageret \S+ til/);
+        expect(o.tekst).not.toMatch(/dyrere i perioden|begge tanke fra/);
     });
 });
 
@@ -106,7 +115,7 @@ describe("historien med værkets tidsserier (brief 18)", () => {
         const ref = forventetInput([{ type: "set", sti: "_tidsserie.varmelast", vaerdi_json: '"syntetisk"' }], tom, blade, [serie]);
         const scen = forventetInput([], tom, blade, [serie]);
         const s = saetningFørKørsel(ref, "referencen", scen, "scenariet", "Billund", [serie]);
-        expect(s).toMatch(/målt varmelast \(Billund målt 2025–26\)/);
+        expect(s).toMatch(/den målte varmelast 'Billund målt 2025–26' i stedet for syntesen/);
         expect(s).not.toMatch(/samme input/);
     });
     it("samme serie på begge sider er ikke en ændring", () => {

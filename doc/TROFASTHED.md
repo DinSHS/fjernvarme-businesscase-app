@@ -12,7 +12,7 @@ viser, hvordan du selv kan efterprøve det på en halv time (det meste er instal
 
 | | Commit | Står i |
 |---|---|---|
-| Modellen | `90fb16eb1e2d5aa8e619b5a951b93760fa803985` ("Note om nye spotpriser …", november 2026; spot midles over tidsskridtet fra `5021a5e`) | `MODEL_COMMIT` i [`fabric/fjv/konstanter.py`](../fabric/fjv/konstanter.py) |
+| Modellen | `939228aa048563c8498382a79d207c8b03fbda57` ("Udgiv 0.11.0: oliekedel som enhedstype", november 2026; oliekedlen fra `131f305`, UTF-8 fra `3cf753a`, spot midles over tidsskridtet fra `5021a5e`) | `MODEL_COMMIT` i [`fabric/fjv/konstanter.py`](../fabric/fjv/konstanter.py) |
 | df-data | `106b9fce9a2e3610090b1a542559024056449b88` | `DF_DATA_SHA` samme sted |
 
 Pinnen står også i [`CREDITS.md`](../CREDITS.md), `app/src/sider/dokumentation/kilde.ts` og `viden/*.json`, og gaten
@@ -48,7 +48,7 @@ cases/<værk>.yaml ── fjv/flad.py ──► blade i databasen (sti → værd
 ## 3. Modelspejlet — appen læser dine filer, den afskriver dem ikke
 
 [`viden/vaerktoej/byg_modelspejl.py`](../viden/vaerktoej/byg_modelspejl.py) læser modelrepoet ved den pinnede commit
-(`git show 90fb16e:<fil>`) og skriver tre genererede filer:
+(`git show 939228a:<fil>`) og skriver fire genererede filer:
 
 | Fil | Indhold |
 |---|---|
@@ -56,6 +56,11 @@ cases/<værk>.yaml ── fjv/flad.py ──► blade i databasen (sti → værd
 | `app/src/lib/modelspejl.data.ts` | samme spejl, som appen viser (kortet *Modelrepoet* på hvert værk, kilden under hvert felt) |
 | `app/src/sider/konfiguration/eksport/vaerksdata_skabelon.xlsx` | modelrepoets værksark ved pinnen, byte for byte (runde 12); eksporten udfylder det |
 | `app/src/sider/konfiguration/skalering.vektorer.json` | facit for skaleringen: modelrepoets egne linjer i `vaerksark_til_yaml.py` (`f`, `andeby_profil`, `heat_params`) udført i Python for 135 værdier af årsbehovet, inkl. alle halvtilfælde |
+
+Fra runde 15 bærer spejlet også `vaerksark_typer`: værksark-scriptets egne tabeller over enhedstyper, brændsel pr. type,
+CO₂-faktorer og prisarkets etiketter (`BRAENDSEL_PR_TYPE`, `CO2_PR_MWH_BRAENDSEL`, `BRAENDSEL_ORD`, `BIOMASSE` og `navne` i
+`laes_priser`), læst af kildeteksten. Trofasthedstjekkets [5] holder appens enhedstyper, brændsler og priser op mod dem.
+Baggrunden: da modellen fik `oil_boiler` ved `939228a`, var tjekket grønt med en app, der ikke kendte typen.
 
 Kørselskommandoerne læses **strengt** af [`fabric/fjv/modelkoersel.py`](../fabric/fjv/modelkoersel.py): flag og antal
 værdier tages fra `run_case.py`'s egen `argparse`. En linje, der ikke kan fortolkes, eller et ukendt flag stopper
@@ -70,7 +75,7 @@ filnavne er lange).
 ```bash
 git clone https://github.com/DinSHS/fjernvarme-businesscase-app.git app
 git clone https://github.com/skj-1964/fjernvarme-businesscase.git model
-git -C model checkout 90fb16eb1e2d5aa8e619b5a951b93760fa803985
+git -C model checkout 939228aa048563c8498382a79d207c8b03fbda57
 git clone https://github.com/skj-1964/df-data.git model/data/df-data
 git -C model/data/df-data checkout 106b9fce9a2e3610090b1a542559024056449b88
 
@@ -126,10 +131,13 @@ python app/viden/vaerktoej/bevis_app_vej.py --model model --ud bevis
 
 For hver af de 7 cases køres 10.–11. marts 2026 to gange med modelrepoets egen kommando for casen: **A** direkte
 (`python run_case.py cases/<fil> --data-source github …`) og **B** ad appens vej (blade → frosset input → `case.yaml` +
-argv → wrapperen). Scriptet sammenligner objektivet, `_hourly.csv` og `_kpi.csv` byte for byte. Målt 2026-11-14 ved
-`90fb16e` med df-data **`106b9fc`** (= appens pin; scriptet melder `df-data 106b9fc, appens pin 106b9fc`), linopy 0.10.0,
-highspy 1.15.1 (`bevis_app_vej.py --model ../fjernvarme-businesscase --ud C:/fjvb2`). En første kørsel samme dag læste
-modelrepoets egen df-data-klon ved `a859b8b`, ikke pinnen; den gav de samme 7 objektiver, men tæller ikke som beviset:
+argv → wrapperen). Scriptet sammenligner modellens **fulde** objektiv og `_hourly.csv` og `_kpi.csv` byte for byte
+(hele SHA-256). Objektivet er modellens eget uafrundede tal — `objective_value` i `_dispatch.nc`, som `run_case.py`
+skriver for begge veje — ikke manifestets `objektiv_dkk`, der er afrundet til hele kroner (`src/manifest.py:208`);
+tabellen nedenfor viser det i hele kroner. Målt 2026-11-23 ved
+`939228a` med df-data **`106b9fc`** (= appens pin; scriptet melder `df-data 106b9fc, appens pin 106b9fc`), linopy 0.10.0,
+highspy 1.15.1, i en klon af modelrepoet ved pinnen. Objektiverne er de samme som ved `90fb16e` (2026-11-14):
+modelrepoets 0.10.0 og 0.11.0 flytter ingen tal:
 
 | Case | Kommando (kilde) | Objektiv A = B, kr. | `_hourly.csv`, `_kpi.csv` | Ved `eef950a` (2026-10-27) |
 |---|---|---:|---|---:|
@@ -141,8 +149,51 @@ modelrepoets egen df-data-klon ved `a859b8b`, ikke pinnen; den gav de samme 7 ob
 | billund_sporB | med, målt (`cases/billund_sporB.yaml:17-19`) | 54.619 | byte-ens | 51.764 |
 | billund_sporB_rullende | ingen kommando: **egen antagelse** (uden, syntetisk) | 236.859 | byte-ens | 236.659 |
 
-**7 af 7 er ens** ved begge versioner. Marts 2026 ligger efter 1. oktober 2025, så objektiverne flytter sig med
+**7 af 7 er ens** ved alle tre versioner — ved `939228a` også på det fulde, uafrundede objektiv og hele SHA-256
+(kørt igen 2026-11-23 med det rettede script). En ottende case, som ikke står i modelrepoet, er kørt samme vej: Andeby med
+en oliekedel på 20 MW i stedet for gaskedlen (`oil_boiler`, `fuel_oil` 900 kr./MWh, ny ved `939228a`). 5.–6. januar 2026:
+**1.083.242 kr.** direkte = ad appens vej, begge filer byte-ens, og 1.083.242,38 kr. gennem hele arbejderkæden
+(oliekedlen 480,1 MWh, CO₂ 207,4 t mod 159,2 t med gaskedlen); 5.–16. januar: 4.001.969 kr. ad alle tre veje
+(`noter/maaling_model_939228a.md`). Marts 2026 ligger efter 1. oktober 2025, så objektiverne flytter sig med
 spotrettelsen (5021a5e); kolonnen *ved eef950a* kan ikke sammenlignes med de nye tal, og forskellen er ikke en fejl. Ét vindue kan vælges med `--start`/`--slut`, enkelte cases som argumenter (`andeby.yaml`).
+
+**Hvad "samme timefil" dækker — og hvad det ikke gør.** Tabellen ovenfor er målt i ét vindue (10.–11. marts 2026) og
+er byte-ens dér. Den generelle garanti er snævrere: timefilen fra en kørsel i appen er den samme som `run_case.py`
+giver på appens **egen** casefil — den `case.yaml`, der ligger i kørslens mappe ([4c](#4c-hele-appen-med-en-rigtig-kørsel)).
+Mod modelrepoets `cases/<værk>.yaml` med de samme flag er **objektivet, den samlede produktion og det samlede lager**
+de samme, men fordelingen mellem flere lagre behøver ikke være det. Den uafhængige test 18. november 2026 målte det på
+Andeby i januarvinduerne: byte-identisk timefil mod appens `case.yaml`; mod `cases/andeby.yaml` en anden fordeling
+mellem `tank_lav` og `tank_hoej` (op til 68 MWh og 25 MW pr. tank), mens summen over de to tanke, produktionen og
+objektivet var ens (afvigelse < 1e-13). Det er en alternativ optimal løsning, ikke en regnefejl: med to lagre uden
+tie-break er fordelingen mellem dem ikke bestemt af objektivet. Testen fandt samme fordeling på Linux og Windows —
+givet inputfilen er den deterministisk.
+
+*Hvad* i inputfilen der flytter fordelingen, er ikke fundet. Genmålt 23. november 2026 ved `939228a` (df-data
+`106b9fc`, highspy 1.15.1, Windows) gav `bevis_app_vej.py` **byte-ens** timefiler mod `cases/andeby.yaml` i begge
+januarvinduer (5.–6. og 5.–16. januar 2026): 866.568 og 3.441.004 kr. Også med parforslagets gab (0,02 % og 100 kr.)
+ad appens vej mod `--mip-gap 0.0002` direkte var de byte-ens. Testen blev kørt ved `90fb16e` gennem den kørende app;
+forskellen er altså hverken casefilens skrivemåde alene eller gabet alene.
+
+Derfor: **læs summen over lagre, ikke hvert lager for sig.** Appen gør det, hvor et tal står pr. lager:
+lagertabellen i en sammenligning har rækken *Alle lagre*, og kortene *Lager* og *Intervaldispatch* siger, at
+fordelingen ikke er entydig, når kørslen har mere end ét lager (`app/src/sider/analyser/tekster.ts` ›
+`FLERE_LAGRE_FORBEHOLD`).
+
+**Beviset kræver stadig byte-lighed.** En case består i `bevis_app_vej.py`, når — og kun når — modellens fulde
+objektiv er det samme tal, og `_hourly.csv` og `_kpi.csv` er ens byte for byte (`bestaaet`). Før efterprøvningen af
+rettelserne i runde 15 sammenlignede scriptet manifestets objektiv i hele kroner og de første 16 hextegn af hver fils
+SHA-256: to objektiver på 866.567,51 og 866.568,49 kr. ville begge stå som 866.568 og bestå. Nu læses det uafrundede
+tal, og en kørsel uden det består ikke. Er timefilerne ikke byte-ens, er casen en `FORSKEL`,
+og beviset skriver en *diagnose* ved siden af (`viden/vaerktoej/lagersum.py`): om alt uden for lagerkolonnerne er
+tegn for tegn ens, og om summen over lagrene er den samme time for time for hver af de fire størrelser — niveau,
+netto, opladning og afladning. Diagnosen kræver endelige tal og komplette serier og er til at forstå en forskel med;
+den gør den ikke til en bestået case. Runde 15 lod en sådan case bestå som `ENS*` på niveau og netto alene. Det er
+taget ud igen efter kodegennemgangen: nettoen kan skjule en ændret bruttoafladning, som appens række *Alle lagre*
+viser (to lagre på 5/5 MWh uden drift og 6/4 MWh, hvor det ene lader 1 MW og det andet aflader 1 MW, har samme
+samlede niveau og netto), og et `NaN` eller en manglende nettokolonne gik igennem. Modprøverne står i `test_trofasthed.py` (`Lagersum`). Ingen af de
+målte cases har udløst en forskel. Det samme gælder enheder med unit commitment (start/stop): to kørsler af samme input kan
+ende i forskellige løsninger med samme objektiv inden for gabet — målt samme dag på Billund Spor B, hvor appen og den
+direkte kørsel gav samme objektiv, men en anden fordeling mellem flis- og halmkedel.
 
 ### 4d. Eksport til værksark — rundturen
 
@@ -151,9 +202,10 @@ FJV_MODELPYTHON=<python med modelrepoets requirements.txt> python viden/vaerktoe
 ```
 
 Gaten kører det som trinnet *eksport rundtur*. For hvert værk i kataloget (de 7 cases, plus `billund_idag_maalt`:
-billund_idag med casens egen målte varmelast aktiv, så Timedata prøves) og tre varianter fra Codex' review K11
+billund_idag med casens egen målte varmelast aktiv, så Timedata prøves), tre varianter fra Codex' review K11
 (`andeby_navne`: halmkedlen hedder `halm__kedel`; `andeby_hul`: solprofilen med et dagtimehul og to tomme nattetimer i
-vinduets ende; `billund_idag_maalt_hul`: den målte varmelast med et hul) laver **appens egen kode** eksporten, og
+vinduets ende; `billund_idag_maalt_hul`: den målte varmelast med et hul) og `andeby_olie` (runde 15: en oliekedel i
+stedet for gaskedlen, med oliepris og CO₂-faktor 0,28) laver **appens egen kode** eksporten, og
 modelrepoets `scripts/vaerksark_til_yaml.py` køres **uændret** på arket, som importen kører det. Kravene:
 
 * importens `slug()` (`fjv.revision`) = scriptets egen på svære navne;
@@ -164,8 +216,8 @@ modelrepoets `scripts/vaerksark_til_yaml.py` køres **uændret** på arket, som 
   (`fjv.vaerksark.laeg_lag`) og modelkravene — er præcis eksportens forudsigelse (`lag.ts`) og **det oprindelige værk
   blad for blad**, bortset fra den eksplicitte, begrundede liste i `UNDTAGELSER` (solprofilens sti: det nye værk
   peger på sin egen solprofil). Hver forskel står på eksportens liste *ikke med i arket*, og listen har intet andet;
-  markeringens *afvigelser* er listens ikke-artefakter. Målt ved `90fb16e`: Andeby 232 af 232 blade med én forskel
-  (før runde 14: 80), Billund-værkerne ingen (før 71–106);
+  markeringens *afvigelser* er listens ikke-artefakter. Målt ved `90fb16e` og igen ved `939228a` med den nye skabelon
+  (2026-11-23): Andeby 232 af 232 blade med én forskel (før runde 14: 80), Billund-værkerne ingen (før 71–106);
 * revisionssporet for det nye værk er revision 1 = scriptets læsning og revision 2 = fanernes ændringer, og hvert
   blad, laget har sat, bærer kilden som kommentar; samme ark uden appens faner giver præcis scriptets læsning;
 * den målte serie i arket kommer tilbage byte for byte (inden for arkets periode), og begge mængdeforskelle i
@@ -192,9 +244,9 @@ En fejl i forudsigelsen (målt: tankenes selvafladning sat til 0,0006) gør trin
 ### 4c. Hele appen med en rigtig kørsel
 
 Følg [kom-i-gang i README](../README.md#kom-i-gang--lokal-udgave-520-minutter) og bestil Andeby 5.–6. januar 2026 uden
-balancemarked: **866.567,72 kr.** ved `90fb16e` (867.031,23 ved `eef950a`, før spotrettelsen). Samme tal giver den ægte
-arbejder uden server (`python fabric/koer_minne.py andeby 2026-01-05 2026-01-06`, målt 2026-11-14) og `run_case.py`
-direkte på modelrepoet ved `90fb16e`. Kørslens side viser modelversionerne og *Data i denne kørsel*; de rå filer — `case.yaml`,
+balancemarked: **866.567,72 kr.** ved `939228a` og `90fb16e` (867.031,23 ved `eef950a`, før spotrettelsen). Samme tal giver
+den ægte arbejder uden server (`python fabric/koer_minne.py andeby 2026-01-05 2026-01-06`, målt 2026-11-23 ved `939228a`)
+og `run_case.py` direkte på modelrepoet ved `939228a` (866.568, målt samme dag). Kørslens side viser modelversionerne og *Data i denne kørsel*; de rå filer — `case.yaml`,
 `argv.json`, modellens egne `_kpi.csv`/`_hourly.csv`/`_manifest.json` og solverloggen — ligger i
 `<datamappe>/Files/fjv/koersler/<kørsels-id>/`, så du kan køre præcis den kørsel med `run_case.py`.
 
@@ -205,29 +257,37 @@ direkte på modelrepoet ved `90fb16e`. Kørslens side viser modelversionerne og 
 | Parforslag (scenarie mod reference) | relativt gab 0,02 % **og** absolut gab 100 kr. | `--mip-gap 0.0002` (README.md:161); det absolutte gab er casens (fx 5.000 kr.) | en differens på få tusinde kroner drukner ellers i det absolutte gab (se [nedenfor](#highs)) |
 | Cases uden kørselskommando (`billund_sporA_rullende_bud`, `billund_sporB_rullende`) og egne værker | uden balancemarked, syntetisk varmelast | ingen kommando | appen skal vælge noget; valget står som *egen antagelse* i scenariet |
 | "Nyt værk" | årsbehov 50 GWh som udgangspunkt; gaskedel `round(50 × f)` MW; enhedstypernes pladsholdere | skalering `f = round(G/100, 4)` og Andebys tal (brugt uændret) | et minimalt gyldigt værk; hvert felt bærer sin kilde ind i databasen |
+| Enhedstypernes pladsholdere (*Tilføj enhed* og guiden *Nyt værk*) | begge veje opretter en enhed af typens skabelon (`viden/enhedstyper.json`), og skabelonens tal er appens egne forslag. For oliekedlen (ny ved `939228a`): 15 MW, virkningsgrad 0,95, D&V 30 kr./MWh, startomkostning 500 kr., mindste op- og nedetid 1 time — gaskedlens pladsholdere. Formularen mærker hvert forslag *egen antagelse* (`katalog.ts` › `skabelonKilde`) | kun CO₂-faktoren er modelrepoets: værksarkets konvertering har 0,266 t/MWh for oliekedlen og 0,2 for gaskedel og gasmotor (`scripts/vaerksark_til_yaml.py` › `CO2_PR_MWH_BRAENDSEL`; holdt op mod kataloget af `tjek_trofasthed.py` [5]). Modelrepoet har ingen standardværdier for effekt, virkningsgrad, D&V og start | en ny enhed skal være gyldig, før brugeren har skrevet værkets egne tal; uden mærket kunne 15 MW og 0,95 læses som modelrepoets (kodegennemgangen af runde 15) |
 | Månedstal | dansk lokaltid, alle N intervaller | `_monthly.csv` i UTC | sammenlignes med værkets egne måneder |
 | Sammenligning, vandfald, anbefalinger | appens egne regler (`viden/anbefalingsregler.json`, METODE §6a) | differensmetoden (README) | appen lægger to kørsler side om side; reglerne står i appen |
+| Hvornår en differens er et resultat (runde 15) | et par vises kun som godt eller dårligt (virkningsfarve, grønt mærke, "billigere/dyrere", en anbefaling), når det er direkte sammenligneligt: samme værk, periode, opløsning, df-data, modelversion og ønsket gab — og to forskellige **kendte** værksrevisioner spærrer. Mangler værksrevisionen på den ene eller begge kørsler (ældre data), spærrer det ikke: det er en oplyst undtagelse (en note i kortet; appens egen antagelse), så et sådant par er ikke bevist regnet på samme værksdata. Ellers står tallene side om side med grunden først (`beregn.ts` › `sammenlignelighedsDom`). Dommen fældes på kørslens frosne profil (rækkens felter, manifestet, det frosne input; aldrig scenariets levende felter) og er den samme under Scenarier (`koerselsDom`) og Analyser; kendes et nødvendigt felt ikke for begge kørsler, er den *kan ikke afgøres* — intet resultat, men heller ingen afvisning. Hvert kort på sammenligningssiden spørger dommen (efterprøvningen af rettelserne i runde 15): ved *kan ikke afgøres* står de to kørslers tal side om side med hver sin periode, uden afledt Δ, uden retningsfarve og uden prisord; ved *ikke direkte sammenlignelige* er Δ neutralt, og farvevalget (Retning/Heatmap) er slået fra. **Perioden** er kørslens effektive akse, udledt af det frosne input med arbejderens egen regel (`beregn.ts` › `effektivPeriode` = `fabric/fjv/byg_case.py` › `_effektiv_tid`, bundet af `skema/vektorer/effektiv_akse.json`): scenariets datoer er hele døgn (til kl. 23 UTC), værkets egen `time`-blok bruges præcis — en bar dato er midnat. Modellens manifest bærer kun rene datoer (`src/manifest.py:190-193`) og er kontrollen; uden frosset input kan perioden ikke udledes, og dommen er *kan ikke afgøres*. **Varmelast og solprofil** (efterprøvningen af rettelserne i runde 15): de to kørslers frosne tidsserier holdes op mod hinanden på sha256. Er de forskellige, spærrer det ikke, når det frosne input beviser et udtrykkeligt scenarievalg (en af modelrepoets varmelastfiler, eller et frosset `"syntetisk"`); er begge bevisligt arvet fra værket, er grundlaget ændret, og parret er ikke direkte sammenligneligt; ellers *kan ikke afgøres*. Appens udtrykkelige syntesevalg fryses (tredje rettelsesrunde i runde 15) som `_koersel.tidsserie.varmelast = "syntetisk"` — den række, den manuelle vej altid har skrevet, og som arbejderen læser som "ingen tidsserie" — så *målt mod syntetisk varmelast* kan sammenlignes, også når den målte last er en af værkets egne tidsserier. Begrænsninger: (1) en frossen serie `{id, sha256}` fryses ens, hvad enten scenariet valgte den, eller den var værkets aktive; derfor ender et skift af værkets aktive serie som *kan ikke afgøres* (ikke som en afvisning), og det samme gør to forskellige af værkets serier over for hinanden. (2) Kørsler bestilt i appen FØR denne rettelse har ingen række for et valgt "syntetisk" og kan ikke skelnes fra et værk uden aktiv serie: over for en serie forbliver de *kan ikke afgøres*, og en ældre reference genbruges ikke til et nyt par (en ny bestilles og får beviset). To forskelle er ikke en afvigelse (tredje rettelsesrunde): en serie, som BEGGE kørslers manifest dokumenterer som ubrugt (`manifest_json.tidsserier.ubrugt`, arbejderens registrering — fx en solprofil på et værk uden aktiv solvarmeenhed), indgår ikke i dommen; og modelrepoets egen profilfil er samme kilde som den samme fil frosset som tidsserie, når den frosne profilsti og modelversionen beviser det (`analyser/repoprofiler.ts`; i dag Andebys `data/solar_andeby_dmi_karup.csv`, samme git-blob ved `eef950a`, `90fb16e` og `939228a`, jf. `viden/referencetal.json` › `solprofil_sti`, `solprofil_model_commits`, holdt op mod modelrepoet af `fabric/tests/test_tidsserier.py`) — og (fjerde rettelsesrunde) når profilen bruges af samme aktive enhed(er) på begge sider: de aktive enheder med profilstien i det frosne input over for de enheder, arbejderen lagde serien på (`manifest_json.tidsserier.anvendt.solprofil.enheder`) plus dem, der stadig læser filen (`beregn.ts` › `andrePlaceringer`). Samme hash på en anden enhed er et andet produktionsloft; kan placeringen ikke bevises (fx en kørsel uden manifestets registrering), er dommen *kan ikke afgøres*. Er serien kun dokumenteret ubrugt på den ene side, eller er filen ikke målt ved kørslens modelversion, gælder reglerne ovenfor. En ukendt værksrevision er kun en note, og teksten siger da, at den ikke kendes. Hele sammenligningssiden læser de to kørsler i ét sæt roller (`data.ts` › `sideRoller`): parrets egen reference (scenariets `reference_scenarie_id`), ellers er scenariet den kørsel, der alene bærer ændringen i forhold til værket, ellers valgets rækkefølge. En knaps skabelon genkendes kun i den retning og bytter aldrig rollerne | differensmetoden (README): kun det, scenariet ændrer, må være forskelligt. Værksrevisionen findes kun i appen | den uafhængige test 18. november 2026: et par med hver sin periode stod med grøn differens, og *Scenariet fortalt* kunne fortælle den anden kørsel end nøgletallene. Revisionen er taget med, fordi to revisioner er to forskellige værker under scenariet |
+| Intet årstal af en kortere periode (runde 15) | anbefalingen viser kun periodens beløb. Et årstal vises alene, når perioden selv er mindst 365 døgn — og er da periodens tal uændret. Før: Δ × 365 / døgn for 7–364 døgn (`anbefaling.ts` › `HELAAR_DOEGN`) | modellen regner den periode, den får; den skalerer intet | den uafhængige test 18. november 2026 (3.1): 12 januardøgn i Andeby blev til "ca. 715.000 kr." om året, 121 forårsdøgn i Billund til ca. 6,6 mio. kr. En sæson er ikke et år |
+| Forslag om længere tidsgrænse (runde 15) | stoppede en af parrets kørsler på solverens tidsgrænse, og er usikkerheden (summen af de tidsstoppede kørslers gab) mindst **10 %** af \|ΔRef\| — eller ukendt — er første næste skridt en ny kørsel med længere tidsgrænse; kørslen mærkes "Stoppet på tidsgrænsen" (`beregn.ts` › `tidsgraenseForslag`, `TIDSGRAENSE_VAESENTLIG_ANDEL`) | modellen stopper ved `solver.time_limit` (standard 600 s) og gemmer den bedste løsning; den foreslår intet | forslag i den uafhængige test 18. november 2026 (afsnit 2a). Tallet 10 % er appens: i testens eget tilfælde (Billund Spor B, 3.926 kr. af ca. 2,18 mio. kr. = 0,2 %) holdt konklusionen, og dér foreslås intet |
 | Grænser | kun timeopløsning (1h); højst 366 døgn; én solver ad gangen; tidsgrænse ≤ 3.600 s i Fabric; CSV-upload strengere end modellens læser | modellen kan 15 min og vilkårlig længde | driftssikkerhed i en delt installation |
 | *Tilføj balancemarked* (Konfiguration › Balancering, runde 14c) | blokken bygges af Andebys blok eller BUDSTRATEGI's fælles del + profil 1–4 **uændret**, med fil:linje pr. felt; brugeren vælger de prækvalificerede el-enheder, loftet pr. enhed (og for Andebys blok fordelingen pr. marked) og referenceenheden; kildens øvrige tal står som *eksempel* og kan rettes; de valgte enheder får `afrr_qualified`/`mfrr_qualified: true`. Profil 5 og budvinduet tilbydes ikke (profil 5 kræver en kommentar-instruks, budvinduet er et enhedsfelt) | `doc/BUDSTRATEGI.md:216-305`: blokkene indsættes i casefilen i hånden ("Bed Claude om at gøre det"), og "Tallene er eksempler og skal erstattes med værkets egne"; værksark-scriptet skriver ingen blok | et værk fra modelrepoets skabelon kunne ikke regne med balancemarked (appens eksporterede ark kan bære blokken i fanen *Balancemarked* — den anden vej); appen opfinder ingen værdier, men samler blokken af modelrepoets egne og lader brugeren udfylde det, der er værkets |
 | *Tilføj et felt* (runde 14c) | et felt fra kataloget, værket mangler, med modellens standardværdi som udgangspunkt; ikke enkeltfelter i en blok, hvis tilstedeværelse ændrer regningen (`cop_curve`, tarifprofilen, `nettab`), ikke enhedsfelter for typer uden for katalogets `gaelder_for`, og ikke `balancing`-felter uden blok | modellen bruger standarden, når feltet mangler (kataloget, holdt op mod koden af tjek [4]) | med standardværdien regner modellen som før; feltet bliver synligt og kan rettes og bruges i scenarier |
 | Advarslen om starttilstand (runde 14c) | værkets side advarer, når alle tændte enheder med unit commitment har `initial_status: 0` | værksark-scriptet sætter `initial_status = 0` på hver UC-enhed (`scripts/vaerksark_til_yaml.py`); modellens standard er 1 (`src/config.py`) | målt 2026-11-17 (90fb16e, df-data 106b9fc) på Andeby fra værksarket: 5.–6. januar 2026 med tankene slået fra uløselig, med halmkedlen tændt ved start 869.828,49 kr.; 8.–9. juni løser begge. Derfor "kan blive uløselig". Appen ændrer ikke værket selv |
 | Netto og brutto balanceindtægt | vises hver for sig, aldrig lagt sammen | objektivet bruger brutto, manifestet netto | som modellens egen dokumentation |
-| Værksarkets faner *Start og drift*, *Balancemarked* og *Øvrige felter* (runde 14) | appens eget lag: eksporten skriver dem efter modelrepoets faner, og importen lægger deres værdier oven på scriptets læsning — typen fra feltkataloget, hver værdi valideret som en redigering i appen, det færdige værk mod modellens minimumskrav. En række i *Øvrige felter* viger for en rettelse i modelrepoets faner (kolonnen *kun hvis modelscriptet giver*). Et nyt værk er revision 2 (revision 1 = scriptets læsning), og bladet bærer kilden som kommentar | skabelonen har fanerne Vejledning, Timedata, Anlaeg, Varmepumpe, Priser (og Solvarme); scriptet sætter selv `initial_status: 0` (`scripts/vaerksark_til_yaml.py:855-856`), halvfuld tank, selvafladning 0,0005 og `cycle_binding` (`:912-916`), CO₂-faktor 0,2 (`:846-847`), unit commitment efter minimumslasten (`:853-854`) og skriver en case uden `balancing` (`:1685`) | et værk skal kunne eksporteres, rettes og uploades uden at miste et felt; målt stod 71–106 felter pr. katalogværk på listen *ikke med i arket*. Scriptet køres stadig uændret, og fanerne siger selv, at de er appens |
-| Højlydt import af værksarket (runde 14) | en række i Anlaeg med navn uden type (eller omvendt, eller kun tal), en tank uden volumen eller under de seks tankrækker og et målepunkt under varmepumpens tabel afviser importen med rækkenummer, før scriptet kører; importens log advarer, når hver styrbar enhed står til slukket ved start | scriptet springer rækken over uden besked (`dropna`, `scripts/vaerksark_til_yaml.py:606` og `:878`; `nrows=6`, `:876`; `nrows` i Varmepumpe, `:513-515`) | målt: otte af et værks 17 enheder forsvandt, og kørslen uden tank var uløselig, fordi alle enheder var slukket i første time |
-| Referencetal efter spotrettelsen (`5021a5e`) | README-tallene vises som *regnet før spotrettelsen* med egne målinger ved `90fb16e` ved siden af (Information › Referencetal og Budstrategi, METODE §7, `referencetal.json` › `regnet_igen`); *README mod Fabric* tæller kun kørsler ved `eef950a` (`model_commit` med `regnet_ved`); demoernes forventede tal er egne målinger, og D12 har intet | README-tabellen, `doc/` (fx `doc/BUDSTRATEGI.md:328-335`) og rapport v4 er regnet før rettelsen og opdateres senere (README.md:20-27); efter rettelsen kun tre kontroltal (CLAUDE.md:30-38) | koden ved pinnen regner med den nye spotregel; et gammelt tal som facit ville melde en korrekt kørsel som forkert |
+| Værkets tidsserier i normaliseret form — også casens egen solprofil (runde 15) | én filform til modellen for alle værkets tidsserier: `time,mw` (UTC, timens start, huller udeladt; `fabric/fjv/tidsserie.py`). Casens egen solprofil (fx `data/solar_andeby_dmi_karup.csv`) registreres som tidsserie og gives til modellen i den form — kolonnen hedder altså `mw`, ikke `power_mw`, og filens sha256 er en anden end repo-filens. Værdierne er de samme, tegn for tegn hvor kilden er en ren decimal | repoets solprofil har overskriften `time,power_mw` (`data/solar_andeby_dmi_karup.csv:1`); profil-læseren er `src/data_loader.py:998-1029` | én filkontrakt, som arbejderen kan stole på (form, hash, sti). Modellens egne læsere giver bitvis samme serie fra den normaliserede fil som fra repoets (`fabric/tests/test_tidsserier.py`); den uafhængige test 18. november 2026 fandt værdierne identiske og bad om, at det andet kolonnenavn og den ændrede sha256 står her. Den frosne `sha256` i en kørsel er derfor den normaliserede fils, ikke repo-filens |
+| CO₂-udledning (runde 15) | "ikke opgjort" i stedet for modellens tal, når en tændt enhed med fossilt brændsel (naturgas; olie og kul står også på appens liste) har produceret varme med `co2_emissions_per_mwh_fuel` ≤ 0 — i kørslens kort, i sammenligningens nøgletal og i *Scenariet fortalt*. "Produceret" er produktion > 0 eller mindst ét driftsinterval: modellen afrunder enhedens produktion til 0,1 MWh, før nøgletallet gemmes (`src/reporting.py:79`), men tæller intervallerne på den uafrundede (`:75`), så 0,04 MWh med én driftstime står som 0,0 MWh. Kun et dokumenteret nul (0 MWh og 0 driftsintervaller) lader tallet stå. Mangler tallene — ingen nøgletal for enheden, 0,0 MWh uden antallet af driftsintervaller, eller kørslens frosne input kendes ikke — står der "ukendt" med sin egen forklaring. Appen gætter ingen faktor og retter ikke tallet; modellens tal står i kortets fodnote (`beregn.ts` › `co2Opgoerelse`) | `co2_ton` = Σ varme / `eta_fuel_to_heat` × faktoren over enheder med faktor > 0 (`src/manifest.py:130-147`); standarden er 0,0 (`src/config.py:504`). Billund-casene har 0,0 på gasenhederne, fordi CO₂-omkostningen ligger i gasprisen | den uafhængige test 18. november 2026 (4E): "0 t" blev vist som udledning for et værk, der brænder naturgas. Økonomien er uændret; kun udledningen mangler, indtil modellen skiller den fysiske faktor fra omkostningen |
+| Værksarkets faner *Start og drift*, *Balancemarked* og *Øvrige felter* (runde 14) | appens eget lag: eksporten skriver dem efter modelrepoets faner, og importen lægger deres værdier oven på scriptets læsning — typen fra feltkataloget, hver værdi valideret som en redigering i appen, det færdige værk mod modellens minimumskrav. En række i *Øvrige felter* viger for en rettelse i modelrepoets faner (kolonnen *kun hvis modelscriptet giver*). Et nyt værk er revision 2 (revision 1 = scriptets læsning), og bladet bærer kilden som kommentar | skabelonen har fanerne Vejledning, Timedata, Anlaeg, Varmepumpe, Priser (og Solvarme); scriptet sætter selv `initial_status: 0` (`scripts/vaerksark_til_yaml.py:872-873`), halvfuld tank, selvafladning 0,0005 og `cycle_binding` (`:912-916`), CO₂-faktor 0,2 (`:846-847`), unit commitment efter minimumslasten (`:853-854`) og skriver en case uden `balancing` (`:1685`) | et værk skal kunne eksporteres, rettes og uploades uden at miste et felt; målt stod 71–106 felter pr. katalogværk på listen *ikke med i arket*. Scriptet køres stadig uændret, og fanerne siger selv, at de er appens |
+| Højlydt import af værksarket (runde 14) | en række i Anlaeg med navn uden type (eller omvendt, eller kun tal), en tank uden volumen eller under de seks tankrækker og et målepunkt under varmepumpens tabel afviser importen med rækkenummer, før scriptet kører; importens log advarer, når hver styrbar enhed står til slukket ved start | scriptet springer rækken over uden besked (`dropna`, `scripts/vaerksark_til_yaml.py:616` og `:878`; `nrows=6`, `:876`; `nrows` i Varmepumpe, `:513-515`) | målt: otte af et værks 17 enheder forsvandt, og kørslen uden tank var uløselig, fordi alle enheder var slukket i første time |
+| Referencetal efter spotrettelsen (`5021a5e`) | fire af README's fem tal vises som *regnet før spotrettelsen* med egne målinger ved `939228a` ved siden af (Information › Referencetal og Budstrategi, METODE §7, `referencetal.json` › `regnet_igen`); Spor A-ankeret er README's tal efter rettelsen. *README mod Fabric* tæller for hvert tal kun kørsler ved en version, tallet er regnet ved: Spor A ved `90fb16e` eller `939228a` (`regnet_ved` på referencen — **egen antagelse**, at netop de to pins giver README's tal; den hviler på modelrepoets CHANGELOG og to målinger), de fire øvrige ved `eef950a`; demoernes forventede tal er egne målinger, og D12 har intet | README-tabellen, `doc/` (fx `doc/BUDSTRATEGI.md:328-335`) og rapport v4 er regnet før rettelsen og opdateres senere (README.md:20-27); efter rettelsen kun tre kontroltal (CLAUDE.md:30-38) | koden ved pinnen regner med den nye spotregel; et gammelt tal som facit ville melde en korrekt kørsel som forkert |
+| Hvornår en kørsel måles mod et README-tal (rettelserne efter kodegennemgangen af runde 15) | kun en *måling*: kørslens frosne input har referencens opsætning og ingen scenarieændringer, gabet er casens eget eller strammere, værket er repo-casen uændret (kilde `repo`, revision 1, importeret ved en af referencens modelversioner), kørslen er regnet ved en af dem, og df-data er en commit, hvis dato er målt og ligger efter README's datakrav (`information/referencer.ts` › `kvalificer`). Efter tredje rettelsesrunde også: løsningen er **afsluttet inden for casens gab** — solveren meldte optimal, og det OPNÅEDE gab (|objektiv − nedre grænse|, ellers solverens rapporterede gab) er kendt og inden for casens relative eller absolutte gab (solveren stopper ved det første). En kørsel stoppet på tidsgrænsen, eller med et for stort eller ikke oplyst opnået gab, er ikke en måling: dens objektiv er foreløbigt, og den vises ved siden af README-tallet med sin solverstatus, uden afvigelse og uden dom (*ikke løst til casens gab*). Det ønskede gab siger kun, hvad der blev bedt om. Efter efterprøvningen af rettelserne også: kørslen er færdig, og dens **effektive frosne varmelast og solprofil er referencens** — varmelasten er README's fil (eller syntesen, når README regner uden målt varmelast) og ikke en af værkets tidsserier; en solprofil-tidsserie, kørslen faktisk brugte, er casens egen (for Andeby `data/solar_andeby_dmi_karup.csv` i appens normaliserede form, sha256 `35706793…` i `viden/referencetal.json` › `solprofil_sha256`, holdt op mod modelrepoet af `fabric/tests/test_tidsserier.py`). Samme regel i *Information › Referencetal* og for mærket *README-reference* i Analysers kørselsliste; målingen går forud for navnereglen for røgtests (`probe-`, `Test K<n>`), så de to visninger aldrig placerer samme kørsel forskelligt. Ellers regnes ingen afvigelse: *kørt på et andet grundlag* eller *kørt ved en anden modelversion* | README har tallene og datakravet (README.md:175-176), men ingen regel for, hvornår en kørsel er en måling af dem | kodegennemgangen af runde 15: *Referencetal* læste scenariet, som det så ud nu, og dømte en rettet Spor A-case (værk i revision 2) "uden for tolerancen" mod 5.204.555 kr. Efterprøvningen: en Spor A-kørsel med en anden aktiv varmelast-tidsserie (frosset uden at stå som en ændring) blev stadig målt mod tallet |
 
 Ikke med i appen: `--heat-params`, `--heat-csv-column`/`--heat-csv-tz`, `--legacy-nettab` i standardkørslen, `--dummy`.
 
 ## 6. Observationer i modelrepoet
 
 Fundet under arbejdet ved `eef950a` og ikke rettet af os (modelrepoet er dit). Ingen af dem påvirker appens tal. Rækker
-mærket *ved 90fb16e* er fundet ved modelskiftet 14. november 2026; deres linjer er ved `90fb16e`.
+mærket *ved 90fb16e* er fundet ved modelskiftet 14. november 2026; deres linjer er ved `90fb16e`. Rækker mærket
+*ved 939228a* er fundet ved modelskiftet 23. november 2026.
 
 | Hvor | Hvad |
 |---|---|
-| `README.md:125,253`, `CONTRIBUTING.md:71`, `doc/WORKFLOW_LOKAL.md:149`, `doc/EGET_VAERK.md:4`, `scripts/vaerksark_til_yaml.py:51` | peger på `doc/vaerksdata_skabelon.xlsx`; filen ligger nu i roden |
-| `scripts/byg_skabelon.py:571` | skriver stadig skabelonen til `doc/` |
-| `README.md:14,217` | linker til `.docx`-filer, der er flyttet til `doc/arkiv/` |
+| `README.md:125,255`, `CONTRIBUTING.md:71`, `doc/WORKFLOW_LOKAL.md:149`, `doc/EGET_VAERK.md:4`, `scripts/vaerksark_til_yaml.py:51` | peger på `doc/vaerksdata_skabelon.xlsx`; filen ligger nu i roden |
+| `scripts/byg_skabelon.py:577` | skriver stadig skabelonen til `doc/` |
+| `README.md:14,219` | linker til `.docx`-filer, der er flyttet til `doc/arkiv/` |
 | `README.md:20-27`, `README.md:183-189`, `doc/BUDSTRATEGI.md:328-335` (ved 90fb16e) | tallene er regnet før spotrettelsen; modelrepoet siger det selv. Appen viser dem som sådan (afsnit 5) |
 | `CLAUDE.md:30-38` (ved 90fb16e) | kontroltallene for Billund i dag siger ikke, hvilken varmelastfil de er regnet med; appens kæde ramte dem til kronen med `billund_abvaerk_hourly_splejset_jun2026.csv` |
 | `doc/BALANCEMARKED.md:52-62` | aktiveringsværdien står stadig med spot; koden (`src/activation_value.py`) og BUDSTRATEGI §4.2 regner uden |
@@ -236,12 +296,14 @@ mærket *ved 90fb16e* er fundet ved modelskiftet 14. november 2026; deres linjer
 | `doc/matematisk_modelbeskrivelse_v4.pdf`, bilag D | beskriver koden før rettelserne 19. oktober |
 | `doc/VARMELAST_OG_NETTAB.md:43-44` mod `README.md:176` | "Billund-casene kører med målt varmelast", men Spor A-ankeret kører uden `--heat-csv` |
 | `cases/billund_sporA*.yaml:17-31`, `billund_sporB_rullende.yaml:28-31` | kørselskommentaren er arvet fra `billund_backtest_jan_apr_2026.yaml`, som ikke findes; casens egen kommando står kun i README (og slet ikke for `_rullende_bud` og `sporB_rullende`) |
-| `scripts/vaerksark_til_yaml.py:1581` | skalerer fra "Andebys ~100 GWh"; Andebys parametre giver 105,52 GWh på karup-vejret jul 2025–jun 2026 (vores måling) |
-| `scripts/vaerksark_til_yaml.py:1015-1036` | dansk lokaltid i både Timedata og Solvarme fejler altid ("mangler 22 timer i starten") |
+| `scripts/vaerksark_til_yaml.py:1600` | skalerer fra "Andebys ~100 GWh"; Andebys parametre giver 105,52 GWh på karup-vejret jul 2025–jun 2026 (vores måling) |
+| `scripts/vaerksark_til_yaml.py:1032-1053` | dansk lokaltid i både Timedata og Solvarme fejler altid ("mangler 22 timer i starten") |
 | `cases/andeby.yaml:184` | CO₂-enheden hedder `DKK/t`; konverteringen skriver `DKK/t_CO2` |
 | `scripts/vaerksark_til_yaml.py:606`, `:878` (ved 90fb16e) | `dropna(subset=["navn", "type"])` springer en enhed med navn, men uden type, over uden besked — og `dropna(subset=["navn", "volumen"])` en tank uden volumen. Målt i gaten: en kedel uden type giver exit 0 og en case uden kedlen. Appens import afviser arket med rækkenummer (afsnit 5) |
 | `scripts/vaerksark_til_yaml.py:855-856` mod `src/config.py:520` (ved 90fb16e) | konverteringen skriver `initial_status: 0` for hver enhed med unit commitment; modellens standard er 1. Et værk fra arket kan derfor ikke dække første time uden tank (målt: kørslen løser med `units.el_kedel.initial_status: 1`). Appens import advarer |
-| `scripts/vaerksark_til_yaml.py:101-108` | `slug()` normaliserer til NFKD **før** æ/ø/å erstattes: `å` er da allerede `a` + en kombinerende ring og bliver `a` (ikke `aa`), og et stort Æ eller Ø falder bort i `.encode("ascii", "ignore")`. Målt: "Ærø Fjernvarme" → `roe_fjernvarme`, "Brønderslev Østerby" → `broenderslev_sterby`, "Tårs Halmværk" → `tars_halmvaerk`. Appens eksport forudsiger det samme |
+| `vaerksdata_skabelon.xlsx` (ved 939228a) | filen er skrevet direkte af `scripts/byg_skabelon.py` (openpyxl) og ikke gemt i et regneark: formlerne i `Varmepumpe!E6:E23` har intet gemt resultat (før: gemt af LibreOffice med resultater). `doc/EGET_VAERK.md` siger, at formler skal have en beregnet værdi; konverteringen læser ikke kolonne E, så arket virker (målt i rundturen). Appens eksport måtte følge den nye XML-form (afsnit 4d) |
+| `CHANGELOG.md` 0.11.0 (ved 939228a) | nævner DMI-område B28 → B29 og priszone B29 → B30; værkets navn er rykket med (B30 → B31), og det var den celle, vores test skrev i |
+| `scripts/vaerksark_til_yaml.py:111-118` | `slug()` normaliserer til NFKD **før** æ/ø/å erstattes: `å` er da allerede `a` + en kombinerende ring og bliver `a` (ikke `aa`), og et stort Æ eller Ø falder bort i `.encode("ascii", "ignore")`. Målt: "Ærø Fjernvarme" → `roe_fjernvarme`, "Brønderslev Østerby" → `broenderslev_sterby`, "Tårs Halmværk" → `tars_halmvaerk`. Appens eksport forudsiger det samme |
 
 <a id="highs"></a>Om gabet: med `--mip-gap 0.0002` alene stopper HiGHS ved det absolutte gab (casens 5.000 kr.), før det
 relative er nået. Det er grunden til appens 100 kr. i parforslag.

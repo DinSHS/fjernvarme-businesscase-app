@@ -644,7 +644,7 @@ def _tom(v) -> bool:
 def tjek_tavse_raekker(sti: Path) -> None:
     """Afvis arket, hvis modelscriptet ville springe en udfyldt række over uden besked (runde 14, brief C).
 
-    Målt: scripts/vaerksark_til_yaml.py:606 (``dropna(subset=["navn", "type"])``) springer en enhed med navn, men
+    Målt: scripts/vaerksark_til_yaml.py:616 (``dropna(subset=["navn", "type"])``) springer en enhed med navn, men
     uden type, over; otte af et værks 17 enheder forsvandt sådan. Tanktabellen gør det samme for en tank uden
     volumen (:878) og læser kun seks rækker (:876); Varmepumpe læser kun til sin note eller 18 rækker (:513).
     Blokkene findes som scriptet finder dem (overskriften i kolonne A)."""
@@ -733,7 +733,7 @@ def foerste_time_advarsel(blade: dict, har_lag: bool) -> str | None:
     """Advarsel, når ingen enhed kan levere varme i første time uden tank (runde 14, brief C).
 
     Målt: modelscriptet sætter ``initial_status: 0`` på hver enhed med unit commitment
-    (scripts/vaerksark_til_yaml.py:855-856). Uden tank kunne kørslen "hvad er tanken værd" ikke løses; med
+    (scripts/vaerksark_til_yaml.py:872-873). Uden tank kunne kørslen "hvad er tanken værd" ikke løses; med
     ``units.el_kedel.initial_status: 1`` løste den. Advarslen gælder, når HVER aktiv enhed, der kan styres
     (solvarme er vejrbestemt), har unit commitment og står til slukket ved start. Med tank er værket gyldigt."""
     v = {s: json.loads(j) for s, j in blade.items() if s.startswith("units.")}

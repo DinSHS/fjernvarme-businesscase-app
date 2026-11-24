@@ -240,8 +240,11 @@ def byg_miljoe(requirements: Path, venv: Path, log: list) -> str:
 def underproces_miljoe() -> dict:
     env = dict(os.environ)
     env.update({
-        "PYTHONUTF8": "1",              # run_case læser YAML med read_text() uden
-        "PYTHONIOENCODING": "utf-8",    # encoding; på Windows ville det være cp1252
+        # Til og med modelrepoets 90fb16e læste run_case YAML med read_text() uden encoding (cp1252 på Windows).
+        # Fra 939228a (modelrepoets 0.10.0) læser modellen selv UTF-8, og PYTHONUTF8 er ikke længere nødvendig;
+        # den bliver stående, fordi den ikke skader, og en kørsel ved en ældre pin stadig kræver den.
+        "PYTHONUTF8": "1",
+        "PYTHONIOENCODING": "utf-8",
         "PYTHONDONTWRITEBYTECODE": "1",
         # Ubufret: HiGHS skriver direkte til fd 1, Python bufrer sine print's.
         # Uden dette kommer modellens linjer efter solverloggen, og fasen

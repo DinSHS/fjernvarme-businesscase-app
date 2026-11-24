@@ -55,9 +55,12 @@ værk — med hele indholdet, også appens faner. En række i arket med et navn,
 importen med rækkenummer; modellens script ville springe den over uden besked. Står alle enheder til slukket ved
 start, advarer importens log: uden tank kan værket ikke dække den første time. (Kilde: KONTRAKT §6d; doc/EGNE_DATA.md)
 
-**Enheder:** "Ny enhed" laver en enhed ud fra en skabelon for typen; "Fjern enheden" kan kun bruges,
+**Enheder:** "Ny enhed" laver en enhed ud fra en skabelon for typen: varmepumpe, elkedel, biomassekedel, gaskedel,
+oliekedel, gasmotor, solvarme eller overskudsvarme. Bruger enheden et brændsel, værket ikke har en pris for (fx
+fyringsolie til en oliekedel), spørger formularen om prisen og gemmer den sammen med enheden; modellen kan ikke regne
+enheden uden. Skabelonens tal er pladsholdere, som du retter til værkets egne. "Fjern enheden" kan kun bruges,
 når intet scenarie bruger enheden. Vil du bare regne uden en enhed, så brug et scenarie i stedet —
-så forbliver værket urørt.
+så forbliver værket urørt. (Kilde: doc/EGET_VAERK.md:31-36; viden/enhedstyper.json)
 
 **Balancemarked på et værk uden:** værkets balancing-blok beskriver, *hvordan* værket byder; *om* der regnes med
 balancemarked, vælger du på scenariet. Uden blok kan scenarier ikke regne med balancemarkedet. Et værk, der er oprettet
@@ -83,7 +86,7 @@ før; feltet kan bagefter rettes og bruges i scenarier. Felter i en blok, hvis b
 (COP-kurven, tarifprofilen, nettab), tilbydes ikke enkeltvis.
 
 **Starttilstand:** står alle enheder med start/stop-logik til slukket ved start, som værksarkets script sætter dem
-(scripts/vaerksark_til_yaml.py:856), viser værkets side en advarsel: uden tank, eller med tanken slået fra, kan en kørsel så blive uløselig (målt i januar
+(scripts/vaerksark_til_yaml.py:873), viser værkets side en advarsel: uden tank, eller med tanken slået fra, kan en kørsel så blive uløselig (målt i januar
 2026 på værker fra værksarket). Sæt **Tændt ved periodens start** til tændt på den enhed, der kører, når perioden
 begynder: 1 under Konfiguration › Enheder, *ja* i værksarkets fane *Start og drift*.
 
@@ -113,7 +116,7 @@ egne felter på scenariet. Skal der en ny enhed, et nyt felt eller en blok til, 
 (Kilde: KONTRAKT §3.5; KONTRAKT §6c)
 
 Til differenser: brug gabet 0,0002 og det absolutte gab 100 kr. i både reference og scenarie; det
-absolutte gab må ikke binde før det relative. (Kilde: doc/KOERSEL.md:57-60; src/config.py:742-751; knapper.json)
+absolutte gab må ikke binde før det relative. (Kilde: doc/KOERSEL.md:57-60; src/config.py:744-753; knapper.json)
 
 ## 3. Kørslen — kø og status
 
@@ -142,13 +145,19 @@ indgik (spot altid; aFRR, mFRR og ubalance kun med balancemarked), DMI-område o
 (Kilde: KONTRAKT §6d)
 
 **Sammenlign to kørsler** — en reference og et scenarie. Differensen er scenarie minus reference og
-er svaret på spørgsmålet. Appen viser, om kørslerne er sammenlignelige (samme værk, periode,
-opløsning, data og gab), og om differensen er mindre end solverens tolerance — så kan den ikke
-skelnes fra nul. (Kilde: KONTRAKT §6b)
+er svaret på spørgsmålet. Appen viser, om kørslerne er sammenlignelige (samme værk og
+værksrevision, periode, opløsning, data, modelversion og gab), og om differensen er mindre end
+solverens tolerance — så kan den ikke skelnes fra nul. Er de ikke sammenlignelige, vises forskellen
+uden farve og uden "billigere" eller "dyrere"; kendes et af felterne ikke for begge kørsler, står
+der "kan ikke afgøres". Rollerne er parrets: er scenariet oprettet med den anden kørsels scenarie
+som reference, er det referencen. Ellers er scenariet den kørsel, der alene bærer ændringen i
+forhold til værket — uanset hvilken rækkefølge de blev valgt i. Peger ingen af delene en af dem
+ud, gælder den rækkefølge, I valgte, og siden har knappen *Byt reference og scenarie*.
+(Kilde: KONTRAKT §6b)
 
 Tjek altid, om resultatet giver mening: kører enhederne i den rækkefølge, I kender? Er tanken tom
 eller fuld hele tiden? "Det kan ikke passe" er det rigtige svar at give — find så ud af, om det
-skyldes data, en antagelse eller modellen. (Kilde: doc/EGET_VAERK.md:113-116)
+skyldes data, en antagelse eller modellen. (Kilde: doc/EGET_VAERK.md:120-123)
 
 ## 5. Information og Dokumentation
 

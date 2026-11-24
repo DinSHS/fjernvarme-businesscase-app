@@ -104,6 +104,15 @@ python fabric/deploy.py koer fjv_importer_vaerker   # kun hvis MODEL_COMMIT er �
 Rækkefølgen betyder noget: motoren (og dermed `dbo.Motors`) før appen, så den første bestilling efter opdateringen fryser de nye pins.
 `CHANGELOG.md` siger for hver version, hvilke af trinene den kræver.
 
+**Modelskiftet `90fb16e` → `939228a` (version 0.5.0, oliekedel).** Kun `MODEL_COMMIT` skifter; `DF_DATA_SHA` (`106b9fc`) og
+skemaet er uændrede, og tallene er de samme (målt lokalt: Andeby 5.–6. januar 2026 866.567,72 kr. ved begge versioner).
+Kør `deploy.py kode` (motoren, feltkataloget med oliekedlen og pins i `dbo.Motors`), appen (`rayfin-up` eller de to
+deltrin; frontenden bærer den nye skabelon til værksarket) og `deploy.py koer fjv_importer_vaerker`. Casefilerne er de
+samme ved de to versioner (målt: `git diff --stat 90fb16e 939228a` i modelrepoet rører ingen fil under `cases/`), så
+importen melder hvert uændret repoværk som `uaendret`. En bestilling i køen med de gamle pins afvises; bestil den igen.
+Kørsler ved `90fb16e` kan sammenlignes med nye. Et værksark eksporteret før opdateringen skal eksporteres igen, før det
+kan genuploades som en revision (se `CHANGELOG.md`). **Ikke udrullet og ikke afprøvet i Fabric.**
+
 **Modelskiftet `eef950a` → `90fb16e` (version 0.4.0).** Kun `MODEL_COMMIT` skifter; `DF_DATA_SHA` (`106b9fc`) og skemaet er
 uændrede. Kør `deploy.py kode` (motoren og pins i `dbo.Motors`) og `deploy.py koer fjv_importer_vaerker`. Casefilerne er
 de samme ved de to versioner (målt: `git diff --stat eef950a 90fb16e` i modelrepoet rører kun `src/data_loader.py`,
@@ -163,6 +172,12 @@ og bygget lykkes alligevel:
 
 * **Kør Rayfin fra `app/`** (CLI'en finder projektet ud fra den aktuelle mappe). Giv altid `--workspace-id` — `scripts/installation.py rayfin-up` gør det.
 * **Én solver ad gangen** og **kun appens egen kø**: notebooken tager en global SQL-lås; en anden arbejder afslutter uden at røre noget.
+* **Functions kender ikke kalderen** (begrænsning, efterprøvningen af runde 15). Rayfin-tokenet bærer ingen e-mail, kun brugerens objekt-id, og
+  `Bestilling.bestilt_af` er en e-mail, som DAB verificerede, da rækken blev oprettet. `startBestilling` kan derfor ikke kræve, at kalderen er
+  bestillingens ejer. Appen sender kun brugerens egne bestillinger, men et direkte kald til funktionen med en kollegas bestillings-id (rækken kan
+  læses af alle appens brugere) får bestillingen behandlet: kørslen oprettes i kollegaens navn og tæller i kollegaens køkvote (højst 3 i kø).
+  Der bliver stadig højst én kørsel pr. bestilling, og Functions sletter ingen bestilling. Den lokale udgave kender sessionens bruger og afviser
+  kaldet. At lukke det i Fabric kræver en verificerbar identitet i funktionen eller en ejerafgrænset indgang; det er ikke lavet.
 * En kørsel gemmer de fulde pinnede commits (model og df-data), den brugte. Skift pins bevidst (`fabric/fjv/konstanter.py`, `CREDITS.md`, `app/src/sider/dokumentation/kilde.ts`
   — `scripts/tjek.py` fejler, hvis de ikke er ens), og deploy med `deploy.py kode`, så `dbo.Motors` følger med. Arbejderen **afviser** (status `fejl`) en
   kørsel, hvis frosne pins ikke er den motor, der kører den — fx en bestilling lagt, mens `dbo.Motors` stadig stod på den forrige motor. Bestil den igen.

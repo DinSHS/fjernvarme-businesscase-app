@@ -8,22 +8,33 @@ import { useMemo } from "react";
 import { formatDelta } from "@/ibcs";
 import { DataTilstand, Gitter, Kort, Knap, Maerke, Side, StatusMaerke, Tabel } from "@/components/layout";
 import { useKoersler, useKoerselStatus, useScenarier, useVaerker } from "@/lib/data/hooks";
-import { erAktiv } from "@/lib/data/koersel-status";
+import { STATUS_TEKST, erAktiv } from "@/lib/data/koersel-status";
 import { tal, tidspunkt } from "@/lib/format";
 import { TKR, tkr } from "../analyser/ibcs-grafer";
-import { GRAENSER } from "../../../rayfin/data/fjv.constants";
+import { periodeTekst } from "../analyser/fmt";
+import { TidsgraenseMaerke } from "../analyser/dele";
+import { GRAENSER, type KoerselStatus } from "../../../rayfin/data/fjv.constants";
 import type { OmraadeProps } from "../typer";
+import { useKortFrossenProfil } from "@/lib/data/frossen-profil";
 import { findReference, køTid, oversigtsbudskab, type Reference, type ScenarieRække } from "./oversigt-logik";
 
 /** Kolonnen Reference: én klar tekst pr. udfald (oversigt-logik.ts › Reference). */
+/** Fodteksten under oversigtens tabel (en konstant, så den kan holdes op mod dommens regel i en test). */
+export const OVERSIGT_FOD = "Reference: parrets reference (grøn), eller en anden kørsel, der kan sammenlignes direkte. Direkte sammenlignelig = samme værk, periode (time for time), opløsning, df-data, modelversion og gab — og samme varmelast og solprofil, medmindre scenariet selv har valgt en anden (differensmetoden). En kendt forskel i værksrevision bryder også; kendes revisionen ikke for begge, er det kun en note. Kendes et af de nødvendige felter ikke for begge kørsler, kan det ikke afgøres (neutralt mærke). Dommen læses af kørslernes frosne input. ΔRef = scenarie − reference i t.kr., kun for et direkte sammenligneligt par og kun for scenariets seneste kørsel; hvert par har sin egen periode.";
+
 export function ReferenceCelle({ r }: { r: Reference | undefined }) {
     if (!r) return <span className="fs-lille">ikke kørt endnu</span>;
     switch (r.art) {
         case "par":
+            // Tre udfald (gennemgangens fund 4): grønt kun for et direkte sammenligneligt par; en kendt afvigelse er en
+            // advarsel; et ukendt grundlag er ingen af delene.
             return r.direkte ? <Maerke tone="ok">{r.navn}</Maerke>
-                : <Maerke tone="advarsel">{`${r.navn} (${r.afviger.join(", ")} afviger)`}</Maerke>;
+                : r.dom === "ukendt" ? <Maerke>{`${r.navn} (kan ikke afgøres: ${r.ukendt.join(", ")} kendes ikke for begge)`}</Maerke>
+                    : <Maerke tone="advarsel">{`${r.navn} (${r.afviger.join(", ")} afviger)`}</Maerke>;
         case "par_ikke_koert":
             return <span className="fs-lille">{`referencen «${r.navn}» er ikke kørt`}</span>;
+        case "seneste_ikke_faerdig":
+            return <span className="fs-lille" title="ΔRef vises kun for scenariets seneste kørsel, og kun når den er færdig">{`${r.navn} — seneste kørsel er ikke færdig (${(STATUS_TEKST[r.status as KoerselStatus] ?? r.status).toLowerCase()})`}</span>;
         case "er_reference":
             return <Maerke>{`reference for ${r.antal} scenarie${r.antal === 1 ? "" : "r"}`}</Maerke>;
         case "sammenlignelig":
@@ -39,18 +50,23 @@ export default function Oversigt({ gåTil, bruger }: OmraadeProps) {
     const koersler = useKoersler();
     const levende = useKoerselStatus(koersler.data);
 
+    // Fund D: dommen læses af kørslernes KORTE frosne profil (egne rækker + værkets tidsblok) — for de færdige
+    // kørsler; kun de kan være den ene side af et par.
+    const faerdigeIds = useMemo(() => koersler.data?.filter((k) => k.status === "faerdig").map((k) => k.id), [koersler.data]);
+    const frosset = useKortFrossenProfil(faerdigeIds);
+
     const rækker = useMemo<ScenarieRække[] | undefined>(() => {
-        if (!scenarier.data || !vaerker.data || !koersler.data) return undefined;
+        if (!scenarier.data || !vaerker.data || !koersler.data || !frosset.data) return undefined;
         const navn = new Map(vaerker.data.map((v) => [v.id, v.navn]));
         return scenarier.data
             .map((s) => ({
                 s,
                 vaerk: navn.get(s.vaerk_id) ?? "Ukendt værk",
                 seneste: levende.find((k) => k.scenarie_id === s.id),
-                reference: findReference(s, scenarier.data!, levende),
+                reference: findReference(s, scenarier.data!, levende, frosset.data),
             }))
             .sort((a, b) => a.vaerk.localeCompare(b.vaerk, "da") || String(b.s.oprettet).localeCompare(String(a.s.oprettet)));
-    }, [scenarier.data, vaerker.data, koersler.data, levende]);
+    }, [scenarier.data, vaerker.data, koersler.data, levende, frosset.data]);
 
     const aktive = useMemo(() => levende.filter((k) => erAktiv(k.status)), [levende]);
     // ΔRef (driftsomkostning) som almindeligt tal med fortegn i brødtekstens farve: listen er en indgang, ikke en analyse,
@@ -62,7 +78,7 @@ export default function Oversigt({ gåTil, bruger }: OmraadeProps) {
     const egne = aktive.filter((k) => k.bestilt_af === bruger);
     const egneVenter = egne.filter((k) => k.status === "koe").length;
     const scenarieNavn = (id: string) => scenarier.data?.find((s) => s.id === id)?.navn ?? "Scenarie";
-    const samlet = { data: rækker, fejl: scenarier.fejl ?? vaerker.fejl ?? koersler.fejl, indlæser: false, genindlæs: () => {} };
+    const samlet = { data: rækker, fejl: scenarier.fejl ?? vaerker.fejl ?? koersler.fejl ?? frosset.fejl, indlæser: false, genindlæs: () => {} };
 
     return (
         <Side omraade="Scenarier" titel="Scenarier og kørsler"
@@ -74,15 +90,17 @@ export default function Oversigt({ gåTil, bruger }: OmraadeProps) {
             <Gitter form="8-4">
                 <Kort titel="Scenarier" afgraensning="pr. værk, nyeste først"
                     budskab={rækker ? (rækker.length ? `${rækker.filter((r) => r.seneste).length} af ${rækker.length} er kørt; vælg et for at redigere, køre og sammenligne.` : "Stil et spørgsmål for at få et reference/scenarie-par.") : undefined}
-                    fod="Reference: parrets reference (grøn), eller en anden kørsel, der kan sammenlignes direkte. Direkte sammenlignelig = samme værk, periode, opløsning, df-data, modelversion og gab (differensmetoden). ΔRef = scenarie − reference i t.kr.; hvert par har sin egen periode.">
+                    fod={OVERSIGT_FOD}>
                     <DataTilstand h={samlet} højde={260}>
                         {(r) => (
                             <Tabel rækker={r} nøgle={(x) => x.s.id} onVælg={(x) => gåTil(`scenarier/${x.s.id}`)}
                                 tom="Ingen scenarier endnu."
                                 kolonner={[
                                     { navn: "Værk", vis: (x) => x.vaerk },
-                                    { navn: "Scenarie", vis: (x) => x.s.navn },
-                                    { navn: "Seneste kørsel", vis: (x) => (x.seneste ? <StatusMaerke status={x.seneste.status} /> : <span className="fs-lille">ikke kørt</span>) },
+                                    // Fund 3.3 (den uafhængige test 18. november 2026): parflowet giver alle par af samme spørgsmål samme
+                                    // navn ("Hvad er tanken værd? · reference"); perioden ved navnet skelner dem.
+                                    { navn: "Scenarie", vis: (x) => <div>{x.s.navn}<div className="fs-lille">{periodeTekst(x.s.periode_start, x.s.periode_slut)}</div></div> },
+                                    { navn: "Seneste kørsel", vis: (x) => (x.seneste ? <><StatusMaerke status={x.seneste.status} /> <TidsgraenseMaerke k={x.seneste} /></> : <span className="fs-lille">ikke kørt</span>) },
                                     { navn: "Driftsomkostning (t.kr.)", tal: true, vis: (x) => <span style={{ whiteSpace: "nowrap" }} title={x.seneste?.objektiv_dkk != null ? `${tal(x.seneste.objektiv_dkk)} kr.` : undefined}>{tkr(x.seneste?.objektiv_dkk)}</span> },
                                     { navn: "ΔRef (t.kr.)", tal: true, vis: (x) => { const d = delta(x); return d !== null ? formatDelta(d, TKR) : "–"; } },
                                     { navn: "Reference", vis: (x) => <ReferenceCelle r={x.reference} /> },

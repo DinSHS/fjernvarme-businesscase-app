@@ -19,7 +19,7 @@
 export type AppFunctionsSchema = {
   startBestilling: {
     input: { bestillingId: string };
-    output: { ok: boolean; koersel_id?: undefined | string; status?: undefined | string; ny?: undefined | false | true; afvist?: undefined | string; arbejder?: undefined | { startet: boolean; fabric_job_id?: undefined | string; grund: string } };
+    output: { ok: boolean; koersel_id?: undefined | string; status?: undefined | string; ny?: undefined | false | true; afvist?: undefined | string; ryddet?: undefined | false | true; teknisk?: undefined | false | true; arbejder?: undefined | { startet: boolean; fabric_job_id?: undefined | string; grund: string } };
   };
   udfoerAendring: {
     input: { anmodningId: string };

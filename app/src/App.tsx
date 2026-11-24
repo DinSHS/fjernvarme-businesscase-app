@@ -57,7 +57,11 @@ function App() {
     const { session } = useAuth();
     const bruger = session?.user?.email ?? undefined;
     const { omraade, sti, gåTil } = useRute();
-    const valgt = OMRAADER.find((o) => o.id === omraade) ?? OMRAADER.find((o) => o.id === STANDARD_OMRAADE)!;
+    const fundet = OMRAADER.find((o) => o.id === omraade);
+    const valgt = fundet ?? OMRAADER.find((o) => o.id === STANDARD_OMRAADE)!;
+    // Runde 15 (fund 3.6, den uafhængige test 18. november 2026): en adresse, der ikke findes (#/findes/ikke), faldt
+    // stille tilbage til standardområdet. Nu siger skallen det. Den tomme adresse (#/) er forsiden og ingen fejl.
+    const ukendtRute = omraade && !fundet ? `#/${[omraade, ...sti].join("/")}` : undefined;
     const [opdaterer, setOpdaterer] = useState(false);
     const [afstemFejl, setAfstemFejl] = useState<string | undefined>();
     const startet = useRef(false);
@@ -122,6 +126,11 @@ function App() {
                 {afstemFejl && (
                     <p className="fjv-tilstand" data-tone="fejl" role="status">
                         {UDGAVETEKSTER.afstemFejl}: {afstemFejl}
+                    </p>
+                )}
+                {ukendtRute && (
+                    <p className="fjv-tilstand" data-tone="advarsel" role="status" data-fejl="ukendt-rute">
+                        Adressen <span className="fjv-mono">{ukendtRute}</span> findes ikke i appen — linket kan være forkert eller forældet. Her vises {valgt.navn} i stedet.
                     </p>
                 )}
                 <ErrorBoundary FallbackComponent={OmraadeFejl} resetKeys={[valgt.id, sti.join("/")]}>

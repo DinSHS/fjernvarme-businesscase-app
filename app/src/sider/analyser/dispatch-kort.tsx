@@ -10,7 +10,7 @@ import { useTimer } from "@/lib/data/hooks";
 import { tal } from "@/lib/format";
 import { balanceIVindue, dispatchPunkter, vinduer, type DispatchPunkt, type Time } from "./beregn";
 import type { Pakke } from "./data";
-import { N_MINUS_1 } from "./tekster";
+import { FLERE_LAGRE_FORBEHOLD, N_MINUS_1 } from "./tekster";
 import { dec } from "./fmt";
 import { dispatchSkala } from "./graf-hjaelp";
 import { Dispatch, Forklaring, LagerForklaring, type Serie } from "./grafer";
@@ -75,7 +75,7 @@ export default function DispatchKort({ a, b, pladser }: { a: Pakke; b?: Pakke; p
                     </select>
                 </label></div>
             )}
-            fod={<>{N_MINUS_1} Vinduet hentes for sig (højst 31 døgn ad gangen). Hold markøren over grafen for tal.</>}>
+            fod={<>{N_MINUS_1} Vinduet hentes for sig (højst 31 døgn ad gangen). Hold markøren over grafen for tal.{lagre.length > 1 && <> {FLERE_LAGRE_FORBEHOLD}</>}</>}>
             <Forklaring serier={producenter} ekstra={<><span><i className="fjv-a-streg" />Varmelast</span><LagerForklaring lagre={lagre} /></>} />
             {!b && (
                 <DataTilstand h={ta} højde={320}>

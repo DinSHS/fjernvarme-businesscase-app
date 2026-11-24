@@ -30,7 +30,7 @@ export interface Kandidat {
     objekt: string | null;
     /** Modellens standardværdi som vaerdi_json (katalogets type), eller null, når modellen ikke har nogen. */
     standard_json: string | null;
-    /** Hvor standardværdien står i koden: "src/config.py:520 @ 90fb16e". */
+    /** Hvor standardværdien står i koden: "src/config.py:520 @ 939228a". */
     standardKilde: string | null;
 }
 

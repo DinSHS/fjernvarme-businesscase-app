@@ -7,7 +7,7 @@
 import { Inputfejl, kodVaerdi, værditype } from "@/lib/data/vaerdi";
 import type { Parameterændring } from "@/lib/data/skriv";
 import { MAKS } from "../../../rayfin/data/fjv.constants";
-import { ENHEDSTYPER, type FeltPost, findFelt } from "./katalog";
+import { BRAENDSEL, ENHEDSTYPER, type FeltPost, findFelt } from "./katalog";
 import type { Blad } from "./gruppering";
 import { slug } from "./eksport/slug";
 
@@ -107,12 +107,27 @@ export function tjekNavn(navn: string, optaget: { units: ReadonlySet<string>; st
     return null;
 }
 
+/** Brændsler, modellen ikke køber til en pris under prices: el afregnes over spot og tarif, sol er gratis (src/config.py, fuel_price). */
+const BRAENDSEL_UDEN_PRIS = new Set(["electricity", "solar"]);
+
+/**
+ * Stien til den brændselspris, en ny enhed kræver, men værket ikke har (`prices.<brændsel>.value`) — ellers null.
+ * Runde 15 (oliekedlen, modelrepoets 939228a): et værk uden oliepris kunne ikke få en oliekedel, fordi "Tilføj enhed"
+ * afviser en ny valideringsfejl og ikke havde et felt til prisen. Prisen oprettes nu i samme ændring som enheden.
+ */
+export function manglendeBraendselspris(nu: ReadonlyMap<string, string>, fuel: string | undefined): string | null {
+    if (!fuel || BRAENDSEL_UDEN_PRIS.has(fuel)) return null;
+    const sti = `prices.${fuel}.value`;
+    return nu.has(sti) ? null : sti;
+}
+
 /**
  * `opret`-handlinger for en ny enhed: typens skabelon (enhedstyper.json) med
  * brugerens værdier for de felter, der er udfyldt. `værdier` er relative
  * stier (`p_max_heat`) -> input-tekst; de kodes efter skabelonens type.
+ * `pris` er brændslets pris, når værket mangler den (`manglendeBraendselspris`): den oprettes sammen med enheden.
  */
-export function nyEnhed(type: string, navn: string, værdier: ReadonlyMap<string, string>): { ændringer: Parameterændring[]; fejl: { sti: string; besked: string }[] } {
+export function nyEnhed(type: string, navn: string, værdier: ReadonlyMap<string, string>, pris?: { sti: string; tekst: string }): { ændringer: Parameterændring[]; fejl: { sti: string; besked: string }[] } {
     const t = ENHEDSTYPER[type];
     if (!t) return { ændringer: [], fejl: [{ sti: "type", besked: `Ukendt enhedstype ${type}.` }] };
     const ændringer: Parameterændring[] = [];
@@ -124,6 +139,17 @@ export function nyEnhed(type: string, navn: string, værdier: ReadonlyMap<string
         const k = kladde(findFelt(sti), s.vaerdi_json, input);
         if (k.fejl || k.json === null) fejl.push({ sti: s.sti, besked: k.fejl ?? "Kan ikke læses." });
         else ændringer.push({ sti, handling: "opret", ny_json: k.json });
+    }
+    if (pris) {
+        const nøgle = pris.sti.split(".")[1];
+        if (!pris.tekst.trim()) {
+            fejl.push({ sti: pris.sti, besked: `Sæt en pris for ${(BRAENDSEL[nøgle] ?? nøgle).toLowerCase()} — værket har ingen, og modellen kan ikke regne enheden uden.` });
+        } else {
+            // "0.0" som gammel værdi: prisen er et decimaltal i casen (900 -> 900.0), som de øvrige priser.
+            const k = kladde(findFelt(pris.sti), "0.0", pris.tekst);
+            if (k.fejl || k.json === null) fejl.push({ sti: pris.sti, besked: k.fejl ?? "Kan ikke læses." });
+            else ændringer.push({ sti: pris.sti, handling: "opret", ny_json: k.json });
+        }
     }
     return { ændringer, fejl };
 }

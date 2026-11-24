@@ -64,8 +64,13 @@ const MAKS_LISTE = 255;
  * Skabelonens stilarter (xl/styles.xml ved pinnen) — samme farvekoder som modelrepoets faner. Brugertesten (F17):
  * grå betyder "eksempel, slet den" i modelrepoets faner; appens kopier fra Anlaeg står derfor med kant uden farve
  * ("kopi"), og appens kontrolværdier og stier i kursiv grå ("kontrol").
+ *
+ * Indekserne er pladser i skabelonens egen cellXfs og følger filen: ved 939228a er skabelonen skrevet direkte af
+ * openpyxl (26 formater), hvor den før var gemt af LibreOffice (27). "vejledning" lå på 25 og "forklaring" på 26;
+ * 26 findes ikke længere, og 25 er nu formatet med kant. skabelon.spec.ts prøver hvert indeks mod styles.xml, så
+ * et skabelonskifte aldrig igen kan give et stilindeks, der ikke findes (Excel melder filen beskadiget).
  */
-const STIL = { titel: 1, vejledning: 25, afsnit: 3, etiket: 4, tekst: 5, gul: 10, overskrift: 12, kopi: 22, kontrol: 24, forklaring: 26 } as const;
+export const STIL = { titel: 1, vejledning: 20, afsnit: 3, etiket: 4, tekst: 5, gul: 10, overskrift: 12, kopi: 22, kontrol: 24, forklaring: 25 } as const;
 
 // ------------------------------------------------------------------ celle <-> vaerdi_json (som fjv.feltkatalog)
 
@@ -310,7 +315,7 @@ const FORKLARING: Record<string, string> = {
     "units.*.enabled": "Ja: enheden er med i beregningen. Nej: enheden er slået fra, som når den slås fra i et scenarie. Sæt ikke maks varme til 0 i stedet.",
     "units.*.initial_status": "Ja: enheden kører i periodens første time. Nej: den er slukket. Står alle enheder med start/stop-logik på nej, og er der ingen tank, kan værket ikke dække første time.",
     "units.*.uc_enabled": "Ja: modellen bruger minimumslast (min varme), min. driftstid, min. stoptid og startomkostning fra Anlaeg. Nej: de tal i Anlaeg bruges IKKE — appen advarer ved upload, når de er udfyldt. Ja gør beregningen langsommere.",
-    "units.*.co2_emissions_per_mwh_fuel": "Ton CO₂ pr. MWh brændsel. Naturgas ca. 0,2; biomasse 0 (regnes CO₂-neutral). Ganges med CO₂-prisen i Priser.",
+    "units.*.co2_emissions_per_mwh_fuel": "Ton CO₂ pr. MWh brændsel. Naturgas ca. 0,2; fyringsolie og gasolie 0,266 (tung fuelolie ca. 0,28); biomasse 0 (regnes CO₂-neutral). Ganges med CO₂-prisen i Priser.",
     "units.*.commissioned": "Kun til orientering; bruges ikke i beregningen.",
     "units.*.notes": "Fritekst; bruges ikke i beregningen. En note med [BEKRÆFT …] er et åbent spørgsmål fra værkets kildefil, ikke en bekræftet værdi.",
     "storage.*.enabled": "Ja: tanken er med. Nej: tanken er slået fra — sådan regner man, hvad tanken er værd.",
@@ -374,7 +379,7 @@ const SCRIPT_TOM: Record<string, string> = {
     "units.*.enabled": "ja",
     "units.*.initial_status": "nej for enheder med start/stop-logik; ellers intet, og modellen bruger ja",
     "units.*.uc_enabled": "ja, når enheden har min varme over 0 eller min. driftstid over 1 time (ikke solvarme); ellers nej",
-    "units.*.co2_emissions_per_mwh_fuel": "0,2 for gaskedler og gasmotorer; for andre intet, og modellen bruger 0",
+    "units.*.co2_emissions_per_mwh_fuel": "0,2 for gaskedler og gasmotorer, 0,266 for oliekedler; for andre intet, og modellen bruger 0",
     "storage.*.enabled": "ja",
     "storage.*.e_initial_mwh": "halvdelen af maks fyldning i Anlaeg",
     "storage.*.self_discharge_per_hour": "0,0005",

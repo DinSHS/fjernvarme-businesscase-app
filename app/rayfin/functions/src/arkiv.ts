@@ -362,15 +362,24 @@ export function vaerkRevisioner(revision: number, blade: readonly { sti: string;
     return ud;
 }
 
-/** Tidsserierne, en kørsel er frosset med (`_koersel.tidsserie.<rolle>` = {id, sha256}). */
+/**
+ * Tidsserierne, en kørsel er frosset med (`_koersel.tidsserie.<rolle>` = {id, sha256}).
+ *
+ * Tredje rettelsesrunde i runde 15, P2-3: rækken kan også være det udtrykkelige fravalg — `"syntetisk"` for varmelasten
+ * (appvejen fra og med denne runde; den manuelle vej altid) eller `null`. Arbejderen læser begge som "ingen tidsserie"
+ * (fabric/fjv/byg_case.py › byg), og der er da ingen serie at kræve her. Før afviste tjekket rækken med "mangler id
+ * eller sha256", så en kørsel fra den manuelle vej med valgt syntese ikke kunne genimporteres.
+ */
 export function frosneTidsserier(input: readonly InputRad[]): { rolle: string; id: string; sha256: string }[] {
     const ud: { rolle: string; id: string; sha256: string }[] = [];
     for (const r of input) {
         if (!r.sti.startsWith('_koersel.tidsserie.')) continue;
-        let v: { id?: unknown; sha256?: unknown };
+        const rolle = r.sti.slice('_koersel.tidsserie.'.length);
+        let v: { id?: unknown; sha256?: unknown } | string | null;
         try { v = JSON.parse(r.vaerdi_json); } catch { throw new ArkivAfvisning(`${r.sti} er ikke gyldig JSON.`); }
-        if (typeof v?.sha256 !== 'string' || typeof v?.id !== 'string') throw new ArkivAfvisning(`${r.sti} mangler id eller sha256.`);
-        ud.push({ rolle: r.sti.slice('_koersel.tidsserie.'.length), id: v.id, sha256: v.sha256 });
+        if (v === null || (rolle === 'varmelast' && v === 'syntetisk')) continue;
+        if (typeof v !== 'object' || typeof v.sha256 !== 'string' || typeof v.id !== 'string') throw new ArkivAfvisning(`${r.sti} mangler id eller sha256.`);
+        ud.push({ rolle, id: v.id, sha256: v.sha256 });
     }
     return ud;
 }
@@ -763,6 +772,10 @@ async function nyeRækker(tx: ArkivTx, tabel: ImportTabel, rækker: readonly Kan
 async function skrivDel(tx: ArkivTx, del: Del): Promise<{ oprettet: number; fandtes: number }> {
     const { tabel } = del;
     // K10-F3: låsen pr. kørsel tages FØR noget læses — af børnedele og afslutningen ens, i fast (sorteret) orden.
+    // Efterprøvningen af runde 15, fund A: den lokale udgave tager her også bestillingens lås (logik/arkiv.py ›
+    // _skriv_del), fordi dens betroede logik kan SLETTE en afvist bestilling mellem importens læsning og dens
+    // indsættelse. Fabric-udgaven sletter ingen bestillinger (bestilling.ts), så trinnet findes ikke her. Får
+    // Fabric en slettevej, skal låsen med: kørsel -> bestilling, i sorteret orden, før Bestilling læses.
     if (tabel === 'Koersel') await tx.låsKørsler([...new Set(del.raekker.map((r) => r[0] as string))].sort());
     else if ((KOERSEL_BOERN as readonly string[]).includes(tabel)) {
         await tx.låsKørsler([...new Set(del.raekker.map((r) => kol(tabel, r, 'koersel_id') as string))].sort());

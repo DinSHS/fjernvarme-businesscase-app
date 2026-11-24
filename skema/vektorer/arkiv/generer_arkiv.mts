@@ -159,6 +159,8 @@ const basis = {
 };
 const fv = forventet[H.ID.koersel];
 const kv = (navn: string, v: A.Kanonisk) => koer[0].map((x, i) => (A.kolonnenavne('Koersel')[i] === navn ? v : x));
+const medTs = (v: string) => input.map((r) => (r.sti.startsWith('_koersel.tidsserie.') ? { ...r, vaerdi_json: v } : r));
+const medHash = (inp: typeof input) => ({ input: inp, koersel: kv('input_hash', A.inputHashRen(inp)) });
 const tjek: [string, Partial<typeof basis>][] = [
     ['gyldig', {}], ['i kø', { koersel: kv('status', 'koe') }], ['fejlet', { koersel: kv('status', 'fejl') }],
     ['mangler timer', { nu: { ...fv, antal: { ...fv.antal, KoerselTime: 2 } } }],
@@ -168,6 +170,12 @@ const tjek: [string, Partial<typeof basis>][] = [
     ['intet scenarie', { scenarie: null as never }], ['scenarie andet værk', { scenarie: { vaerk_id: H.ID.tidsserie } }], ['intet værk', { vaerk: null as never }],
     ['forkert revision', { koersel: kv('vaerk_revision', 3) }], ['ingen revisioner', { revisioner: new Map() }], ['ingen tidsserie', { tidsserier: new Set() }],
     ['tidsserie uden sha', { input: input.map((r) => (r.sti.startsWith('_koersel.tidsserie.') ? { ...r, vaerdi_json: '{"id":"x"}' } : r)) }],
+    // Tredje rettelsesrunde i runde 15, P2-3: det udtrykkelige syntesevalg er en gyldig frossen række (appvejen og den
+    // manuelle vej), og der er da ingen tidsserie at kræve. Hashen passer her, så tilfældene når frem til seriens tjek.
+    ['syntetisk varmelast fra appvejen', { ...medHash(medTs('"syntetisk"')), tidsserier: new Set<string>() }],
+    ['varmelast null', { ...medHash(medTs('null')), tidsserier: new Set<string>() }],
+    ['tidsserie uden sha, hashen passer', medHash(medTs('{"id":"x"}'))],
+    ['ukendt tekst som varmelast, hashen passer', medHash(medTs('"maalt"'))],
 ];
 for (const [n, o] of tjek) {
     const x = { ...basis, ...o };

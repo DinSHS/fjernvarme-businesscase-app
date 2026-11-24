@@ -243,7 +243,7 @@
    "sti": "units.x.type",
    "celle": "oliekedel",
    "ud": {
-    "fejl": "Enhedstype: \"oliekedel\" er ikke tilladt. Tilladte: heat_pump, electric_boiler, biomass_boiler, gas_boiler, gas_engine_chp, solar_thermal, waste_heat."
+    "fejl": "Enhedstype: \"oliekedel\" er ikke tilladt. Tilladte: heat_pump, electric_boiler, biomass_boiler, gas_boiler, oil_boiler, gas_engine_chp, solar_thermal, waste_heat."
    }
   },
   {

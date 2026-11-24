@@ -5,17 +5,24 @@
 import { useState } from "react";
 import { Knap, Kort, Maerke } from "@/components/layout";
 import { rutehref } from "@/lib/rute";
-import type { Par, Vurdering } from "./anbefaling";
-import { KATEGORIER } from "./anbefaling.data";
+import { tal } from "@/lib/format";
+import { HELAAR_DOEGN, type Par, type Vurdering } from "./anbefaling";
+import { AARSTAL, KATEGORIER } from "./anbefaling.data";
 
-/** Næste skridt med link: "Kør helåret …" → Scenarier med værk og knap valgt. */
-export function NaesteSkridt({ skridt, vaerkKode, knap }: { skridt: readonly string[]; vaerkKode: string | null; knap: string | null }) {
+/**
+ * Næste skridt med link: "Kør helåret …" → Scenarier med værk og knap valgt. Forslaget om en længere tidsgrænse
+ * (testrapportens afsnit 2a) linker til det scenarie, hvis tidsgrænse skal sættes op.
+ */
+export function NaesteSkridt({ skridt, vaerkKode, knap, tidsgraense }: { skridt: readonly string[]; vaerkKode: string | null; knap: string | null; tidsgraense?: Vurdering["tidsgraense"] }) {
     if (!skridt.length) return null;
     const href = vaerkKode ? rutehref("scenarier", "nyt", vaerkKode, ...(knap ? [knap] : [])) : rutehref("scenarier");
     return (
         <ol className="fjv-a-liste">
             {skridt.map((s) => (
-                <li key={s}>{s}{/^Kør helåret/.test(s) && <> — <a className="fjv-a-link" href={href}>Bestil helårskørsel</a></>}</li>
+                <li key={s}>{s}{/^Kør helåret/.test(s) && <> — <a className="fjv-a-link" href={href}>Bestil helårskørsel</a></>}
+                    {tidsgraense && s === tidsgraense.tekst && tidsgraense.scenarieIder.map((id, i) => (
+                        <span key={id}> — <a className="fjv-a-link" href={rutehref("scenarier", id)}>Sæt tidsgrænsen på {tidsgraense.roller[i]}</a></span>
+                    ))}</li>
             ))}
         </ol>
     );
@@ -40,12 +47,16 @@ export function KopierKnap({ tekst, etiket = "Kopiér som tekst" }: { tekst: str
     );
 }
 
-export function HistorieKort({ par, historie }: { par: Par; historie: string }) {
+/**
+ * `koersler`: hvilke to kørsler teksten er regnet af, i klartekst (runde 15, mail 2) — de samme to, i de samme roller,
+ * som sidens nøgletal. Kortet bytter aldrig selv roller: det gør siden, for alle kort på én gang (data.ts › sideRoller).
+ */
+export function HistorieKort({ par, historie, koersler }: { par: Par; historie: string; koersler: string }) {
     return (
         <Kort titel="Scenariet fortalt" afgraensning={`${par.scen.navn} mod ${par.ref.navn}`}
             budskab={historie}
             handling={<KopierKnap tekst={historie} />}
-            fod={par.byttet ? "Den kørsel, der bærer ændringen ift. værket, fortælles som scenariet — her den, du valgte som reference." : "Regnet af de frosne input og resultaterne; tallene er afrundet efter appens anbefalingsregler."} />
+            fod={`${koersler} Det er de samme to kørsler som nøgletallene ovenfor. Regnet af de frosne input og resultaterne; tallene er afrundet efter appens anbefalingsregler.`} />
     );
 }
 
@@ -56,7 +67,12 @@ export function AnbefalingKort({ v, vaerkKode, kopiTekst }: { v: Vurdering; vaer
             handling={<div className="fjv-a-raekke"><Maerke tone={v.tone}>{v.maerke}</Maerke><KopierKnap tekst={kopiTekst} etiket="Kopiér" /></div>}
             fod={<>{KATEGORIER[v.kategori]?.betydning}{v.investering ? ` ${v.investering}` : ""}</>}>
             <p className="fjv-brod"><strong>Begrundelse:</strong> {v.begrundelse}</p>
-            {v.skalering && <p className="fjv-brod">{v.skalering}</p>}
+            {/* Fund 3.1 (den uafhængige test 18. november 2026): intet "skaleret til et år". Kortet siger, hvad beløbet gælder. */}
+            {v.sammenlignelig && v.delta !== null && v.doegn !== null && (
+                <p className="fjv-brod">{v.aarligt !== null
+                    ? AARSTAL.tekst_helaar.replace("{doegn}", tal(v.doegn))
+                    : AARSTAL.tekst_kortere.replace("{doegn}", tal(v.doegn)).replace("{helaar}", String(HELAAR_DOEGN))}</p>
+            )}
             {v.forbehold.length > 0 && (
                 <div className="fjv-brod"><strong>Forbehold</strong>
                     <ul className="fjv-a-liste">{v.forbehold.map((f) => <li key={f.id}>{f.tekst}</li>)}</ul>
@@ -67,7 +83,7 @@ export function AnbefalingKort({ v, vaerkKode, kopiTekst }: { v: Vurdering; vaer
                     <ul className="fjv-a-liste">{v.noter.map((f) => <li key={f.id}>{f.tekst}</li>)}</ul>
                 </div>
             )}
-            <div className="fjv-brod"><strong>Næste skridt</strong><NaesteSkridt skridt={v.naesteSkridt} vaerkKode={vaerkKode} knap={v.knap} /></div>
+            <div className="fjv-brod"><strong>Næste skridt</strong><NaesteSkridt skridt={v.naesteSkridt} vaerkKode={vaerkKode} knap={v.knap} tidsgraense={v.tidsgraense} /></div>
         </Kort>
     );
 }

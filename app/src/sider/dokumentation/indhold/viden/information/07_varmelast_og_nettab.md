@@ -10,7 +10,7 @@ glidende gennemsnit af udetemperaturen, plus et nettabsled. Weekenden sænkes en
 året. (Kilde: cases/andeby.yaml:148-151)
 
 **Klimaområdet** vælges blandt fyn, vestkyst, karup og ringsted. Valget alene kan flytte objektivet
-op til ca. 4 %. (Kilde: README.md:244-246)
+op til ca. 4 %. (Kilde: README.md:246-248)
 
 ## Nettab
 

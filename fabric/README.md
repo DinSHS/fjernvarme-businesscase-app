@@ -12,13 +12,14 @@ SQL-database; notebooken `fjv_koer_scenarie` regner dem og skriver resultaterne 
 
 | Ting | Tilstand |
 |---|---|
-| Modelkode | `90fb16eb1e2d5aa8e619b5a951b93760fa803985` (pinnet, `fjv/konstanter.py`; før 2026-11-14: `eef950a`, før 2026-10-26: `b49aeb0`) |
+| Modelkode | `939228aa048563c8498382a79d207c8b03fbda57` (pinnet, `fjv/konstanter.py`; før 2026-11-23: `90fb16e`, før 2026-11-14: `eef950a`, før 2026-10-26: `b49aeb0`) |
 | df-data | `106b9fce9a2e3610090b1a542559024056449b88` (pinnet; opdateres om mandagen — skift bevidst; før 2026-10-26: `392992c`) |
 
 Installationens workspace, lakehouse og item-id'er står **ikke** i kernen: udrulningen læser dem fra
 `fabric_miljoe.py` (udfyld den - se `doc/FABRIC.md`).
 
-Referencetal ved 90fb16e, målt lokalt 2026-11-14 med den ægte arbejder over hukommelseslageret
+Referencetal ved 939228a, målt lokalt 2026-11-23 med den ægte arbejder over hukommelseslageret (samme tal som ved
+90fb16e, målt 2026-11-14: modelrepoets 0.10.0 og 0.11.0 flytter ingen tal)
 (som `koer_minne.py`; df-data 106b9fc): Andeby 5.–16. jan 2026 uden balancering **3.441.004,22**, med
 balancering **3.111.637,94**; Billund Spor B (demo D09, gab 0,0015 %) **4.428.863,74**. README's Spor B-tal 4.204.128
 er fra før spotrettelsen. Ikke kørt i Fabric endnu. Ved eef950a (målt 2026-10-26) var tallene 3.446.711,91 /
@@ -123,7 +124,7 @@ Arbejderen er databaseuafhængig; alt Fabric-specifikke ligger bag protokollerne
 stub, og `tests/test_lager.py` kræver byte-identitet med `tests/data/sql_spor.json` (genereret fra koden før
 grænsefladen, 3d144d5). Ændres Fabric-SQL med vilje, genereres sporet igen, og diffen hører med i committen.
 `python koer_minne.py andeby 2026-01-05 2026-01-06` kører den ægte arbejder mod hukommelseslageret: 866.567,72 kr.
-ved 90fb16e (målt 2026-11-14; samme tal som `run_case.py` direkte på modelrepoet). Ved eef950a 867.031,23 kr., samme tal
+ved 939228a (målt 2026-11-23; samme tal som `run_case.py` direkte på modelrepoet, og samme som ved 90fb16e). Ved eef950a 867.031,23 kr., samme tal
 som community-udgaven (målt 2026-10-26); ved b49aeb0 844.727,28 kr., samme bits som Fabric. Filroden er `FJV_FILES` (sæt den før `import fjv`).
 
 ## Udvikling
@@ -163,7 +164,9 @@ Rediger aldrig `_byg/*.ipynb` i hånden.
   ved casens 0,5 % gab. Sammenlign differenser med stramt gab (rel 0,0002 + abs ≤ 1.000).
 - **Genpublicering:** ændres `maaleregister.json`, kan færdige kørsler udtrækkes igen fra den gemte output
   uden omregning: `deploy.py koer fjv_selvtest "probe:string=genpubliser:<id>,<id>"`.
-- **Windows**: `run_case.py` læser YAML med `read_text()` uden encoding → `PYTHONUTF8=1`; lange
+- **Windows**: til og med modelversion 90fb16e læste `run_case.py` YAML med `read_text()` uden encoding → `PYTHONUTF8=1`.
+  Fra 939228a (modelrepoets 0.10.0) læser modellen selv UTF-8; variablen sættes stadig, fordi den ikke skader, og en
+  kørsel ved en ældre pin kræver den. Lange
   output-stems rammer 260-tegnsgrænsen → kort arbejdsmappe (`C:\fjvt`) lokalt.
 - **`andeby --dummy` kan ikke køre** ved b49aeb0 og eef950a (målt 2026-10-26; dummy-data hæfter ikke solprofilen på); røgtesten bruger `billund_sporA --dummy`.
 - **Pins efter en motoropgradering** (målt 2026-10-27): bestillinger fryser pins fra `dbo.Motors`, men arbejderen skrev

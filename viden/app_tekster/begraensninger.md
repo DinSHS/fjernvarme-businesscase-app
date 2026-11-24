@@ -16,7 +16,7 @@
 | **Løsetid.** | Et helt år med balancemarked tog 17 minutter og ca. 3,5 GB på en pc med 24 kerner; på få kerner tager det væsentligt længere og kan ramme tidsgrænsen. Regn helår på forhånd. |
 
 Kilder: src/model.py:432-434; src/balancing.py:342; KONTRAKT §6c; README.md:62-71; rapport v4 §7; rapport v4 §5.4; rapport v4, bilag A; rapport v4 §5.3;
-cases/andeby.yaml:75-80; cases/andeby.yaml:412-415; src/reporting.py:314-338; src/model.py:267-271; README.md:195-199.
+cases/andeby.yaml:75-80; cases/andeby.yaml:412-415; src/reporting.py:314-338; src/model.py:267-271; README.md:197-201.
 
 **Grundreglen:** et modeltal gælder for en periode, under nogle antagelser, med en metode. Skifter
 en af de tre, skifter tallet. Modellen producerer altid et tal — det er fagpersonen, der skal sige

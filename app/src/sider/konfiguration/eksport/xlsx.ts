@@ -9,10 +9,18 @@
 // eksporten skriver; alle andre dele af filen (styles, sharedStrings, tema,
 // validering) går byte for byte videre. fflate (MIT) pakker zip'en.
 //
-// Skabelonens XML er skrevet af LibreOffice og helt regelmæssig: én <row> pr.
-// række med r-attribut og celler med r-attribut. Patcheren antager netop det
-// og fejler højlydt, hvis den møder noget andet — en stille fejlplacering af
-// en værdi er værre end ingen eksport.
+// Skabelonens XML er helt regelmæssig: én <row> pr. række med r-attribut og
+// celler med r-attribut. Patcheren antager netop det og fejler højlydt, hvis
+// den møder noget andet — en stille fejlplacering af en værdi er værre end
+// ingen eksport.
+//
+// To former er målt (runde 15). Til og med modelrepoets 90fb16e var skabelonen
+// gemt af LibreOffice (delte strenge, <printOptions> i hvert ark, r-navnerummet
+// på <workbook>, tabSelected="true"). Fra 939228a er den skrevet direkte af
+// openpyxl (scripts/byg_skabelon.py): tekster som inlineStr, ingen
+// sharedStrings.xml, intet <printOptions>, r-navnerummet erklæret pr. <sheet>,
+// ingen valgt fane. Patcheren bærer begge; skabelon.spec.ts prøver den form,
+// pinnen har.
 //-----------------------------------------------------------------------
 
 import { strFromU8, strToU8, unzipSync, zipSync, type Zippable } from "fflate";
@@ -218,8 +226,11 @@ export class Regneark {
         const liste = (l: readonly string[]) => xmlTegn(`"${l.join(",")}"`);
         const valg = o.valideringer.length ? `<dataValidations count="${o.valideringer.length}">${o.valideringer.map((v) =>
             `<dataValidation allowBlank="true" error="${xmlTegn(`Vælg en værdi fra listen: ${v.liste.join(", ")}`)}" errorStyle="stop" errorTitle="${xmlTegn(v.titel)}" operator="between" prompt="Vælg fra listen" promptTitle="${xmlTegn(v.titel)}" showDropDown="false" showErrorMessage="true" showInputMessage="true" sqref="${v.sqref}" type="list"><formula1>${liste(v.liste)}</formula1><formula2>0</formula2></dataValidation>`).join("")}</dataValidations>` : "";
-        if (!this.efter.includes("<printOptions")) throw new Error(`${this.navn}: arket har ikke skabelonens form (<printOptions>).`);
-        this.efter = this.efter.replace("<printOptions", `${flet}${valg}<printOptions`);
+        // Regnearkets rækkefølge (CT_Worksheet): … mergeCells, dataValidations, printOptions, pageMargins … Et ark skrevet
+        // af openpyxl har intet <printOptions>; så står delene lige før <pageMargins>.
+        const anker = ["<printOptions", "<pageMargins"].find((a) => this.efter.includes(a));
+        if (!anker) throw new Error(`${this.navn}: arket har ikke skabelonens form (hverken <printOptions> eller <pageMargins>).`);
+        this.efter = this.efter.replace(anker, `${flet}${valg}${anker}`);
         for (const [nr, ht] of o.højder) this.sætHøjde(nr, ht);
     }
 
@@ -245,7 +256,10 @@ export class Regneark {
 
 // ------------------------------------------------------------------ arbejdsbogen
 
-const NS_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet";
+const NS_R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+const NS_REL = `${NS_R}/worksheet`;
+/** En valgt fane: LibreOffice skriver "true", openpyxl og Excel "1". */
+const VALGT_FANE = /\btabSelected="(?:true|1)"/;
 const CT_ARK = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml";
 
 /** Arbejdsbogen: arknavn -> sti i zip'en, og de ark, der er åbnet til ændring. */
@@ -298,7 +312,7 @@ export class Arbejdsbog {
         const kildeXml = this.ark.get(formFra)?.xml() ?? this.tekst(this.stier.get(formFra) ?? `?${formFra}`);
         const nyt = new Regneark(kildeXml.replace(/<sheetData>[\s\S]*<\/sheetData>/, "<sheetData></sheetData>")
             .replace(/<mergeCells[\s\S]*?<\/mergeCells>/, "").replace(/<dataValidations[\s\S]*?<\/dataValidations>/, "")
-            .replace(/\btabSelected="true"/, 'tabSelected="false"'), navn);
+            .replace(VALGT_FANE, 'tabSelected="false"'), navn);
         let n = 1;
         while (this.filer[`xl/worksheets/sheet${n}.xml`]) n++;
         const sti = `xl/worksheets/sheet${n}.xml`;
@@ -309,13 +323,15 @@ export class Arbejdsbog {
             `<Relationship Id="${rid}" Type="${NS_REL}" Target="worksheets/sheet${n}.xml"/></Relationships>`));
         const wb = this.tekst("xl/workbook.xml");
         const sheetIder = [...wb.matchAll(/sheetId="(\d+)"/g)].map((m) => Number(m[1]));
-        const ark = `<sheet name="${xmlTegn(navn)}" sheetId="${Math.max(0, ...sheetIder) + 1}" state="${skjult ? "hidden" : "visible"}" r:id="${rid}"/>`;
+        // r-navnerummet erklæres på elementet selv: openpyxl erklærer det pr. <sheet> og ikke på <workbook>, og et
+        // uerklæret præfiks gør workbook.xml ugyldig (filen kan ikke åbnes). Dobbelt erklæring er tilladt.
+        const ark = `<sheet name="${xmlTegn(navn)}" sheetId="${Math.max(0, ...sheetIder) + 1}" state="${skjult ? "hidden" : "visible"}" r:id="${rid}" xmlns:r="${NS_R}"/>`;
         if (først) {
             if (!/activeTab="0"/.test(wb)) throw new Error("Arbejdsbogen åbner ikke på sit første ark (activeTab) — forventet skabelonens form.");
             for (const [n, s] of this.stier) {
                 if (this.ark.has(n)) throw new Error(`Arket ${n} er åbnet til ændring; tilføj fanen først, før andre ark åbnes.`);
                 const x = this.tekst(s);
-                if (/\btabSelected="true"/.test(x)) this.filer[s] = strToU8(x.replace(/\btabSelected="true"/, 'tabSelected="false"'));
+                if (VALGT_FANE.test(x)) this.filer[s] = strToU8(x.replace(VALGT_FANE, 'tabSelected="false"'));
             }
             this.filer["xl/workbook.xml"] = strToU8(wb.replace("<sheets>", `<sheets>${ark}`));
         } else {

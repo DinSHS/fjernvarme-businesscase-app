@@ -40,15 +40,16 @@ function Raekke({ c, denne }: { c: Kandidat; denne: string }) {
             </div>
             <div className="fjv-a-kand-tal">
                 <div><span className="fjv-a-tal">{c.k.objektiv_dkk == null ? "–" : `${tal(c.k.objektiv_dkk)} kr.`}</span> <span className="fjv-a-svag">driftsomkostning</span></div>
-                <div className={c.delta == null ? "fjv-a-svag" : undefined}>{deltaTekst(c.delta)}</div>
+                {/* Runde 15 (mail 1): ingen "billigere/dyrere end denne" om en kørsel, der ikke kan sammenlignes direkte. */}
+                <div className={c.delta == null ? "fjv-a-svag" : undefined}>{c.status === "ja" || !c.faerdig ? deltaTekst(c.delta) : c.status === "ukendt" ? "ingen differens — det kan ikke afgøres, om den kan sammenlignes" : "ingen differens — kan ikke sammenlignes direkte"}</div>
             </div>
         </>
     );
     return (
         <li>
             {c.faerdig
-                // Kandidaten bliver referencen (a); den aktuelle kørsel er scenariet (b).
-                ? <a className="fjv-a-kand-rk" href={rutehref("analyser", "sammenlign", c.k.id, denne)} title="Sammenlign — kandidaten bliver referencen">{indhold}</a>
+                // Kandidaten står først i linket. Rollerne afgør sammenligningssiden: scenariet er den kørsel, der bærer ændringen (runde 15, mail 2).
+                ? <a className="fjv-a-kand-rk" href={rutehref("analyser", "sammenlign", c.k.id, denne)} title="Sammenlign — scenariet er den kørsel, der bærer ændringen i forhold til værket">{indhold}</a>
                 : <div className="fjv-a-kand-rk" data-deaktiveret="true">{indhold}</div>}
         </li>
     );
@@ -64,20 +65,21 @@ export default function Kandidatliste({ pakke, alle }: { pakke: Pakke; alle: Hen
                 const top = anbefalet[0];
                 const budskab = top
                     ? `${anbefalet.length} ${anbefalet.length === 1 ? "kørsel kan" : "kørsler kan"} sammenlignes direkte med denne. ${top.naturlig ? "Naturlig reference" : "Øverst"}: "${top.navn}" — ${deltaTekst(top.delta)}.`
-                    : `Der er ingen anden kørsel af ${pakke.vaerkNavn} i samme periode (${periode}) med samme data, modelversion og gab.`;
+                    : `Der er ingen anden kørsel af ${pakke.vaerkNavn} ved samme værksrevision i samme periode (${periode}) med samme data, modelversion og gab.`;
                 return (
                     <Kort titel="Hvad skal denne kørsel sammenlignes med?" afgraensning="vælg en reference — differensen er produktet"
                         budskab={budskab}
-                        fod={<>Direkte sammenlignelig = samme værk, periode, opløsning, data, modelversion og ønsket gab (differensmetoden). Den naturlige
-                            reference er scenariets egen reference, ellers værket som det er med samme balancering. Den valgte kørsel bliver
-                            referencen; "Byt reference og scenarie" findes på sammenligningssiden.</>}>
+                        fod={<>Direkte sammenlignelig = samme værk og værksrevision, periode, opløsning, data, modelversion og ønsket gab (differensmetoden). Den naturlige
+                            reference er scenariets egen reference, ellers værket som det er med samme balancering. På sammenligningssiden er
+                            scenariet den kørsel, der bærer ændringen i forhold til værket; bærer begge (eller ingen) en ændring, bliver den valgte
+                            kørsel referencen, og "Byt reference og scenarie" findes dér.</>}>
                         {anbefalet.length > 0
                             ? <ul className="fjv-a-kand">{anbefalet.map((c) => <Raekke key={c.k.id} c={c} denne={pakke.k.id} />)}</ul>
                             : <p className="fjv-brod">Bestil en reference under <a className="fjv-a-link" href={rutehref("scenarier")}>Scenarier</a> —
                                 samme værk og periode uden ændringer, og med samme gab som denne kørsel.</p>}
                         {andre.length > 0 && (
                             <details open={anbefalet.length === 0}>
-                                <summary className="fjv-a-svag" style={{ cursor: "pointer" }}>Andre kørsler — kan ikke sammenlignes direkte ({andre.length})</summary>
+                                <summary className="fjv-a-svag" style={{ cursor: "pointer" }}>Andre kørsler — {andre.some((c) => c.status === "ukendt") ? "kan ikke sammenlignes direkte, eller det kan ikke afgøres" : "kan ikke sammenlignes direkte"} ({andre.length})</summary>
                                 <ul className="fjv-a-kand">{andre.map((c) => <Raekke key={c.k.id} c={c} denne={pakke.k.id} />)}</ul>
                             </details>
                         )}

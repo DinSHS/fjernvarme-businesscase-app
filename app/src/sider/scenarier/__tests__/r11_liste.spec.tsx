@@ -9,13 +9,16 @@ import type { Scenarie } from "../../../../rayfin/data/Scenarie";
 import type { Pakke } from "../../analyser/data";
 import { Produktion } from "../../analyser/sammenlign";
 import Oversigt from "../Oversigt";
+import { SAMMENLIGNELIG } from "../../analyser/profil.testdata";
 
 const hentet = <T,>(data: T) => ({ data, fejl: undefined, indlæser: false, genindlæs: () => {} });
 const ref = { id: "s1", vaerk_id: "v1", navn: "Reference", arkiveret: false, oprettet: new Date(Date.UTC(2026, 9, 1)), oprettet_af: "a@example.org" } as Scenarie;
 const scen = { ...ref, id: "s2", navn: "Scenarie", reference_scenarie_id: "s1", oprettet: new Date(Date.UTC(2026, 9, 2)) } as Scenarie;
 const koersel = (s: Scenarie, objektiv_dkk: number) => ({
     id: `k-${s.id}`, scenarie_id: s.id, vaerk_id: "v1", status: "faerdig", objektiv_dkk, oploesning: "1h", data_commit: "d", model_commit: "m",
-    oensket_rel_gap: 0.0002, oensket_abs_gap: 100, manifest_json: "{}", bestilt: new Date(Date.UTC(2026, 9, 3)), bestilt_af: "a@example.org",
+    // Perioden skal kendes: uden den er parret ikke direkte sammenligneligt, og oversigten viser intet ΔRef (runde 15, mail 1).
+    oensket_rel_gap: 0.0002, oensket_abs_gap: 100, manifest_json: JSON.stringify({ periode: { start: "2026-01-05", slut: "2026-01-16" } }),
+    bestilt: new Date(Date.UTC(2026, 9, 3)), bestilt_af: "a@example.org",
 }) as unknown as Koersel;
 
 vi.mock("@/lib/data/hooks", () => ({
@@ -23,6 +26,13 @@ vi.mock("@/lib/data/hooks", () => ({
     useVaerker: () => hentet([{ id: "v1", navn: "Andeby" }]),
     useKoersler: () => hentet([koersel(ref, 1_000_000), koersel(scen, 1_044_219)]),
     useKoerselStatus: (k: Koersel[] | undefined) => k ?? [],
+}));
+
+// Efterprøvningen af rettelserne i runde 15 (fund D): oversigten henter kørslernes korte frosne profil og dømmer på den.
+vi.mock("@/lib/data/frossen-profil", () => ({
+    useKortFrossenProfil: () => hentet(new Map(["k-s1", "k-s2"].map((id) => [id, [
+        { kilde: "scenarie", sti: "_koersel.start", vaerdi_json: '"2026-01-05"' }, { kilde: "scenarie", sti: "_koersel.slut", vaerdi_json: '"2026-01-16"' },
+    ]]))),
 }));
 
 beforeEach(() => { localStorage.clear(); glemVisning(); saetVisning("delta", "heatmap"); saetFarvesaet("roedgroen"); });
@@ -51,7 +61,7 @@ describe("scenarielisten uden farvevalg og heatmap", () => {
         expect(localStorage.getItem("fjv.tabelfarve.farvesaet.v1")).toBe("roedgroen");
         cleanup();
         const enheder = (x: number) => [{ navn: "a", produktion_mwh: x, andel_pct: 40, driftstimer: 1 }, { navn: "b", produktion_mwh: 1000, andel_pct: 60, driftstimer: 1 }];
-        const p = (x: number) => ({ samlet: { enheder: enheder(x), lagre: [] }, input: [] }) as unknown as Pakke;
+        const p = (x: number) => ({ samlet: { enheder: enheder(x), lagre: [] }, input: [], profil: SAMMENLIGNELIG }) as unknown as Pakke;
         const { container } = render(<Produktion a={p(500)} b={{ ...p(900), samlet: { enheder: [{ ...enheder(900)[0], andel_pct: 47 }, { ...enheder(900)[1], andel_pct: 53 }], lagre: [] } } as unknown as Pakke} />);
         expect(container.querySelector("[aria-label='Farver i tabellen'] [aria-pressed='true']")!.textContent).toBe("Heatmap");
         expect(container.querySelector("[aria-label='Farvesæt'] [aria-pressed='true']")!.textContent).toBe("Rød/grøn");

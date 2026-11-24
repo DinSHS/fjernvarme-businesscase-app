@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// Modelrepoets slug() (scripts/vaerksark_til_yaml.py:101-108) — skilt ud fra
+// Modelrepoets slug() (scripts/vaerksark_til_yaml.py:111-118) — skilt ud fra
 // kort.ts, så navnereglen ved oprettelse (redigering.ts, hovedbundtet) kan
 // bruge den uden at hente eksporten (Codex K11 F1).
 //-----------------------------------------------------------------------

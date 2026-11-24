@@ -181,7 +181,7 @@ describe("trin 7 — gennemse", () => {
 
 describe("skabelonens egne regler (viden/nyt_vaerk_skabelon.json)", () => {
     it("guiden bruger fv-eksperts skabelon, ikke den midlertidige", () => {
-        expect(NYT_VAERK_SKABELON?.kilde).toMatch(/^viden\/nyt_vaerk_skabelon\.json @ 90fb16e/);
+        expect(NYT_VAERK_SKABELON?.kilde).toMatch(/^viden\/nyt_vaerk_skabelon\.json @ 939228a/);
         expect(s.varmelast.reference_gwh).toBe(50);
         expect([...s.varmelast.skaleres].sort()).toEqual(["heat_load_params.baseline_profile_mw", "heat_load_params.gaf_mw_per_k", "heat_load_params.nettab_slope_mw_per_k"]);
     });

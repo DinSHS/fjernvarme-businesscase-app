@@ -11,6 +11,8 @@ let n = 0;
 const nt = (gruppe: string, noegle: string, vaerdi: number, marked?: string): Noegletal =>
     ({ id: `k3-${n++}`, koersel_id: "k", gruppe, noegle, vaerdi, marked } as Noegletal);
 const ind = (kilde: InputRække["kilde"], sti: string, vaerdi_json: string): InputRække => ({ kilde, sti, vaerdi_json });
+/** Den frosne periode, kørslerne her er bestilt med (fund D i efterprøvningen af runde 15: perioden udledes af det frosne input). */
+const PERIODE = [ind("scenarie", "_koersel.start", "\"2026-01-05\""), ind("scenarie", "_koersel.slut", "\"2026-01-16\"")];
 function kørsel(over: Partial<Koersel> = {}): Koersel {
     return {
         id: "k", bestilling_id: "b", scenarie_id: "s", vaerk_id: "v1", vaerk_revision: 1, input_hash: "x".repeat(64),
@@ -22,7 +24,7 @@ function kørsel(over: Partial<Koersel> = {}): Koersel {
     } as Koersel;
 }
 const advarsler = (a: Koersel, b: Koersel, ia?: InputRække[], ib?: InputRække[]) =>
-    sammenlignelighed(profil(a, "A", null, ia), profil(b, "A", null, ib)).filter((x) => x.alvor !== "note").map((x) => x.navn);
+    sammenlignelighed(profil(a, "A", null, ia ?? PERIODE), profil(b, "A", null, ib ?? PERIODE)).filter((x) => x.alvor !== "note").map((x) => x.navn);
 
 describe("K3 N2: sammenlignelighed afgøres af rå værdier, ikke af formatterede tekster", () => {
     it("relativt gab 0,0002 mod 0,00020001 afviger", () => {
@@ -35,8 +37,10 @@ describe("K3 N2: sammenlignelighed afgøres af rå værdier, ikke af formattered
         expect(advarsler(kørsel(), kørsel({ data_commit: "392992c0000000000000000000000000000000ff" }))).toContain("Datagrundlag (df-data)");
     });
     it("start kl. 00 mod kl. 12 samme dato afviger (præcis periode fra det frosne input)", () => {
-        const ia = [ind("scenarie", "_koersel.start", "\"2026-01-05T00:00:00Z\""), ind("scenarie", "_koersel.slut", "\"2026-01-16\"")];
-        const ib = [ind("scenarie", "_koersel.start", "\"2026-01-05T12:00:00Z\""), ind("scenarie", "_koersel.slut", "\"2026-01-16\"")];
+        // Efterprøvningen af runde 15 (fund D): et tidspunkt kan kun stå i VÆRKETS tidsblok — scenariets datoer er
+        // rene datoer (arbejderen afviser alt andet). Før stod tidspunkterne her i `_koersel.start`.
+        const ia = [ind("vaerk", "time.start", "\"2026-01-05T00:00:00Z\""), ind("vaerk", "time.end", "\"2026-01-16T23:00:00Z\"")];
+        const ib = [ind("vaerk", "time.start", "\"2026-01-05T12:00:00Z\""), ind("vaerk", "time.end", "\"2026-01-16T23:00:00Z\"")];
         expect(advarsler(kørsel(), kørsel(), ia, ib)).toContain("Periode");
     });
     it("samme periode skrevet på to måder er ens (ren dato = hele døgnet: start kl. 00, slut = sidste interval kl. 23)", () => {
@@ -45,19 +49,21 @@ describe("K3 N2: sammenlignelighed afgøres af rå værdier, ikke af formattered
         expect(advarsler(kørsel(), kørsel(), ia, ib)).toEqual([]);
     });
     it("ukendte nødvendige metadata giver 'kan ikke afgøres' — også når de mangler på BEGGE sider", () => {
-        const a = profil(kørsel({ data_commit: undefined }), "A"), b = profil(kørsel({ data_commit: undefined }), "A");
+        const a = profil(kørsel({ data_commit: undefined }), "A", null, PERIODE), b = profil(kørsel({ data_commit: undefined }), "A", null, PERIODE);
         const af = sammenlignelighed(a, b);
         expect(af.find((x) => x.navn === "Datagrundlag (df-data)")?.alvor).toBe("ukendt");
         expect(sammenlignelighedStatus(af)).toBe("ukendt");
-        expect(sammenlignelighedStatus(sammenlignelighed(profil(kørsel(), "A"), profil(kørsel(), "A")))).toBe("ja");
-        expect(sammenlignelighedStatus(sammenlignelighed(profil(kørsel(), "A"), profil(kørsel({ oploesning: "15min" }), "A")))).toBe("nej");
+        expect(sammenlignelighedStatus(sammenlignelighed(profil(kørsel(), "A", null, PERIODE), profil(kørsel(), "A", null, PERIODE)))).toBe("ja");
+        expect(sammenlignelighedStatus(sammenlignelighed(profil(kørsel(), "A", null, PERIODE), profil(kørsel({ oploesning: "15min" }), "A", null, PERIODE)))).toBe("nej");
+        // Uden frosset input kan perioden ikke udledes (manifestet bærer kun datoer): ukendt, ikke "ja".
+        expect(sammenlignelighedStatus(sammenlignelighed(profil(kørsel(), "A"), profil(kørsel(), "A")))).toBe("ukendt");
     });
 });
 
 describe("K3 N3: balancemarkedets værdi kun når balanceringen er den ENESTE forskel", () => {
     const uden = samlNoegletal([nt("objektiv", "objektiv_dkk", 1000)]);
     const med = samlNoegletal([nt("balancering", "netto_dkk", 500), nt("objektiv", "objektiv_dkk", 3000)]);
-    const balIn = (v: boolean) => [ind("vaerk", "prices.natural_gas.value", "606.0"), ind("scenarie", "_koersel.med_balancering", String(v))];
+    const balIn = (v: boolean) => [ind("vaerk", "prices.natural_gas.value", "606.0"), ...PERIODE, ind("scenarie", "_koersel.med_balancering", String(v))];
     const pakke = (k: Koersel, samlet: typeof uden, input: InputRække[], navn = "A") => ({ k, samlet, input, profil: profil(k, navn, null, input) });
 
     it("to forskellige værker: ingen 'balancemarkedets værdi'", () => {
@@ -69,7 +75,7 @@ describe("K3 N3: balancemarkedets værdi kun når balanceringen er den ENESTE fo
     });
     it("samme værk, men gasprisen ændret samtidig: ingen 'værdi', og ændringen navngives", () => {
         const a = pakke(kørsel({ objektiv_dkk: 3424408 }), uden, balIn(false));
-        const ib = [ind("vaerk", "prices.natural_gas.value", "606.0"), ind("aendring", "prices.natural_gas.value", "727.2"), ind("scenarie", "_koersel.med_balancering", "true")];
+        const ib = [ind("vaerk", "prices.natural_gas.value", "606.0"), ind("aendring", "prices.natural_gas.value", "727.2"), ...PERIODE, ind("scenarie", "_koersel.med_balancering", "true")];
         const b = pakke(kørsel({ objektiv_dkk: 3000363 }), med, ib);
         expect(balancemarkedetsVaerdi(a, b)).toBeNull();
         expect((balanceForskel(a, b) as { grunde: string[] }).grunde).toEqual(["prices.natural_gas.value"]);

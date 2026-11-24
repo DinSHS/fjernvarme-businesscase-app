@@ -1,0 +1,230 @@
+{
+ "_om": "MÅLT på arbejderen (fabric/fjv/byg_case.py › _modeltid, Python 3.11+ datetime.fromisoformat): en form af værkets time.start/time.end, og tidspunktet arbejderen læser (ISO UTC) — null = arbejderen afviser formen. Browserens udledning af den effektive periode (app/src/sider/analyser/beregn.ts › effektivPeriode) kræves at give samme udfald (app/src/sider/scenarier/__tests__/r15c_tidsgrammatik.spec.ts; de bevidste afvigelser står dér). Ret aldrig \"ud\" i hånden: FJV_SKRIV_VEKTORER=1 python -m unittest tests.test_modeltid_vektorer (fra fabric/).",
+ "tilfaelde": [
+  {
+   "navn": "kort nul-offset (efterprøvningens tilfælde)",
+   "tid": "2026-01-05T00:00:00+00",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "kort negativt nul-offset",
+   "tid": "2026-01-05T00:00:00-00",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "nul-offset uden kolon",
+   "tid": "2026-01-05T00:00:00+0000",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "nul-offset med kolon",
+   "tid": "2026-01-05T00:00:00+00:00",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "negativt nul-offset med kolon",
+   "tid": "2026-01-05T00:00:00-00:00",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "Z",
+   "tid": "2026-01-05T00:00:00Z",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "lille z",
+   "tid": "2026-01-05T00:00:00z",
+   "ud": null
+  },
+  {
+   "navn": "lille t som skilletegn",
+   "tid": "2026-01-05t00:00:00Z",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "mellemrum som skilletegn, naivt",
+   "tid": "2026-01-05 00:00:00",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "naivt = UTC",
+   "tid": "2026-01-05T00:00:00",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "uden sekunder",
+   "tid": "2026-01-05T00:00",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "kun timen",
+   "tid": "2026-01-05T00",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "uden sekunder med Z",
+   "tid": "2026-01-05T00:00Z",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "kun timen med kort nul-offset",
+   "tid": "2026-01-05T00+00",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "klokken 12 med kort nul-offset",
+   "tid": "2026-01-05T12:00:00+00",
+   "ud": "2026-01-05T12:00:00Z"
+  },
+  {
+   "navn": "bar dato = midnat",
+   "tid": "2026-01-05",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "bar dato med Z",
+   "tid": "2026-01-05Z",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "bar dato med nul-offset",
+   "tid": "2026-01-05+00:00",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "blanktegn omkring",
+   "tid": " 2026-01-05 ",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "skuddag i et skudår",
+   "tid": "2024-02-29T00:00:00Z",
+   "ud": "2024-02-29T00:00:00Z"
+  },
+  {
+   "navn": "30. februar som bar dato",
+   "tid": "2026-02-30",
+   "ud": null
+  },
+  {
+   "navn": "30. februar med klokkeslæt",
+   "tid": "2026-02-30T00:00:00Z",
+   "ud": null
+  },
+  {
+   "navn": "29. februar uden for skudår",
+   "tid": "2025-02-29T00:00:00Z",
+   "ud": null
+  },
+  {
+   "navn": "31. april",
+   "tid": "2026-04-31T00:00:00",
+   "ud": null
+  },
+  {
+   "navn": "måned 13",
+   "tid": "2026-13-01T00:00:00Z",
+   "ud": null
+  },
+  {
+   "navn": "klokken 24",
+   "tid": "2026-01-05T24:00:00Z",
+   "ud": null
+  },
+  {
+   "navn": "minut 60",
+   "tid": "2026-01-05T00:60:00Z",
+   "ud": null
+  },
+  {
+   "navn": "brøksekunder på nul, punktum",
+   "tid": "2026-01-05T00:00:00.000Z",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "brøksekunder på nul, komma",
+   "tid": "2026-01-05T00:00:00,000Z",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "et halvt sekund",
+   "tid": "2026-01-05T00:00:00.5Z",
+   "ud": null
+  },
+  {
+   "navn": "en halv time",
+   "tid": "2026-01-05T00:30:00Z",
+   "ud": null
+  },
+  {
+   "navn": "et sekund over",
+   "tid": "2026-01-05T00:00:01Z",
+   "ud": null
+  },
+  {
+   "navn": "kort offset på en time",
+   "tid": "2026-01-05T00:00:00+01",
+   "ud": null
+  },
+  {
+   "navn": "dansk normaltid",
+   "tid": "2026-01-05T00:00:00+01:00",
+   "ud": null
+  },
+  {
+   "navn": "dansk sommertid",
+   "tid": "2026-06-08T00:00:00+02:00",
+   "ud": null
+  },
+  {
+   "navn": "negativt offset",
+   "tid": "2026-01-05T00:00:00-01:00",
+   "ud": null
+  },
+  {
+   "navn": "et ciffer i måned og dag",
+   "tid": "2026-1-5",
+   "ud": null
+  },
+  {
+   "navn": "et ciffer i timen",
+   "tid": "2026-01-05T0:00:00Z",
+   "ud": null
+  },
+  {
+   "navn": "kun år og måned",
+   "tid": "2026-01",
+   "ud": null
+  },
+  {
+   "navn": "ikke et tidspunkt",
+   "tid": "i går",
+   "ud": null
+  },
+  {
+   "navn": "tom tekst",
+   "tid": "",
+   "ud": null
+  },
+  {
+   "navn": "basisformat uden skilletegn",
+   "tid": "20260105T000000Z",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "ugedato",
+   "tid": "2026-W02-1",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "mellemrum før Z",
+   "tid": "2026-01-05T00:00:00 Z",
+   "ud": "2026-01-05T00:00:00Z"
+  },
+  {
+   "navn": "nul-offset med sekunder",
+   "tid": "2026-01-05T00:00:00+00:00:00",
+   "ud": "2026-01-05T00:00:00Z"
+  }
+ ]
+}

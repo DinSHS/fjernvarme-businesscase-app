@@ -13,11 +13,13 @@
 
 import { effektivtInput, KOERSEL_PRAEFIKS, type InputRække } from "@/lib/data/afflad";
 import { tal } from "@/lib/format";
+import { GRAENSER } from "../../../rayfin/data/fjv.constants";
 import {
-    absolutGab, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor, visJson,
-    type InputForskel, type Koersel, type Profil, type Samlet,
+    absolutGab, co2Opgoerelse, feltInfo, inputDiff, kendtDelta, METADATA_FLAG, MODELLENS_TIDSGRAENSE_S, modtaget, sammeVaerdi, produktionsvarians, sammenlignelighed, sammenlignelighedStatus, spor,
+    tidsgraenseForslag, toleranceKr, visJson,
+    type InputForskel, type Koersel, type Profil, type Samlet, type TidsgraenseForslag,
 } from "./beregn";
-import { FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, SKALERING_TEKST, T0_DEFEKTE_MODEL_COMMITS, TRIN, VISNINGSNAVNE } from "./anbefaling.data";
+import { AARSTAL, FORBEHOLD_REGLER, INVESTERING, KATEGORIER, KNAPPER, T0_DEFEKTE_MODEL_COMMITS, TRIN, TRIN5, VISNINGSNAVNE } from "./anbefaling.data";
 import { dec, periodeTekst } from "./fmt";
 import { aendringsResume } from "./kandidater";
 
@@ -41,7 +43,7 @@ export type Kategori = "anbefalet" | "fraraades" | "kan_ikke_afgoeres" | "unders
  * < 10.000: nærmeste 100 kr.; < 1 mio.: nærmeste 1.000 kr.; ≥ 1 mio.: én decimal og "mio. kr.". Uden fortegn.
  * Codex K9 F4: er det afrundede beløb ikke beløbet i hele kroner, står "ca." foran ("ca. 200 kr." for 170,18 kr.), så
  * fortællingen ikke ser uenig ud med overskriftens præcise "170 kr."; et beløb, der afrundes til 0, er "under 100 kr.".
- * `ca = false`, hvor teksten selv siger "ca." (skaleringen), og til nultjekket (`krNul`).
+ * `ca = false` til nultjekket (`krNul`).
  */
 export function krRund(v: number, ca = true): string {
     const a = Math.abs(v);
@@ -89,9 +91,10 @@ const TYPENAVN: Record<string, [string, string]> = {
     heat_pump: ["varmepumpen", "varmepumpe"], electric_boiler: ["elkedlen", "elkedel"], biomass_boiler: ["biomassekedlen", "biomassekedel"],
     gas_boiler: ["gaskedlen", "gaskedel"], gas_engine_chp: ["gasmotoren", "gasmotor"], solar_thermal: ["solvarmen", "solvarme"],
     waste_heat: ["overskudsvarmen", "overskudsvarme"],
+    oil_boiler: ["oliekedlen", "oliekedel"],          // ny enhedstype ved modelrepoets 939228a (oliekedel.spec.ts)
 };
 
-const BRÆNDSLER = /^prices\.(natural_gas|straw|flis|wood_pellets|waste_heat)\.value$/;
+const BRÆNDSLER = /^prices\.(natural_gas|fuel_oil|straw|flis|wood_pellets|waste_heat)\.value$/;
 const ELAFGIFT = "electricity.electricity_tax", ELAFGIFT_NET = "electricity.tariff_consumption.fixed_components.elafgift_net";
 
 /**
@@ -153,12 +156,27 @@ function bærer(s: Side, sti: string): boolean {
     return true;
 }
 
+/** Rækkefølgen af et pars to kørsler: "ab" = a er referencen og b scenariet; "ba" = omvendt. */
+export type Retning = "ab" | "ba";
+
 export interface Par {
     ref: Side;
     scen: Side;
-    /** Rollerne er byttet ift. brugerens a/b (a bar ændringen). */
+    /** Rollerne er byttet ift. brugerens a/b. */
     byttet: boolean;
+    /**
+     * Hvad der fastlagde rollerne: `par` = parrelationen (scenariets reference under Scenarier), `aendring` = netop én
+     * af kørslerne bærer ændringen, `valg` = ingen af delene, så rækkefølgen er brugerens (og kan byttes).
+     */
+    grund: "par" | "aendring" | "valg";
+    /**
+     * Den FAGLIGE forskel mellem de to kørsler (tredje rettelsesrunde, P2-5): input-diffet uden de rækker, der kun er
+     * teknisk forskellige — to tidsserier med hver sit id og samme sha256 er samme varmelast. Den tekniske visning
+     * (alle rækker, også id'erne) er `beregn.ts › inputDiff`.
+     */
     diff: InputForskel[];
+    /** Hvordan den effektive varmelast ændres fra reference til scenarie (`varmelastskift`); null = samme varmelast. */
+    varmelast?: Varmelastskift | null;
     knap: string | null;
     /** Flere ændringer, der ikke tilsammen er én knaps skabelon (trin 2). */
     flere: boolean;
@@ -167,21 +185,33 @@ export interface Par {
 }
 
 /**
- * Ordner et par: scenariet er den kørsel, der bærer ændringen. Δ = scenarie − reference.
- * Retningen afgøres først af, hvem der bærer ændringerne; matcher knappens skabelon
- * kun i den modsatte retning (fx tankstørrelse: "ingen tank" er referencen), byttes.
+ * Ordner et par. Δ = scenarie − reference. Rollerne fastlægges i denne orden (kodegennemgangen af runde 15, fund 5):
+ *
+ *  1. `relation`: PARRELATIONEN — scenariet er oprettet med den anden som sin reference (Scenarie.reference_scenarie_id;
+ *     data.ts › parRelation). Det er brugerens eget valg af reference og går forud for alt andet.
+ *  2. Den ENTYDIGT ændrede kørsel: bærer netop én af kørslerne hele forskellen, er den scenariet.
+ *  3. Ellers (begge bærer en ændring, eller ingen gør) er rækkefølgen brugerens: a er referencen.
+ *
+ * Knappens skabelon genkendes DEREFTER, og kun i den valgte retning. Før byttede en skabelon, der kun passede i den
+ * modsatte retning, rollerne: i et værk med tanken slået fra blev scenariet "slå tanken til" læst som "Hvad er tanken
+ * værd?" vendt om — kørslen med ændringen blev reference, og ΔRef fik modsat fortegn af parrets valgte reference.
+ * Kan skabelonen ikke genkendes, er `knap` null (ingen regel, ingen anbefaling), og par og fortegn står ved magt.
  */
-export function ordnPar(a: Side, b: Side): Par {
-    const ab = inputDiff(a.input, b.input).filter(relevant), ba = inputDiff(b.input, a.input).filter(relevant);
-    let byttet = ab.length > 0 && ab.every((d) => bærer(a, d.sti) && !bærer(b, d.sti));
-    let knap = matchSkabelon(byttet ? ba : ab);
-    if (knap === null) {
-        const alt = matchSkabelon(byttet ? ab : ba);
-        if (alt !== null) { byttet = !byttet; knap = alt; }
-    }
+export function ordnPar(a: Side, b: Side, relation: Retning | null = null): Par {
+    // P2-5: er den effektive varmelast den samme (samme sha256 under to id'er; udtrykkelig syntese over for en ældre
+    // kørsel uden række), er varmelastens rækker ikke en faglig forskel. Før blev de fortalt som et skift og matchet
+    // som knappen *Målt varmelast*.
+    const sammeLast = varmelastskift(a, b) === null;
+    const fagligt = (d: InputForskel[]) => (sammeLast ? d.filter((x) => x.sti !== HEAT_CSV_STI && x.sti !== VARMELASTSERIE_STI) : d);
+    const ab = fagligt(inputDiff(a.input, b.input).filter(relevant)), ba = fagligt(inputDiff(b.input, a.input).filter(relevant));
+    const kunA = ab.length > 0 && ab.every((d) => bærer(a, d.sti) && !bærer(b, d.sti));
+    const kunB = ab.length > 0 && ab.every((d) => bærer(b, d.sti) && !bærer(a, d.sti));
+    const grund: Par["grund"] = relation ? "par" : kunA || kunB ? "aendring" : "valg";
+    const byttet = relation ? relation === "ba" : kunA;
     const [ref, scen] = byttet ? [b, a] : [a, b];
     const diff = byttet ? ba : ab;
-    return { ref, scen, byttet, diff, knap, flere: knap === null && diff.length > 1, ukendt: knap === null && diff.length === 1 };
+    const knap = matchSkabelon(diff);
+    return { ref, scen, byttet, grund, diff, varmelast: varmelastskift(ref, scen), knap, flere: knap === null && diff.length > 1, ukendt: knap === null && diff.length === 1 };
 }
 
 // ================================================================= vurdering
@@ -200,7 +230,11 @@ export interface Vurdering {
     naesteSkridt: string[];
     /** Investeringsforbeholdet for knapper, der er investeringer. */
     investering: string | null;
-    skalering: string | null;
+    /**
+     * Årets beløb i kr. — KUN når perioden selv er mindst 365 døgn, og så er det periodens Δ uændret. Ellers null:
+     * appen skalerer ikke en kortere periode til et år (runde 15, fund 3.1).
+     */
+    aarligt: number | null;
     delta: number | null;
     tolerance: number | null;
     vaesentlighed: number | null;
@@ -208,9 +242,27 @@ export interface Vurdering {
     n: number | null;
     doegn: number | null;
     knap: string | null;
+    /**
+     * Er de to kørsler færdige og direkte sammenlignelige (trin 1)? Kun da er `delta` scenariets virkning. Er de ikke
+     * det, må hverken sætningen eller historien sige "billigere"/"dyrere" (runde 15, mail 1).
+     */
+    sammenlignelig: boolean;
+    /**
+     * Forslaget om en længere tidsgrænse (testrapportens afsnit 2a): en af kørslerne stoppede på tidsgrænsen, og
+     * usikkerheden er en væsentlig del af Δ. Teksten står også først i `naesteSkridt`. `scenarieIder`: hvor grænsen sættes.
+     */
+    tidsgraense: (TidsgraenseForslag & { scenarieIder: string[] }) | null;
 }
 
 const DØGN = 86_400_000;
+/**
+ * Fra denne længde er periodens tal et årstal (runde 15, fund 3.1 fra den uafhængige test 18. november 2026). Før
+ * blev Δ × 365 / døgn vist for alle perioder på 7–364 døgn: 12 januardøgn i Andeby (tankværdi 23.516 kr.) blev til
+ * "ca. 715.000 kr." om året, og Billund Spor B's 121 forårsdøgn (ca. 2,18 mio. kr.) til ca. 6,6 mio. kr. En sæson
+ * kan ikke ganges op — tanken tjener på elprisens udsving, og varmebehov og priser er anderledes resten af året.
+ * Appen opfinder derfor intet årstal: under 365 døgn vises kun periodens beløb.
+ */
+export const HELAAR_DOEGN = AARSTAL.helaar_doegn;
 /** Periodens længde i døgn fra den præcise periode (inkl. sidste interval). */
 export function doegn(p: Profil): number | null {
     if (!p.periode_fra || !p.periode_til) return null;
@@ -229,7 +281,7 @@ function sæson(p: Profil): string | null {
     return null;
 }
 
-function blad(s: Side, sti: string): unknown {
+function blad(s: Pick<Side, "input">, sti: string): unknown {
     const e = effektivtInput(s.input);
     const r = e.blade.get(sti);
     if (r) return json(r.vaerdi_json);
@@ -299,19 +351,30 @@ function knapSaetning(p: Par, delta: number, skaleret: string): string {
     const [bestemt, ubestemt] = type && TYPENAVN[type] ? TYPENAVN[type] : ["enheden", "enhed"];
     const a = Number(json(d0?.a)), b = Number(json(d0?.b));
     const brændsel = d0 ? /^prices\.([^.]+)\./.exec(d0.sti)?.[1] : undefined;
+    // P2-5: knappen *Målt varmelast* ændrer ikke en talværdi; dens {pct} er forskellen i forhold til referencens
+    // driftsomkostning. Før stod der en tom parentes: "flytter driftsomkostningen 30.000 kr. () —".
+    const refObjektiv = p.ref.k.objektiv_dkk;
+    const afReference = typeof refObjektiv === "number" && refObjektiv !== 0 ? procentRund((delta / refObjektiv) * 100) : "";
     const v: Record<string, string> = {
         abs, skaleret,
         enhed: p.knap === "ny_enhed" ? `${ubestemt} ${unit ?? ""}`.trim() : `${bestemt} ${unit ?? ""}`.trim(),
         vaerdi: Number.isFinite(b) ? `${tal(b)} m³` : "",
         brændsel: brændsel ? (VISNINGSNAVNE.braendsel?.[brændsel] ?? brændsel) : "",
-        pct: Number.isFinite(a) && Number.isFinite(b) && a !== 0 ? procentRund(((b - a) / a) * 100) : "",
+        pct: p.knap === "maalt_varmelast" ? afReference : Number.isFinite(a) && Number.isFinite(b) && a !== 0 ? procentRund(((b - a) / a) * 100) : "",
         pr_enhed: Number.isFinite(a) && Number.isFinite(b) && b !== a ? tal(Math.abs(delta / (b - a))) : "",
         a: d0 ? visJson(d0.a) : "", b: d0 ? visJson(d0.b) : "",
     };
     let t: string | undefined;
     if (anb?.type === "beslutning") t = (delta < 0 ? anb.hvis_billigere : anb.hvis_dyrere) as string | undefined;
     else if (anb) t = anb.tekst as string | undefined;
+    // P2-5: knappens sætning gælder dens egen retning (syntese → måling). De to andre retninger har hver sin, valgt
+    // af SAMME klassifikation, som sætning 1 fortæller varmelasten efter (`varmelastskift`).
+    if (p.knap === "maalt_varmelast") {
+        const skift = p.varmelast === undefined ? varmelastskift(p.ref, p.scen) : p.varmelast;
+        if (skift === "maaling_til_syntese" || skift === "maaling_til_maaling") t = VARMELAST_SAETNING[skift];
+    }
     if (!t) t = `Scenariet gør driften {abs} ${delta < 0 ? "billigere" : "dyrere"} i perioden{skaleret}.`;
+    if (!v.pct) t = t.replace(" ({pct})", "");
     // Pris- og omkostningsretning hver for sig (Codex K4-F5): skabelonen har "dyrere" fast for begge.
     const omk = delta < 0 ? "billigere" : "dyrere";
     if (Number.isFinite(a) && Number.isFinite(b)) t = t.replace("{pct} dyrere", `{pct} ${b >= a ? "dyrere" : "billigere"}`);
@@ -333,6 +396,20 @@ export function neutralSaetning(delta: number, indenTolerance: boolean): string 
 }
 
 /**
+ * Trin 5's begrundelse: HVILKEN af de to regler binder (runde 15, fund 3.4 fra den uafhængige test 18. november 2026).
+ * Reglerne er uændrede — |Δ| ≤ 2 × T (T = summen af de to kørslers gab) eller |Δ| ≤ V (V = den største af 1.000 kr. og
+ * 0,1 % af referencens driftsomkostning; egen antagelse, anbefalingsregler.json) — men før stod de som ét "inden for
+ * tolerancen (0 kr.) eller under væsentlighedsgrænsen (1.000 kr.)", ved siden af mærket "over 100 × tolerancen".
+ * Tolerancen skrives med `toleranceKr`, så et gab under en krone ikke bliver til "0 kr.".
+ */
+function trin5Begrundelse(delta: number, T: number, V: number | null): string {
+    const indenTolerance = Math.abs(delta) <= 2 * T, underV = V !== null && Math.abs(delta) <= V;
+    // Teksterne er regelfilens (viden/anbefalingsregler.json, trin 5 → begrundelse); her vælges kun, hvilken der gælder.
+    const v = { delta: krRund(delta), T: toleranceKr(T), V: V === null ? "" : krRund(V) };
+    return udfyld(indenTolerance && underV ? TRIN5.begge : indenTolerance ? TRIN5.tolerance : TRIN5.vaesentlighed, v);
+}
+
+/**
  * Den 9-trins beslutningsrækkefølge (anbefalingsregler.json). `bekraeft` er de
  * værksstier, der er markeret [BEKRÆFT] (VaerkParameter.bekraeft).
  */
@@ -351,26 +428,41 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     const T = ga === null || gb === null ? null : ga + gb;
     const V = ref.k.objektiv_dkk != null ? Math.max(1000, 0.001 * Math.abs(ref.k.objektiv_dkk)) : null;
     const n = delta !== null && T !== null && T > 0 ? Math.floor(Math.abs(delta) / T) : null;
-    const aarligt = delta !== null && d !== null && d >= 7 && d < 365 ? (delta * 365) / d : null;
-    const skaleret = aarligt !== null ? ` (skaleret til et år ca. ${krRund(aarligt, false)})` : "";
+    // Fund 3.1: intet Δ × 365 / døgn. Et årstal findes kun, når perioden selv er et år — og er da periodens tal.
+    const aarligt = delta !== null && d !== null && d >= HELAAR_DOEGN ? delta : null;
+    // Knappernes pladsholder {skaleret} (knapper.json) udfyldes kun for et helår, og da uden omregning.
+    const skaleret = aarligt !== null ? AARSTAL.skaleret_helaar : "";
     const investering = p.knap && INVESTERING.knapper.includes(p.knap) ? INVESTERING.tekst : null;
     const indenTol = delta !== null && T !== null && (Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V));
-    const svar = (kategori: Kategori, begrundelse: string, saetning?: string): Vurdering => ({
+    // Testrapportens afsnit 2a: stoppede en kørsel på tidsgrænsen, og er usikkerheden en væsentlig del af Δ, er første
+    // næste skridt en ny kørsel med længere tidsgrænse. Kørslens grænse læses af det frosne input (ellers modellens 600 s).
+    const graense = (s: Side) => { const g = blad(s, "solver.time_limit"); return typeof g === "number" && Number.isFinite(g) ? g : MODELLENS_TIDSGRAENSE_S; };
+    const tg0 = ref.k.status === "faerdig" && scen.k.status === "faerdig"
+        ? tidsgraenseForslag(ref.k, scen.k, { graenser: [graense(ref), graense(scen)], maks: GRAENSER.maksTidsgraenseS }) : null;
+    const tg = tg0 ? { ...tg0, scenarieIder: tg0.roller.map((r) => (r === "referencen" ? ref : scen).k.scenarie_id) } : null;
+    const svar = (kategori: Kategori, begrundelse: string, saetning?: string, sammenlignelig = true): Vurdering => ({
         kategori, maerke: KATEGORIER[kategori]?.maerke ?? kategori, tone: (KATEGORIER[kategori]?.tone ?? "neutral") as Vurdering["tone"],
         saetning: saetning ?? (delta === null ? "Mindst én af kørslerne har ingen driftsomkostning."
             : kategori === "kan_ikke_afgoeres" || (kategori === "foelsomhed" && indenTol) ? neutralSaetning(delta, indenTol)
                 : knapSaetning(p, delta, skaleret)),
-        begrundelse, forbehold: nedgrader, noter, naesteSkridt: næste, investering,
-        skalering: aarligt !== null ? udfyld(SKALERING_TEKST, { aarligt: krRund(aarligt, false) }) : null,
-        delta, tolerance: T, vaesentlighed: V, n, doegn: d, knap: p.knap,
+        begrundelse, forbehold: nedgrader, noter, naesteSkridt: tg && sammenlignelig ? [tg.tekst, ...næste] : næste, investering, aarligt,
+        tidsgraense: sammenlignelig ? tg : null,
+        delta, tolerance: T, vaesentlighed: V, n, doegn: d, knap: p.knap, sammenlignelig,
     });
 
-    // 1. Ikke færdige eller ikke sammenlignelige
+    // 1. Ikke færdige eller ikke sammenlignelige. Sætningen nævner da ikke forskellen som "billigere"/"dyrere for
+    // scenariet": tallet er to forskellige regnestykker trukket fra hinanden (runde 15, mail 1).
     const af = sammenlignelighed(ref.profil, scen.profil);
-    if (ref.k.status !== "faerdig" || scen.k.status !== "faerdig") return svar("kan_ikke_afgoeres", "Begge kørsler skal være færdige.");
+    const IKKE = "Kørslerne kan ikke sammenlignes direkte, så forskellen i driftsomkostning er ikke scenariets virkning.";
+    if (ref.k.status !== "faerdig" || scen.k.status !== "faerdig") return svar("kan_ikke_afgoeres", "Begge kørsler skal være færdige.", "Mindst én af kørslerne er ikke færdig.", false);
     if (sammenlignelighedStatus(af) !== "ja") {
         const felter = af.filter((x) => x.alvor !== "note").map((x) => lille(x.navn));
-        return svar("kan_ikke_afgoeres", udfyld(TRIN["1"], { felter: liste(felter) }));
+        const ukendt = sammenlignelighedStatus(af) === "ukendt";
+        // Gennemgangens fund 4: en ukendt dom siger ikke "kan ikke sammenlignes" — kun at det ikke kan afgøres.
+        return svar("kan_ikke_afgoeres", ukendt
+            ? `Det kan ikke afgøres, om kørslerne er sammenlignelige: ${liste(felter)} kendes ikke for begge.`
+            : udfyld(TRIN["1"], { felter: liste(felter) }),
+        ukendt ? "Det kan ikke afgøres, om kørslerne kan sammenlignes, så forskellen i driftsomkostning kan ikke læses som scenariets virkning." : IKKE, false);
     }
     if (delta === null) return svar("kan_ikke_afgoeres", "Mindst én af kørslerne har ingen driftsomkostning.");
     // 2. Flere ændringer på én gang (eller ingen)
@@ -391,11 +483,11 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
     // Følsomheder og metoder får ingen beslutningskategori (anbefalingsregler.json → ikke_beslutning).
     if (type === "foelsomhed" || type === "metode") {
         const inden = Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V);
-        return svar("foelsomhed", inden ? udfyld(TRIN["5"], { delta: krRund(delta), T: krRund(T), V: krRund(V ?? 0) }) : "En følsomhed eller et metodevalg — ikke noget værket selv beslutter.");
+        return svar("foelsomhed", inden ? trin5Begrundelse(delta, T, V) : "En følsomhed eller et metodevalg — ikke noget værket selv beslutter.");
     }
     // 5. Inden for tolerance eller under væsentlighed
     if (Math.abs(delta) <= 2 * T || (V !== null && Math.abs(delta) <= V)) {
-        return svar("kan_ikke_afgoeres", udfyld(TRIN["5"], { delta: krRund(delta), T: krRund(T), V: krRund(V ?? 0) }));
+        return svar("kan_ikke_afgoeres", trin5Begrundelse(delta, T, V));
     }
     const nTekst = n === null ? "begge kørsler er løst til optimum" : n > 100 ? "mere end 100" : String(n);
     // 6. Forbehold, der nedgraderer begge retninger
@@ -411,10 +503,84 @@ export function vurder(p: Par, bekraeft: ReadonlySet<string> = new Set()): Vurde
 
 // ================================================================= historie (A2)
 
+const HEAT_CSV_STI = `${KOERSEL_PRAEFIKS}heat_csv`;
+const VARMELASTSERIE_STI = `${KOERSEL_PRAEFIKS}tidsserie.varmelast`;
+
+/** En sides varmelast, som den er frosset: værkets tidsserie (id + sha256), en af modelrepoets filer — eller syntesen. */
+type Varmelastkilde = { art: "serie"; id?: string; sha?: string; navn?: string } | { art: "fil"; fil: string } | { art: "syntese" };
+
+/**
+ * Hvordan den EFFEKTIVE varmelast ændres fra reference til scenarie (tredje rettelsesrunde i runde 15, P2-5) — den ene
+ * klassifikation, som sætning 1 (`varmelastfrase`), anbefalingens sætning (`knapSaetning`) og skabelonvalget (`ordnPar`)
+ * alle læser. `null` = samme varmelast. Faglig lighed afgøres på indholdet: to tidsserier med samme sha256 er samme
+ * varmelast, også med hver sit id og navn (arbejderen henter filen på dens hash); id'et er kun teknisk. En frossen
+ * `"syntetisk"` og en udeladt række er begge syntesen; står der også en repo-fil, er det filen, arbejderen bruger.
+ */
+export type Varmelastskift = "syntese_til_maaling" | "maaling_til_syntese" | "maaling_til_maaling";
+export function varmelastskift(ref: Pick<Side, "input">, scen: Pick<Side, "input">): Varmelastskift | null {
+    const a = varmelastkilde(ref, undefined), b = varmelastkilde(scen, undefined);
+    if (sammeVarmelast(a, b)) return null;
+    return a.art === "syntese" ? "syntese_til_maaling" : b.art === "syntese" ? "maaling_til_syntese" : "maaling_til_maaling";
+}
+function sammeVarmelast(a: Varmelastkilde, b: Varmelastkilde): boolean {
+    if (a.art !== b.art) return false;
+    if (a.art === "syntese") return true;
+    if (a.art === "fil") return b.art === "fil" && a.fil === b.fil;
+    if (b.art !== "serie") return false;
+    // Uden sha256 på begge sider (burde ikke forekomme: arbejderen kræver den) er id'et det eneste, der kan sammenlignes.
+    if (a.sha || b.sha) return !!a.sha && !!b.sha && a.sha.toLowerCase() === b.sha.toLowerCase();
+    return !!a.id && !!b.id && a.id.toLowerCase() === b.id.toLowerCase();
+}
+
+/**
+ * Anbefalingens sætning for knappen *Målt varmelast* i de to retninger, knappens egen tekst ikke dækker
+ * (viden/knapper.json › maalt_varmelast › anbefaling.tekst er syntese → måling). Appens egne formuleringer.
+ */
+const VARMELAST_SAETNING: Record<Exclude<Varmelastskift, "syntese_til_maaling">, string> = {
+    maaling_til_syntese: "Syntesen i stedet for den målte varmelast flytter driftsomkostningen {abs} ({pct}) — et mål for syntesens fejl.",
+    maaling_til_maaling: "En anden målt varmelast flytter driftsomkostningen {abs} ({pct}) — forskellen mellem to målinger, ikke et mål for syntesens fejl.",
+};
+
+function varmelastkilde(s: Pick<Side, "input">, navne: ReadonlyMap<string, string> | undefined): Varmelastkilde {
+    const serie = blad(s, VARMELASTSERIE_STI) as { id?: string; sha256?: string } | undefined;
+    if (serie && typeof serie === "object") {
+        const id = typeof serie.id === "string" ? serie.id : undefined;
+        return { art: "serie", id, sha: typeof serie.sha256 === "string" ? serie.sha256 : undefined, navn: id ? navne?.get(id) ?? navne?.get(id.toLowerCase()) : undefined };
+    }
+    const fil = blad(s, HEAT_CSV_STI);
+    return typeof fil === "string" && fil ? { art: "fil", fil } : { art: "syntese" };
+}
+
+/**
+ * Varmelasten som ÉN ændring, i den retning scenariet går (efterprøvningen af rettelserne i runde 15, fund G).
+ *
+ * Før kendte teksten for `heat_csv` kun retningen syntese → måling: en målt reference mod et syntetisk scenarie blev
+ * "bruger målt varmelast (–) i stedet for syntesen" — det modsatte. Her læses begge siders effektive kilde, og alle
+ * retninger formuleres: syntese → måling, måling → syntese, måling → anden måling. En af værkets tidsserier nævnes
+ * ved navn; kendes navnet ikke, eller har de to serier SAMME navn, står deres sha256 ved — identiteten er id + sha256,
+ * aldrig navnet.
+ */
+function varmelastfrase(p: Par): string | null {
+    const navne = new Map([...(p.ref.tidsserienavne ?? []), ...(p.scen.tidsserienavne ?? [])]);
+    const a = varmelastkilde(p.ref, navne), b = varmelastkilde(p.scen, navne);
+    const ensNavn = a.art === "serie" && b.art === "serie" && a.navn === b.navn;
+    const vis = (k: Varmelastkilde): string => {
+        if (k.art === "fil") return `(${k.fil})`;
+        if (k.art !== "serie") return "syntesen";
+        const sha = `sha256 ${k.sha?.slice(0, 12) ?? "ukendt"}`;
+        if (!k.navn) return `(tidsserie, ${sha})`;
+        return ensNavn ? `'${k.navn}' (${sha})` : `'${k.navn}'`;
+    };
+    if (a.art === "syntese" && b.art === "syntese") return null;
+    if (b.art === "syntese") return `bruger syntesen i stedet for den målte varmelast ${vis(a)}`;
+    return `bruger den målte varmelast ${vis(b)} i stedet for ${vis(a)}`;
+}
+
 /** Sætning 1: hvad scenariet ændrer, i fagsprog. */
 export function aendringsfraser(p: Par): string[] {
     const ud: string[] = [];
     const lagreFra: string[] = [];
+    let varmelastSagt = false;
     for (const d of p.diff) {
         const b = json(d.b), a = json(d.a);
         let m = /^units\.([^.]+)\.enabled$/.exec(d.sti);
@@ -444,17 +610,10 @@ export function aendringsfraser(p: Par): string[] {
         if (d.sti === "balancing.reservation_gate.enabled" && b === true) { ud.push("byder kun, når kapacitetsprisen er over budprisen"); continue; }
         if (d.sti === "balancing.ancillary_caps.total_mw") { ud.push(`${op(a, b)} den samlede prækvalifikation fra ${visJson(d.a)} til ${visJson(d.b)} MW`); continue; }
         if (d.sti === "data.dmi_area") { ud.push(`bruger vejret fra ${visJson(d.b)} i stedet for ${visJson(d.a)}`); continue; }
-        if (d.sti === `${KOERSEL_PRAEFIKS}heat_csv`) { ud.push(`bruger målt varmelast (${visJson(d.b)}) i stedet for syntesen`); continue; }
-        if (d.sti === `${KOERSEL_PRAEFIKS}tidsserie.varmelast`) {
-            const navne = p.scen.tidsserienavne ?? p.ref.tidsserienavne;
-            const serie = (j: string | undefined) => {
-                const v = json(j) as { id?: string; sha256?: string } | undefined;
-                const navn = v?.id ? navne?.get(v.id) : undefined;
-                return `${navn ? `'${navn}'` : "tidsserie"} (sha256 ${v?.sha256?.slice(0, 12) ?? "ukendt"})`;
-            };
-            if (d.a === undefined) ud.push(`bruger den målte varmelast ${serie(d.b)} i stedet for syntesen`);
-            else if (d.b === undefined) ud.push(`bruger syntesen i stedet for den målte varmelast ${serie(d.a)}`);
-            else ud.push(`bruger den målte varmelast ${serie(d.b)} i stedet for ${serie(d.a)}`);
+        if (d.sti === HEAT_CSV_STI || d.sti === VARMELASTSERIE_STI) {
+            // Fund G: de to stier er samme ting — kørslens varmelast — og siges én gang, i scenariets retning.
+            if (!varmelastSagt) { const f = varmelastfrase(p); if (f) ud.push(f); }
+            varmelastSagt = true;
             continue;
         }
         const fi = feltInfo(d.sti);
@@ -496,7 +655,9 @@ export function konsekvenser(p: Par, delta: number): string[] {
         }
     }
     const ca = ref.samlet.co2_ton, cb = scen.samlet.co2_ton;
-    if (ud.length < 2 && ca != null && cb != null && Math.abs(cb - ca) >= Math.max(1, 0.01 * Math.abs(ca))) {
+    // Fund 4E: en CO₂-ændring fortælles kun, når udledningen er opgjort i begge kørsler (ingen fossil enhed med faktor 0).
+    const co2Opgjort = co2Opgoerelse(ref.input, ref.samlet).opgjort && co2Opgoerelse(scen.input, scen.samlet).opgjort;
+    if (ud.length < 2 && co2Opgjort && ca != null && cb != null && Math.abs(cb - ca) >= Math.max(1, 0.01 * Math.abs(ca))) {
         ud.push(`${cb > ca ? "øger" : "sænker"} CO₂-udledningen med ${tal(Math.abs(cb - ca))} t`);
     }
     const ea = ref.samlet.el_forbrug_mwh, eb = scen.samlet.el_forbrug_mwh;
@@ -520,6 +681,9 @@ export function historie(p: Par, v: Vurdering): string {
         ? `I dette scenarie ${medVi(fraser.length > 3 ? `${vis.slice(0, 3).join(", ")} ${vis[3]}` : liste(vis))} — ellers som ${p.ref.navn}.`
         : `Scenariet har samme input som ${p.ref.navn}.`;
     if (v.delta === null) return s1;
+    // Runde 15 (mail 1): et par, der ikke er direkte sammenligneligt, fortælles ikke som en virkning ("gør driften
+    // X kr. billigere"). `=== false`: sætning 1 før kørsel kaldes med en tom vurdering.
+    if (v.sammenlignelig === false) return [s1, v.begrundelse].map((x) => x.trim()).join(" ");
     const s2 = `Det ${liste(konsekvenser(p, v.delta))}.`;
     const nT = v.tolerance === 0 ? "Begge kørsler er løst til optimum" : v.n !== null && v.n > 100 ? "Forskellen er mere end 100 gange solverens tolerance" : v.n !== null && v.n >= 2 ? `Forskellen er ${v.n} gange solverens tolerance` : null;
     const første = v.naesteSkridt[0] ? lille(v.naesteSkridt[0]) : "";
@@ -553,11 +717,16 @@ export function findPar(sider: readonly Side[], referenceScenarie: (scenarieId: 
     const kørsler = [...seneste.values()];
     const egne = (s: Side) => aendringsResume(s.input.filter((x) => x.kilde !== "vaerk")).length;
     const ud: Par[] = [];
+    /** Parrelationen mellem to kørslers scenarier (gennemgangens fund 5): den går forud for, hvem der bærer ændringen. */
+    const relation = (a: Side, b: Side): Retning | null => {
+        const ab = referenceScenarie(b.k.scenarie_id) === a.k.scenarie_id, ba = referenceScenarie(a.k.scenarie_id) === b.k.scenarie_id;
+        return ab === ba ? null : ab ? "ab" : "ba";
+    };
     for (const b of kørsler) {
         const ref = referenceScenarie(b.k.scenarie_id);
         const kandidater = kørsler
             .filter((a) => a.k.id !== b.k.id && sammenlignelighedStatus(sammenlignelighed(a.profil, b.profil)) === "ja")
-            .map((a) => ({ a, p: ordnPar(a, b) }))
+            .map((a) => ({ a, p: ordnPar(a, b, relation(a, b)) }))
             .filter(({ p }) => !p.byttet && p.diff.length > 0 && !p.flere)
             .sort((x, y) => Number(y.a.k.scenarie_id === ref) - Number(x.a.k.scenarie_id === ref)
                 || egne(x.a) - egne(y.a) || modtaget(y.a.k).getTime() - modtaget(x.a.k).getTime());

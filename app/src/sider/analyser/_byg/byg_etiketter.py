@@ -93,7 +93,10 @@ def anbefaling() -> None:
     kategorier["foelsomhed"] = {"maerke": regler["ikke_beslutning"]["maerke"], "tone": regler["ikke_beslutning"]["tone"],
                                 "betydning": regler["ikke_beslutning"]["betydning"]}
     forbehold = {f["id"]: {"virkning": f["virkning"], "tekst": f["tekst"], "kilde": f.get("kilde", "")} for f in regler["forbehold"]}
-    trin = {str(t["trin"]): t["begrundelse"] for t in regler["beslutningsraekkefoelge"]}
+    # Trin 5 har tre begrundelser (hvilken regel binder, runde 15); de øvrige trin én tekst.
+    trin = {str(t["trin"]): t["begrundelse"] for t in regler["beslutningsraekkefoelge"] if isinstance(t["begrundelse"], str)}
+    trin5 = next(t["begrundelse"] for t in regler["beslutningsraekkefoelge"] if t["trin"] == 5)
+    aar = regler["aarstal"]
     knap = {k["id"]: {"spoergsmaal": k["spoergsmaal"], "anbefaling": k.get("anbefaling", {})} for k in knapper["knapper"]}
     tekst = "\r\n".join([
         "//-----------------------------------------------------------------------",
@@ -112,7 +115,11 @@ def anbefaling() -> None:
         "/** Begrundelser pr. trin i beslutningsrækkefølgen (pladsholdere i {}). */",
         "export const TRIN: Readonly<Record<string, string>> = " + ts(trin) + ";",
         "",
-        "export const SKALERING_TEKST = " + json.dumps(regler["skalering"]["tekst"], ensure_ascii=False) + ";",
+        "/** Trin 5: begrundelsen efter hvilken regel der binder — tolerancen, væsentlighedsgrænsen eller begge. */",
+        "export const TRIN5: Readonly<Record<\"tolerance\" | \"vaesentlighed\" | \"begge\", string>> = " + ts(trin5) + ";",
+        "",
+        "/** Årstal: appen skalerer ikke en kortere periode; et årstal vises kun fra `helaar_doegn` døgn. */",
+        "export const AARSTAL = " + ts({k: aar[k] for k in ("helaar_doegn", "skaleret_helaar", "tekst_helaar", "tekst_kortere")}) + ";",
         "",
         "export const INVESTERING = " + ts({"tekst": regler["investering"]["tekst"], "knapper": regler["investering"]["gaelder_for_knapper"],
                                            "annuitet": regler["investering"]["annuitet"]["formel"], "forklaring": regler["investering"]["annuitet"]["forklaring"]}) + ";",

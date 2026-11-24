@@ -2,10 +2,10 @@
 // GENERERET af _byg/byg_etiketter.py fra viden/felt_katalog.json,
 // viden/enhedstyper.json og viden/resultat_etiketter.json (fv-ekspert).
 // Ret ikke i hånden.
-// Modelcommit: 90fb16eb1e2d5aa8e619b5a951b93760fa803985 · 151 felter · 7 enhedstyper
+// Modelcommit: 939228aa048563c8498382a79d207c8b03fbda57 · 152 felter · 8 enhedstyper
 //-----------------------------------------------------------------------
 
-export const MODEL_COMMIT_KATALOG = "90fb16eb1e2d5aa8e619b5a951b93760fa803985";
+export const MODEL_COMMIT_KATALOG = "939228aa048563c8498382a79d207c8b03fbda57";
 
 export const FELTER: readonly { sti: string; etiket: string; enhed: string | null }[] = [
  {
@@ -286,6 +286,11 @@ export const FELTER: readonly { sti: string; etiket: string; enhed: string | nul
  {
   "sti": "prices.natural_gas.value",
   "etiket": "Naturgaspris",
+  "enhed": "DKK/MWh brændsel"
+ },
+ {
+  "sti": "prices.fuel_oil.value",
+  "etiket": "Fyringsoliepris",
   "enhed": "DKK/MWh brændsel"
  },
  {
@@ -770,6 +775,7 @@ export const ENHEDSTYPER: Readonly<Record<string, string>> = {
  "electric_boiler": "Elkedel",
  "biomass_boiler": "Biomassekedel",
  "gas_boiler": "Gaskedel",
+ "oil_boiler": "Oliekedel",
  "gas_engine_chp": "Gasmotor (kraftvarme)",
  "solar_thermal": "Solvarme",
  "waste_heat": "Overskudsvarme"

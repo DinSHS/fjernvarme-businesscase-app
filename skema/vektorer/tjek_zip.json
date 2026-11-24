@@ -1,12 +1,12 @@
 {
  "_om": "Genereret af skema/vektorer/generer.mts fra TS-implementeringen (tjek_zip). Ret aldrig i hånden — generér igen.",
  "kilder": {
-  "app/rayfin/functions/src/logik.ts": "61ab87038bce9c7b0f3e02e2b05e111beb010a7a845255cecb4f12df317b05eb",
-  "app/rayfin/functions/src/frysning.ts": "6a03a3baa44db3f837c9e5349c1083deb936a3dff78a078317302fe0d348fda9",
+  "app/rayfin/functions/src/logik.ts": "b32e5d94b748b0d5b7afb7812e6ddd111e964305071696d9ec005aa7798328ed",
+  "app/rayfin/functions/src/frysning.ts": "abaf8e62578f751dcfc7295955681483a2b6025b57b2c1f1c15d0c8a41c9b157",
   "app/rayfin/functions/src/sti.ts": "e05ed007866b8f31508566c31625fa14a30aa9cccde523216568719604ce21db",
   "app/rayfin/functions/src/tidsserie.ts": "1cce44ad863accac534d56ee116da48676375238349c09166c9701a6e8ceee40",
   "app/rayfin/functions/src/tidsserie-validering.ts": "fa3f4389a650f0064983082b6a2146e4a9a817c1adf4f35b3c86e48c016d349f",
-  "app/rayfin/functions/src/datakrav.data.ts": "4a90dc018dec50a6f15609bd70e03074305db65a735f887aa4b002bc54ffac91",
+  "app/rayfin/functions/src/datakrav.data.ts": "b7dc4977e1dbff4010cd96801e2aebaa10e183375d056b52f75d06e3fa8df54a",
   "app/rayfin/functions/src/zip.ts": "40f3ce8e66817b30854563e4d975e88c0c5fcc5f521b953124d585e4de150ae6",
   "app/rayfin/functions/src/vaerksark.ts": "68bf94b5679c12030496f9fe43daaca600950ab1fd9e6232a6f0553c968808c5"
  },

@@ -21,7 +21,14 @@ Uanset vej kan du bagefter lægge **målte tidsserier** (varmelast, solprofil) p
 
 Skabelonen er modellens egen (`vaerksdata_skabelon.xlsx` i modelrepoets rod). Hent den i appen under
 **Dokumentation › Skabelon til værksdata**, og udfyld den efter modelrepoets
-[`doc/EGET_VAERK.md`](https://github.com/skj-1964/fjernvarme-businesscase/blob/90fb16eb1e2d5aa8e619b5a951b93760fa803985/doc/EGET_VAERK.md).
+[`doc/EGET_VAERK.md`](https://github.com/skj-1964/fjernvarme-businesscase/blob/939228aa048563c8498382a79d207c8b03fbda57/doc/EGET_VAERK.md).
+
+Skabelonen følger modelversionen. Fra modellens version 0.11.0 (appens pin `939228a`) har arket *Priser* rækken
+*fyringsolie*, og *Anlaeg* kender enhedstypen `oil_boiler` (oliekedel): udfyld olieprisen pr. MWh olie inkl.
+energiafgift og CO₂-prisen (gerne 0), ellers stopper konverteringen på enhedens række. Modellen regner olien med
+0,266 t CO₂ pr. MWh; fyrer kedlen med tung fuelolie, så ret faktoren til ca. 0,28 på værket bagefter (eller i appens fane
+*Start og drift*, hvis arket er eksporteret af appen). Et ark bygget på en ældre skabelon kan stadig uploades:
+konverteringen læser *Priser* på etiketterne i kolonne A, ikke på rækkenumre.
 
 Upload den under **Konfiguration › Upload værksark**. Appen konverterer arket med modelrepoets **eget**
 `scripts/vaerksark_til_yaml.py` ved den pinnede commit — samme case, som hvis du kørte scriptet selv — og opretter værket

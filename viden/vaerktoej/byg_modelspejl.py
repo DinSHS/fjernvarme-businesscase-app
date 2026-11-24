@@ -13,6 +13,8 @@ Spejlet er ikke en kopi af modellens kode, men de antagelser appen hviler på, u
   ``app/src/sider/konfiguration/eksport/`` — eksporten udfylder netop den fil (MIT, modelforfatterens).
 * ``varmelast_skalering``: hvordan ``scripts/vaerksark_til_yaml.py`` skalerer Andebys syntese til et årsbehov
   (divisor, afrunding, grundtal) — guiden "Nyt værk" skal bruge samme regel.
+* ``vaerksark_typer`` (runde 15): scriptets egne tabeller over enhedstyper, brændsler, CO2-faktorer og prisarkets
+  etiketter — appens typeliste holdes op mod dem ([5]), så en ny enhedstype i modellen gør gaten rød.
 * ``budstrategi`` (runde 14c): ``doc/BUDSTRATEGI.md``'s færdige YAML-blokke som blade med linje og kommentar —
   Konfigurationens "Tilføj balancemarked" bygger blokken af dem.
 
@@ -311,6 +313,45 @@ def varmelast_skalering(tekst: str) -> dict:
     }
 
 
+def vaerksark_typer(tekst: str) -> dict:
+    """Enhedstyper, brændsler og CO2-faktorer, som ``scripts/vaerksark_til_yaml.py`` selv opregner (runde 15).
+
+    Appen gengiver dem flere steder (feltkataloget og enhedstyperne, eksportens forudsigelse i ``eksport/kort.ts``,
+    valideringen). Ved 939228a kom ``oil_boiler``/``fuel_oil`` til, og intet tjek meldte, at appens liste manglede en
+    type: [5] sammenlignede kun standardværdier. Nu læses tabellerne maskinelt, og [5] holder appens lister op mod dem.
+    En tabel, der ikke længere er en litteral med det navn, stopper genbygningen (som skaleringsreglen)."""
+    trae = ast.parse(tekst)
+
+    def tabel(navn: str, hvor=None):
+        valg = [n for n in (ast.walk(trae) if hvor is None else ast.walk(hvor)) if isinstance(n, ast.Assign)
+                and any(isinstance(t, ast.Name) and t.id == navn for t in n.targets)]
+        if len(valg) != 1:
+            raise RegelFejl(f"FEJL: {SK}: fandt {len(valg)} tildelinger til {navn!r} (forventet 1) - appens typeliste "
+                            "(byg_felt_katalog.py, eksport/kort.ts) kopierer tabellen og skal gennemgås")
+        try:
+            return ast.literal_eval(valg[0].value), valg[0].lineno
+        except (ValueError, TypeError, SyntaxError):
+            raise RegelFejl(f"FEJL: {SK}:{valg[0].lineno}: {navn} er ikke længere en litteral tabel - gennemgå appens typeliste")
+
+    braendsel, l_b = tabel("BRAENDSEL_PR_TYPE")
+    co2, l_c = tabel("CO2_PR_MWH_BRAENDSEL")
+    ordene, l_o = tabel("BRAENDSEL_ORD")
+    biomasse, l_m = tabel("BIOMASSE")
+    laes = [n for n in trae.body if isinstance(n, ast.FunctionDef) and n.name == "laes_priser"]
+    if len(laes) != 1:
+        raise RegelFejl(f"FEJL: {SK}: laes_priser findes ikke (prisarkets etiketter kan ikke læses)")
+    navne, l_n = tabel("navne", laes[0])
+    return {
+        "braendsel_pr_type": braendsel,
+        "co2_pr_mwh_braendsel": co2,
+        "braendsel_ord": {k: sorted(v) for k, v in ordene.items()},
+        "biomasse": biomasse,
+        "prisetiketter": navne,
+        "kilde": {"braendsel_pr_type": f"{SK}:{l_b}", "co2_pr_mwh_braendsel": f"{SK}:{l_c}",
+                  "braendsel_ord": f"{SK}:{l_o}", "biomasse": f"{SK}:{l_m}", "prisetiketter": f"{SK}:{l_n}"},
+    }
+
+
 #: G-værdier, orakelvektorerne altid har (inkl. Codex K8's halvtilfælde 12,5 og 103,125 og grænsen omkring 1).
 VEKTOR_G = [0.5, 0.8, 1, 1.0001, 1.01, 1.25, 6.25, 10, 12.5, 37.37, 50, 100, 103.125, 105.52, 312.5, 5000]
 
@@ -381,6 +422,7 @@ def byg(kilde: Kilde) -> dict:
         "krav": krav(kilde.tekst("requirements.txt")),
         "run_case_flag": tabel,
         "varmelast_skalering": varmelast_skalering(kilde.tekst(SK)),
+        "vaerksark_typer": vaerksark_typer(kilde.tekst(SK)),
         "budstrategi": budstrategi(kilde.tekst(BS)),
     }
 

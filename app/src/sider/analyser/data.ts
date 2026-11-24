@@ -10,13 +10,48 @@ import type { Hentet } from "@/lib/data/hooks";
 import {
     maanedstabel, profil, samlNoegletal, vaerketsObjekter, type Koersel, type Maanedstabel, type Profil, type Samlet, type Scenarie,
 } from "./beregn";
-import type { Side } from "./anbefaling";
+import { ordnPar, type Par, type Retning, type Side } from "./anbefaling";
+import { demoReferenceNavn, referenceId } from "../scenarier/logik";
 import type { Tidsserienavne } from "./datagrundlag";
 import { tidsserieIder, tidsserieShas, useTidsserienavne } from "./tidsserie-data";
 
 /** En pakke som anbefalingens `Side` (anbefaling.ts). */
 export function tilSide(p: Pakke): Side {
     return { k: p.k, navn: p.scenarie?.navn ?? `Kørsel ${p.k.id.slice(0, 8)}`, vaerkNavn: p.vaerkNavn, input: p.input, samlet: p.samlet, profil: p.profil, tidsserienavne: p.tidsserienavne };
+}
+
+type ParScenarie = Pick<Scenarie, "id" | "vaerk_id" | "navn"> & { reference_scenarie_id?: string | null; beskrivelse?: string | null };
+
+/**
+ * PARRELATIONEN mellem to scenarier (kodegennemgangen af runde 15, fund 5): "ab", når b er oprettet med a som sin
+ * reference; "ba" omvendt; null, når ingen af dem peger på den anden (eller begge gør). Samme kilder som Scenarier
+ * (scenarier/logik.ts): feltet `reference_scenarie_id`, den gamle henvisningslinje i beskrivelsen og demo-parrene,
+ * som kun kendes på navnet.
+ */
+export function parRelation(a: ParScenarie | null | undefined, b: ParScenarie | null | undefined): Retning | null {
+    if (!a || !b) return null;
+    const peger = (s: ParScenarie, paa: ParScenarie) => {
+        const id = referenceId(s);
+        if (id) return id === paa.id;
+        return s.vaerk_id === paa.vaerk_id && !!s.navn && demoReferenceNavn(s.navn) === (paa.navn ?? "").trim();
+    };
+    const ab = peger(b, a), ba = peger(a, b);
+    return ab === ba ? null : ab ? "ab" : "ba";
+}
+
+/**
+ * Sammenligningssidens ROLLER — ét sæt for alle kort (runde 15, mail 2 fra den uafhængige test 18. november 2026: før
+ * fulgte "Scenariet fortalt" én regel og nøgletal, Δ og vandfald en anden, så teksten kunne sige "dyrere" og tallene
+ * "billigere" på samme side). Rollerne fastlægges af anbefaling.ts › ordnPar: parrelationen, ellers den kørsel, der
+ * entydigt bærer ændringen i forhold til værket, ellers rutens rækkefølge (kodegennemgangen af runde 15, fund 5 — før
+ * kunne en knaps skabelon vende brugerens reference).
+ * `byttet`: rollerne er omvendt af rutens. `grund`: hvad der fastlagde dem. `fri`: intet peger en af kørslerne ud —
+ * så gælder brugerens rækkefølge, og "Byt reference og scenarie" giver mening.
+ */
+export function sideRoller(a: Pakke, b: Pakke): { ref: Pakke; scen: Pakke; byttet: boolean; fri: boolean; grund: Par["grund"] } {
+    const { byttet, grund } = ordnPar(tilSide(a), tilSide(b), parRelation(a.scenarie, b.scenarie));
+    const [ref, scen] = byttet ? [b, a] : [a, b];
+    return { ref, scen, byttet, fri: grund === "valg", grund };
 }
 
 export interface Pakke {

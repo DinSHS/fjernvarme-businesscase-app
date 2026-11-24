@@ -6,7 +6,7 @@ import { tjekNavn } from "../redigering";
 import { analyserUpload, type Hentere } from "./analyse";
 import { eksporter, grundlagstekst, læsMarkering, MARKOER_ARK, MARKOER_FORMAT, sha256Bytes } from "./eksporter";
 import { GEMMES_IKKE } from "./genkend";
-import { erArtefakt, PERIODE_START, planlæg, solenErNede, type Eksportkilde } from "./kort";
+import { erArtefakt, PERIODE_START, planlæg, PRISER_RAEKKER, solenErNede, type Eksportkilde } from "./kort";
 import { andeby, ANDEBY_ID, skabelon } from "./testdata";
 import { Arbejdsbog, læsCeller } from "./xlsx";
 
@@ -123,7 +123,7 @@ describe("K11 F5: felter, som genupload ikke gemmer, siges før bekræftelse", (
         const wb = new Arbejdsbog(e.bytes);
         wb.regneark("Timedata").sæt("B3", 120);
         wb.regneark("Anlaeg").sæt("H9", 32.5);
-        wb.regneark("Priser").sæt("B30", "Andeby Nord");
+        wb.regneark("Priser").sæt(`B${PRISER_RAEKKER.navn}`, "Andeby Nord");
         const a = await analyserUpload(wb.bytes(), VAERKER, hent());
         expect(a.art).toBe("revision");
         if (a.art !== "revision") return;
@@ -192,7 +192,7 @@ describe("K11 F7: tegn, et regneark ikke kan bære", () => {
     it("et kontroltegn i værkets navn nægtes som feltfejl", async () => {
         const k = andeby();
         k.vaerk.navn = `Syntetisk${KONTROLTEGN}varme`;
-        expect(planlæg(k).nægter.join(" ")).toMatch(/Priser!B30 .* tegnet U\+0001/);
+        expect(planlæg(k).nægter.join(" ")).toMatch(new RegExp(`Priser!B${PRISER_RAEKKER.navn} .* tegnet U\\+0001`));
         await expect(eksporter(k, skabelon(), NU)).rejects.toThrow(/kan ikke eksporteres/);
     });
     it("en bogstavelig _xHHHH_-sekvens nægtes (Excel læser den som et tegn, modelscriptet bogstaveligt)", () => {
@@ -200,6 +200,6 @@ describe("K11 F7: tegn, et regneark ikke kan bære", () => {
         expect(planlæg(k).nægter.join(" ")).toMatch(/Anlaeg!A9 .* "_x0041_"/);
     });
     it("xlsx-skriveren bygger aldrig en fil, der ikke er gyldig XML", () => {
-        expect(() => new Arbejdsbog(skabelon()).regneark("Priser").sæt("B30", `a${KONTROLTEGN}b`)).toThrow(/XML 1\.0/);
+        expect(() => new Arbejdsbog(skabelon()).regneark("Priser").sæt(`B${PRISER_RAEKKER.navn}`, `a${KONTROLTEGN}b`)).toThrow(/XML 1\.0/);
     });
 });

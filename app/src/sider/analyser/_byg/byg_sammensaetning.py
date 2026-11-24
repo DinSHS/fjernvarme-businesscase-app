@@ -67,15 +67,20 @@ def main() -> None:
     ]
     readme = next(g for g in ref["grupper"] if g["id"] == "readme")
     # Kun README-gruppen, i den form information/referencer.ts's `laesReferencer` læser (én sandhed om reglen).
-    readme_json = json.dumps({"grupper": [readme]}, ensure_ascii=False, separators=(",", ":"))
+    # Runde 15: filens model_commit følger med, så `laesReferencer` giver hver reference dens modelversioner
+    # (referencens egen `regnet_ved.model_commits`, ellers filens) — de afgør README-mærket i kørselslisten.
+    readme_json = json.dumps({"model_commit": ref["model_commit"], "grupper": [readme]}, ensure_ascii=False, separators=(",", ":"))
     ord_ = ordliste()
     # Codex K5-F9: README-mærket kræver også referencetallenes pins. Modellen er referencetal.json's
     # model_commit; df-data skal være "fra 5. oktober 2026 eller senere" (referencetal.json -> datakrav,
     # README.md:139-143 - prosa, derfor skrevet her) og må kun godtages, når commit'ens dato er målt
     # (data_krav.json -> maalt_daekning).
     dk = laes("data_krav.json")["maalt_daekning"]
+    # Runde 15: pinnens df-data (106b9fc) er også en kendt commit med målt dato (referencetal.json -> datakrav.df_data_kendt);
+    # uden den kunne ingen kørsel ved den nuværende pin genkendes. `model_commit` er filens fælles version — en reference
+    # med sin egen liste (Spor A-ankeret) bruger den, ikke denne (sammensaetning.ts › readmePins).
     readme_pins = {"model_commit": ref["model_commit"], "df_data_fra": "2026-10-05",
-                   "df_data_kendt": {dk["df_data_commit"]: dk["df_data_dato"]}}
+                   "df_data_kendt": {dk["df_data_commit"]: dk["df_data_dato"], **ref["datakrav"].get("df_data_kendt", {})}}
 
     def ts(v) -> str:
         return json.dumps(v, ensure_ascii=False, indent=1)

@@ -13,6 +13,7 @@ hvilke tekster) står i fv-port's forløb, ikke her. Semantikken følger ``logik
 
 from __future__ import annotations
 
+import hashlib
 import os
 from contextlib import contextmanager
 from datetime import timedelta
@@ -43,6 +44,54 @@ def _d(r) -> dict | None:
     return dict(r._mapping) if r is not None else None
 
 
+#: ``sp_getapplock`` har fået låsen ved 0 (tildelt) og 1 (tildelt efter ventetid). Alt andet er ikke en lås.
+APPLOCK_TILDELT = (0, 1)
+
+
+def applock(cn, ressource: str, timeout_ms: int, hvad: str) -> None:
+    """Én transaktionsejet, eksklusiv SQL Server-applock — og ÉT tjek af svaret, for alle den lokale udgaves applåse
+    (kvote, bestilling, arkiv).
+
+    ``sp_getapplock`` melder en lås, den ikke fik, i sin RETURVÆRDI (-1 timeout, -2 annulleret, -3 deadlock-offer,
+    -999 fejl), ikke som en SQL-fejl (K10b-N1). Efterprøvningen af runde 15 (fund I) fandt, at kvotelåsen kaldte
+    proceduren uden at læse værdien: ved en timeout talte bestillingen køen uden brugerens lås. Her kræves en gyldig
+    succesværdi; et manglende eller uforståeligt svar er også en fejl. Fejlen kastes inde i transaktionen (rollback).
+    IKKE kørt mod en SQL Server (kun mod en optagende forbindelse, ``community/tests/test_r15_laase.py``)."""
+    rc = cn.execute(text("DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
+                         f"@LockOwner = 'Transaction', @LockTimeout = {int(timeout_ms)}; SELECT @rc AS rc;"),
+                    {"k": ressource}).scalar()
+    if isinstance(rc, bool) or not isinstance(rc, int) or rc not in APPLOCK_TILDELT:
+        raise RuntimeError(f"Kunne ikke få {hvad} (sp_getapplock = {rc}).")
+
+
+#: PostgreSQL: ét advisory-låserum pr. låsetype — første nøgle i ``pg_advisory_xact_lock(int, int)``.
+PG_LAASERUM = {"fjv_kvote": 1, "fjv_bestilling": 2, "fjv_arkiv": 3}
+
+
+def pg_noegle32(navn: str) -> int:
+    """Låsens anden nøgle: de første 32 bit af sha256(navnet), som et int4 med fortegn. Regnet HER (ikke med
+    databasens ``hashtext``), så de faktiske nøgler kan sorteres, før låsene tages."""
+    return int.from_bytes(hashlib.sha256(navn.encode("utf-8")).digest()[:4], "big", signed=True)
+
+
+def pg_laas(cn, rum: str, navne) -> None:
+    """Transaktionsejede PostgreSQL-advisory-låse for ``navne`` i låserummet ``rum``.
+
+    Tredje rettelsesrunde i runde 15, P3-6. Før blev alle tre låsetyper taget som
+    ``pg_advisory_xact_lock(hashtext('<præfiks>:<navn>'))``: én 32-bit nøgle i ét fælles rum — præfikset adskiller
+    ikke rummene efter hashing. Ramte en brugers kvotenøgle samme 32 bit som en kørsels arkivnøgle, var de SAMME lås,
+    og importen (kørsel -> bestilling) og behandlingen (bestilling -> kvote) kunne låse hinanden fast. Nu:
+
+    * to-nøgle-formen med et fast rum pr. type (``PG_LAASERUM``): en kollision på tværs af typer er ikke samme lås;
+    * flere låse af samme type tages på de FAKTISKE nøgler, sorteret og uden dubletter: to id'er med samme nøgle er
+      én lås, og to transaktioner tager altid nøglerne i samme orden, også når id'ernes orden er en anden.
+
+    IKKE kørt mod en PostgreSQL (kun mod en optagende forbindelse, ``community/tests/test_r15c_pg_laase.py``)."""
+    for noegle in sorted({pg_noegle32(f"{rum}:{n}") for n in navne}):
+        cn.execute(text("SELECT pg_advisory_xact_lock(CAST(:rum AS integer), CAST(:noegle AS integer))"),
+                   {"rum": PG_LAASERUM[rum], "noegle": noegle})
+
+
 class SqlTransaktion:
     def __init__(self, db, cn):
         self.db, self.cn = db, cn
@@ -69,13 +118,37 @@ class SqlTransaktion:
         b = self.t("Bestilling")
         return self._en(select(b.c.id, b.c.scenarie_id, b.c.bestilt_af, b.c.bestilt).where(b.c.id == id.lower()))
 
+    def laas_bestilling(self, id: str) -> None:
+        """Kodegennemgangen af runde 15, fund 1: en transaktionsejet lås pr. bestilling, taget FØR bestillingen læses,
+        så to kald om samme bestilling går efter hinanden fra læsning til indsættelse eller oprydning. Samme mønster
+        som ``arkiv_laas_koersler``. sqlite: BEGIN IMMEDIATE har allerede serialiseret alle skrivere."""
+        self.laas_bestillinger([id])
+
+    def laas_bestillinger(self, ider) -> None:
+        """Flere bestillingers låse på én gang, i den givne (sorterede) orden — arkivimportens kørselsdel. PostgreSQL
+        ordner selv de faktiske nøgler (``pg_laas``, P3-6); SQL Server låser på hele ressourcenavnet."""
+        d = self.db.dialekt
+        if d == "postgresql":
+            pg_laas(self.cn, "fjv_bestilling", [id.lower() for id in ider])
+        elif d == "mssql":
+            for id in ider:
+                applock(self.cn, "fjv_bestilling:" + id.lower(), 30000, "bestillingens lås")
+
+    def slet_bestilling(self, id: str, bestilt_af: str) -> int:
+        """Fund 3.2: kun en bestilling, der ikke blev til en kørsel — og (gennemgangens fund 2) kun ejerens egen."""
+        b, k = self.t("Bestilling"), self.t("Koersel")
+        har_koersel = select(k.c.id).where(k.c.bestilling_id == id.lower()).exists()
+        return self.cn.execute(b.delete().where(and_(b.c.id == id.lower(), b.c.bestilt_af == bestilt_af,
+                                                     ~har_koersel))).rowcount
+
     def laas_kvote(self, email: str) -> None:
         d = self.db.dialekt
         if d == "postgresql":
-            self.cn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": "fjv_kvote:" + email})
+            pg_laas(self.cn, "fjv_kvote", [email])
         elif d == "mssql":
-            self.cn.execute(text("EXEC sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
-                                 "@LockOwner = 'Transaction', @LockTimeout = 30000"), {"k": "fjv_kvote:" + email})
+            # Efterprøvningen af runde 15, fund I: returværdien blev ikke læst her — en timeout gav en bestilling,
+            # der talte køen uden brugerens kvotelås.
+            applock(self.cn, "fjv_kvote:" + email, 30000, "kvotelåsen")
         # sqlite: BEGIN IMMEDIATE har allerede serialiseret alle skrivere.
 
     def scenarie(self, id: str, laas: bool):
@@ -286,17 +359,12 @@ class SqlTransaktion:
         """K10-F3: en transaktionsejet lås pr. kørsels-id, i den givne (sorterede) orden. sqlite: BEGIN IMMEDIATE har
         allerede serialiseret alle skrivere."""
         d = self.db.dialekt
-        for id in ider:
-            if d == "postgresql":
-                self.cn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": "fjv_arkiv:" + id.lower()})
-            elif d == "mssql":
-                # K10b-N1: sp_getapplock melder en fejlet lås i sin RETURKODE (< 0), ikke som en fejl — læs den og
-                # kast inde i transaktionen (rollback), som Fabric-TS gør.
-                rc = self.cn.execute(text("DECLARE @rc int; EXEC @rc = sp_getapplock @Resource = :k, @LockMode = 'Exclusive', "
-                                          "@LockOwner = 'Transaction', @LockTimeout = 60000; SELECT @rc AS rc;"),
-                                     {"k": "fjv_arkiv:" + id.lower()}).scalar()
-                if rc is None or int(rc) < 0:
-                    raise RuntimeError(f"Kunne ikke få kørselslåsen for {id} (sp_getapplock = {rc}).")
+        if d == "postgresql":
+            pg_laas(self.cn, "fjv_arkiv", [id.lower() for id in ider])      # P3-6: eget rum, faktiske nøgler i orden
+        elif d == "mssql":
+            for id in ider:
+                # K10b-N1: returværdien læses, og en fejlet lås kastes inde i transaktionen (``applock``).
+                applock(self.cn, "fjv_arkiv:" + id.lower(), 60000, f"kørselslåsen for {id}")
 
     def arkiv_boerneside(self, koersel_id: str, tabel: str, fra: int, antal: int) -> list[dict]:
         t = self.t(tabel)
@@ -393,8 +461,17 @@ class Tjenester:
         self.T, self.app = T, app
         self.lager, self.filer = SqlBetroetLager(app.db), LokaleFiler(app.files)
 
-    def start_bestilling(self, bestilling_id):
-        return self.T.start_bestilling(self.lager, bestilling_id, self.app.motor.start_arbejder)
+    def start_bestilling(self, bestilling_id, kalder=None):
+        """``kalder`` er sessionens bruger (funktioner.kald): kun bestillingens ejer kan få den behandlet — og en
+        afvist bestilling ryddet.
+
+        Efterprøvningen af rettelserne i runde 15, fund C: den lokale udgave HAR en identitet, så her er en ukendt
+        kalder ikke en legitim vej. Eftersøgt: arbejderen tager kørsler fra køen og kalder aldrig denne funktion,
+        ``afstem`` starter kun arbejderen, og den manuelle vej (``manuel.py``) opretter selv Bestilling og Koersel.
+        ``None`` til forløbet betyder "identiteten findes ikke" (Fabric) og gives derfor aldrig videre herfra."""
+        if not kalder:
+            return {"ok": False, "afvist": self.T.IKKE_EJER}
+        return self.T.start_bestilling(self.lager, bestilling_id, self.app.motor.start_arbejder, kalder)
 
     def udfoer_aendring(self, anmodning_id):
         return self.T.udfoer_aendring(self.lager, anmodning_id)

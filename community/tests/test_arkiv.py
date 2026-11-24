@@ -224,6 +224,20 @@ class _ModelTx:
             laas.acquire()
             self.holdt.append(laas)
 
+    def laas_bestillinger(self, ider):
+        for id in ider:                                  # P3-6: importen giver dem samlet; her én ad gangen
+            self.laas_bestilling(id)
+
+    def laas_bestilling(self, id):
+        """Runde 15, anden rettelsesrunde (fund A): Koersel-delen tager også bestillingens lås — her en rigtig,
+        ventende lås i sit eget rum, holdt til transaktionen slutter (``test_r15_laase.py`` prøver kapløbet)."""
+        if not self.l.laas:
+            return
+        with self.l.register:
+            laas = self.l.laase.setdefault("bestilling:" + id, threading.Lock())
+        laas.acquire()
+        self.holdt.append(laas)
+
     def arkiv_hent(self, tabel, ider):
         return [dict(self.l.db.get(tabel, {})[i]) for i in ider if i in self.l.db.get(tabel, {})]
 

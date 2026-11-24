@@ -1,0 +1,139 @@
+// Databasen i det små til testene af bestillingsforløbet (tredje rettelsesrunde i runde 15, P2-1 og P2-2).
+//
+// Som den rigtige: `Bestilling.klient_noegle` er unik, `Koersel.bestilling_id` er unik (højst én kørsel pr.
+// bestilling), og `startBestilling` er idempotent på bestillingen. Kørslen FRYSER scenariets indhold, som det er, når
+// `startBestilling` første gang når serveren — det er det, P2-1 handler om. `svar(nr, kørsel)` bestemmer, hvad
+// KLIENTEN får at se for kald nr. `nr`; kørslen er da allerede committet, præcis som når svaret går tabt på vejen hjem.
+import { KildeFejl } from "@/lib/data/kilde";
+import { sætLæseKilde } from "@/lib/data/laes";
+import { sætSkriveKilde, type SkriveKilde } from "@/lib/data/skriv";
+
+export type Svar = Record<string, unknown>;
+
+export interface Lager {
+    bestillinger: { id: string; scenarie_id: string; klient_noegle: string; bestilt_af: string }[];
+    scenarier: string[];
+    /** bestilling -> kørsel */
+    kørsler: Map<string, string>;
+    /** kørsel -> det indhold, scenariet havde, da kørslen blev frosset */
+    frosset: Map<string, string>;
+    /** Scenariets indhold lige nu (testen "redigerer" ved at sætte det). */
+    indhold: { nu: string };
+    /** Antal opslag på Bestilling (klientnøglen). */
+    opslag: { antal: number };
+}
+
+export function lager(
+    svar: (nr: number, kørsel: string) => Svar | Error,
+    valg: {
+        /** Fejler opslag nr. `nr` på klientnøglen teknisk (P2-2: et kort netværksudfald) — eller svarer det `"tomt"`? */
+        opslagFejler?: (nr: number) => Error | "tomt" | undefined;
+        /** Kaster `startBestilling` kald nr. `nr` — FØR serveren har rørt noget? */
+        kaldFejlerFør?: (nr: number) => Error | undefined;
+        /** Afviser serveren kald nr. `nr` uden at oprette en kørsel (bestillingen bliver stående, som i Fabric)? */
+        afvisFør?: (nr: number) => Svar | undefined;
+        /** Hænger svaret på kald nr. `nr` — EFTER at kørslen er committet? (En genindlæsning midt i kaldet.) */
+        vent?: (nr: number) => Promise<void> | undefined;
+        /** Hænger kald nr. `nr` — FØR serveren har committet noget? (Kaldet er undervejs; kørslen kan stadig komme.) */
+        ventFør?: (nr: number) => Promise<void> | undefined;
+    } = {},
+): Lager {
+    const l: Lager = { bestillinger: [], scenarier: [], kørsler: new Map(), frosset: new Map(), indhold: { nu: "A" }, opslag: { antal: 0 } };
+    let kald = 0;
+    const ingen = async () => ({});
+    const spørg = <T,>(rækker: () => T[], tæl?: () => Error | "tomt" | undefined) => () => {
+        let filter: Record<string, { eq: string }> = {};
+        const q = {
+            where(f: typeof filter) { filter = f; return q; }, orderBy() { return q; }, first() { return q; }, after() { return q; },
+            async executePaginated() {
+                const fejl = tæl?.();
+                if (fejl === "tomt") return { items: [], hasNextPage: false };
+                if (fejl) throw fejl;
+                const items = rækker().filter((r) => Object.entries(filter).every(([k, v]) => (r as Record<string, unknown>)[k] === v.eq));
+                return { items, hasNextPage: false };
+            },
+        };
+        return q;
+    };
+    const kilde: SkriveKilde = {
+        data: {
+            Scenarie: { create: async () => { l.scenarier.push(`s${l.scenarier.length + 1}`); return { id: l.scenarier.at(-1) }; }, update: ingen, delete: ingen },
+            Bestilling: {
+                create: async (r: { scenarie_id: string; klient_noegle: string; bestilt_af: string }) => {
+                    if (l.bestillinger.some((b) => b.klient_noegle === r.klient_noegle)) throw new KildeFejl("unik", "Findes allerede (samme nøgle).", 409);
+                    const b = { id: `b${l.bestillinger.length + 1}`, scenarie_id: r.scenarie_id, klient_noegle: r.klient_noegle, bestilt_af: r.bestilt_af };
+                    l.bestillinger.push(b);
+                    return b;
+                },
+                update: ingen, delete: ingen,
+                select: spørg(() => l.bestillinger, () => { l.opslag.antal += 1; return valg.opslagFejler?.(l.opslag.antal); }),
+            },
+            Koersel: {
+                create: ingen, update: ingen, delete: ingen,
+                select: spørg(() => [...l.kørsler].map(([bestilling_id, id]) => ({ id, bestilling_id }))),
+            },
+        } as unknown as SkriveKilde["data"],
+        functions: {
+            startBestilling: {
+                invoke: async (i: { bestillingId: string }) => {
+                    kald += 1;
+                    const nr = kald;
+                    await valg.ventFør?.(nr);
+                    const før = valg.kaldFejlerFør?.(nr);
+                    if (før) throw før;
+                    const nej = valg.afvisFør?.(nr);
+                    if (nej) return nej;
+                    if (!l.kørsler.has(i.bestillingId)) {                                              // committet
+                        const k = `k${l.kørsler.size + 1}`;
+                        l.kørsler.set(i.bestillingId, k);
+                        l.frosset.set(k, l.indhold.nu);
+                    }
+                    await valg.vent?.(nr);
+                    const s = svar(nr, l.kørsler.get(i.bestillingId)!);
+                    if (s instanceof Error) throw s;
+                    return s;
+                },
+            },
+        } as unknown as SkriveKilde["functions"],
+    };
+    sætSkriveKilde(() => kilde);
+    return l;
+}
+
+/** Knappens sammenligning i testene (fjerde rettelsesrunde, punkt 2): kørslen er frosset med netop dette indhold. */
+export const frossetMed = (l: Lager, indhold: string) => async (koerselId: string) => l.frosset.get(koerselId) === indhold;
+
+export const ok = (kørsel: string): Svar => ({ ok: true, koersel_id: kørsel, status: "koe", ny: true, arbejder: { startet: true, grund: "" } });
+export const TABT = new Error("Failed to fetch");
+export const TEKNISK: Svar = { ok: false, afvist: "Teknisk fejl i startBestilling: forbindelsen døde", teknisk: true };
+export const UAFKLARET = /Vi ved ikke, om .* blev bestilt — prøv igen/;
+
+/** En kørsels frosne input, som læselaget ser det: `Koersel.vaerk_revision` og `KoerselInput`-rækkerne. */
+export interface FrossenKoersel { vaerk_revision: number; rækker: { kilde: string; sti: string; vaerdi_json: string }[] }
+
+/**
+ * Læsekilden til `frossetSomNu` (fjerde rettelsesrunde, punkt 2): `Koersel`, `KoerselInput` og værkets `Tidsserie`.
+ * `frosset(id)` giver kørslens frosne input — `undefined`: kørslen findes ikke; en `Error`: læsningen fejler teknisk.
+ */
+export function læsFrosset(frosset: (koerselId: string) => FrossenKoersel | Error | undefined, serier: Record<string, unknown>[] = []): void {
+    const svar = (rækker: () => Record<string, unknown>[]) => ({
+        select: () => { const q = { where: () => q, orderBy: () => q, first: () => q, after: () => q, executePaginated: async () => ({ items: rækker(), hasNextPage: false, endCursor: null }) }; return q; },
+    });
+    const efter = (felt: string, lav: (id: string) => Record<string, unknown>[]) => ({
+        select: () => {
+            let id = "";
+            const q = {
+                where(f: Record<string, { eq: string }>) { id = f[felt]?.eq ?? ""; return q; }, orderBy: () => q, first: () => q, after: () => q,
+                executePaginated: async () => ({ items: lav(id), hasNextPage: false, endCursor: null }),
+            };
+            return q;
+        },
+    });
+    const hent = (id: string) => { const f = frosset(id); if (f instanceof Error) throw f; return f; };
+    const data: Record<string, unknown> = {
+        Koersel: efter("id", (id) => { const f = hent(id); return f ? [{ id, vaerk_revision: f.vaerk_revision }] : []; }),
+        KoerselInput: efter("koersel_id", (id) => (hent(id)?.rækker ?? []).map((r, i) => ({ id: `${id}-${i}`, koersel_id: id, ...r }))),
+        Tidsserie: svar(() => serier),
+    };
+    sætLæseKilde(() => ({ data: new Proxy(data, { get: (m, navn: string) => m[navn] ?? svar(() => []) }) }) as never);
+}

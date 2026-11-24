@@ -6,7 +6,10 @@
 
 Ukendte input-felter afvises ikke (Rayfin ignorerer dem heller ikke — de har ingen betydning), men et
 manglende påkrævet felt giver ``ugyldig``. Identiteten i bestillinger og anmodninger er den, data-API'et
-verificerede ved create (``bestilt_af``/``anmodet_af`` = sessionens bruger) — funktionerne kender den ikke.
+verificerede ved create (``bestilt_af``/``anmodet_af`` = sessionens bruger) — funktionerne kender den ikke. Undtagelsen
+er ``startBestilling`` (kodegennemgangen af runde 15, fund 2, og efterprøvningen, fund C): den får sessionens bruger,
+fordi kun bestillingens ejer må kunne få den behandlet — og en afvist bestilling slettet; bestillings-id'et kommer jo
+fra kalderen, og rækken er læsbar for alle.
 """
 
 from __future__ import annotations
@@ -60,7 +63,7 @@ def kald(app, navn: str, inp, bruger: str):
         return t.hent_tidsserie(inp["tidsserieId"], inp.get("fra") or "", inp.get("til") or "")
     with betroet_mutex:
         if navn == "startBestilling":
-            return t.start_bestilling(inp["bestillingId"])
+            return t.start_bestilling(inp["bestillingId"], bruger)
         if navn == "udfoerAendring":
             return t.udfoer_aendring(inp["anmodningId"])
         if navn == "annullerKoersel":

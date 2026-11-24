@@ -1,12 +1,12 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_katalog.py fra viden/felt_katalog.json og
 // viden/enhedstyper.json (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: 90fb16eb1e2d5aa8e619b5a951b93760fa803985 · 151 felter · 7 enhedstyper
+// Modelcommit: 939228aa048563c8498382a79d207c8b03fbda57 · 152 felter · 8 enhedstyper
 //-----------------------------------------------------------------------
 
 import type { FeltPost, Enhedstype } from "./katalog";
 
-export const MODEL_COMMIT = "90fb16eb1e2d5aa8e619b5a951b93760fa803985";
+export const MODEL_COMMIT = "939228aa048563c8498382a79d207c8b03fbda57";
 
 export const FELTER: readonly FeltPost[] = [
  {
@@ -118,7 +118,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Ren dokumentation: feltet læses ikke af modellen. Modellen regner altid internt i UTC og slår tarif og budvindue op i dansk lokaltid.",
-  "kilde": "src/config.py:1146",
+  "kilde": "src/config.py:1149",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -137,7 +137,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Ren dokumentation: feltet læses ikke af modellen. Modellen regner altid internt i UTC og slår tarif og budvindue op i dansk lokaltid.",
-  "kilde": "src/config.py:1146",
+  "kilde": "src/config.py:1149",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -156,7 +156,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Ren dokumentation: feltet læses ikke af modellen. Modellen regner altid internt i UTC og slår tarif og budvindue op i dansk lokaltid.",
-  "kilde": "src/config.py:1146",
+  "kilde": "src/config.py:1149",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -175,7 +175,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Ren dokumentation: feltet læses ikke af modellen. Modellen regner altid internt i UTC og slår tarif og budvindue op i dansk lokaltid.",
-  "kilde": "src/config.py:1146",
+  "kilde": "src/config.py:1149",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -194,7 +194,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Påkrævet blok. Værket erklærer selv sit klimaområde og sin priszone; der er med vilje ingen standard, fordi en usynlig standard tidligere gav forkerte tal.",
-  "kilde": "src/config.py:1099",
+  "kilde": "src/config.py:1102",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": false,
@@ -218,7 +218,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Den DMI-station, hvis temperatur bruges til varmelast og varmepumpens COP. Vælg efter beliggenhed: vestkyst, karup (Midt- og Vestjylland), fyn, ringsted (Sjælland og øerne). Valget alene kan flytte objektivet op til ca. 4 %.",
-  "kilde": "src/config.py:655",
+  "kilde": "src/config.py:657",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -240,7 +240,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Elspot-prisområde: DK1 vest for Storebælt, DK2 øst for. Bør være det samme som electricity.spot_area, som styrer balancepriserne.",
-  "kilde": "src/config.py:658",
+  "kilde": "src/config.py:660",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -262,7 +262,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Hvilken DMI-observation der bruges som udetemperatur. Lad standarden stå.",
-  "kilde": "src/config.py:678",
+  "kilde": "src/config.py:680",
   "avanceret": true,
   "laeses_af_koden": true,
   "blad": true,
@@ -282,7 +282,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Kurs til omregning af spotpriser i EUR.",
-  "kilde": "src/config.py:679",
+  "kilde": "src/config.py:681",
   "avanceret": true,
   "laeses_af_koden": true,
   "blad": true,
@@ -303,7 +303,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Første time i kørslen, ISO-tid i UTC, fx 2025-07-01T00:00:00Z. Overskrives af scenariets periode, hvis den er sat.",
-  "kilde": "src/config.py:923",
+  "kilde": "src/config.py:925",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -327,7 +327,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Sidste time i kørslen, inklusive, ISO-tid i UTC, fx 2026-06-30T23:00:00Z.",
-  "kilde": "src/config.py:924",
+  "kilde": "src/config.py:926",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -372,7 +372,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Valgfri blok. Uden den gælder kodens standard (0,5 % / 5.000 kr. / 600 s), som er til absolutte tal, ikke til differenser.",
-  "kilde": "src/config.py:1125",
+  "kilde": "src/config.py:1128",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": false,
@@ -391,7 +391,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Solveren stopper, når løsningen bevisligt ligger inden for denne brøkdel af det bedst mulige. 0,005 = 0,5 %. Til differenser mellem scenarier: 0,0002.",
-  "kilde": "src/config.py:713",
+  "kilde": "src/config.py:715",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -414,7 +414,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Solveren stopper også, når afstanden til det bedst mulige er under dette beløb.",
-  "kilde": "src/config.py:714",
+  "kilde": "src/config.py:716",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -434,7 +434,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Maksimal løsetid. Rammes den, gemmes den bedste løsning med det opnåede gab.",
-  "kilde": "src/config.py:715",
+  "kilde": "src/config.py:717",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -455,7 +455,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Sendes uændret til HiGHS. Lad standarden stå.",
-  "kilde": "src/config.py:716",
+  "kilde": "src/config.py:718",
   "avanceret": true,
   "laeses_af_koden": true,
   "blad": true,
@@ -475,7 +475,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Sendes uændret til HiGHS. Lad standarden stå.",
-  "kilde": "src/config.py:717",
+  "kilde": "src/config.py:719",
   "avanceret": true,
   "laeses_af_koden": true,
   "blad": true,
@@ -495,7 +495,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Tom = automatisk: aggregator-reglen (4096) slås fra ved robust reservation, fordi den 15/10-2026 gav en forkert løsning. 0 = alle regler tilladt.",
-  "kilde": "src/config.py:722",
+  "kilde": "src/config.py:724",
   "avanceret": true,
   "laeses_af_koden": true,
   "blad": true,
@@ -1122,8 +1122,8 @@ export const FELTER: readonly FeltPost[] = [
   "max": null,
   "paakraevet": false,
   "gaelder_for": null,
-  "forklaring": "Én blok pr. brændsel med value (og unit som dokumentation). Brændselspriser er ekskl. moms pr. MWh brændsel. Kendte nøgler: natural_gas, straw, flis, wood_pellets, waste_heat, co2_eua.",
-  "kilde": "src/config.py:929",
+  "forklaring": "Én blok pr. brændsel med value (og unit som dokumentation). Brændselspriser er ekskl. moms pr. MWh brændsel. Kendte nøgler: natural_gas, fuel_oil, straw, flis, wood_pellets, waste_heat, co2_eua.",
+  "kilde": "src/config.py:931",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": false,
@@ -1134,6 +1134,7 @@ export const FELTER: readonly FeltPost[] = [
     "navn": "brændsel",
     "tilladte": [
      "natural_gas",
+     "fuel_oil",
      "straw",
      "flis",
      "wood_pellets",
@@ -1154,8 +1155,8 @@ export const FELTER: readonly FeltPost[] = [
   "max": null,
   "paakraevet": true,
   "gaelder_for": null,
-  "forklaring": "Pris pr. ton CO₂. Ganges på enhedernes co2_emissions_per_mwh_fuel. Skriv 0, hvis gasprisen allerede indeholder CO₂-afgiften.",
-  "kilde": "src/config.py:930",
+  "forklaring": "Pris pr. ton CO₂. Ganges på enhedernes co2_emissions_per_mwh_fuel. Skriv 0, hvis gasprisen allerede indeholder CO₂-afgiften. Der er én CO₂-pris for værket: med en oliekedel skal afgiften da også være med i olieprisen.",
+  "kilde": "src/config.py:932",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -1177,7 +1178,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Pris pr. MWh gas ekskl. moms, gerne inkl. de afgifter, der gælder alle gasenheder.",
-  "kilde": "src/config.py:937",
+  "kilde": "src/config.py:939",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -1185,6 +1186,28 @@ export const FELTER: readonly FeltPost[] = [
   "kan_saettes_med_cli_set": true,
   "regler": [
    "Påkrævet, hvis en aktiv enhed har fuel natural_gas."
+  ]
+ },
+ {
+  "sti": "prices.fuel_oil.value",
+  "sektion": "prices",
+  "etiket": "Fyringsoliepris",
+  "enhed": "DKK/MWh brændsel",
+  "type": "number",
+  "tilladte": null,
+  "min": null,
+  "max": null,
+  "paakraevet": false,
+  "gaelder_for": null,
+  "forklaring": "Pris pr. MWh fyringsolie eller gasolie (ca. 10 kWh pr. liter) ekskl. moms, inkl. energiafgift. CO₂ behandles som for naturgas: CO₂-prisen ganges med enhedens udledningsfaktor.",
+  "kilde": "src/config.py:945",
+  "avanceret": false,
+  "laeses_af_koden": true,
+  "blad": true,
+  "kan_saettes_i_scenarie": true,
+  "kan_saettes_med_cli_set": true,
+  "regler": [
+   "Påkrævet, hvis en aktiv enhed har fuel fuel_oil."
   ]
  },
  {
@@ -1199,7 +1222,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Pris pr. MWh halm ekskl. moms.",
-  "kilde": "src/config.py:934",
+  "kilde": "src/config.py:936",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -1221,7 +1244,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Pris pr. MWh flis ekskl. moms. Mangler den, bruges halmprisen.",
-  "kilde": "src/config.py:941",
+  "kilde": "src/config.py:943",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -1240,7 +1263,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Pris pr. MWh træpiller ekskl. moms.",
-  "kilde": "src/config.py:942",
+  "kilde": "src/config.py:944",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -1284,7 +1307,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Ren dokumentation; læses ikke af modellen.",
-  "kilde": "src/config.py:929",
+  "kilde": "src/config.py:931",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -1333,7 +1356,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Nettarif pr. MWh el, når der ikke er en tidsvarierende profil. Bruges også altid i aktiveringsværdien (sparet tarif ved aktivering), selv når profilen er sat.",
-  "kilde": "src/config.py:949",
+  "kilde": "src/config.py:952",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -1352,7 +1375,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Tarif pr. MWh produceret el; trækkes fra kraftvarmens elsalg.",
-  "kilde": "src/config.py:950",
+  "kilde": "src/config.py:953",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -1371,7 +1394,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": true,
   "gaelder_for": null,
   "forklaring": "Elafgift pr. MWh el til varmeproduktion (efter godtgørelse). Lægges til elprisen for alle el-forbrugende enheder.",
-  "kilde": "src/config.py:951",
+  "kilde": "src/config.py:954",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -1393,7 +1416,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Valgfri båndprofil fra netselskabets prisblad: bånd, sæsoner og hverdag/weekend. Vinder over den faste tarif i driften. Opslag sker på dansk lokaltid.",
-  "kilde": "src/config.py:952",
+  "kilde": "src/config.py:955",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": false,
@@ -1633,7 +1656,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Én blok pr. enhed. Navnet er frit (brug små bogstaver, tal og _). Påkrævede felter: type, p_max_heat, p_min_heat, alpha, fuel.",
-  "kilde": "src/config.py:957",
+  "kilde": "src/config.py:960",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": false,
@@ -1661,6 +1684,7 @@ export const FELTER: readonly FeltPost[] = [
    "electric_boiler",
    "biomass_boiler",
    "gas_boiler",
+   "oil_boiler",
    "gas_engine_chp",
    "solar_thermal",
    "waste_heat"
@@ -1669,7 +1693,7 @@ export const FELTER: readonly FeltPost[] = [
   "max": null,
   "paakraevet": true,
   "gaelder_for": null,
-  "forklaring": "Varmepumpe, elkedel, biomassekedel, gaskedel, gasmotor, solvarme eller overskudsvarme. Typen er en etiket; økonomien styres af fuel og alpha. Kun heat_pump har en særregel (cop_curve).",
+  "forklaring": "Varmepumpe, elkedel, biomassekedel, gaskedel, oliekedel, gasmotor, solvarme eller overskudsvarme. Typen er en etiket; økonomien styres af fuel og alpha. Kun heat_pump har en særregel (cop_curve).",
   "kilde": "src/config.py:494",
   "avanceret": false,
   "laeses_af_koden": true,
@@ -1806,6 +1830,7 @@ export const FELTER: readonly FeltPost[] = [
    "electricity",
    "solar",
    "natural_gas",
+   "fuel_oil",
    "straw",
    "flis",
    "wood_pellets",
@@ -1846,6 +1871,7 @@ export const FELTER: readonly FeltPost[] = [
   "gaelder_for": [
    "biomass_boiler",
    "gas_boiler",
+   "oil_boiler",
    "gas_engine_chp",
    "waste_heat"
   ],
@@ -2037,7 +2063,7 @@ export const FELTER: readonly FeltPost[] = [
   "max": null,
   "paakraevet": false,
   "gaelder_for": null,
-  "forklaring": "Ton CO₂ pr. MWh brændsel. Naturgas ca. 0,2; biomasse 0 (regnes neutral).",
+  "forklaring": "Ton CO₂ pr. MWh brændsel. Naturgas ca. 0,2; fyringsolie og gasolie 0,266 (tung fuelolie ca. 0,28); biomasse 0 (regnes neutral).",
   "kilde": "src/config.py:504",
   "avanceret": false,
   "laeses_af_koden": true,
@@ -2373,7 +2399,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Kvalifikation og lofter for enhedens bud. Kun enheder med fuel electricity byder, uanset flagene.",
-  "kilde": "src/config.py:958",
+  "kilde": "src/config.py:961",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": false,
@@ -2616,7 +2642,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Én blok pr. tank eller temperaturlag. Påkrævede felter: volume_m3, delta_t_k, e_initial_mwh, p_max_charge_mw, p_max_discharge_mw, self_discharge_per_hour.",
-  "kilde": "src/config.py:966",
+  "kilde": "src/config.py:969",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": false,
@@ -2903,7 +2929,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Loft over det samlede eloptag fra varmepumper og elkedler pr. time. Gælder også planen uden aktivering og begrænser derfor reservationen. Billund: 33 MW.",
-  "kilde": "src/config.py:1139",
+  "kilde": "src/config.py:1142",
   "avanceret": true,
   "laeses_af_koden": true,
   "blad": true,
@@ -2926,7 +2952,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Læses, men bruges ikke af modellen i dag. Investeringer regnes som differens mellem to kørsler.",
-  "kilde": "src/config.py:1153",
+  "kilde": "src/config.py:1156",
   "avanceret": true,
   "laeses_af_koden": false,
   "blad": true,
@@ -2946,7 +2972,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Flere enheder med én fælles budgrænse pr. marked. Ignoreres, når balancing.ancillary_caps eller shared_reserve_cap_mw er sat.",
-  "kilde": "src/config.py:972",
+  "kilde": "src/config.py:975",
   "avanceret": true,
   "laeses_af_koden": true,
   "blad": false,
@@ -3045,7 +3071,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Læses kun ved kørsel med balancering. Uden den er varmeprisen ren spot.",
-  "kilde": "src/config.py:983",
+  "kilde": "src/config.py:986",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": false,
@@ -3070,7 +3096,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "activation_value (anbefalet): aktiveringsværdien regnes kvarter for kvarter, så samvariation mellem pris og aktivering fanges. legacy: gennemsnit gange gennemsnit; undervurderer systematisk.",
-  "kilde": "src/config.py:993",
+  "kilde": "src/config.py:996",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -3093,7 +3119,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Driften skal også holde, hvis buddet ikke aktiveres: varmen fra reserverede enheder skal kunne afsættes i nettet eller tanken. Standard siden 15/10-2026.",
-  "kilde": "src/config.py:992",
+  "kilde": "src/config.py:995",
   "avanceret": false,
   "laeses_af_koden": true,
   "blad": true,
@@ -3113,7 +3139,7 @@ export const FELTER: readonly FeltPost[] = [
   "paakraevet": false,
   "gaelder_for": null,
   "forklaring": "Ældre form af det samlede loft. Brug ancillary_caps.total_mw i stedet.",
-  "kilde": "src/config.py:1154",
+  "kilde": "src/config.py:1157",
   "avanceret": true,
   "laeses_af_koden": true,
   "blad": true,
@@ -4081,6 +4107,109 @@ export const ENHEDSTYPER: Readonly<Record<string, Enhedstype>> = {
    }
   ]
  },
+ "oil_boiler": {
+  "navn": "Oliekedel",
+  "beskrivelse": "Fyringsolie eller gasolie, typisk spids og reserve. Kræver en pris for fyringsolie og en CO₂-pris (gerne 0).",
+  "fuel": [
+   "fuel_oil"
+  ],
+  "paakraevede": [
+   "type",
+   "p_max_heat",
+   "p_min_heat",
+   "alpha",
+   "fuel",
+   "eta_fuel_to_heat"
+  ],
+  "valgfri": [
+   "enabled",
+   "var_om",
+   "uc_enabled",
+   "start_cost",
+   "min_uptime",
+   "min_downtime",
+   "initial_status",
+   "commissioned",
+   "notes",
+   "co2_emissions_per_mwh_fuel"
+  ],
+  "irrelevante": [
+   "cop_curve",
+   "production_profile_path"
+  ],
+  "kan_byde_balance": false,
+  "noter": [
+   "co2_emissions_per_mwh_fuel 0,266 t/MWh for fyringsolie og gasolie (74 kg CO₂/GJ, Energistyrelsens standardfaktor); tung fuelolie ca. 0,28.",
+   "Olieprisen opgives pr. MWh olie (ca. 10 kWh pr. liter) inkl. energiafgift.",
+   "Der er én CO₂-pris for værket: står CO₂-afgiften i gasprisen og CO₂-prisen til 0, skal den også være med i olieprisen."
+  ],
+  "skabelon": [
+   {
+    "sti": "enabled",
+    "vaerdi_json": "true"
+   },
+   {
+    "sti": "type",
+    "vaerdi_json": "\"oil_boiler\""
+   },
+   {
+    "sti": "p_max_heat",
+    "vaerdi_json": "15.0"
+   },
+   {
+    "sti": "p_min_heat",
+    "vaerdi_json": "0.0"
+   },
+   {
+    "sti": "alpha",
+    "vaerdi_json": "0.0"
+   },
+   {
+    "sti": "fuel",
+    "vaerdi_json": "\"fuel_oil\""
+   },
+   {
+    "sti": "eta_fuel_to_heat",
+    "vaerdi_json": "0.95"
+   },
+   {
+    "sti": "var_om",
+    "vaerdi_json": "30.0"
+   },
+   {
+    "sti": "start_cost",
+    "vaerdi_json": "500.0"
+   },
+   {
+    "sti": "min_uptime",
+    "vaerdi_json": "1"
+   },
+   {
+    "sti": "min_downtime",
+    "vaerdi_json": "1"
+   },
+   {
+    "sti": "uc_enabled",
+    "vaerdi_json": "false"
+   },
+   {
+    "sti": "co2_emissions_per_mwh_fuel",
+    "vaerdi_json": "0.266"
+   },
+   {
+    "sti": "ancillary.afrr_qualified",
+    "vaerdi_json": "false"
+   },
+   {
+    "sti": "ancillary.mfrr_qualified",
+    "vaerdi_json": "false"
+   },
+   {
+    "sti": "ancillary.fcr_qualified",
+    "vaerdi_json": "false"
+   }
+  ]
+ },
  "gas_engine_chp": {
   "navn": "Gasmotor (kraftvarme)",
   "beskrivelse": "Naturgas til el og varme. alpha = el/varme > 0 giver elsalg til spot minus produktionstarif. Byder ikke i balancemarkedet i modellen.",
@@ -4372,6 +4501,6 @@ export const ENHEDSTYPER: Readonly<Record<string, Enhedstype>> = {
  }
 };
 
-export const BRAENDSELSNAVNE: Readonly<Record<string, string>> = {"electricity": "El", "solar": "Sol", "natural_gas": "Naturgas", "straw": "Halm", "flis": "Flis", "wood_pellets": "Træpiller", "waste_heat": "Overskudsvarme", "co2_eua": "CO₂-kvoter"};
+export const BRAENDSELSNAVNE: Readonly<Record<string, string>> = {"electricity": "El", "solar": "Sol", "natural_gas": "Naturgas", "fuel_oil": "Fyringsolie", "straw": "Halm", "flis": "Flis", "wood_pellets": "Træpiller", "waste_heat": "Overskudsvarme", "co2_eua": "CO₂-kvoter"};
 
 export const ENHED_STANDARD_REGLER: readonly string[] = ["p_min_heat ≤ p_max_heat (config.py).", "fuel ∉ {electricity, solar} kræver eta_fuel_to_heat.", "cop_curve kun for type heat_pump med fuel electricity.", "Med uc_enabled: initial_status ∈ {0,1}, min_uptime og min_downtime ≥ 1.", "Ukendte felter afvises (Unit(**felter)).", "Kun fuel electricity kan byde i balancemarkedet (BALANCEMARKED.md)."];

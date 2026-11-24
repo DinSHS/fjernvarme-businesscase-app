@@ -193,6 +193,62 @@ class TestModellensLaeserErBitvisEns(unittest.TestCase):
         self.assertTrue(a.index.equals(b.index))
         self.assertTrue(np.array_equal(a.values.view(np.uint64), b.values.view(np.uint64)))
 
+    def test_referencetallenes_solprofil_er_den_normaliserede_repo_fil(self):
+        """Efterprøvningen af rettelserne i runde 15, fund F: appen holder en kørsels frosne solprofil op mod
+        referencens (``viden/referencetal.json`` › ``solprofil_sha256``), før den måles mod et README-tal. Tallet dér
+        skal være hashen af casens EGEN solprofil, som importen registrerer den (``tidsserie_db`` ›
+        ``registrer_repo_tidsserier``: UTC, timens start, med casen som værk)."""
+        import json
+
+        import yaml
+        ref = json.loads((HER.parent.parent / "viden" / "referencetal.json").read_text(encoding="utf-8"))
+        readme = next(g for g in ref["grupper"] if g["id"] == "readme")["referencer"]
+        med = [r for r in readme if r.get("solprofil_sha256")]
+        self.assertEqual(sorted(r["id"] for r in med), ["andeby_helaar_bal", "andeby_helaar_spot"])
+        case = yaml.safe_load((MODELREPO / "cases" / "andeby.yaml").read_text(encoding="utf-8"))
+        r = DK.valider((MODELREPO / "data" / "solar_andeby_dmi_karup.csv").read_text(encoding="utf-8"), "solprofil",
+                       tidszone="UTC", tidsstempel="start", vaerk=case)
+        self.assertEqual(r.status, "gyldig")
+        for x in med:
+            self.assertEqual(x["solprofil_sha256"], r.sha256, x["id"])
+        # Og kun de cases, der HAR en solprofil, bærer en hash: Billund-casene har ingen production_profile_path.
+        for x in readme:
+            tekst = (MODELREPO / x["vaerk"]["kilde_fil"]).read_text(encoding="utf-8")
+            self.assertEqual("production_profile_path" in tekst, bool(x.get("solprofil_sha256")), x["id"])
+
+    def test_referencetallenes_solprofilsti_og_versioner_holder(self):
+        """Tredje rettelsesrunde i runde 15, P2-4: appen regner casens egen profilfil og SAMME fil frosset som
+        tidsserie for én kilde, når den frosne sti og modelversionen beviser det (``analyser/repoprofiler.ts``). Beviset
+        er tre felter i ``viden/referencetal.json``: ``solprofil_sti`` skal være den sti, casen selv bruger; pinnen skal
+        stå blandt ``solprofil_model_commits``; og filen skal være samme git-blob ved hver af de oplyste versioner
+        (ellers gælder hashen ikke dér). Blob-sammenligningen kræver, at modelrepoet er en git-klon med de commits."""
+        import json
+        import subprocess
+
+        import yaml
+        from fjv import konstanter as K
+        ref = json.loads((HER.parent.parent / "viden" / "referencetal.json").read_text(encoding="utf-8"))
+        med = [r for r in next(g for g in ref["grupper"] if g["id"] == "readme")["referencer"] if r.get("solprofil_sha256")]
+        self.assertTrue(med)
+        for x in med:
+            case = yaml.safe_load((MODELREPO / x["vaerk"]["kilde_fil"]).read_text(encoding="utf-8"))
+            stier = {e["production_profile_path"] for e in case["units"].values()
+                     if isinstance(e, dict) and e.get("production_profile_path")}
+            self.assertEqual(stier, {x["solprofil_sti"]}, x["id"])
+            commits = x["solprofil_model_commits"]
+            self.assertIn(K.MODEL_COMMIT, commits, x["id"])
+            for c in commits:
+                self.assertRegex(c, r"^[0-9a-f]{40}$")
+
+            def blob(commit, sti=x["solprofil_sti"]):
+                r = subprocess.run(["git", "-C", str(MODELREPO), "rev-parse", f"{commit}:{sti}"],
+                                   capture_output=True, text=True)
+                return r.stdout.strip() if r.returncode == 0 else None
+            blobs = {c: blob(c) for c in commits}
+            if any(b is None for b in blobs.values()):
+                self.skipTest("modelrepoet er ikke en git-klon med alle de oplyste versioner")
+            self.assertEqual(len(set(blobs.values())), 1, f"{x['id']}: filen er ikke den samme ved {blobs}")
+
 
 # ------------------------------------------------------------------ frysning -> case + argv
 
@@ -510,7 +566,11 @@ class TestVaerksark(unittest.TestCase):
             ws.cell(rr, 2).value = 10 + (t.hour % 7) * 0.5
             rr += 1
             t += timedelta(hours=1)
-        wb["Priser"]["B30"] = "Test Vaerksark"
+        # Værkets navn findes på etiketten i kolonne A, som modelscriptet læser arket. Ved 939228a rykkede rækken fra
+        # 30 til 31 (ny række fyringsolie), og en fast B30 skrev navnet i priszonens celle (runde 15).
+        pr = wb["Priser"]
+        r = next(r for r in range(1, pr.max_row + 1) if str(pr.cell(r, 1).value or "").strip() == "værkets navn")
+        pr.cell(r, 2).value = "Test Vaerksark"
         cls.ark = cls.tmp / "ark.xlsx"
         wb.save(cls.ark)
         cls.rc, cls.log = VS.koer_script(kode, sys.executable, cls.ark, cls.tmp / "ud", False)

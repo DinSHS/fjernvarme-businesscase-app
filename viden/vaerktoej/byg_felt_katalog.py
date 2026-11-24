@@ -24,7 +24,7 @@ sys.stdout.reconfigure(errors="replace")
 
 HER = Path(__file__).resolve().parent
 VIDEN = HER.parent
-PIN = "90fb16eb1e2d5aa8e619b5a951b93760fa803985"
+PIN = "939228aa048563c8498382a79d207c8b03fbda57"
 REPO = Path(os.environ.get("FJV_MODELREPO",
                            VIDEN.parent.parent / "fjernvarme-businesscase"))
 COMMIT = PIN
@@ -322,20 +322,27 @@ F("heat_load_params.nettab.t_jord_t_out_ref", "Klimanormal ude", "number",
 # =============================================================================
 F("prices.*", "Pris", "object",
   "Én blok pr. brændsel med value (og unit som dokumentation). Brændselspriser "
-  "er ekskl. moms pr. MWh brændsel. Kendte nøgler: natural_gas, straw, flis, "
-  "wood_pellets, waste_heat, co2_eua.",
+  "er ekskl. moms pr. MWh brændsel. Kendte nøgler: natural_gas, fuel_oil, straw, "
+  "flis, wood_pellets, waste_heat, co2_eua.",
   K(CFG, r'p = raw\["prices"\]'), blad=False,
-  stjerne=[{"navn": "brændsel", "tilladte": ["natural_gas", "straw", "flis",
+  stjerne=[{"navn": "brændsel", "tilladte": ["natural_gas", "fuel_oil", "straw", "flis",
                                             "wood_pellets", "waste_heat", "co2_eua"]}])
 F("prices.co2_eua.value", "CO₂-kvotepris", "number",
   "Pris pr. ton CO₂. Ganges på enhedernes co2_emissions_per_mwh_fuel. Skriv 0, "
-  "hvis gasprisen allerede indeholder CO₂-afgiften.",
+  "hvis gasprisen allerede indeholder CO₂-afgiften. Der er én CO₂-pris for værket: "
+  "med en oliekedel skal afgiften da også være med i olieprisen.",
   K(CFG, r'if "co2_eua" not in p:'), enhed="DKK/t CO₂", paakraevet=True,
   regler=["Skal findes (også som 0)."])
 F("prices.natural_gas.value", "Naturgaspris", "number",
   "Pris pr. MWh gas ekskl. moms, gerne inkl. de afgifter, der gælder alle gasenheder.",
   K(CFG, r'natural_gas=p\["natural_gas"\]'), enhed="DKK/MWh brændsel",
   regler=["Påkrævet, hvis en aktiv enhed har fuel natural_gas."])
+F("prices.fuel_oil.value", "Fyringsoliepris", "number",
+  "Pris pr. MWh fyringsolie eller gasolie (ca. 10 kWh pr. liter) ekskl. moms, inkl. "
+  "energiafgift. CO₂ behandles som for naturgas: CO₂-prisen ganges med enhedens "
+  "udledningsfaktor.",
+  K(CFG, r'fuel_oil=p\["fuel_oil"\]'), enhed="DKK/MWh brændsel",
+  regler=["Påkrævet, hvis en aktiv enhed har fuel fuel_oil."])
 F("prices.straw.value", "Halmpris", "number",
   "Pris pr. MWh halm ekskl. moms.",
   K(CFG, r'straw = p\["straw"\]\["value"\]'), enhed="DKK/MWh brændsel",
@@ -435,12 +442,12 @@ F("units.*", "Produktionsenhed", "object",
           "Mindst én aktiv enhed, ellers er modellen tom."])
 U = "units.*."
 F(U + "type", "Enhedstype", "enum",
-  "Varmepumpe, elkedel, biomassekedel, gaskedel, gasmotor, solvarme eller "
-  "overskudsvarme. Typen er en etiket; økonomien styres af fuel og alpha. Kun "
+  "Varmepumpe, elkedel, biomassekedel, gaskedel, oliekedel, gasmotor, solvarme "
+  "eller overskudsvarme. Typen er en etiket; økonomien styres af fuel og alpha. Kun "
   "heat_pump har en særregel (cop_curve).",
   K(CFG, r'type: str\s+# heat_pump'), stjerne=[ENHEDER], paakraevet=True,
   tilladte=["heat_pump", "electric_boiler", "biomass_boiler", "gas_boiler",
-            "gas_engine_chp", "solar_thermal", "waste_heat"],
+            "oil_boiler", "gas_engine_chp", "solar_thermal", "waste_heat"],
   regler=["Listen håndhæves af konverteringen (scripts/vaerksark_til_yaml.py), ikke af config.py."])
 F(U + "enabled", "Med i modellen", "boolean",
   "false fjerner enheden helt fra modellen — samme virkning som at slå den fra i "
@@ -465,7 +472,7 @@ F(U + "fuel", "Brændsel", "enum",
   "Hvad enheden bruger: electricity, solar eller en nøgle under prices. Afgør "
   "marginalomkostningen og om enheden kan byde i balancemarkedet (kun electricity).",
   K(CFG, r'fuel: str\s+# nøgle i prices'), stjerne=[ENHEDER], paakraevet=True,
-  tilladte=["electricity", "solar", "natural_gas", "straw", "flis",
+  tilladte=["electricity", "solar", "natural_gas", "fuel_oil", "straw", "flis",
             "wood_pellets", "waste_heat"],
   regler=["Andet end electricity/solar kræver eta_fuel_to_heat.",
           "Brændslets pris skal stå under prices."])
@@ -473,7 +480,7 @@ F(U + "eta_fuel_to_heat", "Virkningsgrad brændsel→varme", "number",
   "Varme pr. brændsel (0,96 = 96 %). Brændselsomkostningen pr. MWh varme er pris/η.",
   K(CFG, r'eta_fuel_to_heat: Optional\[float\] = None'), enhed="brøk",
   stjerne=[ENHEDER], min=0, min_eksklusiv=True,
-  gaelder_for=["biomass_boiler", "gas_boiler", "gas_engine_chp", "waste_heat"],
+  gaelder_for=["biomass_boiler", "gas_boiler", "oil_boiler", "gas_engine_chp", "waste_heat"],
   regler=["Påkrævet, når fuel ikke er electricity eller solar."])
 F(U + "var_om", "Variabel D&V", "number",
   "Drifts- og vedligeholdelsesomkostning pr. MWh varme.",
@@ -501,7 +508,8 @@ F(U + "initial_status", "Tændt ved periodens start", "enum",
   K(CFG, r'initial_status: int = 1'), stjerne=[ENHEDER], tilladte=[0, 1],
   standard=1)
 F(U + "co2_emissions_per_mwh_fuel", "CO₂-udledning", "number",
-  "Ton CO₂ pr. MWh brændsel. Naturgas ca. 0,2; biomasse 0 (regnes neutral).",
+  "Ton CO₂ pr. MWh brændsel. Naturgas ca. 0,2; fyringsolie og gasolie 0,266 (tung "
+  "fuelolie ca. 0,28); biomasse 0 (regnes neutral).",
   K(CFG, r'co2_emissions_per_mwh_fuel: float = 0\.0'), enhed="t CO₂/MWh brændsel",
   stjerne=[ENHEDER], standard=0.0, min=0)
 F(U + "production_profile_path", "Produktionsprofil (CSV)", "string",
@@ -898,6 +906,34 @@ def enhedstyper() -> dict:
             },
             "noter": ["co2_emissions_per_mwh_fuel ca. 0,2 t/MWh for naturgas."],
         },
+        # Ny ved 939228a (modelrepoets v0.11.0). Samme form som gaskedlen; kun brændsel og CO2-faktor skiller.
+        # Faktoren er modelscriptets (CO2_PR_MWH_BRAENDSEL, holdt op mod spejlet af tjek_trofasthed [5]); resten af
+        # skabelonen er gaskedlens pladsholdere (egen antagelse, som for de andre typer).
+        "oil_boiler": {
+            "navn": "Oliekedel",
+            "beskrivelse": "Fyringsolie eller gasolie, typisk spids og reserve. "
+                           "Kræver en pris for fyringsolie og en CO₂-pris (gerne 0).",
+            "fuel": ["fuel_oil"],
+            "paakraevede": ["type", "p_max_heat", "p_min_heat", "alpha", "fuel",
+                            "eta_fuel_to_heat"],
+            "valgfri": faelles_valgfri + ["co2_emissions_per_mwh_fuel"],
+            "irrelevante": ["cop_curve", "production_profile_path"],
+            "kan_byde_balance": False,
+            "skabelon": {
+                "enabled": True, "type": "oil_boiler", "p_max_heat": 15.0,
+                "p_min_heat": 0.0, "alpha": 0.0, "fuel": "fuel_oil",
+                "eta_fuel_to_heat": 0.95, "var_om": 30.0, "start_cost": 500.0,
+                "min_uptime": 1, "min_downtime": 1, "uc_enabled": False,
+                "co2_emissions_per_mwh_fuel": 0.266, "ancillary": dict(ingen_balance),
+            },
+            "noter": [
+                "co2_emissions_per_mwh_fuel 0,266 t/MWh for fyringsolie og gasolie "
+                "(74 kg CO₂/GJ, Energistyrelsens standardfaktor); tung fuelolie ca. 0,28.",
+                "Olieprisen opgives pr. MWh olie (ca. 10 kWh pr. liter) inkl. energiafgift.",
+                "Der er én CO₂-pris for værket: står CO₂-afgiften i gasprisen og CO₂-prisen "
+                "til 0, skal den også være med i olieprisen.",
+            ],
+        },
         "gas_engine_chp": {
             "navn": "Gasmotor (kraftvarme)",
             "beskrivelse": "Naturgas til el og varme. alpha = el/varme > 0 giver "
@@ -968,7 +1004,7 @@ def enhedstyper() -> dict:
         },
     }
     return {
-        "_om": "Enhedstyper i fjernvarmemodellen @ 90fb16e. Typen er en etiket; "
+        "_om": f"Enhedstyper i fjernvarmemodellen @ {COMMIT[:7]}. Typen er en etiket; "
                "økonomien styres af fuel og alpha. Standardværdier fra src/config.py "
                "(dataclass Unit).",
         "kilde": {
@@ -978,7 +1014,8 @@ def enhedstyper() -> dict:
             "marginalomkostning": K(MOD, r'^def compute_marginal_cost'),
         },
         "standardvaerdier": std,
-        "braendselsnavne": {"electricity": "El", "solar": "Sol", "natural_gas": "Naturgas", "straw": "Halm",
+        "braendselsnavne": {"electricity": "El", "solar": "Sol", "natural_gas": "Naturgas",
+                            "fuel_oil": "Fyringsolie", "straw": "Halm",
                             "flis": "Flis", "wood_pellets": "Træpiller", "waste_heat": "Overskudsvarme",
                             "co2_eua": "CO₂-kvoter"},
         "regler": [

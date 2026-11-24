@@ -12,13 +12,13 @@ import { tal, tidspunkt } from "@/lib/format";
 import { rutehref } from "@/lib/rute";
 import type { OmraadeProps } from "../typer";
 import {
-    absolutGab, aendringTekst, balanceKolonner, enhedstype, profilbundne, farvepladser, gabTekst, koerselsAendringer, koerselsVarighed, loesningTekst,
+    absolutGab, aendringTekst, balanceKolonner, co2Etiket, co2Opgoerelse, enhedstype, profilbundne, farvepladser, gabTekst, koerselsAendringer, koerselsVarighed, loesningTekst,
     spoergsmaal, spor, stoersteEnhed,
 } from "./beregn";
 import { usePakke, type Pakke } from "./data";
 import { PERIODE, andel, celleTekst, pct1, visteAndele } from "./andele";
 import { DataIKoersel } from "./data-kort";
-import { Commit, Fakta, SporMaerke } from "./dele";
+import { Commit, Fakta, KodeOprindelse, SporMaerke } from "./dele";
 import { importTekst, useArkivimporter } from "@/lib/arkiv/markering";
 import DispatchKort from "./dispatch-kort";
 import { egneRaekker, useKandidatInfo } from "./kandidat-data";
@@ -28,7 +28,7 @@ import { NOEGLETAL_TEKST } from "./etiketter.data";
 import { dec, ellers, energi, gabPct, maanedKort, pctVaerdi, periodeTekst, varighed } from "./fmt";
 import { Forklaring, PunktRaekke, StablededeSoejler } from "./grafer";
 import { ENERGI_TABEL, ProduktionPrEnhed, energiSkala, tkr } from "./ibcs-grafer";
-import { forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
+import { FLERE_LAGRE_FORBEHOLD, forbehold, SPOR_A_FORBEHOLD, SPOR_B_FORBEHOLD } from "./tekster";
 
 /**
  * Én kørsel. `sammenlign` = kandidatlisten er åben (ruten `#/analyser/<id>/sammenlign`,
@@ -137,6 +137,7 @@ function Spoergsmaal({ d }: { d: Pakke }) {
                 v != null && ["Varighed", varighed(v)],
                 !!imp && ["Oprindelse", `${importTekst(imp)} af ${imp.af}${imp.filnavn ? ` (${imp.filnavn})` : ""} — en historisk kørsel; den er ikke kørt i denne installation`],
             ]} />
+            <KodeOprindelse miljoe_json={d.k.miljoe_json} />
         </Kort>
     );
 }
@@ -191,7 +192,7 @@ function Objektiv({ d }: { d: Pakke }) {
             <Fakta par={[
                 ["Præcist", ellers(obj, (v) => `${tal(v)} kr.`)],
                 ["Opnået gab", d.k.opnaaet_gap != null ? gabPct(d.k.opnaaet_gap) : g.kilde === "oensket_loft" ? `≤ ${gabPct(g.rel ?? 0)} (loft)` : "ukendt"],
-                ["Usikkerhed", g.kr === null ? "ukendt" : `højst ${tal(g.kr)} kr. for højt`],
+                ["Usikkerhed", g.kr === null ? "ukendt" : g.kr > 0 && g.kr < 1 ? "under 1 kr. for højt" : `højst ${tal(g.kr)} kr. for højt`],
                 ["Ønsket gab", `${ellers(d.k.oensket_rel_gap, gabPct)} eller ${ellers(d.k.oensket_abs_gap, (x) => `${tal(x)} kr.`)}`],
                 d.k.best_bound != null && ["Bedste grænse", `${tal(d.k.best_bound)} kr.`],
                 d.k.loesetid_s != null && ["Løsetid", varighed(d.k.loesetid_s)],
@@ -245,16 +246,18 @@ export function VarmeOgMiljoe({ d }: { d: Pakke }) {
     // Ét præfiks for kortets energital, højst 4 heltalscifre (IBCS.md §3).
     const E = energiSkala([s.varmebehov_mwh, s.produktion_mwh, s.nettab_mwh, lagerNetto], ENERGI_TABEL);
     const en = (v: number) => `${formatValue(v, E.skala)} ${E.enhed}`;
+    // Fund 4E (den uafhængige test 18. november 2026): "0 t" er ikke udledningen, når gasenhederne har emissionsfaktor 0.
+    const co2 = co2Opgoerelse(d.input ?? [], s);
     return (
         <Kort titel="Varme og miljø" afgraensning="hele perioden"
             budskab={s.nettab_pct != null ? `Nettabet er ${pctVaerdi(s.nettab_pct)} af varmebehovet.` : s.varmebehov_mwh != null ? `Varmebehovet er ${energi(s.varmebehov_mwh)} (målt last — nettab indgår i målingen).` : undefined}
-            fod={NOEGLETAL_TEKST.samlet_produktion_mwh?.forklaring}>
+            fod={<>{NOEGLETAL_TEKST.samlet_produktion_mwh?.forklaring}{!co2.opgjort && <> CO₂-udledning: {co2.grund} Modellens tal {co2.status === "ukendt" ? "er" : "for de øvrige enheder er"} {ellers(s.co2_ton, (v) => `${tal(v)} t`)}. At appen ikke viser det som udledningen, er appens egen antagelse.</>}</>}>
             <Fakta par={[
                 ["Varmebehov", ellers(s.varmebehov_mwh, en)],
                 ["Samlet produktion", ellers(s.produktion_mwh, en)],
                 lagerNetto != null && ["Produktion − behov", `${formatDelta(lagerNetto, E.skala)} ${E.enhed}`],
                 ["Nettab", ellers(s.nettab_mwh, en)],
-                ["CO₂-udledning", ellers(s.co2_ton, (v) => `${tal(v)} t`)],
+                ["CO₂-udledning", co2.opgjort ? ellers(s.co2_ton, (v) => `${tal(v)} t`) : co2Etiket(co2)],
             ]} />
         </Kort>
     );
@@ -376,7 +379,7 @@ export function Lager({ d }: { d: Pakke }) {
     return (
         <Kort titel="Lager" afgraensning={`hele perioden, ${E.enhed}`}
             budskab={l.length === 0 ? "Ingen aktive lagre i kørslen." : `${l.length === 1 ? "Tanken" : `De ${l.length} lagre`} ladede ${en(op)} ${E.enhed} op og afladede ${en(af)} ${E.enhed}.`}
-            fod={<>Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance). {forbehold("ved MILP og skyggepriser")}</>}>
+            fod={<>Niveau ved start er indholdet efter modellens første interval (før modelversion eef950a: låst til startindholdet, med ubundet lagerbalance). {forbehold("ved MILP og skyggepriser")}{l.length > 1 && <> {FLERE_LAGRE_FORBEHOLD}</>}</>}>
             {l.length > 0 && (
                 <Tabel rækker={l} nøgle={(x) => x.navn} kolonner={[
                     { navn: "Lager", vis: (x) => x.navn },

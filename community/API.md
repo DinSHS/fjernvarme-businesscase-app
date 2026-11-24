@@ -89,7 +89,7 @@ Krop = input-objektet, svar = output — **præcis** `AppFunctionsSchema` i
 
 | Navn | Input | Bemærkning lokalt |
 |---|---|---|
-| `startBestilling` | `{ bestillingId }` | fryser input og starter en lokal arbejder-proces; `arbejder.fabric_job_id` = `"lokal:<pid>"` |
+| `startBestilling` | `{ bestillingId }` | fryser input og starter en lokal arbejder-proces; `arbejder.fabric_job_id` = `"lokal:<pid>"`. Et svar med `ok: false` er ét af tre: `ryddet: true` (endelig afvisning, og bestillingen er slettet — kun når sessionens bruger er bestillingens ejer), `teknisk: true` (teknisk fejl; bestillingen står og kan sendes igen) eller ingen af delene (endelig afvisning, bestillingen står) |
 | `udfoerAendring` | `{ anmodningId }` | |
 | `afstem` | `{}` | døde kørsler (låsen fri + intet hjerteslag i 5 min) -> `fejl`; kø uden arbejder -> start |
 | `annullerKoersel` | `{ koerselId }` | samarbejdende (`annuller_anmodet`), som §6c |

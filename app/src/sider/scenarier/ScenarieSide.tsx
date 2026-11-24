@@ -4,10 +4,10 @@
 // til sammenligningen med referencen. Arkivér (ingen sletning).
 //-----------------------------------------------------------------------
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { DataTilstand, Gitter, Kort, Knap, Maerke, Side, StatusMaerke, Tabel } from "@/components/layout";
-import { useKoersler, useKoerselStatus, useScenarie, useScenarieAendringer, useScenarier, useVaerker } from "@/lib/data/hooks";
-import { bestilKoersel, gemScenarieAendringer, opdaterScenarie, type ÆndringUdkast } from "@/lib/data/skriv";
+import { useKoersler, useKoerselInput, useKoerselStatus, useScenarie, useScenarieAendringer, useScenarier, useVaerker } from "@/lib/data/hooks";
+import { gemScenarieAendringer, opdaterScenarie, type ÆndringUdkast } from "@/lib/data/skriv";
 import { STATUS_TEKST, erAktiv } from "@/lib/data/koersel-status";
 import { opdaterAlt } from "@/lib/data/opdatering";
 import { kodVaerdi, visVaerdi } from "@/lib/data/vaerdi";
@@ -24,14 +24,17 @@ import type { Vaerk } from "../../../rayfin/data/Vaerk";
 import type { OmraadeProps } from "../typer";
 import { Felt, Fundliste } from "./faelles";
 import { enhedAf, gabProcent, katalogpost, læsTal, rodKode, stiEtiket, sætbareStier, talTilFelt, tekstTal, useBlade, useVaerketsTidsserier } from "./hjaelp";
-import { kodVarmelast, læsVarmelast, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst, type TidsserieInfo } from "./varmelast";
+import { kodVarmelast, læsVarmelast, tjekSolprofil, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst, type TidsserieInfo } from "./varmelast";
 import { ScenarieHistorie } from "./HistorieKort";
 import { KoerselDetaljer } from "./KoerselKort";
-import { difference, differenceTekst } from "../analyser/beregn";
-import { sammenlignHref } from "./koersel-logik";
+import { frossetSomNu } from "./frosset-som-nu";
+import { KoerKnap } from "./KoerKnap";
+import { differenceTekst } from "../analyser/beregn";
+import { modReference, sammenlignHref } from "./koersel-logik";
+import { TidsgraenseMaerke } from "../analyser/dele";
 import { importTekst, useArkivimporter } from "@/lib/arkiv/markering";
 import {
-    datoTilFelt, effektivTidsgraense, erTil, feltTilDato, forventetVarighed, objekter, parretsReference, tjekPeriode, tjekÆndringer, visBeskrivelse,
+    bestillingsaftryk, datoTilFelt, effektivTidsgraense, erTil, feltTilDato, forventetVarighed, objekter, parretsReference, tjekPeriode, tjekÆndringer, visBeskrivelse,
     type Blade, type Fund, type Scenariefelter, type Ændring,
 } from "./logik";
 import { ANBEFALET_GAB, FASTE_VINDUER } from "./viden.data";
@@ -175,7 +178,9 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     const varmelastMul = varmelastMuligheder(serier, rod);
     const periode = tjekPeriode(fSvar.felter.periode_start, fSvar.felter.periode_slut, blade, { medBalancering: k.medBal });
     const fund: Fund[] = [...fSvar.fund, ...periode.fund, ...æSvar.fund, ...tjekÆndringer(æSvar.ændringer.filter((x) => x.type !== "set" || x.vaerdi_json), blade),
-        ...tjekVarmelast(varmelastValg, serier, { start: fSvar.felter.periode_start, slut: fSvar.felter.periode_slut }, blade)];
+        ...tjekVarmelast(varmelastValg, serier, { start: fSvar.felter.periode_start, slut: fSvar.felter.periode_slut }, blade),
+        // Fund 3.2: solprofilens dækning kendes før bestilling; backenden afviser ellers først, når bestillingen er oprettet.
+        ...tjekSolprofil(æSvar.ændringer, fSvar.felter.heat_csv, serier, { start: fSvar.felter.periode_start, slut: fSvar.felter.periode_slut }, blade)];
     if (serierFejl) fund.push({ niveau: "advarsel", tekst: `Værkets tidsserier kunne ikke hentes (${serierFejl.message}); varmelast kan kun være syntetisk eller en af repoets filer.` });
     if (k.metode === "activation_value" && !blade.has("balancing.bid_strategy.up_markup_dkk_mwh")) {
         fund.push({ niveau: "fejl", tekst: "Metoden activation_value kræver balancing.bid_strategy i værket." });
@@ -193,12 +198,33 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     const refLevende = useKoerselStatus(refId ? refKoersler.data : undefined);
     const seneste = levende[0];
     const reference = refLevende.find((x) => x.status === "faerdig") ?? refLevende[0];
+    // De to kørslers frosne input hentes ÉT sted (efterprøvningen af rettelserne, fund D): *Scenariet fortalt* brugte
+    // dem allerede; nu læser kørselskortet og sidens budskab deres dom af de samme rækker — perioden, pins og
+    // varmelast/solprofil står dér, ikke på Koersel-rækken.
+    const parFaerdigt = seneste?.status === "faerdig" && reference?.status === "faerdig" && reference.id !== seneste.id;
+    const senesteInput = useKoerselInput(parFaerdigt ? seneste!.id : undefined);
+    const referenceInput = useKoerselInput(parFaerdigt ? reference!.id : undefined);
+    const frosset = useMemo(() => ({ reference: referenceInput.data, k: senesteInput.data }), [referenceInput.data, senesteInput.data]);
 
     // Varighed og budskab regnes af det GEMTE scenarie (det er det, en kørsel fryser).
     const gemtPeriode = tjekPeriode(s.periode_start, s.periode_slut, blade, { medBalancering: s.med_balancering });
     const settle = (aendringer.find((a) => a.type === "set" && a.sti === "balancing.activation.settle")?.vaerdi_json ?? blade.get("balancing.activation.settle")) === '"realized"';
     const varighed = gemtPeriode.doegn ? forventetVarighed({ rodKode: rod, doegn: gemtPeriode.doegn, medBalancering: s.med_balancering, settleRealized: settle }) : undefined;
     const tidsgrænse = effektivTidsgraense(s.tidsgraense_s, blade);
+
+    // P2-1: fingeraftrykket af det, en kørsel NU ville fryse — af det gemte scenarie, som varighed og budskab.
+    const gemt = useMemo(() => ({
+        ændringer: aendringer.map((a) => ({ type: a.type, sti: a.sti, vaerdi_json: a.vaerdi_json })),
+        felter: {
+            periode_start: s.periode_start ?? null, periode_slut: s.periode_slut ?? null, med_balancering: s.med_balancering,
+            balancing_method: (s.balancing_method ?? null) as Scenariefelter["balancing_method"], mip_rel_gap: s.mip_rel_gap ?? null, mip_abs_gap: s.mip_abs_gap ?? null,
+            tidsgraense_s: s.tidsgraense_s ?? null, ekstra_flag: s.ekstra_flag ?? null, heat_csv: s.heat_csv ?? null,
+        } satisfies Scenariefelter,
+    }), [aendringer, s]);
+    const aftryk = useMemo(() => bestillingsaftryk(vaerk, gemt.ændringer, gemt.felter, blade), [vaerk, gemt, blade]);
+    // Punkt 2 (fjerde rettelsesrunde): aftrykket er, hvad siden SÅ. Blev et forsøg på et andet aftryk til en kørsel,
+    // afgør kørslens frosne input over for det samme gemte scenarie, om den er svaret (frosset-som-nu.ts).
+    const somFrosset = useCallback((koerselId: string) => frossetSomNu(koerselId, vaerk, gemt.ændringer, gemt.felter, blade), [vaerk, gemt, blade]);
 
     const gem = async () => {
         setGemmer(true);
@@ -238,11 +264,17 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     const antal = aendringer.length;
     // Samme periodeform som Analyser (IBCS.md §3, review-fund B8): "5. jan.–16. jan. 2026", ikke "05-01-2026 – 16-01-2026".
     const periodeTekst = gemtPeriode.start ? periodeKort(gemtPeriode.start, gemtPeriode.slut) : "ugyldig periode";
-    const diff = seneste?.status === "faerdig" && reference?.status === "faerdig" ? difference(reference, seneste) : null;
+    // Runde 15 (mail 1): budskabet nævner kun en forskel mod en direkte sammenlignelig reference.
+    // Fund D: dommen fældes først, når begge frosne input er hentet — ellers ville budskabet et øjeblik sige "kan
+    // ikke afgøres" om et par, der kan.
+    const frossetHentet = !parFaerdigt || (frosset.reference !== undefined && frosset.k !== undefined);
+    const mod = seneste && frossetHentet ? modReference(reference, seneste, frosset) : undefined;
     const budskab = `${antal === 0 ? "Ingen ændringer" : `${antal} ændring${antal === 1 ? "" : "er"}`} mod ${vaerk.navn}, ${periodeTekst}, ${s.med_balancering ? "med" : "uden"} balancering; `
         + (!seneste ? "ikke kørt endnu."
-            : diff ? `seneste kørsel er færdig. ${differenceTekst(diff)}`
-                : `seneste kørsel: ${STATUS_TEKST[seneste.status].toLowerCase()}.`);
+            : mod?.diff ? `seneste kørsel er færdig. ${differenceTekst(mod.diff)}`
+                : mod?.afviger.length ? `seneste kørsel er færdig, men kan ikke sammenlignes direkte med referencen (${mod.afviger.join(", ")} afviger).`
+                    : mod?.ukendt.length ? `seneste kørsel er færdig; det kan ikke afgøres, om den kan sammenlignes med referencen (${mod.ukendt.join(", ")} kendes ikke for begge).`
+                    : `seneste kørsel: ${STATUS_TEKST[seneste.status].toLowerCase()}.`);
 
     return (
         <Side omraade="Scenarier" titel={s.navn} budskab={budskab}
@@ -261,7 +293,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
             </>}>
             <Gitter>
                 <ScenarieHistorie s={s} ændringer={æSvar.ændringer.filter((x) => x.type !== "set" || x.vaerdi_json)} felter={fSvar.felter}
-                    blade={blade} vaerkNavn={vaerk.navn} bekraeft={bekraeft} seneste={seneste} reference={reference} refId={refId} serier={serier} />
+                    blade={blade} vaerkNavn={vaerk.navn} bekraeft={bekraeft} seneste={seneste} reference={reference} refId={refId} serier={serier} frosset={frosset} />
             </Gitter>
             <Gitter form="8-4">
                 <Kort titel="Indstillinger" afgraensning={`${vaerk.navn} · revision ${vaerk.revision}`}
@@ -326,10 +358,10 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                     budskab={seneste ? `${STATUS_TEKST[seneste.status]}${seneste.fase && erAktiv(seneste.status) ? ` · ${seneste.fase}` : ""}.`
                         : varighed ? `Forventet ${forventetTekst(varighed)} regnetid ved ${gemtPeriode.doegn ? Math.round(gemtPeriode.doegn) : "?"} døgn.` : undefined}
                     fod={`Tidsgrænse ${tal(tidsgrænse)} s. Status opdateres hvert 20. sekund, mens kørslen er i gang og fanen er synlig.`}>
-                    <KørKnap s={s} bruger={bruger} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
+                    <KoerKnap s={s} bruger={bruger} aftryk={aftryk} somFrosset={somFrosset} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
                     <DataTilstand h={koersler}>
                         {() => (seneste
-                            ? <KoerselDetaljer k={seneste} varighed={varighed} reference={reference}
+                            ? <KoerselDetaljer k={seneste} varighed={varighed} reference={frossetHentet ? reference : undefined} frosset={frosset} tidsgraense_s={tidsgrænse}
                                 rådkontekst={{ medBalancering: s.med_balancering, start: gemtPeriode.start, slut: gemtPeriode.slut, dmi: læsTekst(blade.get("data.dmi_area")) }} />
                             : <p className="fs-lille">Scenariet er ikke kørt endnu.</p>)}
                     </DataTilstand>
@@ -391,7 +423,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                             <Tabel rækker={levende} nøgle={(x) => x.id} tom="Scenariet er ikke kørt endnu."
                                 kolonner={[
                                     { navn: "Bestilt", vis: (x) => tidspunkt(x.bestilt) },
-                                    { navn: "Status", vis: (x) => { const i = importer.data?.get(x.id); return <><StatusMaerke status={x.status} />{i && <> <Maerke>{importTekst(i)}</Maerke></>}</>; } },
+                                    { navn: "Status", vis: (x) => { const i = importer.data?.get(x.id); return <><StatusMaerke status={x.status} /> <TidsgraenseMaerke k={x} />{i && <> <Maerke>{importTekst(i)}</Maerke></>}</>; } },
                                     { navn: "Revision", tal: true, vis: (x) => x.vaerk_revision },
                                     { navn: "Driftsomkostning (t.kr.)", tal: true, vis: (x) => tkr(x.objektiv_dkk) },
                                     { navn: "Opnået gab", tal: true, vis: (x) => (x.opnaaet_gap != null ? `${(x.opnaaet_gap * 100).toLocaleString("da-DK", { maximumFractionDigits: 3 })} %` : "–") },
@@ -416,39 +448,6 @@ function KørselsLinks({ k, reference }: { k: Koersel; reference?: Koersel }) {
             <a className="fs-link" href={rutehref("analyser", k.id)}>Se</a>
             {reference?.status === "faerdig" && reference.id !== k.id && <a className="fs-link" href={sammenlignHref(reference.id, k.id)}>Sammenlign</a>}
         </span>
-    );
-}
-
-/** "Kør"-knappen: én klientnøgle pr. klik; afvisningen vises ordret. */
-function KørKnap({ s, bruger, spærret }: { s: Scenarie; bruger: string | undefined; spærret?: string }) {
-    const [svar, setSvar] = useState<{ ok: boolean; tekst: string } | undefined>();
-    const [sender, setSender] = useState(false);
-    const nøgle = useRef<string | null>(null);
-    const kør = async () => {
-        setSender(true);
-        setSvar(undefined);
-        nøgle.current ??= crypto.randomUUID();
-        try {
-            const r = await bestilKoersel(s.id, bruger, nøgle.current);
-            setSvar(r.ok
-                ? { ok: true, tekst: r.arbejder?.startet ? "Kørslen er bestilt, og beregningen er startet." : `Kørslen er bestilt. ${r.arbejder?.grund ?? ""}` }
-                : { ok: false, tekst: r.afvist ?? "Bestillingen blev afvist." });
-            opdaterAlt();
-        } catch (e) {
-            setSvar({ ok: false, tekst: e instanceof Error ? e.message : String(e) });
-        } finally {
-            nøgle.current = null;
-            setSender(false);
-        }
-    };
-    return (
-        <div className="fs-blok">
-            <div className="fs-raekke">
-                <Knap onClick={kør} disabled={sender || !bruger || !!spærret} title={spærret}>{sender ? "Bestiller…" : "Kør scenariet"}</Knap>
-                {spærret && <span className="fs-lille">{spærret}</span>}
-            </div>
-            {svar && <p className="fs-tekst" role="status" style={{ color: svar.ok ? "var(--dash-pos)" : "var(--dash-neg)" }}>{svar.tekst}</p>}
-        </div>
     );
 }
 

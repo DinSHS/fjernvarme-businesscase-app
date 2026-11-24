@@ -1,7 +1,7 @@
 {
  "_om": "Arkivets vektorer (runde 13), genereret af skema/vektorer/arkiv/generer_arkiv.mts ved at køre TS.",
  "kilder": {
-  "app/rayfin/functions/src/arkiv.ts": "f1ddb52e9e8e80c983f0d3cd3ddb9dfdf951d61bf08e44329009eb0f1799e108",
+  "app/rayfin/functions/src/arkiv.ts": "e1b1779f3b9dda3aabc08079976f5fc25cb6a33ce686cedbb2595e39fe57370a",
   "app/rayfin/functions/src/skema.data.ts": "6900e53ad682d57eb471e9e6954927fec5f8842d70744d8c4bfe1299cc73161c",
   "app/rayfin/functions/test/arkiv-hukommelse.ts": "07c726b47cd7842c8181033f18c97a0f90e7e1d33120cb2af2bdcee37e8298ec"
  },
@@ -2218,6 +2218,562 @@
     ]
    },
    "afvisning": "Kørsel 55555555-5555-4555-8555-555555555555: det frosne input passer ikke med input_hash — arkivet er rettet eller beskadiget."
+  },
+  {
+   "navn": "syntetisk varmelast fra appvejen",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "83d7eac2f028d5cab20cff74bafd9256fb048c543166b1ae2bceb226e9c07e89",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    },
+    "forventet": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "\"syntetisk\""
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": []
+   },
+   "ud": null
+  },
+  {
+   "navn": "varmelast null",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "d0c2b13cfda8c60234a8073f59a03e5dcade0be02bd31f50f11d42b989d86849",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    },
+    "forventet": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "null"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": []
+   },
+   "ud": null
+  },
+  {
+   "navn": "tidsserie uden sha, hashen passer",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "db857d5fb4d001483d359f9a656c59dae0a5c83f7cb196c63ca31d8896087e7f",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    },
+    "forventet": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "{\"id\":\"x\"}"
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "varmelast:abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "_koersel.tidsserie.varmelast mangler id eller sha256."
+  },
+  {
+   "navn": "ukendt tekst som varmelast, hashen passer",
+   "input": {
+    "koersel": [
+     "55555555-5555-4555-8555-555555555555",
+     "44444444-4444-4444-8444-444444444444",
+     "33333333-3333-4333-8333-333333333333",
+     "11111111-1111-4111-8111-111111111111",
+     2,
+     "9935f591bad1282a24d556c6f1c3f77f76e56b58638866b6eeae74167f54f9ac",
+     "faerdig",
+     "Færdig",
+     "a@example.org",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:00:01.123Z",
+     "2026-10-01T08:00:00.000Z",
+     "2026-10-01T08:03:00.000Z",
+     null,
+     null,
+     1,
+     "w1",
+     null,
+     "app",
+     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+     "1111111111111111111111111111111111111111",
+     "{\"python\":\"3.11\"}",
+     null,
+     null,
+     null,
+     "1h",
+     60,
+     4,
+     3,
+     "optimal",
+     true,
+     867031.23,
+     0.0002,
+     100,
+     0.00011,
+     866950.5,
+     12.345,
+     null,
+     "{}"
+    ],
+    "nu": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    },
+    "forventet": {
+     "antal": {
+      "KoerselInput": 5,
+      "KoerselNoegletal": 2,
+      "KoerselMaaned": 2,
+      "KoerselTime": 3,
+      "KoerselTimeDel": 0
+     },
+     "sha256": {
+      "KoerselInput": "cbe35d49c98700967f0a2501993d86c52fca3fda97a55f45fd9844aaf73342af",
+      "KoerselNoegletal": "f5971171d8cc606942feaa800299226aa099abb972a517ff7860bac519e5d4cc",
+      "KoerselMaaned": "b90625fc4619fc536056a6e09aecc918f18c09d5e2dd5b6dcc5045db5cb2d2fb",
+      "KoerselTime": "022189f2af3b6bc59c7ceace3e61ac87d0e61b32f77e75f7e31387ddb07de7e0",
+      "KoerselTimeDel": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    },
+    "input": [
+     {
+      "kilde": "vaerk",
+      "sti": "prices.straw.value",
+      "vaerdi_json": "250.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "units.halmkedel.p_max",
+      "vaerdi_json": "4.0"
+     },
+     {
+      "kilde": "vaerk",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "true"
+     },
+     {
+      "kilde": "aendring",
+      "sti": "storage.tank.enabled",
+      "vaerdi_json": "false"
+     },
+     {
+      "kilde": "scenarie",
+      "sti": "_koersel.tidsserie.varmelast",
+      "vaerdi_json": "\"maalt\""
+     }
+    ],
+    "bestilling": {
+     "scenarie_id": "33333333-3333-4333-8333-333333333333"
+    },
+    "scenarie": {
+     "vaerk_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "vaerk": {
+     "id": "11111111-1111-4111-8111-111111111111"
+    },
+    "revisioner": {
+     "$map": [
+      [
+       "39b308f6b99318b7f5b03befd6dc6e8e0a376ab309504bf8e3b085135a30809b",
+       [
+        3
+       ]
+      ],
+      [
+       "9ec1eda5da73470e2befd69baa796df39a98c6dd5bf622421419abe0cf908cd0",
+       [
+        2
+       ]
+      ],
+      [
+       "166b92c38bf774337fc7e71477cb85379dba553365638f09991246bcf5906d3d",
+       [
+        1
+       ]
+      ]
+     ]
+    },
+    "tidsserier": [
+     "varmelast:abababababababababababababababababababababababababababababababab"
+    ]
+   },
+   "afvisning": "_koersel.tidsserie.varmelast mangler id eller sha256."
   }
  ]
 }

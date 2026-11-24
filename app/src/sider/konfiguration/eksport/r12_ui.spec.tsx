@@ -18,6 +18,7 @@ vi.mock("../tidsserie-kilde", async (original) => ({
 import { VaerksarkKort } from "../Vaerksark";
 import { EksportKort } from "./EksportKort";
 import { eksporter } from "./eksporter";
+import { PRISER_RAEKKER } from "./kort";
 import { andeby, ANDEBY_ID, skabelon } from "./testdata";
 import { Arbejdsbog } from "./xlsx";
 
@@ -110,7 +111,7 @@ describe("upload-kortet genkender et eksporteret ark", () => {
         cleanup();
         // Et nyt navn i Priser: arket sendes som et nyt værk — uden basis, og Andeby røres ikke.
         const wb = new Arbejdsbog(e.bytes);
-        wb.regneark("Priser").sæt("B30", "Mit Værk");
+        wb.regneark("Priser").sæt(`B${PRISER_RAEKKER.navn}`, "Mit Værk");
         await vælgArk(wb.bytes(), [{ ...ANDEBY, revision: 2 }, kopi]);
         await screen.findByRole("alert", {}, { timeout: 15_000 });
         await act(async () => { fireEvent.click(screen.getByLabelText(/Opret som nyt værk i stedet/)); });
@@ -140,7 +141,7 @@ describe("upload-kortet genkender et eksporteret ark", () => {
         // Brugeren vælger nu en eksport fra appen og opretter den som nyt værk: stemplerne er timens start i UTC.
         const e = await eksporter(andeby(), skabelon());
         const wb = new Arbejdsbog(e.bytes);
-        wb.regneark("Priser").sæt("B30", "Mit Værk");
+        wb.regneark("Priser").sæt(`B${PRISER_RAEKKER.navn}`, "Mit Værk");
         await vælgFil(wb.bytes());
         const valg = await screen.findByLabelText(/Opret som nyt værk i stedet/, {}, { timeout: 15_000 });
         await act(async () => { fireEvent.click(valg); });

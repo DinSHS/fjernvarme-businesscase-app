@@ -1,6 +1,6 @@
 {
   "_om": "Demo-bibliotek: et lille sæt reference/scenarie-par, der viser differensmetoden på rigtige værker. 'koersler' er de unikke kørsler (hver = én Scenarie + ScenarieAendring-rækker i appens form, KONTRAKT v2.1 §3.4–3.5: enable/disable har enhedens NAVN i sti). 'par' parrer dem til spørgsmål med en forventning, der kan efterprøves. Kør i rækkefølgen 'koer_raekkefoelge' (Andeby helår med balancering til sidst). Valideret af viden/vaerktoej/tjek_demo.py mod værkernes stier og motorens egen byg_case + modellens load_case.",
-  "model_commit": "90fb16eb1e2d5aa8e619b5a951b93760fa803985",
+  "model_commit": "939228aa048563c8498382a79d207c8b03fbda57",
   "kontrakt_version": "2.1",
   "faelles": {
     "vintervindue": {
@@ -36,7 +36,7 @@
       "aendringer": [],
       "forventet_objektiv_dkk": 3441004,
       "forventet_tolerance_dkk": 100,
-      "forventet_grundlag": "målt 2026-11-14 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved 90fb16e / df-data 106b9fc: 3.441.004,22 med gab 0 %. BUDSTRATEGI-kontroltal (1) 3.446.712 (doc/BUDSTRATEGI.md:332) er fra før spotrettelsen (modelrepoets 5021a5e; README.md:20-27); ved eef950a gav samme kørsel 3.446.711,91.",
+      "forventet_grundlag": "målt 2026-11-14 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved 90fb16e / df-data 106b9fc: 3.441.004,22 med gab 0 %. BUDSTRATEGI-kontroltal (1) 3.446.712 (doc/BUDSTRATEGI.md:332) er fra før spotrettelsen (modelrepoets 5021a5e; README.md:20-27); ved eef950a gav samme kørsel 3.446.711,91. Målt igen 2026-11-23 ved 939228a (modelrepoets 0.11.0 flytter ingen tal): 3.441.004,22.",
       "forventet_loesetid": "under 1 minut"
     },
     {
@@ -174,7 +174,7 @@
       "aendringer": [],
       "forventet_objektiv_dkk": 3111638,
       "forventet_tolerance_dkk": 100,
-      "forventet_grundlag": "målt 2026-11-14 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved 90fb16e / df-data 106b9fc: 3.111.637,94 med gab 0 % (Andebys egen budstrategi: foresight profile, settle forecast, cases/andeby.yaml:480-484). Ved eef950a 3.117.644,03.",
+      "forventet_grundlag": "målt 2026-11-14 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved 90fb16e / df-data 106b9fc: 3.111.637,94 med gab 0 % (Andebys egen budstrategi: foresight profile, settle forecast, cases/andeby.yaml:480-484). Ved eef950a 3.117.644,03. Målt igen 2026-11-23 ved 939228a (modelrepoets 0.11.0 flytter ingen tal): 3.111.637,94.",
       "forventet_loesetid": "under 1 minut"
     },
     {
@@ -235,7 +235,7 @@
       ],
       "forventet_objektiv_dkk": 3011915,
       "forventet_tolerance_dkk": 100,
-      "forventet_grundlag": "målt 2026-11-14 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved 90fb16e / df-data 106b9fc: 3.011.915,11 med gab 0 %; tolerancen er demoens absolutte gab, som for D01–D07. BUDSTRATEGI-kontroltal (2) 3.025.301 kr. (doc/BUDSTRATEGI.md:333) er fra før spotrettelsen (modelrepoets 5021a5e; README.md:20-27); ved eef950a gav samme kørsel 3.025.300,75.",
+      "forventet_grundlag": "målt 2026-11-14 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved 90fb16e / df-data 106b9fc: 3.011.915,11 med gab 0 %; tolerancen er demoens absolutte gab, som for D01–D07. BUDSTRATEGI-kontroltal (2) 3.025.301 kr. (doc/BUDSTRATEGI.md:333) er fra før spotrettelsen (modelrepoets 5021a5e; README.md:20-27); ved eef950a gav samme kørsel 3.025.300,75. Målt igen 2026-11-23 ved 939228a (modelrepoets 0.11.0 flytter ingen tal): 3.011.915,11.",
       "forventet_loesetid": "under 1 minut"
     },
     {
@@ -257,7 +257,7 @@
       "aendringer": [],
       "forventet_objektiv_dkk": 4428864,
       "forventet_tolerance_dkk": 1000,
-      "forventet_grundlag": "målt 2026-11-14 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved 90fb16e / df-data 106b9fc: 4.428.863,74 med gab 0,0015 % på 319 s; README's kommando med casens gab 0,5 %/5.000 kr. gav samme objektiv (gab 0,152 %). Tolerancen er demoens absolutte gab. README-referencetallet 4.204.128 kr. (README.md:186) er fra før spotrettelsen (modelrepoets 5021a5e; README.md:20-27); ved eef950a gav D09 4.204.128,43.",
+      "forventet_grundlag": "målt 2026-11-14 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved 90fb16e / df-data 106b9fc: 4.428.863,74 med gab 0,0015 % på 319 s; README's kommando med casens gab 0,5 %/5.000 kr. gav samme objektiv (gab 0,152 %). Tolerancen er demoens absolutte gab. README-referencetallet 4.204.128 kr. (README.md:186) er fra før spotrettelsen (modelrepoets 5021a5e; README.md:20-27); ved eef950a gav D09 4.204.128,43. Målt igen 2026-11-23 ved 939228a (modelrepoets 0.11.0 flytter ingen tal): 4.428.863,74 med gab 0,0015 %.",
       "forventet_loesetid": "2–10 minutter (målt lokalt på 8 kerner: 9 min ved eef950a, 5 min ved 90fb16e)",
       "noter": [
         "Kræver heat_csv. Notebookens manuelle parametre har ikke heat_csv; kør via appens bestillingsvej (eller udvid parametrene)."
@@ -304,7 +304,7 @@
       "aendringer": [],
       "forventet_objektiv_dkk": 30495431,
       "forventet_tolerance_dkk": 30495,
-      "forventet_grundlag": "Modelrepoets kontroltal efter spotrettelsen, 'Andeby, kun spot' 30.495.431 (CLAUDE.md:30-36 i modelrepoet ved 90fb16e), med Andebys egen solver-blok 0,1 %/1.000 kr./3.600 s (cases/andeby.yaml:142-145) — derfor intet stramt gab her; tolerancen er casens gab af tallet. Målt 2026-11-14 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved 90fb16e / df-data 106b9fc: 30.495.430,90 med gab 0,0209 %. README-referencetallet 30.431.535 (README.md:189) er fra før spotrettelsen (modelrepoets 5021a5e; README.md:20-27); ved eef950a gav D11 30.431.535,06.",
+      "forventet_grundlag": "Modelrepoets kontroltal efter spotrettelsen, 'Andeby, kun spot' 30.495.431 (CLAUDE.md:30-36 i modelrepoet ved 90fb16e), med Andebys egen solver-blok 0,1 %/1.000 kr./3.600 s (cases/andeby.yaml:142-145) — derfor intet stramt gab her; tolerancen er casens gab af tallet. Målt 2026-11-14 med den ægte arbejder (fjv.arbejder over hukommelseslageret, som fabric/koer_minne.py) ved 90fb16e / df-data 106b9fc: 30.495.430,90 med gab 0,0209 %. README-referencetallet 30.431.535 (README.md:189) er fra før spotrettelsen (modelrepoets 5021a5e; README.md:20-27); ved eef950a gav D11 30.431.535,06. Målt igen 2026-11-23 ved 939228a (modelrepoets 0.11.0 flytter ingen tal): 30.495.430,90 med gab 0,0209 %.",
       "forventet_loesetid": "1 minut på 24 kerner (README.md:197, før spotrettelsen); lokalt på 8 kerner 11 minutter ved eef950a og 10 minutter ved 90fb16e"
     },
     {
@@ -362,6 +362,12 @@
         "delta_dkk": 23515.96,
         "forventning_ramt": true,
         "vurdering": "Δ = +23.515,96 kr. (D02 3.464.520,18 − D01 3.441.004,22). Fortegn og størrelsesorden som forventet. Ved eef950a 21.915,92 kr.; kan ikke sammenlignes. MWh, CO₂ og balanceindtægter er ikke gjort op ved 90fb16e; mængderne i maalt_2026_10_26 er fra eef950a og gælder ikke disse kørsler."
+      },
+      "maalt_2026_11_23": {
+        "grundlag": "939228a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": 23515.96,
+        "forventning_ramt": true,
+        "vurdering": "Δ = +23.515,96 kr. (D02 3.464.520,18 − D01 3.441.004,22): samme differens som ved 90fb16e (maalt_2026_11_14), begge objektiver er uændrede til øren. Modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. MWh, CO₂ og balanceindtægter er ikke gjort op igen."
       }
     },
     {
@@ -391,6 +397,12 @@
         "delta_dkk": 476604.64,
         "forventning_ramt": true,
         "vurdering": "Δ = +476.604,64 kr. (D03 3.917.608,86 − D01). Stor om vinteren, som forventet. Ved eef950a 474.655,20 kr. MWh, CO₂ og balanceindtægter er ikke gjort op ved 90fb16e; mængderne i maalt_2026_10_26 er fra eef950a og gælder ikke disse kørsler."
+      },
+      "maalt_2026_11_23": {
+        "grundlag": "939228a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": 476604.64,
+        "forventning_ramt": true,
+        "vurdering": "Δ = +476.604,64 kr. (D03 3.917.608,86 − D01 3.441.004,22): samme differens som ved 90fb16e (maalt_2026_11_14), begge objektiver er uændrede til øren. Modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. MWh, CO₂ og balanceindtægter er ikke gjort op igen."
       }
     },
     {
@@ -420,6 +432,12 @@
         "delta_dkk": 267008.81,
         "forventning_ramt": null,
         "vurdering": "Δ = +267.008,81 kr. (D04 3.708.013,03 − D01): fortegnet holder. Den øvre grænse kræver gasforbruget i D01 ved 90fb16e, som ikke er gjort op (ved eef950a var grænsen 290.457 kr.), så forventningen er ikke afgjort. Ved eef950a Δ = 268.151,77 kr. MWh, CO₂ og balanceindtægter er ikke gjort op ved 90fb16e; mængderne i maalt_2026_10_26 er fra eef950a og gælder ikke disse kørsler."
+      },
+      "maalt_2026_11_23": {
+        "grundlag": "939228a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": 267008.81,
+        "forventning_ramt": null,
+        "vurdering": "Δ = +267.008,81 kr. (D04 3.708.013,03 − D01 3.441.004,22): samme differens som ved 90fb16e (maalt_2026_11_14), begge objektiver er uændrede til øren. Modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. MWh, CO₂ og balanceindtægter er ikke gjort op igen."
       }
     },
     {
@@ -449,6 +467,12 @@
         "delta_dkk": -138263.13,
         "forventning_ramt": true,
         "vurdering": "Δ = -138.263,13 kr. (D05 3.302.741,09 − D01): fortegnet holder. Ved eef950a -134.066,05 kr. MWh, CO₂ og balanceindtægter er ikke gjort op ved 90fb16e; mængderne i maalt_2026_10_26 er fra eef950a og gælder ikke disse kørsler."
+      },
+      "maalt_2026_11_23": {
+        "grundlag": "939228a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": -138263.13,
+        "forventning_ramt": true,
+        "vurdering": "Δ = -138.263,13 kr. (D05 3.302.741,09 − D01 3.441.004,22): samme differens som ved 90fb16e (maalt_2026_11_14), begge objektiver er uændrede til øren. Modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. MWh, CO₂ og balanceindtægter er ikke gjort op igen."
       }
     },
     {
@@ -478,6 +502,12 @@
         "delta_dkk": -329366.28,
         "forventning_ramt": true,
         "vurdering": "Δ = -329.366,28 kr. (D06 3.111.637,94 − D01): balancemarkedet sænker omkostningen, som forventet. Ved eef950a -329.067,88 kr. MWh, CO₂ og balanceindtægter er ikke gjort op ved 90fb16e; mængderne i maalt_2026_10_26 er fra eef950a og gælder ikke disse kørsler."
+      },
+      "maalt_2026_11_23": {
+        "grundlag": "939228a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": -329366.28,
+        "forventning_ramt": true,
+        "vurdering": "Δ = -329.366,28 kr. (D06 3.111.637,94 − D01 3.441.004,22): samme differens som ved 90fb16e (maalt_2026_11_14), begge objektiver er uændrede til øren. Modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. MWh, CO₂ og balanceindtægter er ikke gjort op igen."
       }
     },
     {
@@ -507,6 +537,12 @@
         "delta_dkk": 43809.09,
         "forventning_ramt": true,
         "vurdering": "Δ = +43.809,09 kr. (D07 3.155.447,03 − D06): tanken er mere værd med balancemarked end uden (P1: +23.515,96 kr.), som ved eef950a (44.754,23 mod 21.915,92 kr.). MWh, CO₂ og balanceindtægter er ikke gjort op ved 90fb16e; mængderne i maalt_2026_10_26 er fra eef950a og gælder ikke disse kørsler."
+      },
+      "maalt_2026_11_23": {
+        "grundlag": "939228a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": 43809.09,
+        "forventning_ramt": true,
+        "vurdering": "Δ = +43.809,09 kr. (D07 3.155.447,03 − D06 3.111.637,94): samme differens som ved 90fb16e (maalt_2026_11_14), begge objektiver er uændrede til øren. Modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. MWh, CO₂ og balanceindtægter er ikke gjort op igen."
       }
     },
     {
@@ -536,6 +572,12 @@
         "delta_dkk": -99722.83,
         "forventning_ramt": true,
         "vurdering": "Δ = -99.722,83 kr.; D08 = 3.011.915,11 kr. < D06, som forventet. D08 er samme kørsel som BUDSTRATEGI-kontroltal (2) ved 90fb16e. Ved eef950a -92.343,28 kr. MWh, CO₂ og balanceindtægter er ikke gjort op ved 90fb16e; mængderne i maalt_2026_10_26 er fra eef950a og gælder ikke disse kørsler."
+      },
+      "maalt_2026_11_23": {
+        "grundlag": "939228a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": -99722.83,
+        "forventning_ramt": true,
+        "vurdering": "Δ = -99.722,83 kr. (D08 3.011.915,11 − D06 3.111.637,94): samme differens som ved 90fb16e (maalt_2026_11_14), begge objektiver er uændrede til øren. Modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. MWh, CO₂ og balanceindtægter er ikke gjort op igen."
       }
     },
     {
@@ -565,6 +607,12 @@
         "delta_dkk": -2132846.18,
         "forventning_ramt": null,
         "vurdering": "Δ = -2.132.846,18 kr. (D09 4.428.863,74, gab 0,0015 % − D10 6.561.709,91, gab 0,0121 %): fortegnet holder. Sammenligningen med modellens balanceindtægt i D09 er ikke gjort op ved 90fb16e, så størrelsen er ikke afgjort. Ved eef950a -2.229.789,54 kr. MWh, CO₂ og balanceindtægter er ikke gjort op ved 90fb16e; mængderne i maalt_2026_10_26 er fra eef950a og gælder ikke disse kørsler."
+      },
+      "maalt_2026_11_23": {
+        "grundlag": "939228a / df-data 106b9fc; den ægte arbejder lokalt (8 kerner)",
+        "delta_dkk": -2132846.17,
+        "forventning_ramt": null,
+        "vurdering": "Δ = -2.132.846,17 kr. (D09 4.428.863,74 − D10 6.561.709,91): samme differens som ved 90fb16e (maalt_2026_11_14), begge objektiver er uændrede til øren. Modelrepoets 0.10.0 og 0.11.0 flytter ingen tal. MWh, CO₂ og balanceindtægter er ikke gjort op igen."
       }
     },
     {
@@ -576,7 +624,7 @@
       "forventning": {
         "fortegn": "Δ = D12 − D11 < 0.",
         "stoerrelse": "README-tallene giver ca. −6.243.064 kr. (24.188.471 − 30.431.535, README.md:188-189), regnet før spotrettelsen. Ved 90fb16e er D12 stoppet på tidsgrænsen (gab 0,13 %); se maalt_2026_11_14.",
-        "forbehold": "Andebys balancetal er et potentiale, ikke en forventning (README.md:208-210). Året blander aFRR-markedet før og efter faldet i vinteren 2025/26."
+        "forbehold": "Andebys balancetal er et potentiale, ikke en forventning (README.md:210-212). Året blander aFRR-markedet før og efter faldet i vinteren 2025/26."
       },
       "maalt_2026_10_16": {
         "delta_dkk": -7378128.7,
@@ -599,6 +647,49 @@
   ],
   "notebook_bemaerkning": "Kørslerne kan bestilles via appens Scenarie + Bestilling (foretrukket, så de ligner app-kørsler) eller via fjv_koer_scenarie's manuelle parametre: vaerk_kode, scenarie_navn, aendringer_json (listen 'aendringer' som JSON), start/slut, med_balancering, mip_rel_gap/mip_abs_gap/tidsgraense_s som tekst. De manuelle parametre har ikke heat_csv, så D09/D10 kræver appens vej eller en ny parameter.",
   "koersel_status": {
+    "maalt": "2026-11-23, lokalt med den ægte arbejder (fjv.arbejder + hukommelseslageret, som fabric/koer_minne.py), 8 kerner, én kørsel ad gangen på en delt maskine (køretiderne er ikke rene løsetider), data_commit 106b9fc, model_commit 939228a (modelkoden hentet som zip ved pinnen). Ikke kørt i Fabric. (noter/maaling_model_939228a.md)",
+    "objektiv_dkk": {
+      "D01": 3441004.22,
+      "D02": 3464520.18,
+      "D03": 3917608.86,
+      "D04": 3708013.03,
+      "D05": 3302741.09,
+      "D06": 3111637.94,
+      "D07": 3155447.03,
+      "D08": 3011915.11,
+      "D09": 4428863.74,
+      "D10": 6561709.91,
+      "D11": 30495430.9
+    },
+    "opnaaet_gab": {
+      "D01": 0.0,
+      "D02": 0.0,
+      "D03": 0.0,
+      "D04": 0.0,
+      "D05": 0.0,
+      "D06": 0.0,
+      "D07": 0.0,
+      "D08": 0.0,
+      "D09": 1.53e-05,
+      "D10": 0.000121,
+      "D11": 0.00020899999999999998
+    },
+    "koeretid_s": {
+      "D01": 19,
+      "D02": 10,
+      "D03": 8,
+      "D04": 7,
+      "D05": 8,
+      "D06": 10,
+      "D07": 8,
+      "D08": 9,
+      "D09": 326,
+      "D10": 85,
+      "D11": 478
+    },
+    "note": "Hvert målt objektiv er det samme som ved 90fb16e (koersel_status_90fb16e) til øren: modelrepoets 0.10.0 (UTF-8) og 0.11.0 (oliekedel) flytter ingen tal (CHANGELOG.md i modelrepoet), og målingen bekræfter det gennem appens kæde. Ikke regnet igen ved 939228a: D12; tallet under koersel_status_90fb16e gælder fortsat som seneste måling (D12 ramte dér tidsgrænsen 3.600 s med gab 0,13 %)."
+  },
+  "koersel_status_90fb16e": {
     "maalt": "2026-11-14, lokalt med den ægte arbejder (fjv.arbejder + hukommelseslageret, som fabric/koer_minne.py), 8 kerner, højst to kørsler ad gangen (køretiderne er ikke rene løsetider), data_commit 106b9fc, model_commit 90fb16e. Ikke kørt i Fabric endnu. (noter/maaling_model_90fb16e.md)",
     "objektiv_dkk": {
       "D01": 3441004.22,

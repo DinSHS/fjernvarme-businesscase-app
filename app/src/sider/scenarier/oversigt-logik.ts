@@ -2,9 +2,11 @@
 // Oversigtens beregninger: reference pr. scenarie, køens rækkefølge, budskabet.
 //-----------------------------------------------------------------------
 
+import type { InputRække } from "@/lib/data/afflad";
 import type { Koersel } from "../../../rayfin/data/Koersel";
 import type { Scenarie } from "../../../rayfin/data/Scenarie";
-import { parretsReference, sammenlignelighed } from "./logik";
+import { domNavne, koerselsDom } from "../analyser/beregn";
+import { parretsReference } from "./logik";
 
 export interface ScenarieRække {
     s: Scenarie;
@@ -15,15 +17,22 @@ export interface ScenarieRække {
 
 /**
  * Kolonnen Reference i oversigten. Hvert udfald har sin egen tekst — aldrig "ukendt scenarie":
- * - `par`: parrets reference (feltet, beskrivelsen eller demo-parret) har en færdig kørsel; `direkte` = sammenlignelig.
+ * - `par`: parrets reference (feltet, beskrivelsen eller demo-parret) har en færdig kørsel. `dom` er Analysers dom
+ *   over de to kørsler (analyser/beregn.ts › koerselsDom; kodegennemgangen af runde 15, fund 4): "ja" = direkte
+ *   sammenlignelig (`direkte`), "nej" = `afviger` navngiver felterne, "ukendt" = `ukendt` navngiver de nødvendige
+ *   felter, der ikke kendes for begge — hverken grønt mærke eller "afviger".
  * - `par_ikke_koert`: scenariet har en parret reference, men den er ikke kørt færdig.
+ * - `seneste_ikke_faerdig`: parret findes, men scenariets seneste kørsel er ikke færdig (runde 15, mail 1: før viste
+ *   rækken status "Fejl" ved siden af et ΔRef og et grønt mærke fra en ÆLDRE kørsel).
  * - `er_reference`: scenariet er selv reference for `antal` andre scenarier (og har ingen reference selv).
  * - `sammenlignelig`: ikke parret, men en anden aktiv kørsel på værket kan sammenlignes direkte.
  * - `ingen`: scenariet er kørt, men intet kan sammenlignes direkte med det.
  */
 export type Reference =
-    | { art: "par"; navn: string; direkte: boolean; afviger: string[]; /** ΔRef = scenarie − reference (kr.), kun når begge objektiver kendes. */ delta?: number }
+    | { art: "par"; navn: string; direkte: boolean; dom: "ja" | "nej" | "ukendt"; afviger: string[]; ukendt: string[]; /** ΔRef = scenarie − reference (kr.), kun når parret er direkte sammenligneligt og begge objektiver kendes. */ delta?: number }
     | { art: "par_ikke_koert"; navn: string }
+    /** Scenariets SENESTE kørsel er ikke færdig (fejlet, annulleret eller i gang): rækken viser den, så der er intet ΔRef. */
+    | { art: "seneste_ikke_faerdig"; navn: string; status: string }
     | { art: "er_reference"; antal: number }
     | { art: "sammenlignelig"; navn: string }
     | { art: "ingen" };
@@ -35,8 +44,12 @@ const nyeste = (ks: readonly Koersel[]) => [...ks].sort((a, b) => tid(b.afslutte
  * `scenarier` er de AKTIVE (ikke-arkiverede) scenarier. Kørsler af arkiverede scenarier er aldrig en reference —
  * det var dem, der før blev til "kan sammenlignes med ukendt scenarie" (22 færdige kørsler af arkiverede
  * testscenarier, målt 2026-10-19).
+ *
+ * `frosset` er kørslernes KORTE frosne profil pr. kørsels-id (`@/lib/data/frossen-profil`; efterprøvningen af
+ * rettelserne, fund D): dommen læser periode, pins og varmelast/solprofil af den. En kørsel uden profil her dømmes
+ * "ukendt" — aldrig grønt på rækken alene.
  */
-export function findReference(s: Scenarie, scenarier: readonly Scenarie[], koersler: readonly Koersel[]): Reference | undefined {
+export function findReference(s: Scenarie, scenarier: readonly Scenarie[], koersler: readonly Koersel[], frosset: ReadonlyMap<string, readonly InputRække[]> = new Map()): Reference | undefined {
     const aktive = new Map(scenarier.map((x) => [x.id, x]));
     const navn = (id: string) => (aktive.get(id)?.navn ?? "").trim();
     const færdige = koersler.filter((k) => k.status === "faerdig");
@@ -46,10 +59,19 @@ export function findReference(s: Scenarie, scenarier: readonly Scenarie[], koers
     if (refId && aktive.has(refId)) {
         const ref = nyeste(færdige.filter((k) => k.scenarie_id === refId));
         if (!ref) return { art: "par_ikke_koert", navn: navn(refId) };
+        // Rækken i oversigten er scenariets seneste kørsel (status og driftsomkostning). Er den ikke færdig, hører et
+        // ΔRef fra en ældre kørsel ikke hjemme ved siden af.
+        const sidste = [...koersler].filter((k) => k.scenarie_id === s.id).sort((a, b) => tid(b.bestilt) - tid(a.bestilt))[0];
+        if (sidste && sidste.status !== "faerdig") return { art: "seneste_ikke_faerdig", navn: navn(refId), status: sidste.status };
         if (!egen) return undefined;
-        const afv = sammenlignelighed(ref, egen);
-        const delta = egen.objektiv_dkk != null && ref.objektiv_dkk != null ? egen.objektiv_dkk - ref.objektiv_dkk : null;
-        return { art: "par", navn: navn(refId), direkte: afv.length === 0, afviger: afv, ...(delta !== null ? { delta } : {}) };
+        const dom = koerselsDom(ref, egen, frosset.get(ref.id), frosset.get(egen.id));
+        const direkte = dom.status === "ja";
+        // Runde 15 (mail 1): ΔRef kun for et direkte sammenligneligt par (før: også mod en reference med en anden periode).
+        const delta = direkte && egen.objektiv_dkk != null && ref.objektiv_dkk != null ? egen.objektiv_dkk - ref.objektiv_dkk : null;
+        return {
+            art: "par", navn: navn(refId), direkte, dom: dom.status, afviger: domNavne(dom, "advarsel"),
+            ukendt: dom.status === "ukendt" ? domNavne(dom, "ukendt") : [], ...(delta !== null ? { delta } : {}),
+        };
     }
 
     const antal = scenarier.filter((x) => x.id !== s.id && parretsReference(x, scenarier) === s.id).length;
@@ -57,7 +79,7 @@ export function findReference(s: Scenarie, scenarier: readonly Scenarie[], koers
 
     if (!egen) return undefined;
     const kandidater = færdige.filter((k) => k.scenarie_id !== s.id && k.vaerk_id === s.vaerk_id && aktive.has(k.scenarie_id)
-        && sammenlignelighed(k, egen).length === 0);
+        && koerselsDom(k, egen, frosset.get(k.id), frosset.get(egen.id)).status === "ja");
     const direkte = nyeste(kandidater);
     return direkte ? { art: "sammenlignelig", navn: navn(direkte.scenarie_id) } : { art: "ingen" };
 }

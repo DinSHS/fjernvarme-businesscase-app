@@ -211,7 +211,45 @@ for navn, v in typer["standardvaerdier"].items():
     n5 += 1
     if not any(s["navn"] == navn and s["kilde"].startswith("src/config.py:") and ens(s["vaerdi"], v) for s in STD):
         meld("typer", f"enhedstyper.standardvaerdier.{navn} = {v!r} er ikke en standard i src/config.py")
-print(f"[5] typer: {n5} standardværdier, {len(fejl.get('typer', []))} fejl")
+# Typelisten selv (runde 15). Ved 939228a fik modellen oil_boiler/fuel_oil, og [5] var grøn med en app, der ikke kendte
+# typen: en bruger kunne ikke oprette en oliekedel, og et værksark med en blev læst af scriptet, men ikke forstået af
+# appen. Nu er appens typer, brændsler, CO2-faktorer og priser modelscriptets egne tabeller (spejlets vaerksark_typer).
+VT = SPEJL.get("vaerksark_typer")
+if VT is None:
+    meld("typer", "modelspejl.json har ingen vaerksark_typer - kør byg_modelspejl.py")
+else:
+    felt = {f["sti"]: f for f in katalog["felter"]}
+    model_typer, app_typer = set(VT["braendsel_pr_type"]), set(typer["typer"])
+    for t in sorted(model_typer - app_typer):
+        meld("typer", f"enhedstypen {t} står i modelscriptet ({VT['kilde']['braendsel_pr_type']}), men ikke i "
+                      "enhedstyper.json (byg_felt_katalog.py) - en bruger kan ikke oprette den")
+    for t in sorted(app_typer - model_typer):
+        meld("typer", f"enhedstypen {t} står i enhedstyper.json, men ikke i modelscriptet ({VT['kilde']['braendsel_pr_type']})")
+    if set(felt["units.*.type"]["tilladte"]) != model_typer:
+        meld("typer", f"feltkatalogets units.*.type tillader {sorted(felt['units.*.type']['tilladte'])}, modelscriptet "
+                      f"{sorted(model_typer)} ({VT['kilde']['braendsel_pr_type']})")
+    for t in sorted(model_typer & app_typer):
+        br = VT["braendsel_pr_type"][t]
+        # None = biomasse: scriptet vælger mellem BIOMASSE-brændslerne efter pris/kolonne N
+        forventet = sorted(VT["biomasse"].values()) if br is None else [br]
+        if sorted(typer["typer"][t]["fuel"]) != forventet:
+            meld("typer", f"enhedstyper.typer.{t}.fuel er {sorted(typer['typer'][t]['fuel'])}, modelscriptet giver {forventet} "
+                          f"({VT['kilde']['braendsel_pr_type']})")
+        for b in forventet:
+            if b not in felt["units.*.fuel"]["tilladte"]:
+                meld("typer", f"feltkatalogets units.*.fuel tillader ikke {b} (enhedstypen {t})")
+        faktor = VT["co2_pr_mwh_braendsel"].get(t)
+        skabelon = typer["typer"][t]["skabelon"].get("co2_emissions_per_mwh_fuel")
+        if (faktor is None and skabelon not in (None, 0, 0.0)) or (faktor is not None and not ens(skabelon, faktor)):
+            meld("typer", f"enhedstyper.typer.{t}.skabelon.co2_emissions_per_mwh_fuel er {skabelon!r}, modelscriptet sætter "
+                          f"{faktor!r} ({VT['kilde']['co2_pr_mwh_braendsel']})")
+    for b in sorted(set(VT["prisetiketter"].values())):
+        if b not in felt["prices.*"]["stjerne"][0]["tilladte"] or f"prices.{b}.value" not in felt:
+            meld("typer", f"prisen {b} læses af modelscriptet ({VT['kilde']['prisetiketter']}), men feltkataloget har ikke prices.{b}.value")
+        if b not in typer["braendselsnavne"]:
+            meld("typer", f"brændslet {b} har intet dansk navn i enhedstyper.braendselsnavne")
+print(f"[5] typer: {n5} standardværdier, {len(VT['braendsel_pr_type']) if VT else 0} enhedstyper i modelscriptet, "
+      f"{len(fejl.get('typer', []))} fejl")
 
 # --- [6] referencetal = README ----------------------------------------------------------------------------
 ref = json.loads((VIDEN / "referencetal.json").read_text(encoding="utf-8"))

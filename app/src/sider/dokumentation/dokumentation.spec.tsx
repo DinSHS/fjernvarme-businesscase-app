@@ -21,10 +21,10 @@ describe("Dokumentation", () => {
 
     it("README: kildelinje, indholdsfortegnelse og omskrevne links (internt dokument, GitHub ved commit)", async () => {
         vis(["readme"]);
-        await screen.findByText(/Fra skj-1964\/fjernvarme-businesscase @ 90fb16e \(MIT\)/);
+        await screen.findByText(/Fra skj-1964\/fjernvarme-businesscase @ 939228a \(MIT\)/);
         await waitFor(() => expect(screen.getAllByRole("link").some((a) => a.getAttribute("href") === "#/dokumentation/koersel")).toBe(true));
         const pdf = screen.getAllByRole("link").find((a) => /rapport_billund_v4\.pdf$/.test(a.getAttribute("href") ?? ""));
-        expect(pdf).toHaveAttribute("href", "https://github.com/skj-1964/fjernvarme-businesscase/blob/90fb16eb1e2d5aa8e619b5a951b93760fa803985/doc/rapport_billund_v4.pdf");
+        expect(pdf).toHaveAttribute("href", "https://github.com/skj-1964/fjernvarme-businesscase/blob/939228aa048563c8498382a79d207c8b03fbda57/doc/rapport_billund_v4.pdf");
         expect(pdf).toHaveAttribute("rel", "noopener noreferrer");
         expect(pdf).toHaveAttribute("target", "_blank");
         expect(screen.getByRole("navigation", { name: "Indhold" })).toBeInTheDocument();
@@ -62,12 +62,12 @@ describe("Dokumentation", () => {
 
     it("PDF bundtes ikke: knap til GitHub ved commit", () => {
         vis(["rapport_v4"]);
-        expect(screen.getByRole("link", { name: "Åbn PDF på GitHub" }).getAttribute("href")).toContain("/blob/90fb16eb1e2d5aa8e619b5a951b93760fa803985/doc/rapport_billund_v4.pdf");
+        expect(screen.getByRole("link", { name: "Åbn PDF på GitHub" }).getAttribute("href")).toContain("/blob/939228aa048563c8498382a79d207c8b03fbda57/doc/rapport_billund_v4.pdf");
     });
 
     it("regnearket hentes direkte", () => {
         vis(["vaerksdata_skabelon"]);
-        expect(screen.getByRole("link", { name: "Hent regnearket" }).getAttribute("href")).toContain("/raw/90fb16eb1e2d5aa8e619b5a951b93760fa803985/vaerksdata_skabelon.xlsx");
+        expect(screen.getByRole("link", { name: "Hent regnearket" }).getAttribute("href")).toContain("/raw/939228aa048563c8498382a79d207c8b03fbda57/vaerksdata_skabelon.xlsx");
     });
 
     it("ukendt dokument giver en side med veje videre — aldrig en hvid side", () => {

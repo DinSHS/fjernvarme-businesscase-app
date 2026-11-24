@@ -1,12 +1,12 @@
 //-----------------------------------------------------------------------
 // GENERERET af _byg/byg_viden.py fra viden/knapper.json og viden/felt_katalog.json
 // (fv-ekspert). Ret ikke i hånden.
-// Modelcommit: 90fb16eb1e2d5aa8e619b5a951b93760fa803985 · 16 knapper · 151 felter
+// Modelcommit: 939228aa048563c8498382a79d207c8b03fbda57 · 16 knapper · 152 felter
 //-----------------------------------------------------------------------
 
 import type { Feltpost, Knap, FastVindue, Regel } from "./viden";
 
-export const MODEL_COMMIT = "90fb16eb1e2d5aa8e619b5a951b93760fa803985";
+export const MODEL_COMMIT = "939228aa048563c8498382a79d207c8b03fbda57";
 
 export const FAELLES_REGLER: readonly Regel[] = [
  {
@@ -19,11 +19,11 @@ export const FAELLES_REGLER: readonly Regel[] = [
  },
  {
   "regel": "Læs differenser med mip_rel_gap 0.0002. Standardgabet (0,5 %) kan være større end selve differensen, og fortegnet kan vende.",
-  "kilde": "doc/KOERSEL.md:57-60; src/config.py:701-711"
+  "kilde": "doc/KOERSEL.md:57-60; src/config.py:703-713"
  },
  {
   "regel": "Sæt også mip_abs_gap, fx 100 kr. HiGHS stopper, når ÉT af de to gab er nået; uden solver-blok i værket er det absolutte gab 5.000 kr., og så binder det før 0,02 % på ethvert objektiv under 25 mio. kr. (målt: Spor A, marts 2026 stoppede ved 0,068 % i stedet for 0,02 %).",
-  "kilde": "src/config.py:713-714; src/config.py:742-751; rapport v4 §2.3"
+  "kilde": "src/config.py:715-716; src/config.py:744-753; rapport v4 §2.3"
  },
  {
   "regel": "Slå en enhed eller et lager fra med disable (sti = navnet; oversættes til <units|storage>.<navn>.enabled) — sæt ikke kapaciteten til 0; det efterlader enhedens variable i problemet.",
@@ -31,15 +31,15 @@ export const FAELLES_REGLER: readonly Regel[] = [
  },
  {
   "regel": "set må kun pege på en eksisterende skalar- eller listesti i værket. Nye nøgler og blokke er en værksændring, ikke et scenarie. To ændringer på samme sti i ét scenarie afvises.",
-  "kilde": "KONTRAKT §3.5; src/config.py:825-874"
+  "kilde": "KONTRAKT §3.5; src/config.py:827-876"
  },
  {
   "regel": "Sæt grundstørrelsen, ikke den afledte: volume_m3 (med e_max_mwh = null), ikke e_max_mwh.",
-  "kilde": "src/config.py:910-912; src/config.py:571-575"
+  "kilde": "src/config.py:912-914; src/config.py:571-575"
  },
  {
   "regel": "Tidsgrænsen sættes med scenariets felt tidsgraense_s, ikke som set på solver.time_limit: Spor A/B-casene har ingen solver-blok, og stien findes derfor ikke.",
-  "kilde": "KONTRAKT §3.4; src/config.py:1124-1131"
+  "kilde": "KONTRAKT §3.4; src/config.py:1127-1134"
  },
  {
   "regel": "set på time.* og solver.* afvises i scenarier; brug scenariefelterne (periode, mip_rel_gap, mip_abs_gap, tidsgraense_s). Version 1 kører kun 1h-opløsning.",
@@ -58,6 +58,7 @@ export const ANBEFALET_GAB = {
 export const VISNINGSNAVNE: Record<string, Record<string, string>> = {
  "braendsel": {
   "natural_gas": "Naturgas",
+  "fuel_oil": "Fyringsolie",
   "straw": "Halm",
   "flis": "Flis",
   "wood_pellets": "Træpiller",
@@ -93,7 +94,7 @@ export const FASTE_VINDUER: readonly FastVindue[] = [
   "periode_start": "2026-01-05",
   "periode_slut": "2026-01-16",
   "note": "12 døgn; slutdatoen er inklusive. Løser på sekunder til et halvt minut.",
-  "kilde": "doc/KOERSEL.md:109-110; doc/EGET_VAERK.md:109-111"
+  "kilde": "doc/KOERSEL.md:109-110; doc/EGET_VAERK.md:116-118"
  },
  {
   "navn": "Sommervindue (kursus)",
@@ -294,7 +295,7 @@ export const KNAPPER: readonly Knap[] = [
    "type": "beslutning",
    "kraever_helaar": true,
    "forventet_fortegn": "≤ 0 mod 'ingen tank' (en tank kan kun hjælpe)",
-   "hvis_billigere": "En tank på {vaerdi} sparer {abs} i perioden mod ingen tank{skaleret}. Sammenhold det årlige beløb med tankens annuitet.",
+   "hvis_billigere": "En tank på {vaerdi} sparer {abs} i perioden mod ingen tank{skaleret}. Tankens annuitet skal holdes op mod besparelsen fra et helt år.",
    "hvis_dyrere": "Tanken sparer intet mod ingen tank. Det kan ikke passe ud over tolerancen; tjek starttilstand og gab.",
    "naeste_skridt": [
     "Kør hele rækken 4.000 / 8.000 / 14.000 m³ for at se, hvor værdien mættes",
@@ -420,7 +421,7 @@ export const KNAPPER: readonly Knap[] = [
    "type": "beslutning",
    "kraever_helaar": true,
    "forventet_fortegn": "≤ 0 (en ekstra enhed kan kun udvide mulighederne)",
-   "hvis_billigere": "Den nye {enhed} sparer {abs} i driften i perioden{skaleret}. Investeringen betaler sig, hvis den årlige besparelse er større end investeringens annuitet plus faste omkostninger.",
+   "hvis_billigere": "Den nye {enhed} sparer {abs} i driften i perioden{skaleret}. Investeringen betaler sig, hvis besparelsen fra et helt år er større end investeringens annuitet plus faste omkostninger.",
    "hvis_dyrere": "Den nye {enhed} gør driften dyrere — det kan ikke passe ud over tolerancen; tjek gab og starttilstand.",
    "naeste_skridt": [
     "Kør helåret (1. juli 2025 – 30. juni 2026) med samme gab",
@@ -440,6 +441,7 @@ export const KNAPPER: readonly Knap[] = [
     "fra": "prices",
     "tilladte": [
      "natural_gas",
+     "fuel_oil",
      "straw",
      "flis",
      "wood_pellets",
@@ -472,13 +474,13 @@ export const KNAPPER: readonly Knap[] = [
    "billund_sporb_rullende"
   ],
   "noter": [
-   "wood_pellets findes i intet af repoets værker; de øvrige fire findes i alle syv."
+   "wood_pellets og fuel_oil (fyringsolie, ny ved modelversion 939228a) findes i intet af repoets værker; de øvrige fire findes i alle syv."
   ],
   "advarsler": [
    "Står flis ikke med egen pris i værket, bruger flis halmprisen; så flytter en ændret halmpris også flisen. (Alle repoets værker har egen flispris.)",
    "Prisen skal stå i værket i forvejen."
   ],
-  "kilde": "doc/KOERSEL.md:39; rapport v4 §4.4; src/config.py:941",
+  "kilde": "doc/KOERSEL.md:39; rapport v4 §4.4; src/config.py:943",
   "utilgaengelig_tekst": "Brændslet har ingen pris i værket.",
   "anbefaling": {
    "type": "foelsomhed",
@@ -523,7 +525,7 @@ export const KNAPPER: readonly Knap[] = [
   "advarsler": [
    "Står gasprisen allerede inkl. CO₂-afgift, skal co2_eua være 0 i begge kørsler — ellers tælles CO₂ to gange."
   ],
-  "kilde": "doc/KOERSEL.md:39; src/config.py:930-933",
+  "kilde": "doc/KOERSEL.md:39; src/config.py:932-935",
   "utilgaengelig_tekst": "Værket har ingen CO₂-pris (prices.co2_eua).",
   "anbefaling": {
    "type": "foelsomhed",
@@ -793,7 +795,7 @@ export const KNAPPER: readonly Knap[] = [
    "activation_value kræver bid_strategy i værket.",
    "Har værket en activation-blok med andet end clear/realized (andeby, billund_spora_rullende_bud, billund_sporb), afviser config.py method legacy i casen. Via scenariefeltet (CLI --balancing-method) sker kontrollen ikke, fordi metoden overskrives efter indlæsning (run_case.py:661-668); activation-blokken bruges så slet ikke, da aktiveringsparametrene kun bygges ved activation_value (src/data_loader_github.py:693-701). Differensen blander derfor metode og aktiveringsmodel på de tre værker."
   ],
-  "kilde": "doc/KOERSEL.md:40; doc/BALANCEMARKED.md:52-66; src/config.py:1067-1071",
+  "kilde": "doc/KOERSEL.md:40; doc/BALANCEMARKED.md:52-66; src/config.py:1070-1074",
   "utilgaengelig_tekst": "Værket har ingen budstrategi (balancing.bid_strategy), som indtægtsmetoden activation_value kræver.",
   "anbefaling": {
    "type": "metode",
@@ -917,7 +919,7 @@ export const KNAPPER: readonly Knap[] = [
    "Valget alene kan flytte objektivet op til ca. 4 %.",
    "fyn og vestkyst mangler timer 28. februar 2026 (fyn også 1. januar 2026); perioder hen over dem stopper på dækningen."
   ],
-  "kilde": "README.md:244-246; cases/andeby.yaml:89; doc/KOERSEL.md:110-111",
+  "kilde": "README.md:246-248; cases/andeby.yaml:89; doc/KOERSEL.md:110-111",
   "utilgaengelig_tekst": "Værket har ingen data-blok med DMI-område.",
   "anbefaling": {
    "type": "foelsomhed",
@@ -1685,7 +1687,7 @@ export const FELTER: readonly Feltpost[] = [
   "tilladte": null,
   "min": null,
   "max": null,
-  "forklaring": "Én blok pr. brændsel med value (og unit som dokumentation). Brændselspriser er ekskl. moms pr. MWh brændsel. Kendte nøgler: natural_gas, straw, flis, wood_pellets, waste_heat, co2_eua.",
+  "forklaring": "Én blok pr. brændsel med value (og unit som dokumentation). Brændselspriser er ekskl. moms pr. MWh brændsel. Kendte nøgler: natural_gas, fuel_oil, straw, flis, wood_pellets, waste_heat, co2_eua.",
   "avanceret": false,
   "kan_saettes_i_scenarie": false
  },
@@ -1698,7 +1700,7 @@ export const FELTER: readonly Feltpost[] = [
   "tilladte": null,
   "min": null,
   "max": null,
-  "forklaring": "Pris pr. ton CO₂. Ganges på enhedernes co2_emissions_per_mwh_fuel. Skriv 0, hvis gasprisen allerede indeholder CO₂-afgiften.",
+  "forklaring": "Pris pr. ton CO₂. Ganges på enhedernes co2_emissions_per_mwh_fuel. Skriv 0, hvis gasprisen allerede indeholder CO₂-afgiften. Der er én CO₂-pris for værket: med en oliekedel skal afgiften da også være med i olieprisen.",
   "avanceret": false,
   "kan_saettes_i_scenarie": true
  },
@@ -1712,6 +1714,19 @@ export const FELTER: readonly Feltpost[] = [
   "min": null,
   "max": null,
   "forklaring": "Pris pr. MWh gas ekskl. moms, gerne inkl. de afgifter, der gælder alle gasenheder.",
+  "avanceret": false,
+  "kan_saettes_i_scenarie": true
+ },
+ {
+  "sti": "prices.fuel_oil.value",
+  "sektion": "prices",
+  "etiket": "Fyringsoliepris",
+  "enhed": "DKK/MWh brændsel",
+  "type": "number",
+  "tilladte": null,
+  "min": null,
+  "max": null,
+  "forklaring": "Pris pr. MWh fyringsolie eller gasolie (ca. 10 kWh pr. liter) ekskl. moms, inkl. energiafgift. CO₂ behandles som for naturgas: CO₂-prisen ganges med enhedens udledningsfaktor.",
   "avanceret": false,
   "kan_saettes_i_scenarie": true
  },
@@ -1991,13 +2006,14 @@ export const FELTER: readonly Feltpost[] = [
    "electric_boiler",
    "biomass_boiler",
    "gas_boiler",
+   "oil_boiler",
    "gas_engine_chp",
    "solar_thermal",
    "waste_heat"
   ],
   "min": null,
   "max": null,
-  "forklaring": "Varmepumpe, elkedel, biomassekedel, gaskedel, gasmotor, solvarme eller overskudsvarme. Typen er en etiket; økonomien styres af fuel og alpha. Kun heat_pump har en særregel (cop_curve).",
+  "forklaring": "Varmepumpe, elkedel, biomassekedel, gaskedel, oliekedel, gasmotor, solvarme eller overskudsvarme. Typen er en etiket; økonomien styres af fuel og alpha. Kun heat_pump har en særregel (cop_curve).",
   "avanceret": false,
   "kan_saettes_i_scenarie": true
  },
@@ -2063,6 +2079,7 @@ export const FELTER: readonly Feltpost[] = [
    "electricity",
    "solar",
    "natural_gas",
+   "fuel_oil",
    "straw",
    "flis",
    "wood_pellets",
@@ -2177,7 +2194,7 @@ export const FELTER: readonly Feltpost[] = [
   "tilladte": null,
   "min": 0,
   "max": null,
-  "forklaring": "Ton CO₂ pr. MWh brændsel. Naturgas ca. 0,2; biomasse 0 (regnes neutral).",
+  "forklaring": "Ton CO₂ pr. MWh brændsel. Naturgas ca. 0,2; fyringsolie og gasolie 0,266 (tung fuelolie ca. 0,28); biomasse 0 (regnes neutral).",
   "avanceret": false,
   "kan_saettes_i_scenarie": true
  },

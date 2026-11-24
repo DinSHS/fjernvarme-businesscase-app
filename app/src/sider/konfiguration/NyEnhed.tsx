@@ -1,14 +1,15 @@
 //-----------------------------------------------------------------------
 // #/konfiguration/<kode>/ny-enhed — ny enhed fra enhedstypens skabelon
 // (viden/enhedstyper.json): vælg type, navn, udfyld de påkrævede felter.
-// Én anmodning med `opret` for alle bladene.
+// Én anmodning med `opret` for alle bladene — og for brændslets pris, når
+// værket ikke har den (runde 15: en oliekedel i et værk uden oliepris).
 //-----------------------------------------------------------------------
 
 import { useMemo, useState } from "react";
 import { Gitter, Knap, Kort, Tabel } from "@/components/layout";
-import { BRAENDSEL, ENHEDSTYPER, findFelt } from "./katalog";
+import { BRAENDSEL, ENHEDSTYPER, findFelt, CO2_FAKTOR_FRA_MODELREPOET, skabelonKilde } from "./katalog";
 import { objektnavne, type Blad } from "./gruppering";
-import { anvend, nyEnhed, tjekNavn } from "./redigering";
+import { anvend, manglendeBraendselspris, nyEnhed, tjekNavn } from "./redigering";
 import { nyeFejl, type RedigeringsTilstand } from "./useRedigering";
 import { validerVaerk } from "./validering";
 import { redigerbarTekst, visFelt } from "./vis";
@@ -21,6 +22,7 @@ export function NyEnhed({ kode, blade, rt, gåTil }: { kode: string; blade: read
     const [type, setType] = useState(typer[0][0]);
     const [navn, setNavn] = useState("");
     const [værdier, setVærdier] = useState<Map<string, string>>(new Map());
+    const [pris, setPris] = useState("");
     const t = ENHEDSTYPER[type];
     const skabelon = useMemo(() => new Map(t.skabelon.map((s) => [s.sti, s.vaerdi_json])), [t]);
     const felter = SPØRG.filter((f) => skabelon.has(f));
@@ -32,15 +34,20 @@ export function NyEnhed({ kode, blade, rt, gåTil }: { kode: string; blade: read
         if (!m.has("fuel")) m.set("fuel", t.fuel[0]);
         return m;
     }, [værdier, t]);
-    const plan = useMemo(() => (navn && !navnFejl ? nyEnhed(type, navn, input) : null), [type, navn, navnFejl, input]);
+    // Brændslets pris, når værket mangler den: modellen afviser en aktiv enhed uden (src/config.py, fuel_price).
+    const prisSti = useMemo(() => manglendeBraendselspris(rt.nu, input.get("fuel")), [rt.nu, input]);
+    const prisPost = prisSti ? findFelt(prisSti) : null;
+    const plan = useMemo(() => (navn && !navnFejl ? nyEnhed(type, navn, input, prisSti ? { sti: prisSti, tekst: pris } : undefined) : null), [type, navn, navnFejl, input, prisSti, pris]);
+    const prisFejl = prisSti ? plan?.fejl.find((x) => x.sti === prisSti)?.besked : undefined;
     const nyFund = useMemo(() => {
         if (!plan || plan.fejl.length) return [];
         return nyeFejl(rt.grundFund, validerVaerk(anvend(rt.nu, plan.ændringer)));
     }, [plan, rt.grundFund, rt.nu]);
     const kan = !!plan && plan.fejl.length === 0 && nyFund.length === 0 && !rt.sender;
 
-    const vælgType = (ny: string) => { setType(ny); setVærdier(new Map()); };
-    const sæt = (f: string, v: string) => setVærdier((m) => new Map(m).set(f, v));
+    const vælgType = (ny: string) => { setType(ny); setVærdier(new Map()); setPris(""); };
+    // Et andet brændsel har en anden pris: det skrevne tal må ikke følge med over.
+    const sæt = (f: string, v: string) => { if (f === "fuel") setPris(""); setVærdier((m) => new Map(m).set(f, v)); };
     const opret = async () => {
         if (plan && (await rt.send(plan.ændringer))) gåTil(`konfiguration/${kode}/enheder/${navn}`);
     };
@@ -48,8 +55,9 @@ export function NyEnhed({ kode, blade, rt, gåTil }: { kode: string; blade: read
     return (
         <Gitter form="8-4">
             <Kort titel="Ny enhed" afgraensning={t.navn}
-                budskab={plan ? `${plan.ændringer.length} felter oprettes under units.${navn} i én ændring.` : "Vælg type og navn; felterne starter med typens skabelonværdier."}
-                fod="Skabelonens tal er pladsholdere (viden/enhedstyper.json) — erstat dem med værkets egne. Øvrige felter kan rettes bagefter under Enheder.">
+                budskab={plan ? `${plan.ændringer.filter((æ) => æ.sti.startsWith("units.")).length} felter oprettes under units.${navn} i én ændring${plan.ændringer.some((æ) => æ.sti === prisSti) ? `, sammen med ${prisSti}` : ""}.` : "Vælg type og navn; felterne starter med typens skabelonværdier."}
+                // Gennemgangens fund 9: forslagene er appens egne, ikke modelrepoets — det skal stå, hvor de vælges.
+                fod={`Skabelonens tal er appens egne forslag (egen antagelse; viden/enhedstyper.json), ikke værdier fra modelrepoet${CO2_FAKTOR_FRA_MODELREPOET.has(type) ? " — undtagen CO₂-faktoren, som er modelrepoets (værksarkets konvertering)" : ""}. Erstat dem med værkets egne. Øvrige felter kan rettes bagefter under Enheder.`}>
                 <div className="kf-formular" data-spalter="2">
                     <label>Type
                         <select className="fjv-felt" value={type} onChange={(e) => vælgType(e.target.value)}>
@@ -65,6 +73,12 @@ export function NyEnhed({ kode, blade, rt, gåTil }: { kode: string; blade: read
                             {t.fuel.map((f) => <option key={f} value={f}>{BRAENDSEL[f] ?? f}</option>)}
                         </select>
                     </label>
+                    {prisSti && (
+                        <label>{prisPost?.etiket ?? `Pris for ${BRAENDSEL[prisSti.split(".")[1]] ?? prisSti.split(".")[1]}`}<small>{prisPost?.enhed ?? "DKK/MWh brændsel"} · påkrævet · værket har ingen</small>
+                            <input className="fjv-felt kf-tal-input" inputMode="decimal" aria-invalid={prisFejl ? true : undefined} value={pris} onChange={(e) => setPris(e.target.value)} />
+                            {prisFejl && <span className="kf-felt-fejl">{prisFejl}</span>}
+                        </label>
+                    )}
                     {felter.map((f) => {
                         const post = findFelt(`units.x.${f}`);
                         const gammel = skabelon.get(f)!;
@@ -78,7 +92,7 @@ export function NyEnhed({ kode, blade, rt, gåTil }: { kode: string; blade: read
                             );
                         }
                         return (
-                            <label key={f}>{post?.etiket ?? f}{post?.enhed && <small>{post.enhed}{t.paakraevede.includes(f) ? " · påkrævet" : ""}</small>}
+                            <label key={f}>{post?.etiket ?? f}<small>{post?.enhed ?? ""}{t.paakraevede.includes(f) ? " · påkrævet" : ""}{værdier.has(f) ? "" : ` · forslag: ${skabelonKilde(type, f)}`}</small>
                                 <input className="fjv-felt kf-tal-input" inputMode="decimal" aria-invalid={fejl ? true : undefined}
                                     value={værdier.get(f) ?? redigerbarTekst(gammel)} onChange={(e) => sæt(f, e.target.value)} />
                                 {fejl && <span className="kf-felt-fejl">{fejl}</span>}
@@ -99,6 +113,7 @@ export function NyEnhed({ kode, blade, rt, gåTil }: { kode: string; blade: read
                     kolonner={[
                         { navn: "Fra skabelonen", vis: (s) => findFelt(`units.x.${s.sti}`)?.etiket ?? s.sti },
                         { navn: "Værdi", vis: (s) => <span className="kf-vaerdi" data-lang="true">{visFelt(s.vaerdi_json)}</span>, tal: true },
+                        { navn: "Kilde", vis: (s) => skabelonKilde(type, s.sti) },
                     ]} />
             </Kort>
         </Gitter>

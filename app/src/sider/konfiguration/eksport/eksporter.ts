@@ -21,7 +21,7 @@
 
 import { MODELSPEJL } from "@/lib/modelspejl.data";
 import { Arbejdsbog, excelSerie, type Læstværdi } from "./xlsx";
-import { planlæg, type Celle, type Eksportkilde, type Eksportplan } from "./kort";
+import { planlæg, PRISER_RAEKKER, type Celle, type Eksportkilde, type Eksportplan } from "./kort";
 import { planlægLag } from "./lag";
 
 /** Excels grænse for tekst i én celle. */
@@ -125,7 +125,7 @@ function byg(plan: Pick<Eksportplan, "træpillerRække" | "braendselKolonne" | "
     const wb = new Arbejdsbog(skabelon);
     // Læs først tilføjes, før noget ark åbnes til ændring (den fravælger det ark, der var valgt).
     for (const f of plan.lagfaner) if (f.først) wb.tilføjArk(f.navn, "Timedata", false, true).opsæt(f);
-    if (plan.træpillerRække) wb.regneark("Priser").indsætRækker(11, 1);
+    if (plan.træpillerRække) wb.regneark("Priser").indsætRækker(PRISER_RAEKKER.traepillerIndsat, 1);
     if (plan.braendselKolonne) wb.regneark("Anlaeg").sikrKolonnebredde(14, 14);
     if (plan.solvarmeArk) wb.tilføjArk("Solvarme", "Timedata");
     for (const f of plan.lagfaner) if (!f.først) wb.tilføjArk(f.navn, "Timedata").opsæt(f);

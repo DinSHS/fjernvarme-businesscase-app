@@ -183,14 +183,18 @@ export function ProduktionMod({ varians, fremhaev, farve }: { varians: readonly 
 
 // ---------------------------------------------------------------- ΔRef pr. par (anbefalinger)
 
-export interface ParDelta { navn: string; delta: number; indenForTolerance: boolean }
+/** `ref` og `scen`: de to kørslers driftsomkostning i kr. — til den skjulte datatabel; grafen tegner kun `delta`. */
+export interface ParDelta { navn: string; ref: number; scen: number; delta: number; indenForTolerance: boolean }
 
 /**
  * A-25: én variansbjælke pr. par i t.kr. (spec analyser-anbefalinger v1). Omkostning: op = dårligt (rød), ned = godt.
  * Et ΔRef inden for solverens tolerance kan ikke skelnes fra nul: det er tvetydigt og tegnes neutralt (blå, IBCS UN 4.1).
  */
 export function ParVarians({ par }: { par: readonly ParDelta[] }) {
-    const rækker: StructureRow[] = par.map((p) => ({ category: p.navn, delta: p.delta, deltaImpact: p.indenForTolerance ? 0 : undefined, PL: 0 }));
+    // Fund 3.5 (den uafhængige test 18. november 2026): rækkerne havde `PL: 0` og ingen `AC`, så den skjulte tabel til
+    // skærmlæsere viste "Scen 0,0 · Ref 0,0" for hvert par. Nu bærer rækken de to kørslers driftsomkostning; grafen
+    // tegner fortsat kun ΔRef (`only: "delta"`), og Δ er parrets eget tal, ikke en ny udregning.
+    const rækker: StructureRow[] = par.map((p) => ({ category: p.navn, AC: p.scen, PL: p.ref, delta: p.delta, deltaImpact: p.indenForTolerance ? 0 : undefined }));
     const { skala, enhed } = pengeSkala(par.map((p) => p.delta));
     return (
         <IbcsFigur titel={`ΔRef driftsomkostning i ${enhed}, pr. par`} undertitel={<><strong>Driftsomkostning</strong> ΔRef i {enhed}, pr. par</>}
@@ -255,7 +259,8 @@ export function omkostningsBro(a: Samlet, b: Samlet, objA: number | null, objB: 
 /** Vandfaldets pengeskala: hele grafen (basis, slutværdi og trin) er én skalagruppe (Codex K7 F7). */
 export const vandfaldSkala = (bro: Bridge) => pengeSkala([bro.base.value, bro.total.value, ...bro.steps.map((s) => s.delta)]);
 
-export function OmkostningsVandfald({ bro }: { bro: Bridge }) {
+/** `neutral`: parret er ikke direkte sammenligneligt — trinene tegnes uden godt/dårligt (runde 15, mail 1). */
+export function OmkostningsVandfald({ bro, neutral = false }: { bro: Bridge; neutral?: boolean }) {
     const { skala, enhed } = vandfaldSkala(bro);
     return (
         <IbcsFigur titel={`Driftsomkostning i ${enhed}, Ref → Scen: hvad forklarer ΔRef`} undertitel={<><strong>Driftsomkostning</strong> i {enhed}, Ref → Scen</>}
@@ -265,7 +270,7 @@ export function OmkostningsVandfald({ bro }: { bro: Bridge }) {
                 // sidekvalitet K7). Den laveste af nogle få oversigtsbredder vinder; ved lige højde den bredeste.
                 const andele = b < SMAL ? [0.55] : [0.55, 0.45, 0.38, 0.32];
                 return andele
-                    .map((andel) => layoutVarianceWaterfall(bro, { width: b, ppu: Math.max(1e-9, (b * andel) / maks), scale: skala, polarity: -1, magnifier: b < SMAL ? "below" : "auto" }))
+                    .map((andel) => layoutVarianceWaterfall(bro, { width: b, ppu: Math.max(1e-9, (b * andel) / maks), scale: skala, polarity: neutral ? 0 : -1, magnifier: b < SMAL ? "below" : "auto" }))
                     .reduce((x, y) => (y.height < x.height - 1 ? y : x));
             }} />
     );

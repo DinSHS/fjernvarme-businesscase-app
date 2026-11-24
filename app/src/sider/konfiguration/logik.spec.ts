@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { læsFixture } from "./fixture-vaerker";
 import { parseJV, serialiserJV } from "./jsontekst";
-import { anmodningsLængde, anvend, fjernObjekt, kladde, kodFelt, listeJson, nyEnhed, scenarieReferencer, tjekNavn, ændringerFraUdkast } from "./redigering";
+import { anmodningsLængde, anvend, fjernObjekt, kladde, kodFelt, listeJson, manglendeBraendselspris, nyEnhed, scenarieReferencer, tjekNavn, ændringerFraUdkast } from "./redigering";
 import { findFelt, ENHEDSTYPER } from "./katalog";
 import { diffKoersel } from "./diff";
 import { rekonstruerYaml, yamlNøgle } from "./yaml";
@@ -116,7 +116,9 @@ describe("ny enhed fra skabelonen", () => {
     it("hver enhedstypes skabelon giver et gyldigt værk, når den lægges i Andeby", () => {
         const før = validerVaerk(nu);
         for (const type of Object.keys(ENHEDSTYPER)) {
-            const { ændringer } = nyEnhed(type, `ny_${type}`, new Map());
+            // Runde 15: Andeby har ingen pris for fyringsolie; brændslets pris oprettes sammen med enheden (oliekedel.spec.tsx).
+            const sti = manglendeBraendselspris(nu, ENHEDSTYPER[type].fuel[0]);
+            const { ændringer } = nyEnhed(type, `ny_${type}`, new Map(), sti ? { sti, tekst: "900" } : undefined);
             expect(nyeFejl(før, validerVaerk(anvend(nu, ændringer))), type).toEqual([]);
         }
     });
@@ -230,7 +232,7 @@ describe("tarif og validering — brud", () => {
         expect(f).toMatch(/COP 0,50/);
         expect(f).toMatch(/samme udetemperatur/);
         expect(f).toMatch(/"bornholm" er ikke tilladt/);
-        expect(f).toMatch(/bruger natural_gas, men prisen/);
+        expect(f).toMatch(/bruger naturgas, men prisen for naturgas/);   // modellens ord (src/config.py, fuel_price)
         expect(f).toMatch(/præcis 24 tal/);
     });
     it("ingen aktive enheder er en fejl", () => {

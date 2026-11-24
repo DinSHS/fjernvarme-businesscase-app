@@ -11,6 +11,7 @@ import type { Scenarie } from "../../../../rayfin/data/Scenarie";
 import { demoReferenceNavn, parretsReference } from "../logik";
 import { findReference } from "../oversigt-logik";
 import { ReferenceCelle } from "../Oversigt";
+import { frossetFor } from "./frosset.testdata";
 
 const ANDEBY = "v-andeby", BILLUND_B = "v-sporb", BILLUND_A = "v-spora";
 const VINTER = JSON.stringify({ periode: { start: "2026-01-05", slut: "2026-01-16" } });
@@ -48,13 +49,15 @@ const kørsler: Koersel[] = [
 // Som useKoersler leverer dem: nyeste bestilling først (`sortering: { bestilt: "desc" }`) — derfor ramte den gamle kode
 // det arkiverede testscenarie først.
 ].sort((a, b) => new Date(b.bestilt).getTime() - new Date(a.bestilt).getTime());
-const ref = (s: Scenarie) => findReference(s, aktive, kørsler);
+// Efterprøvningen af rettelserne i runde 15, fund D: dommen udleder perioden af kørslens FROSNE input (manifestets rene
+// datoer er kun kontrollen). Kørslerne her får den periode frosset, som deres manifest siger (frosset.testdata.ts).
+const ref = (s: Scenarie) => findReference(s, aktive, kørsler, frossetFor(kørsler));
 
 describe("parrets egen reference (demo_scenarier.json)", () => {
     it("hvert demo-par får sin egen reference, ikke den nyeste kørsel", () => {
         for (const p of DEMO_PAR) {
             const s = demo.get(p.scenarie)!, r = demo.get(p.reference)!;
-            expect(ref(s)).toEqual({ art: "par", navn: r.navn, direkte: true, afviger: [] });
+            expect(ref(s)).toEqual({ art: "par", navn: r.navn, direkte: true, dom: "ja", afviger: [], ukendt: [] });
         }
     });
     it("referencen selv peger ikke på en anden kørsel, men siger, hvem den er reference for", () => {
@@ -70,7 +73,7 @@ describe("parrets egen reference (demo_scenarier.json)", () => {
     });
     it("en parret reference uden færdig kørsel siges i klartekst", () => {
         const uden = kørsler.filter((k) => k.scenarie_id !== demo.get("D01")!.id);
-        expect(findReference(demo.get("D02")!, aktive, uden)).toEqual({ art: "par_ikke_koert", navn: "Demo: Andeby vinter — reference" });
+        expect(findReference(demo.get("D02")!, aktive, uden, frossetFor(uden))).toEqual({ art: "par_ikke_koert", navn: "Demo: Andeby vinter — reference" });
     });
 });
 
@@ -78,8 +81,8 @@ describe("aldrig 'ukendt scenarie'", () => {
     it("kørsler af arkiverede scenarier er ikke kandidater", () => {
         for (const s of aktive) {
             const r = ref(s);
-            expect(JSON.stringify(r ?? {})).not.toContain("ukendt");
-            if (r && "navn" in r) expect(r.navn).not.toBe("");
+            // Navnet er aldrig "ukendt scenarie" (feltet `ukendt` i et par er noget andet: dommens ukendte felter).
+            if (r && "navn" in r) { expect(r.navn).not.toMatch(/ukendt/i); expect(r.navn).not.toBe(""); }
         }
     });
     it("F5-scenarierne uden sammenlignelig kørsel får 'ingen sammenlignelig kørsel'", () => {
@@ -91,7 +94,7 @@ describe("aldrig 'ukendt scenarie'", () => {
     it("et ikke-parret scenarie med en aktiv sammenlignelig kørsel navngives", () => {
         const egen = scenarie("Mit eget vinterscenarie", ANDEBY);
         const ks = [...kørsler, koersel(egen, VINTER, 40)];
-        const r = findReference(egen, [...aktive, egen], ks);
+        const r = findReference(egen, [...aktive, egen], ks, frossetFor(ks));
         expect(r?.art).toBe("sammenlignelig");
         expect(r && "navn" in r ? r.navn : "").toMatch(/^Demo: Andeby vinter/);
     });

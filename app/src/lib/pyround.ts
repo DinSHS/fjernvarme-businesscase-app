@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------
 // Pythons round(x, n) for et float (Codex K8 F1). Modelrepoets værksark skalerer varmelasten med round(…)
-// (scripts/vaerksark_til_yaml.py:1581-1592), og appens guide skal give PRÆCIS samme tal.
+// (scripts/vaerksark_til_yaml.py:1600-1611), og appens guide skal give PRÆCIS samme tal.
 //
 // Python afrunder den binære værdis EKSAKTE decimaludvidelse til nærmeste; et ægte halvtilfælde (fx 0,5625 =
 // 9/16 til 3 decimaler) går til det LIGE ciffer. JavaScripts toFixed afrunder også den eksakte værdi, men tager

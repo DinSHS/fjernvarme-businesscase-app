@@ -37,13 +37,19 @@ describe("K4 F3: en knap genkendes på hele sin skabelon", () => {
         expect(p.knap).toBe("elafgift");
         expect(p.flere).toBe(false);
     });
-    it("tankstørrelse: reference uden tanken, scenarie med større volumen er ÉN knap — i begge rækkefølger", () => {
+    // Kodegennemgangen af runde 15, fund 5: skabelonen genkendes i den VALGTE retning og bytter ikke længere selv
+    // rollerne (det kunne vende brugerens reference). I omvendt rækkefølge er det parrelationen, der sætter rollerne.
+    it("tankstørrelse: reference uden tanken, scenarie med større volumen er ÉN knap — i parrets retning", () => {
         const udenTank = side("uden", 31_000_000, [ind("aendring", "storage.tank.enabled", "false")]);
         const stor = side("stor", 30_000_000, [ind("aendring", "storage.tank.volume_m3", "8000")]);
         const p = ordnPar(udenTank, stor);
         expect([p.knap, p.flere, p.byttet]).toEqual(["tankstoerrelse", false, false]);
-        const q = ordnPar(stor, udenTank);
-        expect([q.knap, q.byttet, q.ref.navn]).toEqual(["tankstoerrelse", true, "uden"]);
+        // Omvendt rækkefølge MED parrelationen (stor er oprettet med uden som reference): samme roller, samme knap.
+        const q = ordnPar(stor, udenTank, "ba");
+        expect([q.knap, q.byttet, q.ref.navn, q.grund]).toEqual(["tankstoerrelse", true, "uden", "par"]);
+        // Omvendt rækkefølge UDEN relation: begge bærer en ændring, så rækkefølgen er brugerens — og ingen knap.
+        const r = ordnPar(stor, udenTank);
+        expect([r.knap, r.byttet, r.ref.navn, r.grund]).toEqual([null, false, "stor", "valg"]);
         expect(findPar([udenTank, stor]).map((x) => x.knap)).toEqual(["tankstoerrelse"]);
     });
     it("uvedkommende ekstra ændringer afvises fortsat (tankstørrelse + gaspris)", () => {
@@ -120,10 +126,14 @@ describe("K4 F7: 'samme input' afgøres af hele det frosne input (input_hash), i
         } as Koersel;
         return { k, scenarie: { id: navn, navn, med_balancering: false } as Scenarie, vaerkNavn: "Testværk", input };
     };
-    it("revision 1 (25 MW) mod revision 2 (35 MW), begge uden ændringer: IKKE samme input, ikke nedprioriteret", () => {
-        const { anbefalet } = kandidater(kør("rev2", 2, "b".repeat(64)), [kør("rev2", 2, "b".repeat(64)), kør("rev1", 1, "a".repeat(64))]);
-        expect(anbefalet[0].sammeInput).toBe(false);
-        expect(anbefalet[0].aendringer.join(" ")).toMatch(/værksrevision r1 \(denne kørsel: r2\)/);
+    // Runde 15 (mail 1): en anden værksrevision er ikke længere direkte sammenlignelig, så kandidaten står under
+    // "kan ikke sammenlignes direkte" med grunden — stadig ikke som "samme input".
+    it("revision 1 (25 MW) mod revision 2 (35 MW), begge uden ændringer: IKKE samme input, og ikke direkte sammenlignelig", () => {
+        const { anbefalet, andre } = kandidater(kør("rev2", 2, "b".repeat(64)), [kør("rev2", 2, "b".repeat(64)), kør("rev1", 1, "a".repeat(64))]);
+        expect(anbefalet).toEqual([]);
+        expect(andre[0].sammeInput).toBe(false);
+        expect(andre[0].aendringer.join(" ")).toMatch(/værksrevision r1 \(denne kørsel: r2\)/);
+        expect(andre[0].afviger).toEqual(["anden værksrevision"]);
     });
     it("samme hash = samme input (en gentagelse)", () => {
         const { anbefalet } = kandidater(kør("x", 1, "c".repeat(64)), [kør("x", 1, "c".repeat(64)), kør("y", 1, "c".repeat(64))]);

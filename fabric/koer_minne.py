@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Den ægte arbejder uden Fabric: bestil et repo-værk i ``lager_minne`` og kør køen.
 
-    python koer_minne.py andeby 2026-01-05 2026-01-06       # forventet 866.567,72 kr. ved 90fb16e (867.031,23 ved eef950a, 844.727,28 ved b49aeb0)
+    python koer_minne.py andeby 2026-01-05 2026-01-06       # forventet 866.567,72 kr. ved 939228a og 90fb16e (867.031,23 ved eef950a, 844.727,28 ved b49aeb0)
 
 Samme kæde som i Fabric - frosset input, ``input_hash``, ``arbejder.arbejd`` under låsen,
 ``koersel.koer_en``, publicering - men lageret er hukommelsen (``fjv/lager_minne.py``), og

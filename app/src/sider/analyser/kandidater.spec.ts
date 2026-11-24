@@ -34,7 +34,9 @@ const D07 = info("Demo: Andeby vinter — med balancemarked, uden tankene", 3073
 const F3 = info("F3 manuel - Andeby vinter uden balancering", 3424407.96, [
     ind("scenarie", "_koersel.start", "\"2026-01-05\""), ind("scenarie", "_koersel.slut", "\"2026-01-16\""), ind("scenarie", "_koersel.med_balancering", "false"),
 ], { oensket_rel_gap: 0.001, oensket_abs_gap: 1000 });
-const BILLUND = info("Demo: Billund Spor B — med balancemarked", 3964585.72, [ind("scenarie", "_koersel.med_balancering", "true")],
+const BILLUND = info("Demo: Billund Spor B — med balancemarked", 3964585.72, [
+    // Den frosne periode (fund D i efterprøvningen af runde 15: uden den kan perioden ikke udledes, og afvigelsen hed "periode ukendt").
+    ind("scenarie", "_koersel.start", "\"2026-03-02\""), ind("scenarie", "_koersel.slut", "\"2026-06-23\""), ind("scenarie", "_koersel.med_balancering", "true")],
     { vaerk_id: "billund", manifest_json: JSON.stringify({ periode: { start: "2026-03-02", slut: "2026-06-23" } }) });
 BILLUND.vaerkNavn = "billund_sporB";
 const FEJL = info("F3 fejlvej", null, vinter(true), { status: "fejl", objektiv_dkk: undefined });

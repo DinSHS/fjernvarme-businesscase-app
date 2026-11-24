@@ -6,7 +6,9 @@
 
 import { useState } from "react";
 import { Knap, Kort, Maerke } from "@/components/layout";
-import { useKoerselInput, useNoegletal, useScenarie, useScenarieAendringer } from "@/lib/data/hooks";
+import { tidspunkt } from "@/lib/format";
+import type { InputRække } from "@/lib/data/afflad";
+import { useNoegletal, useScenarie, useScenarieAendringer } from "@/lib/data/hooks";
 import type { Koersel } from "../../../rayfin/data/Koersel";
 import type { Scenarie } from "../../../rayfin/data/Scenarie";
 import { historieEfterKørsel, saetningFørKørsel } from "./historie";
@@ -61,7 +63,9 @@ export function HistorieKort({ saetninger, fase, kategori, sammenlignHref, fod }
  * VIL få frosset (kladden, gemt eller ej). Efter kørsel med en færdig reference:
  * hele historien og vurderingen af de to faktiske kørsler, med link.
  */
-export function ScenarieHistorie({ s, ændringer, felter, blade, vaerkNavn, bekraeft, seneste, reference, refId, serier }: {
+export function ScenarieHistorie({ s, ændringer, felter, blade, vaerkNavn, bekraeft, seneste, reference, refId, serier, frosset }: {
+    /** De to kørslers frosne input, hentet af siden (ScenarieSide) — de samme rækker, som kørselskortets dom læser. */
+    frosset: { reference?: readonly InputRække[]; k?: readonly InputRække[] };
     s: Scenarie;
     ændringer: readonly Ændring[];
     felter: Scenariefelter;
@@ -76,9 +80,9 @@ export function ScenarieHistorie({ s, ændringer, felter, blade, vaerkNavn, bekr
     const refScen = useScenarie(refId);
     const refÆnd = useScenarieAendringer(refId);
     const færdigt = seneste?.status === "faerdig" && reference?.status === "faerdig" && reference.id !== seneste.id;
-    const sInput = useKoerselInput(færdigt ? seneste!.id : undefined);
+    const sInput = { data: færdigt ? frosset.k : undefined };
     const sTal = useNoegletal(færdigt ? seneste!.id : undefined);
-    const rInput = useKoerselInput(færdigt ? reference!.id : undefined);
+    const rInput = { data: færdigt ? frosset.reference : undefined };
     const rTal = useNoegletal(færdigt ? reference!.id : undefined);
 
     // Før kørsel (eller mens kørslernes data hentes): sætning 1.
@@ -103,11 +107,13 @@ export function ScenarieHistorie({ s, ændringer, felter, blade, vaerkNavn, bekr
             { k: seneste!, navn: s.navn, scenarie: s, input: sInput.data, noegletal: sTal.data },
             vaerkNavn, bekraeft, serier,
         );
+        // Runde 15 (mail 2): kortet siger, hvilke to kørsler det er regnet af — de samme som nøgletallet i kortet "Kørsel".
+        const koersler = `Scenariet: kørslen bestilt ${tidspunkt(seneste!.bestilt)}; referencen «${r?.navn ?? "referencen"}»: kørslen bestilt ${tidspunkt(reference!.bestilt)} — de samme to kørsler som nøgletallet i kortet "Kørsel".`;
         return (
             <HistorieKort fase="efter" saetninger={[h.tekst]}
                 kategori={{ tekst: h.vurdering.maerke, tone: h.vurdering.tone }}
                 sammenlignHref={sammenlignHref(reference!.id, seneste!.id)}
-                fod="Regnet af de to kørslers frosne input og nøgletal med Analysers generator; vurderingen følger appens anbefalingsregler." />
+                fod={`${koersler} Regnet af de to kørslers frosne input og nøgletal med Analysers generator; vurderingen følger appens anbefalingsregler.`} />
         );
     }
     return (

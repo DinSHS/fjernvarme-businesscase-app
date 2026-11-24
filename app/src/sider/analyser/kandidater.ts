@@ -43,7 +43,7 @@ export interface Kandidat {
     naturlig: boolean;
     /** Samme frosne ændringer som den aktuelle kørsel — forskellen bør være solverstøj. */
     sammeInput: boolean;
-    /** Kandidatens driftsomkostning − den aktuelle kørsels; null hvis et objektiv mangler. */
+    /** Kandidatens driftsomkostning − den aktuelle kørsels; null hvis et objektiv mangler, eller kandidaten ikke er direkte sammenlignelig. */
     delta: number | null;
     faerdig: boolean;
 }
@@ -118,6 +118,7 @@ export function deltaTekst(delta: number | null): string {
 const KORT: Record<string, string> = {
     vaerk_id: "andet værk", periode: "anden periode", oploesning: "anden opløsning", data_commit: "andet datagrundlag",
     model_commit: "anden modelversion", rel_gap: "andet ønsket relativt gab", abs_gap: "andet ønsket absolut gab",
+    vaerk_revision: "anden værksrevision",
 };
 
 /** Hvad der afviger, kort: "anden periode", "andet værk", "datagrundlag ukendt". */
@@ -159,13 +160,16 @@ export function kandidater(denne: KoerselInfo, alle: readonly KoerselInfo[]): { 
         const sammeInput = hashes ? denne.k.input_hash === x.k.input_hash : diff === 0 && sammeRevision;
         const revision = x.k.vaerk_id === denne.k.vaerk_id && !sammeRevision && x.k.vaerk_revision != null
             ? [`værksrevision r${x.k.vaerk_revision} (denne kørsel: r${denne.k.vaerk_revision})`] : [];
+        const status = faerdig ? sammenlignelighedStatus(af) : "nej";
         const c: Kandidat = {
             k: x.k, navn: x.scenarie?.navn ?? "Kørsel uden scenarie", vaerkNavn: x.vaerkNavn, profil: p,
             medBalancering: p.med_balancering, aendringer: [...revision, ...aendringsResume(x.input)],
-            status: faerdig ? sammenlignelighedStatus(af) : "nej",
+            status,
             afviger: faerdig ? afvigerTekst(af) : [`ikke færdig (${STATUS_TEKST[x.k.status as KoerselStatus] ?? x.k.status})`],
             naturlig: false, sammeInput,
-            delta: x.k.objektiv_dkk != null && denne.k.objektiv_dkk != null ? x.k.objektiv_dkk - denne.k.objektiv_dkk : null,
+            // Runde 15 (mail 1): en differens findes kun mod en direkte sammenlignelig kørsel. Før stod "X kr. billigere
+            // end denne" også under "kan ikke sammenlignes direkte" — et resultat, der ikke er et.
+            delta: status === "ja" && x.k.objektiv_dkk != null && denne.k.objektiv_dkk != null ? x.k.objektiv_dkk - denne.k.objektiv_dkk : null,
             faerdig,
         };
         return { ...c, _rang: c.sammeInput ? 5 : rang(denne, c, refScenarie), _diff: diff };
