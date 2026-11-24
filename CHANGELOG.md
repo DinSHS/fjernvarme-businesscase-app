@@ -200,6 +200,11 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **Trofasthedstabellen kaldte værksrevisionen et ubetinget krav** (tredje rettelsesrunde, P3-5). Rækken *Hvornår en
+  differens er et resultat* i `doc/TROFASTHED.md` §5 sagde "samme værk og værksrevision" og senere, at en ukendt
+  revision kun er en note. Koden følger det sidste. Kravsætningen siger nu, at to forskellige **kendte**
+  værksrevisioner spærrer, og at en manglende revision (ældre data) er en oplyst undtagelse — appens egen antagelse.
+  Kun ordlyden er ændret; reglen er den samme, og en test binder de to.
 - **Fabric og den lokale udgave tolkede en uventet låsekode forskelligt** (tredje rettelsesrunde, P3-4). Svarede
   `sp_getapplock` med en positiv kode ud over de dokumenterede (fx 2), tog Fabric-udgaven det som en tildelt lås
   ("helt og ikke-negativt"), mens den lokale udgave kastede. Begge kræver nu netop 0 (tildelt) eller 1 (tildelt efter
