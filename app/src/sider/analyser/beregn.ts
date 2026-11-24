@@ -478,14 +478,26 @@ const TIME_MS = 3_600_000;
  * Et tidsstempel, som modellen læser det (`fabric/fjv/byg_case.py › _modeltid`, og den betroede logiks `modeltid` i
  * `rayfin/functions/src/logik.ts`): naivt = UTC, en bar dato = MIDNAT — ikke hele døgnet. En anden zone end UTC og et
  * tidspunkt uden for hele timer afviser modellen; her er svaret da `null` (perioden kan ikke udledes).
+ *
+ * GRAMMATIKKEN er arbejderens (`datetime.fromisoformat`), ikke `Date.parse` (tredje rettelsesrunde i runde 15, P3-1):
+ * `Date.parse` afviste det korte nul-offset `+00`, som arbejderen læser som UTC — to kørsler med netop den tekst fik
+ * dommen ukendt — og gjorde 30. februar til 2. marts, hvor arbejderen afviser datoen. Formerne er MÅLT på arbejderen
+ * i `skema/vektorer/modeltid/former.json` (`fabric/tests/test_modeltid_vektorer.py`), og
+ * `scenarier/__tests__/r15c_tidsgrammatik.spec.ts` kræver samme udfald her; de bevidste afvigelser står i den spec
+ * (Pythons basisformat og ugedato m.fl. giver `null` her: ukendt, den forsigtige side).
  */
+const MODELTID = /^(\d{4})-(\d{2})-(\d{2})(?:[Tt ](\d{2})(?::(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?)?(Z|z|[+-]\d{2}(?::?\d{2})?)?$/;
 function modeltid(s: string): number | null {
-    const x = s.trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(x)) { const t = Date.parse(`${x}T00:00:00Z`); return Number.isFinite(t) ? t : null; }
-    const zone = /(Z|[+-]\d{2}:?\d{2})$/i.exec(x)?.[1];
-    if (zone && !/^(Z|[+-]00:?00)$/i.test(zone)) return null;
-    const t = Date.parse(zone ? x : `${x}Z`);
-    return Number.isFinite(t) && t % TIME_MS === 0 ? t : null;
+    const m = MODELTID.exec(s.trim());
+    if (!m) return null;
+    const [, aar, md, dag, time = "00", minut = "00", sekund = "00", broek = "", zone] = m;
+    if (zone && !/^(Z|z|[+-]00(?::?00)?)$/.test(zone)) return null;
+    const t = Date.UTC(Number(aar), Number(md) - 1, Number(dag), Number(time), Number(minut), Number(sekund));
+    // En kalenderdato eller et klokkeslæt, der ændres ved parse og formattering (30. februar, kl. 24, minut 60), er
+    // ikke et tidspunkt: arbejderen afviser det, og `Date.UTC` ruller det stiltiende videre.
+    if (!Number.isFinite(t) || new Date(t).toISOString().slice(0, 19) !== `${aar}-${md}-${dag}T${time}:${minut}:${sekund}`) return null;
+    // Kun hele timer. Python regner i mikrosekunder: brøkdelens cifre efter det sjette falder væk.
+    return minut === "00" && sekund === "00" && !/[1-9]/.test(broek.slice(0, 6)) ? t : null;
 }
 
 /**
@@ -514,8 +526,8 @@ export function effektivPeriode(input: readonly InputRække[]): { fra: string; t
         // Kun rene datoer: arbejderen afviser alt andet (`byg_case._dato`), så en kørsel med et tidspunkt her findes ikke.
         const DATO = /^\d{4}-\d{2}-\d{2}$/;
         if (!ps || !pe || !DATO.test(ps) || !DATO.test(pe)) return null;
-        const fra = Date.parse(`${ps}T00:00:00Z`), til = Date.parse(`${pe}T23:00:00Z`);
-        return iso(Number.isFinite(fra) ? fra : null, Number.isFinite(til) ? til : null);
+        // Samme grammatik som værkets tid (P3-1): 30. februar er ikke en dato — `byg_case._dato` afviser den.
+        return iso(modeltid(`${ps}T00:00:00Z`), modeltid(`${pe}T23:00:00Z`));
     }
     const ts = str(e.blade.get("time.start")?.vaerdi_json), te = str(e.blade.get("time.end")?.vaerdi_json);
     if (ts === null || te === null) return null;

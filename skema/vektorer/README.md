@@ -16,6 +16,12 @@ Hvert tilfælde er en celle og et felt; udfaldet er feltets `vaerdi_json` eller 
 spec og af `fabric/tests/test_arklag_vektorer.py`. `tjek_modelkrav.json` prøves desuden af arbejderens egen udgave af
 modelkravene (`fabric/tests/test_modelkrav.py`).
 
+`modeltid/former.json` (runde 15) binder et fjerde par: arbejderens læsning af værkets `time.start`/`time.end`
+(Python, `fabric/fjv/byg_case.py › _modeltid`) og browserens udledning af kørslens effektive periode (TypeScript,
+`app/src/sider/analyser/beregn.ts › effektivPeriode`). Her er arbejderen sandheden: udfaldet er MÅLT med
+`FJV_SKRIV_VEKTORER=1 python -m unittest tests.test_modeltid_vektorer` (fra `fabric/`) og prøves af samme test og af
+`app/src/sider/scenarier/__tests__/r15c_tidsgrammatik.spec.ts`, hvor de bevidste afvigelser står med deres grund.
+
 ## Format
 
 ```json

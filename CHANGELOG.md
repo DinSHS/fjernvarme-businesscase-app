@@ -200,6 +200,12 @@ præsentationen og i datahåndteringen omkring kørslerne.
   der bestilles en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen med kørslens id. Kan
   det gamle forsøg ikke slås op, bestilles intet nyt, før det kan. Forsøget gemmes i fanens `sessionStorage`, så en
   genindlæsning efter et tabt svar ikke længere giver en ekstra kørsel; en anden fane kender det ikke.
+- **Sammenligningen læste værkets tid med en anden grammatik end arbejderen** (tredje rettelsesrunde, P3-1). Står
+  værkets `time.start` som `2026-01-05T00:00:00+00` (kort nul-offset), læser arbejderen og modellen det som midnat
+  UTC; browseren kunne ikke, så to kørsler på værkets egen tidsblok — en manuel kørsel, et importeret arkiv — fik
+  dommen *ukendt* og mistede ΔRef. Omvendt blev 30. februar til 2. marts, hvor arbejderen afviser datoen. Den
+  effektive periode udledes nu med arbejderens grammatik; formerne er målt på arbejderen i de fælles vektorer
+  (`skema/vektorer/modeltid/former.json`), og browseren prøves mod dem. Bestillingens egen kontrol er uændret.
 - **En tidsstoppet kørsel kunne få en fejldom mod README** (tredje rettelsesrunde, P2-6). Om en kørsel var en måling
   af et README-tal, blev afgjort på det ØNSKEDE gab. En Spor A-kørsel bestilt med casens gab, men stoppet på
   tidsgrænsen med et opnået gab på 33 %, stod derfor som *uden for tolerancen* under *Information › Referencetal* og
