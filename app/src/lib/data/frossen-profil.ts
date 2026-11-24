@@ -11,7 +11,9 @@
 //     scenariet ingen datoer har;
 //   * enhedernes profilsti (`units.<enhed>.production_profile_path`; tredje rettelsesrunde, P2-4): den fil, en
 //     solvarmeenhed læser, når kørslen ingen solprofil-tidsserie har frosset. Uden den ville oversigten dømme et par
-//     anderledes end Analyser, som har hele det frosne input (beregn.ts › profil, repoprofiler.ts).
+//     anderledes end Analyser, som har hele det frosne input (beregn.ts › profil, repoprofiler.ts);
+//   * enhedernes `enabled` (`units.<enhed>.enabled`; fjerde rettelsesrunde, punkt 3): repo-profilen og samme fil som
+//     tidsserie er kun samme kilde, når SAMME AKTIVE enheder bruger den (beregn.ts › andrePlaceringer).
 //
 // Det er netop det, `effektivPeriode`, `frossetFlag` og `tidsseriekilde` læser. Hentes i bidder (DAB: 100 rækker pr.
 // side; `læs` paginerer).
@@ -26,7 +28,9 @@ export const PROFIL_VAERKSSTIER = ["time.start", "time.end", "time.resolution"] 
 
 /** Endelsen på en enheds profilsti. Filteret bruger `endsWith` (som `startsWith` i lib/arkiv/markering.ts). */
 const PROFILSTI_ENDELSE = ".production_profile_path";
-const PROFILSTI = /^units\.[^.]+\.production_profile_path$/;
+const PROFILSTI = /^units\.[^.]+\.(production_profile_path|enabled)$/;
+/** `endsWith` henter også andre objekters `enabled` (lagre, markeder); `iKortProfil` sorterer dem fra. */
+const ENABLED_ENDELSE = ".enabled";
 
 const BID = 50;
 
@@ -35,7 +39,7 @@ export function kortProfilFilter(ids: readonly string[]) {
     return {
         and: [
             { or: ids.map((id) => ({ koersel_id: { eq: id } })) },
-            { or: [{ kilde: { eq: "aendring" } }, { kilde: { eq: "scenarie" } }, ...PROFIL_VAERKSSTIER.map((sti) => ({ sti: { eq: sti } })), { sti: { endsWith: PROFILSTI_ENDELSE } }] },
+            { or: [{ kilde: { eq: "aendring" } }, { kilde: { eq: "scenarie" } }, ...PROFIL_VAERKSSTIER.map((sti) => ({ sti: { eq: sti } })), { sti: { endsWith: PROFILSTI_ENDELSE } }, { sti: { endsWith: ENABLED_ENDELSE } }] },
         ],
     };
 }

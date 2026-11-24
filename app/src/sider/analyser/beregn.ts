@@ -548,15 +548,20 @@ export function effektivPeriode(input: readonly InputRække[]): { fra: string; t
  */
 export type Serievalg = "udtrykkeligt" | "arvet" | "ukendt";
 export type Tidsseriekilde =
-    /** `brug: "ubrugt"` (P2-4): kørslens manifest dokumenterer, at den IKKE brugte den frosne serie (`profil`). */
-    | { art: "serie"; id: string | null; sha256: string | null; valg: Serievalg; brug?: "ubrugt" }
+    /**
+     * `brug: "ubrugt"` (P2-4): kørslens manifest dokumenterer, at den IKKE brugte den frosne serie (`profil`).
+     * Fjerde rettelsesrunde, punkt 3 — hvor profilen ligger: `enheder` er de aktive enheder, arbejderen lagde netop
+     * denne serie på (manifestets `tidsserier.anvendt.<rolle>.enheder`; mangler, når det ikke er dokumenteret), og
+     * `filer` er de aktive enheder, der efter det frosne input stadig læser en profilFIL (enhed, sti).
+     */
+    | { art: "serie"; id: string | null; sha256: string | null; valg: Serievalg; brug?: "ubrugt"; enheder?: readonly string[]; filer?: readonly (readonly [string, string])[] }
     | { art: "fil"; fil: string; valg: "udtrykkeligt" }
     /**
      * Varmelast: syntesen. Solprofil: værkets egen profilsti. `repo` (P2-4): stien er én af modelrepoets profilfiler,
      * og dens hash i normaliseret form er målt ved kørslens modelversion (`repoprofiler.ts`) — samme kilde som en
-     * tidsserie med den hash.
+     * tidsserie med den hash — når den også bruges af samme aktive enheder (`enheder`: de aktive enheder, der læser filen).
      */
-    | { art: "standard"; valg: Serievalg; repo?: { sti: string; sha256: string } };
+    | { art: "standard"; valg: Serievalg; repo?: { sti: string; sha256: string; enheder: readonly string[] } };
 
 export function tidsseriekilde(input: readonly InputRække[], rolle: "varmelast" | "solprofil"): Tidsseriekilde {
     const e = effektivtInput(input);
@@ -589,9 +594,14 @@ const erUbrugt = (k: Tidsseriekilde): boolean => k.art === "serie" && k.brug ===
 function medBrug(kilde: Tidsseriekilde, k: Koersel, rolle: "varmelast" | "solprofil"): Tidsseriekilde {
     if (kilde.art !== "serie" || !kilde.sha256) return kilde;
     try {
-        const m = k.manifest_json ? JSON.parse(k.manifest_json) as { tidsserier?: { ubrugt?: Record<string, { sha256?: unknown } | undefined> } } : null;
+        const m = k.manifest_json ? JSON.parse(k.manifest_json) as { tidsserier?: { ubrugt?: Record<string, { sha256?: unknown } | undefined>; anvendt?: Record<string, { sha256?: unknown; enheder?: unknown } | undefined> } } : null;
         const u = m?.tidsserier?.ubrugt?.[rolle];
         if (u && typeof u.sha256 === "string" && u.sha256.toLowerCase() === kilde.sha256) return { ...kilde, brug: "ubrugt" };
+        // Punkt 3 (fjerde rettelsesrunde): de enheder, arbejderen lagde netop denne serie på (koersel.py › tidsserie_brug).
+        const an = m?.tidsserier?.anvendt?.[rolle];
+        if (an && typeof an.sha256 === "string" && an.sha256.toLowerCase() === kilde.sha256 && Array.isArray(an.enheder) && an.enheder.every((e): e is string => typeof e === "string")) {
+            return { ...kilde, enheder: [...an.enheder].sort() };
+        }
     } catch { /* ulæseligt manifest: intet er dokumenteret */ }
     return kilde;
 }
@@ -603,18 +613,52 @@ function medBrug(kilde: Tidsseriekilde, k: Koersel, rolle: "varmelast" | "solpro
  * fil; flere forskellige filer beviser ikke én kilde.
  */
 function medRepoProfil(kilde: Tidsseriekilde, input: readonly InputRække[], model_commit: string | null): Tidsseriekilde {
-    if (kilde.art !== "standard") return kilde;
+    if (kilde.art === "fil") return kilde;
+    const blade = effektivtInput(input).blade;
     const stier = new Set<string>();
-    for (const [sti, x] of effektivtInput(input).blade) {
-        if (!/^units\.[^.]+\.production_profile_path$/.test(sti)) continue;
+    /** (enhed, sti) for de AKTIVE enheder med en profilfil — markøren `tidsserie:solprofil` er ikke en fil. */
+    const aktive: [string, string][] = [];
+    for (const [sti, x] of blade) {
+        const m = /^units\.([^.]+)\.production_profile_path$/.exec(sti);
+        if (!m) continue;
         let v: unknown;
         try { v = JSON.parse(x.vaerdi_json) as unknown; } catch { return kilde; }
-        if (typeof v === "string" && v) stier.add(v);
+        if (typeof v !== "string" || !v) continue;
+        stier.add(v);
+        // Aktiv som arbejderen ser det (byg_case.py › _aktiv): alt andet end et udtrykkeligt `enabled: false`.
+        if (blade.get(`units.${m[1]}.enabled`)?.vaerdi_json.trim() !== "false" && !v.startsWith("tidsserie:")) aktive.push([m[1], v]);
     }
+    // Punkt 3 (fjerde rettelsesrunde): en frossen serie ligger på manifestets enheder; her noteres, hvem der DERUDOVER
+    // stadig læser en fil — samme fil på en anden enhed er også en bruger af profilen.
+    if (kilde.art === "serie") return { ...kilde, filer: aktive.sort(([a], [b]) => a.localeCompare(b)) };
     if (stier.size !== 1) return kilde;
     const [sti] = [...stier];
     const sha256 = kendtRepoProfil(sti, model_commit);
-    return sha256 ? { ...kilde, repo: { sti, sha256 } } : kilde;
+    return sha256 ? { ...kilde, repo: { sti, sha256, enheder: aktive.filter(([, s]) => s === sti).map(([e]) => e).sort() } } : kilde;
+}
+
+/**
+ * Punkt 3 (fjerde rettelsesrunde i runde 15): bruges profilen af SAMME aktive enhed(er) på begge sider?
+ *
+ * Kun relevant for de to FORMATER af samme fil (repo-profilen `standard.repo` over for den normaliserede `serie`);
+ * to kilder af samme art med samme nøgle er samme kilde. Efterprøvningens tilfælde: profilstien stod på `elkedel_ny`,
+ * og arbejderen lagde serien på `solvarme` (byg_case.py › _saet_solprofil) — samme hash, men to forskellige
+ * produktionslofter (en enhed uden profilsti har et konstant loft). Dommen var *ja*.
+ *
+ * Beviset er to lister: de aktive enheder med stien i det frosne input (repo-siden), og manifestets
+ * `tidsserier.anvendt.solprofil.enheder` plus de aktive enheder, der stadig læser samme fil (serie-siden). `null`, når
+ * det er bevist; ellers de to lister til teksten (`undefined` = ikke dokumenteret).
+ */
+function andrePlaceringer(a: Tidsseriekilde, b: Tidsseriekilde): { a: readonly string[] | undefined; b: readonly string[] | undefined } | null {
+    const brugere = (k: Tidsseriekilde, sti: string): readonly string[] | undefined => {
+        if (k.art === "standard") return k.repo?.enheder;
+        if (k.art !== "serie" || !k.enheder || !k.filer) return undefined;
+        return [...new Set([...k.enheder, ...k.filer.filter(([, s]) => s === sti).map(([e]) => e)])].sort();
+    };
+    const r = a.art === "standard" && b.art === "serie" ? a : a.art === "serie" && b.art === "standard" ? b : null;
+    if (!r || r.art !== "standard" || !r.repo) return null;
+    const [ua, ub] = [brugere(a, r.repo.sti), brugere(b, r.repo.sti)];
+    return ua && ub && ua.length > 0 && ua.length === ub.length && ua.every((e, i) => e === ub[i]) ? null : { a: ua, b: ub };
 }
 /** En kørsels varmelast eller solprofil som kort tekst til sammenligningstabellen ("ukendt", når det frosne input ikke kendes). */
 export function tidsseriekildeTekst(felt: "varmelast" | "solprofil", k: Tidsseriekilde | null | undefined): string {
@@ -640,16 +684,24 @@ const serieTekst = (k: Tidsseriekilde, standard: string): string => (k.art === "
  * Tredje rettelsesrunde, P2-4 — to ting, der IKKE er en afvigelse, selv om hashene er forskellige:
  *  * begge kørslers manifest dokumenterer, at serien ikke blev brugt (`brug: "ubrugt"`): den indgik i ingen af de to
  *    beregninger. Kun på BEGGE sider; er den brugt eller udokumenteret på den ene, gælder reglerne ovenfor;
- *  * modelrepoets profilfil over for samme fil frosset som tidsserie (`repo`, se `medRepoProfil`): samme kilde.
+ *  * modelrepoets profilfil over for samme fil frosset som tidsserie (`repo`, se `medRepoProfil`): samme kilde —
+ *    fjerde rettelsesrunde, punkt 3: kun når profilen bruges af samme aktive enhed(er) på begge sider
+ *    (`andrePlaceringer`). Ellers, eller når det ikke kan bevises: ukendt.
  */
 export function tidsserieafvigelse(felt: "varmelast" | "solprofil", a: Tidsseriekilde | null | undefined, b: Tidsseriekilde | null | undefined): Afvigelse | null {
     const [navn, standard] = felt === "varmelast" ? ["Varmelast", "syntesen"] : ["Solprofil", "værkets egen profil"];
     if (!a || !b) return { felt, navn, a: a ? serieTekst(a, standard) : "ukendt", b: b ? serieTekst(b, standard) : "ukendt", alvor: "ukendt" };
-    if (serieNøgle(a) === serieNøgle(b)) return null;
-    if (erUbrugt(a) && erUbrugt(b)) return null;
-    if (a.valg === "udtrykkeligt" || b.valg === "udtrykkeligt") return null;
     const [ta, tb] = [serieTekst(a, standard), serieTekst(b, standard)];
     const lille = navn.toLowerCase();
+    if (serieNøgle(a) === serieNøgle(b)) {
+        const p = andrePlaceringer(a, b);
+        if (!p) return null;
+        const hvem = (e: readonly string[] | undefined) => (e === undefined ? "ikke dokumenteret" : e.length ? e.join(", ") : "ingen aktiv enhed");
+        return { felt, navn: `${navn}ens placering`, a: ta, b: tb, alvor: "ukendt",
+            grund: `De to kørsler har ${lille} med samme indhold (${ta} og ${tb}), men det frosne input og kørslens manifest viser ikke, at den bruges af samme aktive enhed(er) (${hvem(p.a)} mod ${hvem(p.b)}). En profil på en anden enhed giver et andet produktionsloft.` };
+    }
+    if (erUbrugt(a) && erUbrugt(b)) return null;
+    if (a.valg === "udtrykkeligt" || b.valg === "udtrykkeligt") return null;
     if (a.valg === "arvet" && b.valg === "arvet") {
         return { felt, navn: `Værkets ${lille}`, a: ta, b: tb, alvor: "advarsel",
             grund: `Værkets ${lille} er ikke den samme i de to kørsler (${ta} mod ${tb}), og ingen af dem har valgt den i scenariet: grundlaget er ændret mellem kørslerne.` };
@@ -669,7 +721,7 @@ export function tidsserieafvigelse(felt: "varmelast" | "solprofil", a: Tidsserie
  */
 export function tidsserieforhold(a: Tidsseriekilde | null | undefined, b: Tidsseriekilde | null | undefined): "samme" | "samme_fil" | "ubrugt" | "valg" | "afviger" {
     if (!a || !b) return "afviger";
-    if (serieNøgle(a) === serieNøgle(b)) return a.art === b.art ? "samme" : "samme_fil";
+    if (serieNøgle(a) === serieNøgle(b)) return andrePlaceringer(a, b) ? "afviger" : a.art === b.art ? "samme" : "samme_fil";
     if (erUbrugt(a) && erUbrugt(b)) return "ubrugt";
     return a.valg === "udtrykkeligt" || b.valg === "udtrykkeligt" ? "valg" : "afviger";
 }

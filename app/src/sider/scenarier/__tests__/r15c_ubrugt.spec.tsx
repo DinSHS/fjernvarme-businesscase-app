@@ -42,7 +42,7 @@ const STI = "data/solar_andeby_dmi_karup.csv";
 const ref = { id: "s1", vaerk_id: "v1", navn: "Reference", arkiveret: false, oprettet: new Date(Date.UTC(2026, 10, 18, 8)), med_balancering: false } as Scenarie;
 const scen = { ...ref, id: "s2", navn: "Scenarie", reference_scenarie_id: "s1", oprettet: new Date(Date.UTC(2026, 10, 18, 9)) } as Scenarie;
 let n = 0;
-type Brug = { anvendt?: Record<string, { id: string; sha256: string }>; ubrugt?: Record<string, { id: string; sha256: string; grund?: string }> };
+type Brug = { anvendt?: Record<string, { id: string; sha256: string; enheder?: string[] }>; ubrugt?: Record<string, { id: string; sha256: string; grund?: string }> };
 function koersel(s: Scenarie, tidsserier?: Brug, model = MODEL): Koersel {
     n++;
     return {
@@ -53,7 +53,9 @@ function koersel(s: Scenarie, tidsserier?: Brug, model = MODEL): Koersel {
     } as Koersel;
 }
 const ubrugt = (rolle: string, id: string, sha: string): Brug => ({ anvendt: {}, ubrugt: { [rolle]: { id, sha256: sha, grund: "ingen aktiv enhed bruger den" } } });
-const anvendt = (rolle: string, id: string, sha: string): Brug => ({ anvendt: { [rolle]: { id, sha256: sha } }, ubrugt: {} });
+// Fjerde rettelsesrunde, punkt 3: som arbejderen skriver den (fabric/fjv/koersel.py › tidsserie_brug) — ALTID med de
+// enheder, serien blev lagt på. Uden `enheder` er placeringen ikke dokumenteret (r15d_solprofil_enhed.spec.tsx).
+const anvendt = (rolle: string, id: string, sha: string): Brug => ({ anvendt: { [rolle]: { id, sha256: sha, enheder: rolle === "solprofil" ? ["solvarme"] : ["heat_demand"] } }, ubrugt: {} });
 
 /** Samme par dømt alle tre steder: Analyser, scenariets side og oversigten. */
 function dømt(r: Koersel, ri: InputRække[], k: Koersel, ki: InputRække[]) {

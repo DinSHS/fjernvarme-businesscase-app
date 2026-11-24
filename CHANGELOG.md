@@ -277,6 +277,14 @@ præsentationen og i datahåndteringen omkring kørslerne.
   oversigten og kandidatlisten henter, tager derfor også enhedernes profilsti med (filter `endsWith`; ikke kørt mod
   DAB i Fabric). Sammenligningskortet siger nu, HVORFOR en forskel ikke spærrer: valgt i scenariet, ubrugt i begge,
   eller samme fil — før hed alle tre "valgt i scenariet".
+- **Samme solprofil på en anden enhed blev dømt som samme kilde** (fjerde rettelsesrunde, punkt 3). Reglen ovenfor
+  spurgte kun til hashen. Stod modelrepoets profilfil på én enhed (fx en elkedel), og blev samme fil som værkets
+  tidsserie lagt på solvarmeenheden, var dommen *direkte sammenlignelige*, selv om de to kørsler har forskellige
+  produktionslofter. De to formater er nu kun samme kilde, når profilen bruges af samme aktive enhed(er) på begge
+  sider: de aktive enheder med profilstien i det frosne input over for de enheder, regnemotoren lagde serien på
+  (`manifest_json.tidsserier.anvendt.solprofil.enheder`) plus dem, der stadig læser filen. Kan det ikke bevises —
+  også for en kørsel uden manifestets registrering — er dommen *kan ikke afgøres*, og kortet siger hvorfor. Den
+  korte frosne profil henter derfor også enhedernes `enabled` (filter `endsWith`; ikke kørt mod DAB i Fabric).
 - **Analysers kopi af README-referencerne var forældet** (fundet i tredje rettelsesrunde). De to Andeby-referencer
   fik i anden rettelsesrunde deres egen solprofil (`solprofil_sha256`), men den genererede kopi, Analysers
   kørselsliste læser (`sammensaetning.data.ts`), blev ikke bygget igen. En Andeby-kørsel med casens egen solprofil
