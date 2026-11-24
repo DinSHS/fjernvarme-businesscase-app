@@ -5,6 +5,7 @@
 // `startBestilling` første gang når serveren — det er det, P2-1 handler om. `svar(nr, kørsel)` bestemmer, hvad
 // KLIENTEN får at se for kald nr. `nr`; kørslen er da allerede committet, præcis som når svaret går tabt på vejen hjem.
 import { KildeFejl } from "@/lib/data/kilde";
+import { sætLæseKilde } from "@/lib/data/laes";
 import { sætSkriveKilde, type SkriveKilde } from "@/lib/data/skriv";
 
 export type Svar = Record<string, unknown>;
@@ -33,6 +34,8 @@ export function lager(
         afvisFør?: (nr: number) => Svar | undefined;
         /** Hænger svaret på kald nr. `nr` — EFTER at kørslen er committet? (En genindlæsning midt i kaldet.) */
         vent?: (nr: number) => Promise<void> | undefined;
+        /** Hænger kald nr. `nr` — FØR serveren har committet noget? (Kaldet er undervejs; kørslen kan stadig komme.) */
+        ventFør?: (nr: number) => Promise<void> | undefined;
     } = {},
 ): Lager {
     const l: Lager = { bestillinger: [], scenarier: [], kørsler: new Map(), frosset: new Map(), indhold: { nu: "A" }, opslag: { antal: 0 } };
@@ -74,16 +77,17 @@ export function lager(
             startBestilling: {
                 invoke: async (i: { bestillingId: string }) => {
                     kald += 1;
-                    const før = valg.kaldFejlerFør?.(kald);
+                    const nr = kald;
+                    await valg.ventFør?.(nr);
+                    const før = valg.kaldFejlerFør?.(nr);
                     if (før) throw før;
-                    const nej = valg.afvisFør?.(kald);
+                    const nej = valg.afvisFør?.(nr);
                     if (nej) return nej;
                     if (!l.kørsler.has(i.bestillingId)) {                                              // committet
                         const k = `k${l.kørsler.size + 1}`;
                         l.kørsler.set(i.bestillingId, k);
                         l.frosset.set(k, l.indhold.nu);
                     }
-                    const nr = kald;
                     await valg.vent?.(nr);
                     const s = svar(nr, l.kørsler.get(i.bestillingId)!);
                     if (s instanceof Error) throw s;
@@ -96,7 +100,40 @@ export function lager(
     return l;
 }
 
+/** Knappens sammenligning i testene (fjerde rettelsesrunde, punkt 2): kørslen er frosset med netop dette indhold. */
+export const frossetMed = (l: Lager, indhold: string) => async (koerselId: string) => l.frosset.get(koerselId) === indhold;
+
 export const ok = (kørsel: string): Svar => ({ ok: true, koersel_id: kørsel, status: "koe", ny: true, arbejder: { startet: true, grund: "" } });
 export const TABT = new Error("Failed to fetch");
 export const TEKNISK: Svar = { ok: false, afvist: "Teknisk fejl i startBestilling: forbindelsen døde", teknisk: true };
 export const UAFKLARET = /Vi ved ikke, om .* blev bestilt — prøv igen/;
+
+/** En kørsels frosne input, som læselaget ser det: `Koersel.vaerk_revision` og `KoerselInput`-rækkerne. */
+export interface FrossenKoersel { vaerk_revision: number; rækker: { kilde: string; sti: string; vaerdi_json: string }[] }
+
+/**
+ * Læsekilden til `frossetSomNu` (fjerde rettelsesrunde, punkt 2): `Koersel`, `KoerselInput` og værkets `Tidsserie`.
+ * `frosset(id)` giver kørslens frosne input — `undefined`: kørslen findes ikke; en `Error`: læsningen fejler teknisk.
+ */
+export function læsFrosset(frosset: (koerselId: string) => FrossenKoersel | Error | undefined, serier: Record<string, unknown>[] = []): void {
+    const svar = (rækker: () => Record<string, unknown>[]) => ({
+        select: () => { const q = { where: () => q, orderBy: () => q, first: () => q, after: () => q, executePaginated: async () => ({ items: rækker(), hasNextPage: false, endCursor: null }) }; return q; },
+    });
+    const efter = (felt: string, lav: (id: string) => Record<string, unknown>[]) => ({
+        select: () => {
+            let id = "";
+            const q = {
+                where(f: Record<string, { eq: string }>) { id = f[felt]?.eq ?? ""; return q; }, orderBy: () => q, first: () => q, after: () => q,
+                executePaginated: async () => ({ items: lav(id), hasNextPage: false, endCursor: null }),
+            };
+            return q;
+        },
+    });
+    const hent = (id: string) => { const f = frosset(id); if (f instanceof Error) throw f; return f; };
+    const data: Record<string, unknown> = {
+        Koersel: efter("id", (id) => { const f = hent(id); return f ? [{ id, vaerk_revision: f.vaerk_revision }] : []; }),
+        KoerselInput: efter("koersel_id", (id) => (hent(id)?.rækker ?? []).map((r, i) => ({ id: `${id}-${i}`, koersel_id: id, ...r }))),
+        Tidsserie: svar(() => serier),
+    };
+    sætLæseKilde(() => ({ data: new Proxy(data, { get: (m, navn: string) => m[navn] ?? svar(() => []) }) }) as never);
+}

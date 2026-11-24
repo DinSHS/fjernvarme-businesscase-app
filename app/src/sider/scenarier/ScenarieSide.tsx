@@ -4,7 +4,7 @@
 // til sammenligningen med referencen. Arkivér (ingen sletning).
 //-----------------------------------------------------------------------
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { DataTilstand, Gitter, Kort, Knap, Maerke, Side, StatusMaerke, Tabel } from "@/components/layout";
 import { useKoersler, useKoerselInput, useKoerselStatus, useScenarie, useScenarieAendringer, useScenarier, useVaerker } from "@/lib/data/hooks";
 import { gemScenarieAendringer, opdaterScenarie, type ÆndringUdkast } from "@/lib/data/skriv";
@@ -27,6 +27,7 @@ import { enhedAf, gabProcent, katalogpost, læsTal, rodKode, stiEtiket, sætbare
 import { kodVarmelast, læsVarmelast, tjekSolprofil, tjekVarmelast, valgFraNøgle, valgNøgle, varmelastMuligheder, varmelastTekst, type TidsserieInfo } from "./varmelast";
 import { ScenarieHistorie } from "./HistorieKort";
 import { KoerselDetaljer } from "./KoerselKort";
+import { frossetSomNu } from "./frosset-som-nu";
 import { KoerKnap } from "./KoerKnap";
 import { differenceTekst } from "../analyser/beregn";
 import { modReference, sammenlignHref } from "./koersel-logik";
@@ -212,11 +213,18 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
     const tidsgrænse = effektivTidsgraense(s.tidsgraense_s, blade);
 
     // P2-1: fingeraftrykket af det, en kørsel NU ville fryse — af det gemte scenarie, som varighed og budskab.
-    const aftryk = useMemo(() => bestillingsaftryk(vaerk, aendringer.map((a) => ({ type: a.type, sti: a.sti, vaerdi_json: a.vaerdi_json })), {
-        periode_start: s.periode_start ?? null, periode_slut: s.periode_slut ?? null, med_balancering: s.med_balancering,
-        balancing_method: (s.balancing_method ?? null) as Scenariefelter["balancing_method"], mip_rel_gap: s.mip_rel_gap ?? null, mip_abs_gap: s.mip_abs_gap ?? null,
-        tidsgraense_s: s.tidsgraense_s ?? null, ekstra_flag: s.ekstra_flag ?? null, heat_csv: s.heat_csv ?? null,
-    }, blade), [vaerk, aendringer, s, blade]);
+    const gemt = useMemo(() => ({
+        ændringer: aendringer.map((a) => ({ type: a.type, sti: a.sti, vaerdi_json: a.vaerdi_json })),
+        felter: {
+            periode_start: s.periode_start ?? null, periode_slut: s.periode_slut ?? null, med_balancering: s.med_balancering,
+            balancing_method: (s.balancing_method ?? null) as Scenariefelter["balancing_method"], mip_rel_gap: s.mip_rel_gap ?? null, mip_abs_gap: s.mip_abs_gap ?? null,
+            tidsgraense_s: s.tidsgraense_s ?? null, ekstra_flag: s.ekstra_flag ?? null, heat_csv: s.heat_csv ?? null,
+        } satisfies Scenariefelter,
+    }), [aendringer, s]);
+    const aftryk = useMemo(() => bestillingsaftryk(vaerk, gemt.ændringer, gemt.felter, blade), [vaerk, gemt, blade]);
+    // Punkt 2 (fjerde rettelsesrunde): aftrykket er, hvad siden SÅ. Blev et forsøg på et andet aftryk til en kørsel,
+    // afgør kørslens frosne input over for det samme gemte scenarie, om den er svaret (frosset-som-nu.ts).
+    const somFrosset = useCallback((koerselId: string) => frossetSomNu(koerselId, vaerk, gemt.ændringer, gemt.felter, blade), [vaerk, gemt, blade]);
 
     const gem = async () => {
         setGemmer(true);
@@ -350,7 +358,7 @@ function Redigering({ s, aendringer, vaerk, vaerker, blade, bekraeft, serier, se
                     budskab={seneste ? `${STATUS_TEKST[seneste.status]}${seneste.fase && erAktiv(seneste.status) ? ` · ${seneste.fase}` : ""}.`
                         : varighed ? `Forventet ${forventetTekst(varighed)} regnetid ved ${gemtPeriode.doegn ? Math.round(gemtPeriode.doegn) : "?"} døgn.` : undefined}
                     fod={`Tidsgrænse ${tal(tidsgrænse)} s. Status opdateres hvert 20. sekund, mens kørslen er i gang og fanen er synlig.`}>
-                    <KoerKnap s={s} bruger={bruger} aftryk={aftryk} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
+                    <KoerKnap s={s} bruger={bruger} aftryk={aftryk} somFrosset={somFrosset} spærret={ændret ? "Gem først." : blokeret ? "Ret fejlene først." : s.arkiveret ? "Scenariet er arkiveret." : undefined} />
                     <DataTilstand h={koersler}>
                         {() => (seneste
                             ? <KoerselDetaljer k={seneste} varighed={varighed} reference={frossetHentet ? reference : undefined} frosset={frosset} tidsgraense_s={tidsgrænse}

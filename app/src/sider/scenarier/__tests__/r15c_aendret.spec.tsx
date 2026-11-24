@@ -21,7 +21,7 @@ import { KomIGang } from "../../konfiguration/KomIGang";
 import type { Gruppering } from "../../konfiguration/gruppering";
 import { KoerKnap } from "../KoerKnap";
 import { bestillingsaftryk } from "../logik";
-import { lager, ok, TABT, UAFKLARET } from "./bestillingslager.testdata";
+import { frossetMed, lager, læsFrosset, ok, TABT, UAFKLARET } from "./bestillingslager.testdata";
 
 const klik = async (navn: RegExp | string) => { await act(async () => { fireEvent.click(screen.getByRole("button", { name: navn })); }); await act(async () => {}); };
 const status = () => screen.getByRole("status").textContent ?? "";
@@ -43,7 +43,7 @@ describe("P2-1 · ændret indhold: forsøget genoptages ikke", () => {
         expect(status()).toMatch(UAFKLARET);
         første.unmount();
         l.indhold.nu = "B";                                           // brugeren gemmer en ændring
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" somFrosset={frossetMed(l, "B")} />);
         // Knappen lover ikke at genoptage: næste klik er en NY bestilling af det ændrede scenarie.
         expect(knap("Prøv igen")).toBeNull();
         await klik("Kør scenariet");
@@ -62,7 +62,7 @@ describe("P2-1 · ændret indhold: forsøget genoptages ikke", () => {
         expect(status()).toBe("Du har allerede 3 kørsler i kø.");
         første.unmount();
         l.indhold.nu = "B";
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" somFrosset={frossetMed(l, "B")} />);
         await klik("Kør scenariet");
         expect(l.bestillinger.length).toBe(2);
         expect([...l.frosset]).toEqual([["k1", "B"]]);
@@ -74,7 +74,7 @@ describe("P2-1 · ændret indhold: forsøget genoptages ikke", () => {
         await klik("Kør scenariet");
         første.unmount();
         l.indhold.nu = "B";
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" somFrosset={frossetMed(l, "B")} />);
         await klik("Kør scenariet");
         expect(l.bestillinger.length).toBe(1);                       // intet nyt er sendt
         expect(status()).toMatch(/ændret siden et forsøg/);
@@ -89,7 +89,7 @@ describe("P2-1 · ændret indhold: forsøget genoptages ikke", () => {
         const a = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
         await klik("Kør scenariet");
         a.unmount();
-        const b = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" />);
+        const b = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" somFrosset={frossetMed(l, "B")} />);
         expect(knap("Prøv igen")).toBeNull();
         b.unmount();
         render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="A" />);
@@ -210,6 +210,8 @@ describe("P2-1 · prøvekørslen: også scenariet overlever en genindlæsning", 
         await klik("Bestil en prøvekørsel (2 døgn)");
         første.unmount();
         l.indhold.nu = "B";
+        // Fjerde rettelsesrunde, punkt 2: den gamle kørsel frøs revision 1 — det frosne input afviger faktisk.
+        læsFrosset(() => ({ vaerk_revision: 1, rækker: [{ kilde: "scenarie", sti: "_koersel.med_balancering", vaerdi_json: "false" }] }));
         render(<KomIGang vaerk={{ ...vaerk, revision: 2 }} g={g} bruger="a@b.dk" gåTil={() => {}} />);
         await klik("Bestil en prøvekørsel (2 døgn)");
         expect([l.scenarier.length, l.bestillinger.length, l.kørsler.size]).toEqual([1, 2, 2]);

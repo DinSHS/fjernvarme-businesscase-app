@@ -15,7 +15,7 @@ import { sætLæseKilde } from "@/lib/data/laes";
 import { sætSkriveKilde } from "@/lib/data/skriv";
 import type { Scenarie } from "../../../../rayfin/data/Scenarie";
 import { KoerKnap } from "../KoerKnap";
-import { lager, ok, TABT } from "./bestillingslager.testdata";
+import { frossetMed, lager, ok, TABT } from "./bestillingslager.testdata";
 
 const scenarie = (id: string) => ({ id } as Scenarie);
 const knap = (navn: string) => screen.queryByRole("button", { name: navn });
@@ -45,7 +45,7 @@ describe("punkt 1 · et sent svar må ikke slette et nyere forsøg", () => {
         første.unmount();
 
         l.indhold.nu = "B";                                           // brugeren gemmer B; redigeringen monteres på ny
-        const anden = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" />);
+        const anden = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" somFrosset={frossetMed(l, "B")} />);
         await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Kør scenariet" })); });
         await vi.waitFor(() => expect(l.kørsler.size).toBe(2));      // K2 er committet med sin egen nøgle
         expect(l.bestillinger[0].klient_noegle).not.toBe(l.bestillinger[1].klient_noegle);
@@ -55,7 +55,7 @@ describe("punkt 1 · et sent svar må ikke slette et nyere forsøg", () => {
         anden.unmount();
         genindlæsBestillingsforsøg();                                // modulets hukommelse er væk; sessionStorage står
 
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" somFrosset={frossetMed(l, "B")} />);
         // Før rettelsen: A's afslutning havde slettet B's forsøg — knappen hed "Kør scenariet", og klikket gav K3.
         expect(knap("Prøv igen")).not.toBeNull();
         await klik("Prøv igen");
@@ -74,13 +74,13 @@ describe("punkt 1 · et sent svar må ikke slette et nyere forsøg", () => {
         await vi.waitFor(() => expect(l.kørsler.size).toBe(1));
         første.unmount();
         l.indhold.nu = "B";
-        const anden = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" />);
+        const anden = render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" somFrosset={frossetMed(l, "B")} />);
         await klik("Kør scenariet");                                  // B bestilt og kvitteret: forsøget er afsluttet
         expect(l.kørsler.size).toBe(2);
         await a.slip();                                               // nu taber A's kald sit svar
         anden.unmount();
         genindlæsBestillingsforsøg();
-        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" />);
+        render(<KoerKnap s={scenarie("s1")} bruger="a@b.dk" aftryk="B" somFrosset={frossetMed(l, "B")} />);
         expect(knap("Prøv igen")).toBeNull();
         expect(sessionStorage.getItem("fjv.bestillingsforsoeg.v1")).toBeNull();
     });

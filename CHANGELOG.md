@@ -204,6 +204,17 @@ præsentationen og i datahåndteringen omkring kørslerne.
   bestilling stadig undervejs, da man rettede scenariet og bestilte igen (ny nøgle), slettede det sene svar det nyere
   forsøg — også det gemte. Gik svaret på den nye bestilling så tabt, gav næste klik efter en genindlæsning en tredje
   kørsel. Et svar afslutter nu kun det forsøg, der bærer samme klientnøgle som kaldet.
+- **Et forældet fingeraftryk kunne give to kørsler af samme indhold** (fjerde rettelsesrunde, punkt 2).
+  Fingeraftrykket er det, fanen viste ved klikket; serveren fryser det, der er gemt. Var scenariet gemt i en anden
+  fane inden klikket, og gik svaret tabt, så næste klik efter en genindlæsning en "ændring", bestilte en kørsel mere
+  med samme indhold og skrev, at den første var regnet med det tidligere indhold. Blev det forrige forsøg til en
+  kørsel, sammenlignes det, der nu skal bestilles, med kørslens frosne input (som ved genbrug af en reference: de
+  frosne rækker uden pins, og værkets revision). Er det ens, er den gamle kørsel svaret — "Kørslen er allerede
+  bestilt" — og intet nyt bestilles. Kun når det frosne input faktisk afviger, bestilles nyt, og kun da nævnes "det
+  tidligere indhold". Kan det frosne input ikke hentes, bestilles intet. Er det forrige forsøg endnu ikke en kørsel,
+  men uafklaret (kaldet kan stadig nå frem), bestilles heller intet nyt, før udfaldet er kendt — eller man
+  udtrykkeligt vælger den nye knap *Bestil ny kørsel*. En endelig afvisning, hvor bestillingen blev stående, er ikke
+  undervejs og giver som før en ny bestilling. Gælder *Kør scenariet* og *Bestil en prøvekørsel*.
 - **PostgreSQL brugte samme 32-bit låsenøgler på tværs af tre låsetyper** (tredje rettelsesrunde, P3-6; kun den
   lokale udgave på PostgreSQL). Kvotelåsen, bestillingens lås og arkivets kørselslås blev alle taget som
   `pg_advisory_xact_lock(hashtext(navn))` — ét fælles rum, hvor præfikset ikke skiller typerne efter hashing. Ramte

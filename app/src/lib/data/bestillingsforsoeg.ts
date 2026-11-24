@@ -41,6 +41,22 @@
 //
 // Fjerde rettelsesrunde, punkt 1: et svar afslutter kun det forsøg, der bærer SAMME klientnøgle som kaldet. Pladsen
 // (bruger + mål) kan have fået et nyere forsøg, mens svaret var undervejs.
+//
+// Fjerde rettelsesrunde, punkt 2: "andet aftryk" er klientens FORMODNING om en ændring, ikke et bevis. Aftrykket er
+// det, fanen SÅ ved klikket; serveren fryser det, der er GEMT. Er scenariet gemt i en anden fane inden klikket, husker
+// forsøget A, mens kørslen fryser B — og efter en genindlæsning ligner det uændrede B en ændring. Før gav det to
+// kørsler af B og en kvittering om, at den første var "regnet med det tidligere indhold". Ved andet aftryk afgør den
+// gamle bestillings tilstand derfor, hvad der sker:
+//
+//   blev til en kørsel     -> det, der nu skal bestilles, sammenlignes med kørslens FROSNE input (`somFrosset`):
+//                               ens          den gamle kørsel er svaret (`genfundet`); intet nyt bestilles
+//                               forskelligt  ny nøgle, ny bestilling; kun da følger `forrige` med ("tidligere indhold")
+//                               ved ikke     `forrige_ukendt`; intet nyt
+//   ingen kørsel endnu,    -> `forrige_aaben`; intet nyt. Det gamle kald kan stadig committe. Først når udfaldet er
+//   forsøget uafklaret        kendt (næste klik slår op igen), eller brugeren udtrykkeligt vælger *Bestil ny kørsel*
+//                             (`bestilNy`), sendes en ny bestilling.
+//   ingen kørsel, endeligt -> ny nøgle, ny bestilling (som før): intet kald er undervejs, og den stående bestilling
+//   afvist                    bliver kun til en kørsel, hvis klienten selv genoptager den.
 //-----------------------------------------------------------------------
 
 import { Afvist, bestillingensKoersel } from "./skriv";
@@ -107,7 +123,11 @@ export interface Forsøgsmål {
  * `genoptages`: bestillingen står eller kan stå — næste klik med SAMME indhold sender samme nøgle. `aftryk` er en kort
  * kontrolsum af fingeraftrykket (ikke teksten selv: den kan være flere kilobyte og skal ikke ligge i browseren).
  */
-interface Husket { nøgle: string; scenarieId?: string; genoptages?: boolean; aftryk: string }
+interface Husket {
+    nøgle: string; scenarieId?: string; genoptages?: boolean; aftryk: string;
+    /** Seneste udfald var en ENDELIG afvisning (bestillingen står, men intet kald er undervejs). Ellers er et åbent forsøg uafklaret. */
+    afvist?: boolean;
+}
 
 const LAGERNØGLE = "fjv.bestillingsforsoeg.v1";
 let FORSØG: Map<string, Husket> | undefined;
@@ -131,7 +151,8 @@ function kontrolsum(tekst: string): string {
 function erHusket(x: unknown): x is Husket {
     const h = x as Partial<Husket> | null;
     return !!h && typeof h.nøgle === "string" && !!h.nøgle && typeof h.aftryk === "string"
-        && (h.scenarieId === undefined || typeof h.scenarieId === "string") && (h.genoptages === undefined || typeof h.genoptages === "boolean");
+        && (h.scenarieId === undefined || typeof h.scenarieId === "string") && (h.genoptages === undefined || typeof h.genoptages === "boolean")
+        && (h.afvist === undefined || typeof h.afvist === "boolean");
 }
 
 function forsøg(): Map<string, Husket> {
@@ -187,11 +208,32 @@ export function åbentForsøg(m: Forsøgsmål): "samme" | "aendret" | undefined 
 export type HusketUdfald =
     | (Bestillingsudfald & {
         scenarieId: string;
-        /** Et forsøg på det TIDLIGERE indhold var blevet til denne kørsel. */
+        /** Et forsøg på det TIDLIGERE indhold var blevet til denne kørsel — dens frosne input afviger fra det nu bestilte. */
         forrige?: { koersel_id: string };
+        /**
+         * Kun ved `bestilt`: intet er sendt. Det forrige forsøg var blevet til kørslen, og dens frosne input er det, der
+         * nu skulle bestilles. `svar` er da ikke serverens (der er intet svar), kun kørslens id.
+         */
+        genfundet?: boolean;
     })
-    /** Indholdet er ændret siden et åbent forsøg, og det gamle forsøg kunne ikke slås op. Intet nyt er sendt. */
-    | { art: "forrige_ukendt"; detalje: string; scenarieId: string };
+    /**
+     * Aftrykket afviger fra et åbent forsøg, og det gamle forsøg kunne ikke slås op — eller det blev til kørslen
+     * `forrige`, hvis frosne input ikke kunne hentes. Intet nyt er sendt.
+     */
+    | { art: "forrige_ukendt"; detalje: string; scenarieId: string; forrige?: { koersel_id: string } }
+    /** Aftrykket afviger fra et uafklaret forsøg, der endnu ikke er en kørsel, men kan blive det. Intet nyt er sendt. */
+    | { art: "forrige_aaben"; scenarieId: string };
+
+/** Hvad `bestilHusket` skal vide ud over målet. */
+export interface Bestillingsvalg {
+    /**
+     * Er det, der NU skal bestilles, det samme som den gamle kørsels FROSNE input? KASTER, når det ikke kan afgøres
+     * (scenarier/frosset-som-nu.ts). Uden den kan lighed ikke bevises, og et forsøg, der blev til en kørsel, står uafklaret.
+     */
+    somFrosset?: (koerselId: string) => Promise<boolean>;
+    /** Brugerens udtrykkelige valg (*Bestil ny kørsel*): bestil, selv om et forsøg på det tidligere indhold kan være undervejs. */
+    bestilNy?: boolean;
+}
 
 const stort = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -202,10 +244,20 @@ const stort = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export function udfaldTekst(u: Exclude<HusketUdfald, { art: "bestilt" }>, hvad: string, det: string): string {
     if (u.art === "uafklaret") return uafklaretTekst(hvad, u.detalje);
     if (u.art === "forrige_ukendt") {
-        const d = u.detalje.trim();
-        return `${stort(det)} er ændret siden et forsøg, hvis udfald vi ikke kender, og det forsøg kunne ikke slås op. Intet nyt er bestilt — prøv igen om lidt.${d ? ` (${d})` : ""}`;
+        const d = u.detalje.trim(), slut = `Intet nyt er bestilt — prøv igen om lidt.${d ? ` (${d})` : ""}`;
+        return u.forrige
+            ? `Et tidligere forsøg på at bestille ${hvad} blev til en kørsel (${u.forrige.koersel_id.slice(0, 8)}), men dens frosne input kunne ikke hentes, så vi ved ikke, om den allerede er regnet med det, der nu skal bestilles. ${slut}`
+            : `${stort(det)} er ændret siden et forsøg, hvis udfald vi ikke kender, og det forsøg kunne ikke slås op. ${slut}`;
+    }
+    if (u.art === "forrige_aaben") {
+        return `${stort(det)} er ændret siden et forsøg på at bestille ${hvad}, som endnu ikke er blevet til en kørsel, men kan stadig blive det. Intet nyt er bestilt. Prøv igen om lidt — eller vælg Bestil ny kørsel, hvis det ændrede skal bestilles nu; når det forrige forsøg alligevel frem, kommer der to kørsler.`;
     }
     return u.tekst;
+}
+
+/** Kvitteringen, når det forrige forsøg viste sig at være blevet til en kørsel af netop det, der nu skulle bestilles. */
+export function genfundetTekst(koerselId: string, hvad: string): string {
+    return `${stort(hvad)} er allerede bestilt: et tidligere forsøg blev til en kørsel (${koerselId.slice(0, 8)}), og dens frosne input er det samme som det, der nu skulle bestilles. Intet nyt er bestilt.`;
 }
 
 /** Tilføjelsen til kvitteringen, når et forsøg på det tidligere indhold viste sig at være blevet til en kørsel. */
@@ -217,7 +269,7 @@ export function forrigeTekst(forrige: { koersel_id: string }, det: string): stri
 export function åbentTekst(tilstand: "samme" | "aendret", hvad: string, det: string): string {
     return tilstand === "samme"
         ? `Der står et forsøg på at bestille ${hvad}, hvis udfald vi ikke kender. Prøv igen sender samme bestilling, så der kommer højst én kørsel.`
-        : `${stort(det)} er ændret siden et forsøg på at bestille ${hvad}, hvis udfald vi ikke kender. Næste klik bestiller det ændrede som en ny kørsel og fortæller, om det forrige forsøg blev til en kørsel.`;
+        : `${stort(det)} er ændret siden et forsøg på at bestille ${hvad}, hvis udfald vi ikke kender. Næste klik slår først det forrige forsøg op: blev det til en kørsel med samme frosne input som nu, er den svaret; ellers bestilles det ændrede som en ny kørsel.`;
 }
 
 /**
@@ -229,6 +281,7 @@ export async function bestilHusket(
     m: Forsøgsmål,
     scenarie: () => Promise<string>,
     bestil: (scenarieId: string, nøgle: string) => Promise<Bestillingssvar>,
+    valg: Bestillingsvalg = {},
 ): Promise<HusketUdfald> {
     const alle = forsøg(), k = plads(m), aftryk = kontrolsum(m.aftryk);
     let h = alle.get(k);
@@ -242,7 +295,28 @@ export async function bestilHusket(
             } catch (e) {
                 return { art: "forrige_ukendt", detalje: e instanceof Error ? e.message : String(e), scenarieId: h.scenarieId };
             }
-            if (gammel?.koersel_id) forrige = { koersel_id: gammel.koersel_id };
+            if (gammel?.koersel_id) {
+                // Punkt 2: aftrykket er, hvad fanen SÅ; kørslens frosne input er, hvad der blev bestilt. Kun det afgør,
+                // om den gamle kørsel er en kørsel af noget andet — eller allerede svaret på dette klik.
+                const fundet = { koersel_id: gammel.koersel_id };
+                let ens: boolean;
+                try {
+                    if (!valg.somFrosset) throw new Error("ingen sammenligning med det frosne input");
+                    ens = await valg.somFrosset(fundet.koersel_id);
+                } catch (e) {
+                    return { art: "forrige_ukendt", detalje: e instanceof Error ? e.message : String(e), scenarieId: h.scenarieId, forrige: fundet };
+                }
+                if (ens) {
+                    // Udfaldet af det gamle forsøg er kendt, og det er svaret: glem forsøget (hvis pladsen stadig er dets).
+                    if (forsøg().get(k)?.nøgle === h.nøgle) { forsøg().delete(k); gem(); }
+                    return { art: "bestilt", koersel_id: fundet.koersel_id, svar: { ok: true, koersel_id: fundet.koersel_id }, scenarieId: h.scenarieId, genfundet: true };
+                }
+                forrige = fundet;
+            } else if (!h.afvist && !valg.bestilNy) {
+                // Ingen kørsel ENDNU — men forsøget er uafklaret: kaldet kan være undervejs og committe om lidt. En ny
+                // nøgle nu ville give to kørsler. Forsøget bliver stående; næste klik slår op igen.
+                return { art: "forrige_aaben", scenarieId: h.scenarieId };
+            }
         }
         // Ny nøgle til det nye indhold; scenariet er det samme (prøvekørslens er allerede oprettet).
         h = { nøgle: crypto.randomUUID(), scenarieId: h.scenarieId, aftryk };
@@ -261,6 +335,7 @@ export async function bestilHusket(
     const scenarieId = h.scenarieId, nøgle = h.nøgle;
     // Gemmes åbent, FØR kaldet sendes: forlades eller genindlæses siden midt i kaldet, kendes udfaldet ikke.
     h.genoptages = true;
+    h.afvist = false;
     gem();
     const u = await bestilMedUdfald(() => bestil(scenarieId, nøgle));
     // Svaret hører til NØGLEN, ikke til pladsen. Mens kaldet var undervejs, kan et nyere forsøg (ændret indhold, ny
@@ -270,7 +345,7 @@ export async function bestilHusket(
     if (nu?.nøgle === nøgle) {
         if (u.art === "bestilt") forsøg().delete(k);
         else if (u.art === "ryddet") { nu.nøgle = crypto.randomUUID(); nu.genoptages = false; }    // bestillingen er væk; scenariet beholdes
-        else nu.genoptages = skalGenoptages(u);
+        else { nu.genoptages = skalGenoptages(u); nu.afvist = u.art === "afvist"; }
         gem();
     }
     return { ...u, scenarieId, ...(forrige ? { forrige } : {}) };

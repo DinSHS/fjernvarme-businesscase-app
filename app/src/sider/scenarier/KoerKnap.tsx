@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { Knap } from "@/components/layout";
-import { bestilHusket, forrigeTekst, udfaldTekst, åbentForsøg, åbentTekst, type Forsøgsmål } from "@/lib/data/bestillingsforsoeg";
+import { bestilHusket, forrigeTekst, genfundetTekst, udfaldTekst, åbentForsøg, åbentTekst, type Forsøgsmål } from "@/lib/data/bestillingsforsoeg";
 import { opdaterAlt } from "@/lib/data/opdatering";
 import { bestilKoersel } from "@/lib/data/skriv";
 import type { Scenarie } from "../../../rayfin/data/Scenarie";
@@ -22,20 +22,27 @@ import type { Scenarie } from "../../../rayfin/data/Scenarie";
  * en ny kørsel, og blev det gamle forsøg til en kørsel, står det i kvitteringen. Før kvitterede knappen for den gamle
  * kørsel — med de gamle input. Den åbne tilstand læses af det huskede forsøg, ikke af komponentens eget svar, så den
  * også vises, når siden åbnes igen.
+ *
+ * Fjerde rettelsesrunde, punkt 2: aftrykket er, hvad siden SÅ — scenariet kan være gemt i en anden fane inden klikket.
+ * Blev et forsøg på et andet aftryk til en kørsel, afgør `somFrosset` (kørslens frosne input over for det, der nu skal
+ * bestilles), om den er svaret eller en kørsel af noget andet. Uden `somFrosset` kan det ikke afgøres, og intet nyt
+ * bestilles. Kan det gamle kald stadig være undervejs, bestilles intet nyt, før brugeren vælger *Bestil ny kørsel*.
  */
-export function KoerKnap({ s, bruger, aftryk, spærret }: { s: Scenarie; bruger: string | undefined; aftryk: string; spærret?: string }) {
-    const [svar, setSvar] = useState<{ ok: boolean; tekst: string } | undefined>();
+export function KoerKnap({ s, bruger, aftryk, somFrosset, spærret }: {
+    s: Scenarie; bruger: string | undefined; aftryk: string; somFrosset?: (koerselId: string) => Promise<boolean>; spærret?: string;
+}) {
+    const [svar, setSvar] = useState<{ ok: boolean; tekst: string; åben?: boolean } | undefined>();
     const [sender, setSender] = useState(false);
     const mål: Forsøgsmål = { mål: `scenarie:${s.id}`, bruger, aftryk };
-    const kør = async () => {
+    const kør = async (bestilNy = false) => {
         setSender(true);
         setSvar(undefined);
         try {
-            const u = await bestilHusket(mål, async () => s.id, (id, nøgle) => bestilKoersel(id, bruger, nøgle));
+            const u = await bestilHusket(mål, async () => s.id, (id, nøgle) => bestilKoersel(id, bruger, nøgle), { somFrosset, bestilNy });
             const a = u.art === "bestilt" ? u.svar.arbejder : undefined;
             setSvar(u.art === "bestilt"
-                ? { ok: true, tekst: `${a?.startet ? "Kørslen er bestilt, og beregningen er startet." : `Kørslen er bestilt. ${a?.grund ?? ""}`}${u.forrige ? forrigeTekst(u.forrige, "scenariet") : ""}` }
-                : { ok: false, tekst: udfaldTekst(u, "kørslen", "scenariet") });
+                ? { ok: true, tekst: u.genfundet ? genfundetTekst(u.koersel_id, "kørslen") : `${a?.startet ? "Kørslen er bestilt, og beregningen er startet." : `Kørslen er bestilt. ${a?.grund ?? ""}`}${u.forrige ? forrigeTekst(u.forrige, "scenariet") : ""}` }
+                : { ok: false, tekst: udfaldTekst(u, "kørslen", "scenariet"), åben: u.art === "forrige_aaben" });
             opdaterAlt();
         } catch (e) {
             setSvar({ ok: false, tekst: e instanceof Error ? e.message : String(e) });
@@ -50,7 +57,9 @@ export function KoerKnap({ s, bruger, aftryk, spærret }: { s: Scenarie; bruger:
     return (
         <div className="fs-blok">
             <div className="fs-raekke">
-                <Knap onClick={kør} disabled={sender || !bruger || !!spærret} title={spærret}>{sender ? "Bestiller…" : fortsætter ? "Prøv igen" : "Kør scenariet"}</Knap>
+                <Knap onClick={() => kør()} disabled={sender || !bruger || !!spærret} title={spærret}>{sender ? "Bestiller…" : fortsætter ? "Prøv igen" : "Kør scenariet"}</Knap>
+                {/* Kun efter et klik, der har vist, at det forrige forsøg står åbent — og kun mens indholdet stadig er et andet. */}
+                {svar?.åben && åbent === "aendret" && <Knap sekundaer onClick={() => kør(true)} disabled={sender || !bruger || !!spærret} title={spærret}>Bestil ny kørsel</Knap>}
                 {spærret && <span className="fs-lille">{spærret}</span>}
             </div>
             {svar && <p className="fs-tekst" role="status" style={{ color: svar.ok ? "var(--dash-pos)" : "var(--dash-neg)" }}>{svar.tekst}</p>}
